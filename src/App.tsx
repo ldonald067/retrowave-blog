@@ -1,0 +1,429 @@
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { useAuth } from './hooks/useAuth';
+import { usePosts } from './hooks/usePosts';
+import { useToast } from './hooks/useToast';
+import { useReactions } from './hooks/useReactions';
+import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import PostCard from './components/PostCard';
+import LoadingSpinner from './components/LoadingSpinner';
+import EmptyState from './components/EmptyState';
+import ErrorMessage from './components/ErrorMessage';
+import Toast from './components/Toast';
+import type { Post, CreatePostInput } from './types/post';
+
+// Lazy-load heavy modal/overlay components — only fetched when needed
+const PostModal = lazy(() => import('./components/PostModal'));
+const ProfileModal = lazy(() => import('./components/ProfileModal'));
+const AuthModal = lazy(() => import('./components/AuthModal'));
+const AgeVerification = lazy(() => import('./components/AgeVerification'));
+const OnboardingFlow = lazy(() => import('./components/OnboardingFlow'));
+
+type ModalMode = 'create' | 'edit' | 'view';
+
+/** Minimal fallback shown while lazy chunks load */
+function LazyFallback() {
+  return (
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
+      <LoadingSpinner />
+    </div>
+  );
+}
+
+/** Virtualized post list — only renders posts visible in viewport */
+const VIRTUAL_OVERSCAN = 3;
+const ESTIMATED_POST_HEIGHT = 280;
+
+function PostList({
+  posts,
+  onEdit,
+  onDelete,
+  onView,
+  onReaction,
+  currentUserId,
+}: {
+  posts: Post[];
+  onEdit: (post: Post) => void;
+  onDelete: (post: Post) => void;
+  onView: (post: Post) => void;
+  onReaction?: (postId: string, emoji: string) => void;
+  currentUserId?: string;
+}) {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: posts.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ESTIMATED_POST_HEIGHT,
+    overscan: VIRTUAL_OVERSCAN,
+  });
+
+  return (
+    <div ref={parentRef} className="max-h-[80vh] overflow-auto scrollbar-thin">
+      <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
+        <AnimatePresence>
+          {virtualizer.getVirtualItems().map((virtualRow) => {
+            const post = posts[virtualRow.index];
+            if (!post) return null;
+            return (
+              <div
+                key={post.id}
+                ref={virtualizer.measureElement}
+                data-index={virtualRow.index}
+                className="absolute top-0 left-0 w-full pb-4"
+                style={{ transform: `translateY(${virtualRow.start}px)` }}
+              >
+                <PostCard
+                  post={post}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onView={onView}
+                  onReaction={onReaction}
+                  viewMode="list"
+                  currentUserId={currentUserId}
+                />
+              </div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const { user, profile, loading: authLoading, signOut, updateProfile } = useAuth();
+  const {
+    posts,
+    loading: postsLoading,
+    error,
+    createPost,
+    updatePost,
+    deletePost,
+    refetch,
+  } = usePosts();
+  const { toasts, hideToast, success, error: showError } = useToast();
+  const { toggleReaction } = useReactions();
+
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [modalMode, setModalMode] = useState<ModalMode>('create');
+  const [showModal, setShowModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('signup');
+  const [showOnboarding, setShowOnboarding] = useState(
+    !localStorage.getItem('hasCompletedOnboarding')
+  );
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  // Show auth modal if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      setShowAuthModal(true);
+      setAuthModalTab('signup'); // Default to signup for new users
+    }
+  }, [authLoading, user]);
+
+  const handleNewPost = () => {
+    if (!user) {
+      showError('Please sign in to create posts');
+      setShowAuthModal(true);
+      return;
+    }
+    setSelectedPost(null);
+    setModalMode('create');
+    setShowModal(true);
+  };
+
+  const handleEditPost = (post: Post) => {
+    if (!user) {
+      showError('Please sign in to edit posts');
+      setShowAuthModal(true);
+      return;
+    }
+    setSelectedPost(post);
+    setModalMode('edit');
+    setShowModal(true);
+  };
+
+  const handleViewPost = (post: Post) => {
+    setSelectedPost(post);
+    setModalMode('view');
+    setShowModal(true);
+  };
+
+  const handleDeletePost = async (post: Post) => {
+    if (!user) {
+      showError('Please sign in to delete posts');
+      setShowAuthModal(true);
+      return;
+    }
+
+    if (window.confirm(`Are you sure you want to delete "${post.title}"?`)) {
+      const { error } = await deletePost(post.id);
+      if (error) {
+        showError(`Error deleting post: ${error}`);
+      } else {
+        success('Post deleted successfully!');
+      }
+    }
+  };
+
+  const handleSavePost = async (postData: CreatePostInput) => {
+    if (modalMode === 'edit' && selectedPost) {
+      const { error } = await updatePost(selectedPost.id, postData);
+      if (error) {
+        showError(`Error updating post: ${error}`);
+        return;
+      }
+      success('Post updated successfully!');
+    } else {
+      const { error } = await createPost(postData);
+      if (error) {
+        showError(`Error creating post: ${error}`);
+        return;
+      }
+      success('Post created successfully!');
+
+      // Also update profile mood/music if provided in the post
+      if (postData.mood || postData.music) {
+        const profileUpdates: Record<string, string | null> = {};
+        if (postData.mood) profileUpdates.current_mood = postData.mood;
+        if (postData.music) profileUpdates.current_music = postData.music;
+        await updateProfile(profileUpdates);
+      }
+    }
+    setShowModal(false);
+  };
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      showError(`Error signing out: ${error}`);
+    } else {
+      success('Signed out successfully!');
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleReaction = async (postId: string, emoji: string) => {
+    if (!user) {
+      showError('Please sign in to react');
+      setShowAuthModal(true);
+      return;
+    }
+    const { error } = await toggleReaction(postId, emoji);
+    if (error) {
+      showError(error);
+    } else {
+      refetch();
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('hasCompletedOnboarding', 'true');
+    setShowOnboarding(false);
+  };
+
+  const handleProfileClick = () => {
+    if (!user) {
+      showError('Please sign in to edit your profile');
+      setShowAuthModal(true);
+      return;
+    }
+    setShowProfileModal(true);
+  };
+
+  // Show onboarding flow for first-time users
+  if (showOnboarding) {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <OnboardingFlow onComplete={handleOnboardingComplete} />
+      </Suspense>
+    );
+  }
+
+  // Show loading spinner during auth initialization
+  if (authLoading) {
+    return (
+      <div className="min-h-screen themed-bg flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Show auth page if not authenticated (full-screen, not modal)
+  if (!user && showAuthModal) {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <AuthModal
+          isOpen={showAuthModal}
+          onClose={() => {
+            // Only allow closing if user is authenticated
+            if (user) {
+              setShowAuthModal(false);
+            }
+          }}
+          defaultTab={authModalTab}
+        />
+      </Suspense>
+    );
+  }
+
+  // Show age verification if user is logged in but not verified
+  if (user && profile && !profile.age_verified) {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <AgeVerification
+          onVerified={async (birthYear: number, tosAccepted: boolean) => {
+            // Update the profile with age verification
+            const { error } = await updateProfile({
+              age_verified: true,
+              tos_accepted: tosAccepted,
+              birth_year: birthYear,
+            });
+            if (error) {
+              showError(`Failed to verify age: ${error}`);
+            } else {
+              success('Age verified successfully!');
+            }
+          }}
+          requireTOS={true}
+        />
+      </Suspense>
+    );
+  }
+
+  // Check if user needs to complete profile setup (new user with no display name)
+  const needsProfileSetup = !!(user && profile && !profile.display_name);
+
+  if (postsLoading) {
+    return (
+      <div className="min-h-screen themed-bg">
+        <Header
+          onNewPost={handleNewPost}
+          user={user}
+          profile={profile}
+          onSignOut={handleSignOut}
+          onAuthClick={() => setShowAuthModal(true)}
+          onProfileClick={handleProfileClick}
+        />
+        <div className="flex items-center justify-center py-20">
+          <LoadingSpinner />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen themed-bg">
+        <Header
+          onNewPost={handleNewPost}
+          user={user}
+          profile={profile}
+          onSignOut={handleSignOut}
+          onAuthClick={() => setShowAuthModal(true)}
+          onProfileClick={handleProfileClick}
+        />
+        <ErrorMessage error={error} onRetry={refetch} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen themed-bg">
+      <Header
+        onNewPost={handleNewPost}
+        user={user}
+        profile={profile}
+        onSignOut={handleSignOut}
+        onAuthClick={() => setShowAuthModal(true)}
+        onProfileClick={handleProfileClick}
+      />
+
+      {/* Xanga-style sidebar layout */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left Sidebar */}
+          <Sidebar user={user} profile={profile} onEditProfile={handleProfileClick} postCount={posts.length} />
+
+          {/* Main Content Area */}
+          <main className="flex-1 min-w-0">
+            {posts.length === 0 ? (
+              <EmptyState onCreatePost={handleNewPost} />
+            ) : (
+              <PostList
+                posts={posts}
+                onEdit={handleEditPost}
+                onDelete={handleDeletePost}
+                onView={handleViewPost}
+                onReaction={handleReaction}
+                currentUserId={user?.id}
+              />
+            )}
+          </main>
+        </div>
+      </div>
+
+      {/* Post Modal */}
+      {showModal && (
+        <Suspense fallback={<LazyFallback />}>
+          <PostModal
+            post={selectedPost}
+            mode={modalMode}
+            onSave={handleSavePost}
+            onClose={() => setShowModal(false)}
+          />
+        </Suspense>
+      )}
+
+      {/* Profile Modal - also shows automatically for new users who need to set up their profile */}
+      {(showProfileModal || needsProfileSetup) && (
+        <Suspense fallback={<LazyFallback />}>
+          <ProfileModal
+            profile={profile}
+            userId={user?.id}
+            onSave={updateProfile}
+            onClose={() => {
+              // Only allow closing if profile setup is complete
+              if (!needsProfileSetup) {
+                setShowProfileModal(false);
+              }
+            }}
+            onSuccess={success}
+            onError={showError}
+            isInitialSetup={needsProfileSetup}
+          />
+        </Suspense>
+      )}
+
+      {/* Toast Notifications */}
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => hideToast(toast.id)}
+          duration={toast.duration}
+        />
+      ))}
+
+      {/* Footer - very Xanga! */}
+      <footer
+        className="mt-12 py-6 border-t-2 border-dotted"
+        style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--footer-bg)' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>© 2005-2026 My Journal • All rights reserved</p>
+          <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
+            Made with <span style={{ color: 'var(--accent-primary)' }}>💕</span> and nostalgia
+          </p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default App;

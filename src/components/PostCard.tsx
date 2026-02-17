@@ -1,0 +1,231 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Calendar, Edit, Trash2, Clock, Youtube, ExternalLink } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import rehypeSanitize from 'rehype-sanitize';
+import { formatDate, formatRelativeDate } from '../utils/formatDate';
+import { parseYouTubeUrl, fetchYouTubeTitle, type YouTubeInfo } from '../utils/parseYouTube';
+import ReactionBar from './ui/ReactionBar';
+import type { Post } from '../types/post';
+
+interface PostCardProps {
+  post: Post;
+  onEdit: (post: Post) => void;
+  onDelete: (post: Post) => void;
+  onView: (post: Post) => void;
+  onReaction?: (postId: string, emoji: string) => void;
+  viewMode?: string;
+  currentUserId?: string;
+}
+
+export default function PostCard({ post, onEdit, onDelete, onView, onReaction, currentUserId }: PostCardProps) {
+  const isOwner = currentUserId === post.user_id;
+  const [ytInfo, setYtInfo] = useState<(YouTubeInfo & { title?: string }) | null>(null);
+
+  // Fetch YouTube title when post.music changes
+  useEffect(() => {
+    if (!post.music) {
+      setYtInfo(null);
+      return;
+    }
+
+    const info = parseYouTubeUrl(post.music);
+    if (!info) {
+      setYtInfo(null);
+      return;
+    }
+
+    // Set initial info without title
+    setYtInfo(info);
+
+    // Fetch title asynchronously
+    fetchYouTubeTitle(info.videoId).then((title) => {
+      if (title) {
+        setYtInfo((prev) => (prev ? { ...prev, title } : null));
+      }
+    });
+  }, [post.music]);
+
+  const truncateContent = (content: string, maxLength = 300): string => {
+    if (!content) return '';
+    return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+  };
+
+  // Xanga-style blog post card
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="xanga-box p-0 overflow-hidden"
+    >
+      {/* Post header with title and date - colorful banner */}
+      <div
+        className="p-4 border-b-2 border-dotted"
+        style={{
+          background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
+          borderColor: 'var(--border-primary)',
+        }}
+      >
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <h2
+              className="xanga-title text-2xl mb-1 cursor-pointer transition"
+              onClick={() => onView(post)}
+            >
+              {post.title}
+            </h2>
+            <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+              <span className="flex items-center gap-1">
+                <Calendar size={12} style={{ color: 'var(--accent-primary)' }} />
+                {formatDate(post.created_at, 'MMM dd, yyyy')} @{' '}
+                {formatDate(post.created_at, 'h:mm a')}
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <Clock size={12} style={{ color: 'var(--accent-secondary)' }} />
+                {formatRelativeDate(post.created_at)}
+              </span>
+            </div>
+          </div>
+
+          {/* Edit/Delete buttons - only show for post owner */}
+          {isOwner && (
+            <div className="flex gap-1">
+              <button
+                onClick={() => onEdit(post)}
+                className="p-1.5 rounded transition text-xs"
+                title="Edit"
+                style={{ color: 'var(--link-color)' }}
+              >
+                <Edit size={14} />
+              </button>
+              <button
+                onClick={() => onDelete(post)}
+                className="p-1.5 text-red-400 hover:bg-red-100 rounded transition text-xs"
+                title="Delete"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Post content */}
+      <div className="p-4">
+        {/* Mood indicator if available */}
+        {post.mood && (
+          <div className="mb-3 pb-3 border-b" style={{ borderColor: 'var(--border-primary)' }}>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Current Mood: </span>
+            <span className="text-sm">{post.mood}</span>
+          </div>
+        )}
+
+        {/* Music if available - with YouTube preview */}
+        {post.music && (
+          <div
+            className="mb-3 pb-3 border-b p-2 rounded"
+            style={{
+              borderColor: 'color-mix(in srgb, var(--accent-secondary) 30%, var(--card-bg))',
+              backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 10%, var(--card-bg))',
+            }}
+          >
+            <div className="flex items-center gap-1 mb-1">
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🎵 Currently listening to:</span>
+            </div>
+            {ytInfo ? (
+              <a
+                href={ytInfo.watchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 p-2 rounded transition hover:opacity-80"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))',
+                }}
+              >
+                <img
+                  src={ytInfo.thumbnailUrl}
+                  alt={ytInfo.title || 'YouTube thumbnail'}
+                  className="w-20 h-14 object-cover rounded flex-shrink-0"
+                  style={{ border: '1px solid var(--border-primary)' }}
+                />
+                <div className="flex-1 min-w-0">
+                  {ytInfo.title ? (
+                    <p
+                      className="text-sm font-medium line-clamp-2 mb-1"
+                      style={{ color: 'var(--text-body)' }}
+                      title={ytInfo.title}
+                    >
+                      {ytInfo.title}
+                    </p>
+                  ) : (
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      Loading title...
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1">
+                    <Youtube size={12} style={{ color: '#ff0000' }} />
+                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                      YouTube
+                    </span>
+                    <ExternalLink size={8} style={{ color: 'var(--text-muted)' }} />
+                  </div>
+                </div>
+              </a>
+            ) : (
+              <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
+            )}
+          </div>
+        )}
+
+        {/* Post content - Markdown rendered with XSS protection */}
+        <div className="prose prose-sm max-w-none mb-4">
+          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+            {truncateContent(post.content)}
+          </ReactMarkdown>
+        </div>
+
+        {/* Read more link if truncated */}
+        {post.content && post.content.length > 300 && (
+          <button
+            onClick={() => onView(post)}
+            className="text-xs underline transition"
+            style={{ color: 'var(--link-color)' }}
+          >
+            Read more →
+          </button>
+        )}
+      </div>
+
+      {/* Post footer - reactions */}
+      <div
+        className="px-4 py-2 border-t flex items-center justify-between text-xs"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
+          borderColor: 'var(--border-primary)',
+          color: 'var(--text-muted)',
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {post.author && <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</span>}
+        </div>
+
+        <ReactionBar
+          reactions={post.reactions ?? {}}
+          userReactions={post.user_reactions ?? []}
+          onToggle={(emoji) => onReaction?.(post.id, emoji)}
+          disabled={!currentUserId}
+        />
+      </div>
+
+      {/* Decorative bottom border */}
+      <div
+        className="h-1"
+        style={{
+          background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary), var(--border-primary))',
+        }}
+      />
+    </motion.article>
+  );
+}
