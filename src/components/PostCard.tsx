@@ -190,10 +190,9 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
         {post.content && post.content.length > 300 && (
           <button
             onClick={() => onView(post)}
-            className="text-xs underline transition"
-            style={{ color: 'var(--link-color)' }}
+            className="xanga-link text-xs"
           >
-            Read more →
+            ~ read more ~
           </button>
         )}
       </div>

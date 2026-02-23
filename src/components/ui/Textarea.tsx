@@ -18,11 +18,6 @@ export default function Textarea({
 }: TextareaProps) {
   const generatedId = useId();
   const textareaId = externalId || generatedId;
-  const baseStyles =
-    'w-full px-4 py-3 bg-white border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition shadow-sm resize-none';
-  const errorStyles = error
-    ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200';
 
   const isNearLimit = charCount && charCount.current > charCount.max * 0.9;
   const isOverLimit = charCount && charCount.current > charCount.max;
@@ -30,35 +25,54 @@ export default function Textarea({
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={textareaId} className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor={textareaId}
+          className="block text-xs font-bold mb-1"
+          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+        >
           {label}
         </label>
       )}
       <textarea
         id={textareaId}
-        className={`${baseStyles} ${errorStyles} ${className}`}
+        className={`w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition resize-none focus:outline-none ${className}`}
+        style={{
+          backgroundColor: 'var(--input-bg, var(--card-bg))',
+          borderColor: error ? 'var(--accent-secondary)' : 'var(--input-border, var(--border-primary))',
+          color: 'var(--text-body)',
+        }}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? `${textareaId}-error` : undefined}
         {...props}
       />
-      <div className="mt-2 flex justify-between items-start">
+      <div className="mt-1 flex justify-between items-start">
         <div className="flex-1">
           {error && (
-            <p id={`${textareaId}-error`} className="text-sm text-red-600" role="alert">
-              {error}
+            <p
+              id={`${textareaId}-error`}
+              className="text-xs font-bold"
+              style={{ color: 'var(--accent-secondary)' }}
+              role="alert"
+            >
+              ❌ {error}
             </p>
           )}
-          {hint && !error && <p className="text-xs text-gray-500">{hint}</p>}
+          {hint && !error && (
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {hint}
+            </p>
+          )}
         </div>
         {charCount && (
           <p
-            className={`text-xs ml-2 ${
-              isOverLimit
-                ? 'text-red-600 font-semibold'
+            className="text-xs ml-2 font-bold"
+            style={{
+              color: isOverLimit
+                ? 'var(--accent-secondary)'
                 : isNearLimit
-                  ? 'text-amber-600'
-                  : 'text-gray-400'
-            }`}
+                  ? 'var(--accent-primary)'
+                  : 'var(--text-muted)',
+            }}
           >
             {charCount.current}/{charCount.max}
           </p>

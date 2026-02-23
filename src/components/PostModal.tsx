@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Sparkles, AlertTriangle } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import type { Post, CreatePostInput } from '../types/post';
@@ -85,7 +85,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={onClose}
       >
         <motion.div
@@ -97,31 +97,31 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
           initial={{ scale: 0.95, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.95, y: 20 }}
-          className="rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden"
+          className="rounded-xl shadow-2xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
           style={{
             backgroundColor: 'var(--modal-bg)',
             border: '4px solid var(--modal-border)',
           }}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Header */}
           <div
-            className="p-4 border-b-2 border-dotted"
+            className="p-3 sm:p-4 border-b-2 border-dotted"
             style={{
               background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
               borderColor: 'var(--border-primary)',
             }}
           >
             <div className="flex items-center justify-between">
-              <h2 className="xanga-title text-2xl">
+              <h2 className="xanga-title text-xl sm:text-2xl">
                 {isViewMode ? (
                   <span className="flex items-center gap-2">
-                    <Sparkles size={20} style={{ color: 'var(--accent-primary)' }} />
-                    {post?.title}
+                    ✨ {post?.title}
                   </span>
                 ) : mode === 'edit' ? (
-                  '✏️ Edit Entry'
+                  '✏️ ~ edit entry ~'
                 ) : (
-                  '✨ New Entry'
+                  '✨ ~ new entry ~'
                 )}
               </h2>
               <button
@@ -130,45 +130,42 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                 className="p-2 rounded-full transition"
                 style={{ color: 'var(--text-muted)' }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
           </div>
 
+          {/* Content */}
           <div
-            className="overflow-y-auto max-h-[calc(90vh-140px)]"
+            className="overflow-y-auto max-h-[calc(95vh-140px)] sm:max-h-[calc(90vh-140px)]"
             style={{ backgroundColor: 'var(--modal-bg)' }}
           >
             {isViewMode ? (
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {post?.mood && (
-                  <div
-                    className="mb-4 p-3 rounded-lg border"
-                    style={{
-                      backgroundColor: 'color-mix(in srgb, var(--accent-primary) 10%, var(--modal-bg))',
-                      borderColor: 'var(--border-primary)',
-                    }}
-                  >
-                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Current Mood: </span>
-                    <span className="text-lg">{post.mood}</span>
+                  <div className="xanga-box p-3 mb-3">
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>current mood: </span>
+                    <span className="text-sm">{post.mood}</span>
                   </div>
                 )}
 
                 {post?.music && (
                   <div
-                    className="mb-4 p-3 rounded-lg border"
-                    style={{
-                      backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 10%, var(--modal-bg))',
-                      borderColor: 'var(--accent-secondary)',
-                    }}
+                    className="xanga-box p-3 mb-3"
+                    style={{ borderColor: 'var(--accent-secondary)' }}
                   >
-                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>🎵 Currently listening to: </span>
-                    <span className="text-sm italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🎵 currently listening 2: </span>
+                    <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
                   </div>
                 )}
 
                 {post?.author && (
-                  <p className="text-sm mb-4 font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</p>
+                  <p
+                    className="text-sm mb-4 font-bold"
+                    style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
+                  >
+                    ~ {post.author}
+                  </p>
                 )}
 
                 <div className="prose prose-sm max-w-none" style={{ color: 'var(--text-body)' }}>
@@ -176,46 +173,47 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
                 {/* Moderation Error Alert */}
                 {moderationError && (
                   <div
-                    className="flex items-start gap-3 p-4 rounded-lg border-2"
-                    style={{
-                      backgroundColor: 'color-mix(in srgb, #ef4444 15%, var(--modal-bg))',
-                      borderColor: '#ef4444',
-                    }}
+                    className="xanga-box p-3"
+                    style={{ borderColor: 'var(--accent-secondary)' }}
                   >
-                    <AlertTriangle size={20} className="flex-shrink-0 text-red-500 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-red-600 text-sm">Content Not Allowed</p>
-                      <p className="text-xs text-red-500 mt-1">{moderationError}</p>
-                      <p className="text-xs text-red-400 mt-2">
-                        Please revise your post to comply with our community guidelines.
-                      </p>
-                    </div>
+                    <p
+                      className="text-xs font-bold mb-1"
+                      style={{ color: 'var(--accent-secondary)', fontFamily: 'var(--title-font)' }}
+                    >
+                      ❌ content not allowed
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--text-body)' }}>{moderationError}</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                      pls revise ur post 2 comply w/ our community guidelines
+                    </p>
                   </div>
                 )}
+
+                {/* Title */}
                 <div>
                   <label
                     htmlFor="post-title"
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: 'var(--text-body)' }}
+                    className="block text-xs font-bold mb-1"
+                    style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
                   >
-                    Entry Title *
+                    entry title: *
                   </label>
                   <input
                     id="post-title"
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg transition focus:outline-none focus:ring-2"
+                    className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none"
                     style={{
-                      backgroundColor: 'var(--input-bg)',
-                      border: '2px solid var(--input-border)',
+                      backgroundColor: 'var(--input-bg, var(--card-bg))',
+                      borderColor: 'var(--input-border, var(--border-primary))',
                       color: 'var(--text-body)',
                     }}
-                    placeholder="What's on your mind today?"
+                    placeholder="what's on ur mind 2day?"
                     required
                     maxLength={200}
                     aria-required="true"
@@ -223,27 +221,28 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                   <p className="text-xs mt-1 text-right" style={{ color: 'var(--text-muted)' }}>{title.length}/200</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Author + Mood row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label
                       htmlFor="post-author"
-                      className="block text-sm font-semibold mb-2"
-                      style={{ color: 'var(--text-body)' }}
+                      className="block text-xs font-bold mb-1"
+                      style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
                     >
-                      Your Name
+                      ur name:
                     </label>
                     <input
                       id="post-author"
                       type="text"
                       value={author}
                       onChange={(e) => setAuthor(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg transition focus:outline-none focus:ring-2"
+                      className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none"
                       style={{
-                        backgroundColor: 'var(--input-bg)',
-                        border: '2px solid var(--input-border)',
+                        backgroundColor: 'var(--input-bg, var(--card-bg))',
+                        borderColor: 'var(--input-border, var(--border-primary))',
                         color: 'var(--text-body)',
                       }}
-                      placeholder="Anonymous"
+                      placeholder="anonymous"
                       maxLength={50}
                     />
                   </div>
@@ -251,24 +250,24 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                   <div>
                     <label
                       htmlFor="post-mood"
-                      className="block text-sm font-semibold mb-2"
-                      style={{ color: 'var(--text-body)' }}
+                      className="block text-xs font-bold mb-1"
+                      style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
                     >
-                      Current Mood
+                      current mood:
                     </label>
                     <select
                       id="post-mood"
                       value={mood}
                       onChange={(e) => setMood(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg transition cursor-pointer focus:outline-none focus:ring-2"
+                      className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition cursor-pointer focus:outline-none appearance-none"
                       style={{
-                        backgroundColor: 'var(--input-bg)',
-                        border: '2px solid var(--input-border)',
+                        backgroundColor: 'var(--input-bg, var(--card-bg))',
+                        borderColor: 'var(--input-border, var(--border-primary))',
                         color: 'var(--text-body)',
                       }}
                       aria-label="Select your current mood"
                     >
-                      <option value="">Select a mood...</option>
+                      <option value="">select a mood...</option>
                       {MOODS.map((m) => (
                         <option key={m.label} value={`${m.emoji} ${m.label}`}>
                           {m.emoji} {m.label}
@@ -278,63 +277,55 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                   </div>
                 </div>
 
+                {/* Music */}
                 <div>
                   <label
                     htmlFor="post-music"
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: 'var(--text-body)' }}
+                    className="block text-xs font-bold mb-1"
+                    style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
                   >
-                    🎵 Currently Listening To
+                    🎵 currently listening 2:
                   </label>
                   <input
                     id="post-music"
                     type="text"
                     value={music}
                     onChange={(e) => setMusic(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg transition focus:outline-none focus:ring-2"
+                    className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none"
                     style={{
-                      backgroundColor: 'var(--input-bg)',
-                      border: '2px solid var(--input-border)',
+                      backgroundColor: 'var(--input-bg, var(--card-bg))',
+                      borderColor: 'var(--input-border, var(--border-primary))',
                       color: 'var(--text-body)',
                     }}
-                    placeholder="Song name, artist, or paste a YouTube link..."
+                    placeholder="song name, artist, or paste a youtube link..."
                     maxLength={200}
                   />
                   <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                    Tip: Paste a YouTube link to share the song!
+                    tip: paste a youtube link 2 share the song!
                   </p>
                 </div>
 
+                {/* Content */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-1">
                     <label
                       htmlFor="post-content"
-                      className="block text-sm font-semibold"
-                      style={{ color: 'var(--text-body)' }}
+                      className="block text-xs font-bold"
+                      style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
                     >
-                      Your Thoughts * (Markdown supported)
+                      ur thoughts: * (markdown supported)
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowPreview(!showPreview)}
-                      className="text-xs px-3 py-1 rounded-full transition"
-                      style={{
-                        backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--modal-bg))',
-                        color: 'var(--accent-secondary)',
-                      }}
+                      className="xanga-link text-xs"
                     >
-                      {showPreview ? '✏️ Edit' : '👁️ Preview'}
+                      {showPreview ? '~ edit ~' : '~ preview ~'}
                     </button>
                   </div>
 
                   {showPreview ? (
-                    <div
-                      className="min-h-[250px] rounded-lg overflow-hidden"
-                      style={{
-                        backgroundColor: 'var(--card-bg)',
-                        border: '2px solid var(--input-border)',
-                      }}
-                    >
+                    <div className="xanga-box p-0 min-h-[200px] sm:min-h-[250px] overflow-hidden">
                       <div
                         className="p-3 border-b-2 border-dotted"
                         style={{
@@ -342,27 +333,24 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                           borderColor: 'var(--border-primary)',
                         }}
                       >
-                        <h3 className="xanga-title text-xl">{title || 'Your Title Here'}</h3>
+                        <h3 className="xanga-title text-lg sm:text-xl">{title || 'ur title here'}</h3>
                       </div>
 
-                      <div className="p-4">
+                      <div className="p-3 sm:p-4">
                         {mood && (
-                          <div className="mb-3 pb-3 border-b" style={{ borderColor: 'var(--border-primary)' }}>
-                            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Current Mood: </span>
+                          <div className="mb-3 pb-3 border-b border-dotted" style={{ borderColor: 'var(--border-primary)' }}>
+                            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>current mood: </span>
                             <span className="text-sm">{mood}</span>
                           </div>
                         )}
 
                         {music && (
                           <div
-                            className="mb-3 pb-3 border-b p-2 rounded"
-                            style={{
-                              backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 10%, var(--card-bg))',
-                              borderColor: 'var(--accent-secondary)',
-                            }}
+                            className="xanga-box p-2 mb-3"
+                            style={{ borderColor: 'var(--accent-secondary)' }}
                           >
                             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                              🎵 Currently listening to:{' '}
+                              🎵 currently listening 2:{' '}
                             </span>
                             <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{music}</span>
                           </div>
@@ -370,20 +358,27 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
 
                         <div className="prose prose-sm max-w-none" style={{ color: 'var(--text-body)' }}>
                           <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-                            {content || '_Start typing to see your post preview..._'}
+                            {content || '_start typing 2 see ur post preview..._'}
                           </ReactMarkdown>
                         </div>
                       </div>
 
                       <div
-                        className="px-4 py-2 border-t text-xs"
+                        className="px-3 sm:px-4 py-2 border-t border-dotted text-xs"
                         style={{
                           backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
                           borderColor: 'var(--border-primary)',
                           color: 'var(--text-muted)',
                         }}
                       >
-                        {author && <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {author}</span>}
+                        {author && (
+                          <span
+                            className="font-bold"
+                            style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
+                          >
+                            ~ {author}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -391,27 +386,28 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                       id="post-content"
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      className="w-full h-[250px] px-4 py-3 rounded-lg transition resize-none focus:outline-none focus:ring-2"
+                      className="w-full h-[200px] sm:h-[250px] px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition resize-none focus:outline-none"
                       style={{
-                        backgroundColor: 'var(--input-bg)',
-                        border: '2px solid var(--input-border)',
+                        backgroundColor: 'var(--input-bg, var(--card-bg))',
+                        borderColor: 'var(--input-border, var(--border-primary))',
                         color: 'var(--text-body)',
                       }}
-                      placeholder="Dear diary... today I..."
+                      placeholder="dear diary... 2day i..."
                       required
                     />
                   )}
                   <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                    Use **bold**, *italic*, or [links](url) for formatting
+                    use **bold**, *italic*, or [links](url) 4 formatting
                   </p>
                 </div>
               </form>
             )}
           </div>
 
+          {/* Footer */}
           {!isViewMode && (
             <div
-              className="p-4 border-t-2 border-dotted flex justify-end space-x-3"
+              className="p-3 sm:p-4 border-t-2 border-dotted flex justify-end gap-2"
               style={{
                 background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
                 borderColor: 'var(--border-primary)',
@@ -420,22 +416,23 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2 rounded-full transition font-semibold text-sm"
+                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted"
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   color: 'var(--text-body)',
-                  border: '2px solid var(--border-primary)',
+                  borderColor: 'var(--border-primary)',
+                  fontFamily: 'var(--title-font)',
                 }}
               >
-                Cancel
+                cancel
               </button>
               <button
                 onClick={handleSubmit}
                 disabled={saving}
-                className="xanga-button flex items-center gap-2"
+                className="xanga-button flex items-center gap-2 text-sm"
               >
-                <Save size={16} />
-                <span>{saving ? 'Saving...' : 'Save Entry'}</span>
+                <Save size={14} />
+                <span>{saving ? 'saving...' : '~ save entry ~'}</span>
               </button>
             </div>
           )}

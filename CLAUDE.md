@@ -268,17 +268,49 @@ The entire UI is styled to evoke 2005-era Xanga blogs. All components use CSS cu
 - **Auth backgrounds**: `.xanga-auth-bg` class for full-screen auth/onboarding views
 - **iPhone responsive**: `@media (max-width: 480px)` in `index.css` for smaller text/padding
 
+### UI Primitive Components
+
+All reusable UI components use CSS variables so they adapt to the active theme:
+
+| Component | Key Changes |
+|-----------|-------------|
+| `Input.tsx` | Dotted borders, themed label (Comic Sans), emoji error prefix |
+| `Button.tsx` | Primary uses `.xanga-button`, secondary/ghost/danger use themed CSS vars, spinner is `✦` |
+| `Card.tsx` | Uses `.xanga-box` base with variant-specific border colors |
+| `Textarea.tsx` | Dotted borders, themed label, themed char count colors |
+| `Avatar.tsx` | Border uses `var(--accent-primary)` instead of hardcoded pink |
+| `AvatarPicker.tsx` | All pills/buttons use CSS vars, grid is 4-col on mobile / 5-col desktop |
+
 ### Components Restyled
 
 All of these were converted from generic modern UI (iOS-style gradients, blue/violet colors) to Xanga-themed:
 
+**Auth flow:**
 - `AuthModal.tsx` — Xanga tabs with dotted borders, sparkle emoji header
 - `SignUpForm.tsx` — `.xanga-box` cards, Comic Sans headers, `.xanga-button` submit
 - `LoginForm.tsx` — Native inputs with dotted borders, Xanga-era mode toggle links
 - `AgeVerification.tsx` — `.xanga-box` sections, themed dropdown, emoji-based notices
 - `OnboardingFlow.tsx` — Step counter wizard (not iOS carousel), Next/Back buttons, emoji illustrations
+
+**Core screens:**
+- `PostModal.tsx` — Comic Sans labels ("entry title:", "ur thoughts:"), dotted-border inputs, `.xanga-link` preview toggle, themed cancel button
+- `ProfileModal.tsx` — Xanga-styled section headers, themed dropdowns/inputs, dotted-border theme picker, responsive 2-col grid
+- `PostCard.tsx` — `.xanga-link` for "read more", fully themed via CSS vars
 - `EmptyState.tsx` — Lined paper journal page with typing cursor
 - `Toast.tsx` — `.xanga-box` with themed border colors, emoji icons instead of Lucide icons
+- `LoadingSpinner.tsx` — Themed border colors via CSS vars, "~ loading... ~" text
+- `ErrorMessage.tsx` — `.xanga-box` error display with emoji, themed retry button
+
+### iPhone Responsiveness
+
+All modals and overlays use `max-h-[95vh]` on mobile (vs `90vh` on desktop). Key responsive patterns:
+
+- PostModal/ProfileModal: `p-2 sm:p-4` outer padding, `p-3 sm:p-4` inner sections
+- PostModal form: `grid-cols-1 sm:grid-cols-2` for author/mood row
+- AvatarPicker grid: `grid-cols-4 sm:grid-cols-5`
+- Theme picker: `gap-2 sm:gap-3` with smaller color swatches on mobile
+- All text: appropriate `text-xs`/`text-sm` sizing with `sm:` breakpoints
+- Global `@media (max-width: 480px)` reduces marquee speed, header padding, font sizes
 
 ## Known Tech Debt
 

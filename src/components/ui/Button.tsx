@@ -25,55 +25,65 @@ export default function Button({
   className = '',
   ...props
 }: ButtonProps) {
-  const baseStyles =
-    'font-semibold transition shadow-lg disabled:opacity-50 disabled:cursor-not-allowed';
-
-  const variantStyles: Record<ButtonVariant, string> = {
-    primary:
-      'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white hover:from-violet-600 hover:to-fuchsia-600',
-    secondary: 'bg-white border-2 border-violet-500 text-violet-600 hover:bg-violet-50',
-    ghost: 'bg-transparent text-violet-600 hover:bg-violet-50 shadow-none',
-    danger:
-      'bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-600 hover:to-pink-600',
-  };
-
   const sizeStyles: Record<ButtonSize, string> = {
-    sm: 'px-4 py-2 text-sm rounded-lg',
-    md: 'px-6 py-3 text-base rounded-xl',
-    lg: 'px-6 py-4 text-lg rounded-2xl',
+    sm: 'px-3 py-1.5 text-xs',
+    md: 'px-4 py-2.5 text-sm',
+    lg: 'px-6 py-3 text-base',
   };
 
   const widthStyle = fullWidth ? 'w-full' : '';
 
+  // Primary uses the xanga-button class for consistent theming
+  if (variant === 'primary') {
+    return (
+      <motion.button
+        whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
+        className={`xanga-button ${sizeStyles[size]} ${widthStyle} ${className}`}
+        disabled={disabled || loading}
+        {...props}
+      >
+        {loading ? (
+          <span className="flex items-center justify-center gap-2">
+            <span className="animate-spin inline-block">✦</span>
+            {children}
+          </span>
+        ) : (
+          children
+        )}
+      </motion.button>
+    );
+  }
+
+  // Other variants use inline CSS variables for themed styling
   return (
     <motion.button
       whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyle} ${className}`}
+      className={`font-bold transition border-2 border-dotted rounded-lg disabled:opacity-50 disabled:cursor-not-allowed ${sizeStyles[size]} ${widthStyle} ${className}`}
+      style={{
+        backgroundColor:
+          variant === 'danger'
+            ? 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))'
+            : variant === 'ghost'
+              ? 'transparent'
+              : 'var(--card-bg)',
+        borderColor:
+          variant === 'danger'
+            ? 'var(--accent-secondary)'
+            : variant === 'ghost'
+              ? 'transparent'
+              : 'var(--border-primary)',
+        color:
+          variant === 'danger'
+            ? 'var(--accent-secondary)'
+            : 'var(--text-body)',
+        fontFamily: 'var(--title-font)',
+      }}
       disabled={disabled || loading}
       {...props}
     >
       {loading ? (
         <span className="flex items-center justify-center gap-2">
-          <svg
-            className="animate-spin h-5 w-5"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-            />
-          </svg>
+          <span className="animate-spin inline-block">✦</span>
           {children}
         </span>
       ) : (
