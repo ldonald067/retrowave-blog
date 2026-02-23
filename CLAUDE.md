@@ -25,9 +25,11 @@ This file is the shared interface between **two independent Claude agents** — 
 | Type | Frontend Location | Backend Location | Notes |
 |------|------------------|-----------------|-------|
 | Post field limits | `src/lib/validation.ts` `POST_LIMITS` | `20260223000001_post_constraints.sql` CHECK constraints | **Must match exactly** |
+| Profile field limits | `src/lib/validation.ts` `PROFILE_LIMITS` | No DB constraints yet (see M3) | Client-only for now; sync when DB constraints are added |
 | RPC params/return | `src/types/database.ts` `Functions` | `20260223000002_get_posts_rpc.sql` | Frontend types must mirror SQL return shape |
 | `ModerationResult` | `src/lib/moderation.ts` (severity optional) | `supabase/functions/moderate-content/index.ts` (severity required) | Known divergence — see Tech Debt |
 | Profile fields | `src/types/profile.ts` | `profiles` table columns | Adding a profile field requires both a migration AND a type update |
+| Reaction emoji set | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS` | `post_reactions.reaction_type` column (no CHECK yet — see H5) | Canonical set: `['❤️', '🔥', '😂', '😢', '✨', '👀']` |
 
 ### Environment Variables
 
@@ -347,6 +349,8 @@ Run in order by filename. Key migrations:
 | `20260125000000_add_age_validation.sql` | Age verification fields |
 | `20260223000001_post_constraints.sql` | CHECK constraints on posts (sync with `validation.ts`) |
 | `20260223000002_get_posts_rpc.sql` | `get_posts_with_reactions` RPC function |
+| `20260224000001_fix_handle_new_user.sql` | **C1 fix**: Combines username + age fields in `handle_new_user()` trigger |
+| `20260224000002_fix_rpc_security.sql` | **C2+C3 fix**: `auth.uid()` override + `GREATEST(1, LEAST(p_limit, 100))` |
 
 ## Development Notes
 
@@ -497,25 +501,11 @@ Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities,
 
 ### CRITICAL — Security Vulnerabilities
 
-**C1: `handle_new_user()` trigger regression — migration ordering bug**
-- File: `supabase/migrations/20260125000000_add_age_validation.sql` line 18
-- Migration `005` defines `handle_new_user()` with the `username` column (which has NOT NULL). Migration `20260125000000` runs **after** `005` in lexicographic order and replaces the function **without** the `username` column. The final installed trigger will fail with a NOT NULL violation on every new user signup, leaving users without profiles.
-- Fix: Write a new migration that redefines `handle_new_user()` with the correct column list from `005` plus the `birth_year`/`age_verified`/`tos_accepted` fields from `20260125000000`.
+**C1: ✅ FIXED (`20260224000001_fix_handle_new_user.sql`)** — `handle_new_user()` trigger regression. Migration `005` defined it with `username`; `20260125000000` overwrote it without `username`, causing NOT NULL violations. New migration combines both versions.
 
-**C2: Private post exposure via `p_user_id` in RPC**
-- File: `supabase/migrations/20260223000002_get_posts_rpc.sql` line 108
-- The `get_posts_with_reactions` function trusts the caller-supplied `p_user_id` for the `WHERE (p.is_private = false OR p.user_id = p_user_id)` check. Any caller can pass another user's UUID and read their private posts. The function also grants EXECUTE to `anon`, so unauthenticated users can do this.
-- Fix: Override `p_user_id` with `auth.uid()` inside the function body. If the caller is anonymous, `auth.uid()` returns NULL and only public posts are visible.
+**C2+C3: ✅ FIXED (`20260224000002_fix_rpc_security.sql`)** — RPC trusted caller-supplied `p_user_id` (private post leak) and allowed negative `p_limit` (table dump via `LIMIT ALL`). Fixed with `auth.uid()` override + `GREATEST(1, LEAST(p_limit, 100))`.
 
-**C3: Negative `p_limit` bypasses the 100-row cap**
-- File: `supabase/migrations/20260223000002_get_posts_rpc.sql` line 111
-- `LEAST(-1, 100)` evaluates to `-1`, which PostgreSQL interprets as `LIMIT ALL` (no limit). Combined with C2, this could dump the entire posts table.
-- Fix: `LIMIT GREATEST(1, LEAST(p_limit, 100))`
-
-**C4: URL/domain blocklist is client-only — bypassed by direct API calls**
-- File: `src/lib/moderation.ts` lines 30–103
-- The `BLOCKED_DOMAINS` and `ADULT_URL_KEYWORDS` lists only run in the browser. A user calling the Supabase REST API directly (e.g., via `curl`) bypasses all URL filtering. The `embedded_links` field is never sent to the edge function for server-side validation.
-- Fix: Pass `embedded_links` to the `moderate-content` edge function and validate URLs server-side.
+**C4: ✅ FIXED (`moderate-content/index.ts` + `moderation.ts`)** — URL blocklist was client-only. Now `BLOCKED_DOMAINS` and `ADULT_URL_KEYWORDS` run server-side in the edge function. Client passes `embedded_links` for validation. Also fixed: H6 (100KB body limit), H7 (5s OpenAI timeout), M6 (405 for non-POST).
 
 ### HIGH — Data Integrity & Correctness
 
@@ -532,25 +522,16 @@ Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities,
 - Neither `.update()` nor `.delete()` includes `.eq('user_id', user.id)`. If the RLS UPDATE/DELETE policies on `posts` are permissive (unknown — in missing migrations), any authenticated user could modify any post.
 - Fix: Add `.eq('user_id', user.id)` as a defense-in-depth filter.
 
-**H4: `createPost` prepends raw insert data missing joined fields**
-- File: `src/hooks/usePosts.ts` line 244
-- `setPosts((prev) => [postData, ...prev])` — the raw `.insert().select()` response lacks `profile_display_name`, `profile_avatar_url`, `reactions`, and `user_reactions`. The newly created post renders without author avatar or reaction bar data until a full refetch.
-- Fix (frontend): After insert, call `refetch()` to get the complete data, or manually populate the missing fields from the current user's profile.
+**H4: ✅ FIXED (F1 frontend fix)** — `createPost` now enriches the prepended post with default `reactions: {}`, `user_reactions: []`, `like_count: 0`, `user_has_liked: false`, `profile_display_name: null`, `profile_avatar_url: null`.
 
 **H5: `reaction_type` has no value constraint**
 - File: `supabase/migrations/003_post_reactions_and_theme.sql` line 9
 - Any string can be stored as `reaction_type` via the PostgREST API. An attacker could store arbitrary strings.
-- Fix: `CHECK (reaction_type IN ('heart', 'fire', 'sparkle', '100', 'skull'))` — match the frontend's known emoji set.
+- Fix: `CHECK (reaction_type IN ('❤️', '🔥', '😂', '😢', '✨', '👀'))` — match the frontend's `REACTION_EMOJIS` in `ReactionBar.tsx`. **Note**: DB stores literal emoji characters, not text labels.
 
-**H6: No request body size limit in edge function**
-- File: `supabase/functions/moderate-content/index.ts` line 88
-- `req.json()` parses the full body with no size guard. A multi-gigabyte payload could exhaust edge function memory.
-- Fix: Check `Content-Length` header and reject bodies > 100KB before parsing.
+**H6: ✅ FIXED (with C4)** — Edge function now checks `Content-Length` header and rejects bodies > 100KB before parsing.
 
-**H7: No timeout on OpenAI fetch in edge function**
-- File: `supabase/functions/moderate-content/index.ts` line 101
-- The `fetch()` to OpenAI has no `AbortController` timeout. A slow/hung OpenAI API would hold the edge function until Supabase's global timeout kills it.
-- Fix: Add `AbortController` with 5-second timeout.
+**H7: ✅ FIXED (with C4)** — Edge function now uses `AbortController` with 5-second timeout on OpenAI fetch.
 
 ### MEDIUM — Correctness / Data Quality
 
@@ -569,19 +550,14 @@ Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities,
 - `current_mood` and `current_music` on profiles have no CHECK constraints, unlike the equivalent post fields. `bio` and `display_name` are also unbounded.
 - Fix: New migration adding CHECK constraints matching the pattern in `20260223000001_post_constraints.sql`.
 
-**M4: `sanitizeContent()` is exported but never called**
-- File: `src/lib/moderation.ts` line 351
-- Dead code. The app relies on `react-markdown` + `rehype-sanitize` + `DOMPurify` at render time. Either wire it into the post creation path or delete it.
+**M4: ✅ FIXED (F5 frontend fix)** — Deleted `sanitizeContent()` from `moderation.ts`. Render-time sanitization via `rehype-sanitize` + `DOMPurify` is the correct approach.
 
 **M5: 500-char threshold skips AI review on short harmful content**
 - File: `src/lib/moderation.ts` line 311
 - `content.length > 500` is the only trigger for AI moderation (besides warning words). A short post containing subtle but harmful content that doesn't match the regex patterns will skip AI review entirely.
 - Fix: Always send to AI moderation, or lower the threshold significantly.
 
-**M6: Edge function has no HTTP method guard**
-- File: `supabase/functions/moderate-content/index.ts` line 51
-- Only OPTIONS is explicitly handled. GET, PUT, DELETE all fall through to the JSON parsing path where `req.json()` would fail with an unhelpful error.
-- Fix: Return 405 for non-POST methods.
+**M6: ✅ FIXED (with C4)** — Edge function now returns 405 for non-POST methods.
 
 **M7: `devSignUp` conflicts with `enable_anonymous_sign_ins = false`**
 - File: `supabase/config.toml` / `src/hooks/useAuth.ts` line 287
