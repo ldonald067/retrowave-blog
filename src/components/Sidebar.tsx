@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Heart, Music, Calendar, Settings, BookOpen, Youtube, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Heart, Music, Calendar, Settings, BookOpen, Youtube, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 import { Avatar } from './ui';
@@ -15,6 +15,7 @@ interface SidebarProps {
 
 export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }: SidebarProps) {
   const [ytInfo, setYtInfo] = useState<(YouTubeInfo & { title?: string }) | null>(null);
+  const [collapsed, setCollapsed] = useState(true);
 
   const userData = {
     username: user?.email?.split('@')[0] || 'guest',
@@ -53,8 +54,9 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
     });
   }, [userData.music]);
 
-  return (
-    <aside className="w-full lg:w-64 space-y-4">
+  // Full sidebar content — shared between mobile expanded and desktop
+  const sidebarContent = (
+    <>
       {/* Profile Card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -234,6 +236,58 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
         <p className="xanga-subtitle">
           <span className="blink">✨</span> YourJournal <span className="blink">✨</span>
         </p>
+      </div>
+    </>
+  );
+
+  return (
+    <aside className="w-full lg:w-64 space-y-4" role="complementary" aria-label="Blog sidebar">
+      {/* Mobile: compact summary bar + collapsible */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="xanga-box w-full p-3 flex items-center gap-3"
+        >
+          <Avatar
+            src={userData.avatar}
+            alt={userData.username}
+            size="sm"
+            fallbackSeed={user?.id || 'guest'}
+          />
+          <div className="flex-1 text-left min-w-0">
+            <p
+              className="text-sm font-bold truncate"
+              style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+            >
+              {userData.displayName}
+            </p>
+            <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+              {userData.mood || `@${userData.username}`}
+            </p>
+          </div>
+          <span style={{ color: 'var(--text-muted)' }}>
+            {collapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+          </span>
+        </button>
+
+        <AnimatePresence>
+          {!collapsed && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden space-y-4 mt-4"
+            >
+              {sidebarContent}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Desktop: always visible */}
+      <div className="hidden lg:block space-y-4">
+        {sidebarContent}
       </div>
     </aside>
   );

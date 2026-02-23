@@ -311,6 +311,32 @@ All modals and overlays use `max-h-[95vh]` on mobile (vs `90vh` on desktop). Key
 - Theme picker: `gap-2 sm:gap-3` with smaller color swatches on mobile
 - All text: appropriate `text-xs`/`text-sm` sizing with `sm:` breakpoints
 - Global `@media (max-width: 480px)` reduces marquee speed, header padding, font sizes
+- Sidebar: collapsible on mobile (`< lg`), compact summary bar with avatar + name + toggle
+- Toast: `left-4 right-4` on mobile (full width), stacked vertically via index
+- Touch targets: all interactive elements meet 44px minimum (ReactionBar, PostCard edit/delete, Toast close)
+
+### Accessibility
+
+| Feature | Implementation |
+|---------|---------------|
+| `prefers-reduced-motion` | CSS media query disables all animations; CursorSparkle early-returns; `<MotionConfig reducedMotion="user">` wraps app |
+| Focus traps | `src/hooks/useFocusTrap.ts` — Tab/Shift+Tab wrapping in modals, focus restore on close |
+| ARIA attributes | Marquee: `role="marquee" aria-live="off"`. Sidebar: `role="complementary"`. Status: `aria-label`. Edit/delete: `aria-label` |
+| PostCard title semantics | `<h2>` wraps a `<button>` with `aria-label="View post: {title}"` |
+
+Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `OnboardingFlow`, `ConfirmDialog`.
+
+### UX Polish
+
+| Feature | Implementation |
+|---------|---------------|
+| Draft auto-save | `PostModal.tsx` — debounced 500ms save to `localStorage` key `post-draft` (create mode only), restored on reopen, cleared on save |
+| Marquee pause on hover | CSS-only: `.marquee-banner:hover .marquee-banner-inner { animation-play-state: paused }` |
+| Delete confirmation | `ConfirmDialog.tsx` — styled Xanga modal replaces `window.confirm()`, uses focus trap |
+| Skeleton loaders | `PostSkeleton.tsx` — 3 pulsing placeholder cards for initial feed load, matches PostCard layout |
+| Toast stacking | `index` prop offsets toasts vertically, max 3 visible via `useToast.ts` |
+| Toast timing by type | Success: 3s, Info: 4s, Error: 6s — configurable via `useToast.ts` `DEFAULT_DURATIONS` |
+| Collapsible sidebar | Mobile: compact bar (avatar + name + chevron), click to expand full sidebar content |
 
 ## Known Tech Debt
 

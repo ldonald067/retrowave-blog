@@ -1,9 +1,10 @@
-import { useState, useEffect, FormEvent, useCallback } from 'react';
+import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, User, FileText, Image, Palette, Heart, Music } from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea } from './ui';
 import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOODS } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { Profile } from '../types/profile';
 
 interface ProfileModalProps {
@@ -34,6 +35,8 @@ export default function ProfileModal({
   const [errors, setErrors] = useState<{ displayName?: string; bio?: string }>({});
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, true);
 
   useEffect(() => {
     if (profile) {
@@ -130,6 +133,7 @@ export default function ProfileModal({
         onClick={isInitialSetup ? undefined : onClose}
       >
         <motion.div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label="Edit profile"

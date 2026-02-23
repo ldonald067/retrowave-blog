@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, FormEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { Post, CreatePostInput } from '../types/post';
 import { MOODS } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
@@ -23,6 +24,32 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useFocusTrap(dialogRef, true);
+
+  // Restore draft on mount (create mode only)
+  useEffect(() => {
+    if (mode === 'create') {
+      try {
+        const raw = localStorage.getItem('post-draft');
+        if (raw) {
+          const draft = JSON.parse(raw) as Record<string, string>;
+          if (draft.title) setTitle(draft.title);
+          if (draft.content) setContent(draft.content);
+          if (draft.author) setAuthor(draft.author);
+          if (draft.mood) setMood(draft.mood);
+          if (draft.music) setMusic(draft.music);
+          setDraftRestored(true);
+          // Auto-dismiss the restored banner after 3s
+          setTimeout(() => setDraftRestored(false), 3000);
+        }
+      } catch {
+        // Ignore malformed draft
+      }
+    }
+  }, [mode]);
 
   useEffect(() => {
     if (post) {
@@ -33,6 +60,21 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
       setMusic(post.music || '');
     }
   }, [post]);
+
+  // Auto-save draft (create mode only) — debounced 500ms
+  useEffect(() => {
+    if (mode !== 'create') return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      // Only save if there's meaningful content
+      if (title || content) {
+        localStorage.setItem('post-draft', JSON.stringify({ title, content, author, mood, music }));
+      }
+    }, 500);
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, [title, content, author, mood, music, mode]);
 
   // Handle escape key to close modal
   const handleKeyDown = useCallback(
@@ -72,6 +114,8 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
 
     try {
       await onSave(postData);
+      // Clear draft on successful save
+      localStorage.removeItem('post-draft');
     } finally {
       setSaving(false);
     }
@@ -89,6 +133,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
         onClick={onClose}
       >
         <motion.div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label={
@@ -174,6 +219,18 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+                {/* Draft Restored Banner */}
+                {draftRestored && (
+                  <div
+                    className="xanga-box p-2 text-center"
+                    style={{ borderColor: 'var(--accent-primary)' }}
+                  >
+                    <p className="text-xs" style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}>
+                      ✨ draft restored from last time!
+                    </p>
+                  </div>
+                )}
+
                 {/* Moderation Error Alert */}
                 {moderationError && (
                   <div

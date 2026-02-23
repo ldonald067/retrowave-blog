@@ -62,7 +62,7 @@ export default function Header({
       }}
     >
       {/* Marquee Banner */}
-      <div className="marquee-banner">
+      <div className="marquee-banner" role="marquee" aria-live="off">
         <div className="marquee-banner-inner" style={{ color: 'var(--text-subtitle)', fontSize: '10px' }}>
           ~ welcome to my xanga ~ ✨ ~ thanks 4 stopping by ~ ♥ ~ have a gr8 day ~ ☆ ~ xoxo ~ ✨ ~
         </div>
@@ -143,6 +143,7 @@ export default function Header({
                 onClick={startEditing}
                 className="aim-status truncate max-w-[200px] sm:max-w-[400px]"
                 title="Click to edit your status"
+                aria-label="Edit your status"
               >
                 {status ? `~ ${status} ~` : '~ set your status ~'}
               </button>

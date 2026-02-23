@@ -459,6 +459,11 @@ body {
   background: linear-gradient(to bottom, var(--bg-gradient-from), var(--bg-gradient-via), var(--bg-gradient-to));
 }
 
+/* ===== Marquee Pause on Hover ===== */
+.marquee-banner:hover .marquee-banner-inner {
+  animation-play-state: paused;
+}
+
 /* ===== iPhone Responsive ===== */
 @media (max-width: 480px) {
   .marquee-banner {
@@ -473,5 +478,43 @@ body {
 
   .aim-status-edit {
     max-width: 180px;
+  }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .marquee-banner-inner {
+    animation: none !important;
+  }
+
+  .cursor-sparkle {
+    display: none !important;
+  }
+
+  .emoji-float-up {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  .typing-cursor {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  .blink {
+    animation: none !important;
+    opacity: 1 !important;
   }
 }

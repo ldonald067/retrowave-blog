@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface OnboardingFlowProps {
   onComplete: () => void;
@@ -8,6 +9,8 @@ interface OnboardingFlowProps {
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(containerRef, true);
 
   const slides = [
     {
@@ -78,7 +81,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
 
   return (
-    <div className="fixed inset-0 xanga-auth-bg z-50 overflow-hidden flex flex-col">
+    <div ref={containerRef} className="fixed inset-0 xanga-auth-bg z-50 overflow-hidden flex flex-col">
       {/* Xanga-style header */}
       <div
         className="flex-shrink-0 border-b-2 border-dotted py-2 px-4"

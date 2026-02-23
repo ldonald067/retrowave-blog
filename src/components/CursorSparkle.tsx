@@ -13,6 +13,9 @@ export default function CursorSparkle() {
     const container = containerRef.current;
     if (!container) return;
 
+    // Respect reduced motion preference
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       const now = Date.now();
       if (now - lastSpawn.current < SPAWN_INTERVAL) return;

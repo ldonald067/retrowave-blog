@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft } from 'lucide-react';
 import SignUpForm from './SignUpForm';
 import LoginForm from './LoginForm';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ interface AuthModalProps {
 
 export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>(defaultTab);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialogRef, isOpen);
 
   // Update activeTab when defaultTab changes
   useEffect(() => {
@@ -25,6 +28,7 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
   return (
     <AnimatePresence>
       <motion.div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label="Sign in or sign up"

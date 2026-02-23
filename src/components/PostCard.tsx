@@ -69,11 +69,15 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h2
-              className="xanga-title text-2xl mb-1 cursor-pointer transition"
-              onClick={() => onView(post)}
-            >
-              {post.title}
+            <h2 className="xanga-title text-2xl mb-1">
+              <button
+                onClick={() => onView(post)}
+                className="text-left cursor-pointer transition hover:opacity-80"
+                style={{ color: 'inherit', textShadow: 'inherit' }}
+                aria-label={`View post: ${post.title}`}
+              >
+                {post.title}
+              </button>
             </h2>
             <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
               <span className="flex items-center gap-1">
@@ -94,16 +98,19 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
             <div className="flex gap-1">
               <button
                 onClick={() => onEdit(post)}
-                className="p-1.5 rounded transition text-xs"
-                title="Edit"
+                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded transition text-xs flex items-center justify-center"
+                title="Edit post"
+                aria-label="Edit post"
                 style={{ color: 'var(--link-color)' }}
               >
                 <Edit size={14} />
               </button>
               <button
                 onClick={() => onDelete(post)}
-                className="p-1.5 text-red-400 hover:bg-red-100 rounded transition text-xs"
-                title="Delete"
+                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded transition text-xs flex items-center justify-center"
+                title="Delete post"
+                aria-label="Delete post"
+                style={{ color: 'var(--accent-secondary)' }}
               >
                 <Trash2 size={14} />
               </button>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, MotionConfig } from 'framer-motion';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAuth } from './hooks/useAuth';
 import { usePosts } from './hooks/usePosts';
@@ -10,9 +10,11 @@ import Sidebar from './components/Sidebar';
 import CursorSparkle from './components/CursorSparkle';
 import PostCard from './components/PostCard';
 import LoadingSpinner from './components/LoadingSpinner';
+import PostSkeleton from './components/PostSkeleton';
 import EmptyState from './components/EmptyState';
 import ErrorMessage from './components/ErrorMessage';
 import Toast from './components/Toast';
+import ConfirmDialog from './components/ConfirmDialog';
 import type { Post, CreatePostInput } from './types/post';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
@@ -145,6 +147,7 @@ function App() {
     !localStorage.getItem('hasCompletedOnboarding')
   );
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
 
   // Show auth modal if not authenticated
   useEffect(() => {
@@ -182,21 +185,24 @@ function App() {
     setShowModal(true);
   };
 
-  const handleDeletePost = async (post: Post) => {
+  const handleDeletePost = (post: Post) => {
     if (!user) {
       showError('Please sign in to delete posts');
       setShowAuthModal(true);
       return;
     }
+    setPostToDelete(post);
+  };
 
-    if (window.confirm(`Are you sure you want to delete "${post.title}"?`)) {
-      const { error } = await deletePost(post.id);
-      if (error) {
-        showError(`Error deleting post: ${error}`);
-      } else {
-        success('Post deleted successfully!');
-      }
+  const confirmDeletePost = async () => {
+    if (!postToDelete) return;
+    const { error } = await deletePost(postToDelete.id);
+    if (error) {
+      showError(`Error deleting post: ${error}`);
+    } else {
+      success('Post deleted successfully!');
     }
+    setPostToDelete(null);
   };
 
   const handleSavePost = async (postData: CreatePostInput) => {
@@ -341,8 +347,8 @@ function App() {
           onAuthClick={() => setShowAuthModal(true)}
           onProfileClick={handleProfileClick}
         />
-        <div className="flex items-center justify-center py-20">
-          <LoadingSpinner />
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <PostSkeleton />
         </div>
       </div>
     );
@@ -365,6 +371,7 @@ function App() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <div className="min-h-screen themed-bg">
       <CursorSparkle />
       <Header
@@ -435,14 +442,26 @@ function App() {
         </Suspense>
       )}
 
+      {/* Delete Confirmation Dialog */}
+      {postToDelete && (
+        <ConfirmDialog
+          title="~ delete entry? ~"
+          message={`r u sure u want 2 delete "${postToDelete.title}"? this can't b undone!`}
+          confirmLabel="~ yes, delete ~"
+          onConfirm={confirmDeletePost}
+          onCancel={() => setPostToDelete(null)}
+        />
+      )}
+
       {/* Toast Notifications */}
-      {toasts.map((toast) => (
+      {toasts.map((toast, index) => (
         <Toast
           key={toast.id}
           message={toast.message}
           type={toast.type}
           onClose={() => hideToast(toast.id)}
           duration={toast.duration}
+          index={index}
         />
       ))}
 
@@ -459,6 +478,7 @@ function App() {
         </div>
       </footer>
     </div>
+    </MotionConfig>
   );
 }
 
