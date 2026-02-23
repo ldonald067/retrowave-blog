@@ -88,6 +88,10 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
           </div>
           <h2 className="xanga-title text-xl mb-1">{userData.displayName}</h2>
           <p className="xanga-subtitle">@{userData.username}</p>
+          {/* AIM-style status */}
+          {typeof window !== 'undefined' && localStorage.getItem('xanga-status') && (
+            <p className="aim-status mt-1">📟 ~ {localStorage.getItem('xanga-status')} ~</p>
+          )}
         </div>
 
         <div className="mt-4 space-y-2 text-sm">

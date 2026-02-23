@@ -7,6 +7,7 @@ import { useToast } from './hooks/useToast';
 import { useReactions } from './hooks/useReactions';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import CursorSparkle from './components/CursorSparkle';
 import PostCard from './components/PostCard';
 import LoadingSpinner from './components/LoadingSpinner';
 import EmptyState from './components/EmptyState';
@@ -365,6 +366,7 @@ function App() {
 
   return (
     <div className="min-h-screen themed-bg">
+      <CursorSparkle />
       <Header
         onNewPost={handleNewPost}
         user={user}

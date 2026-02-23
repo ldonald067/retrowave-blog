@@ -244,6 +244,42 @@ Configured in `.claude/settings.json`. These run automatically — no manual ste
 - **Custom subagents** — Built-in code-reviewer is sufficient for this codebase size.
 - **Custom skills** — Already have the right plugins installed (commit-commands, feature-dev, frontend-design, code-review).
 
+## Xanga-Style Frontend
+
+The entire UI is styled to evoke 2005-era Xanga blogs. All components use CSS custom properties (`var(--accent-primary)`, etc.) so they work across all 8 themes.
+
+### Key Features
+
+| Feature | Implementation | Notes |
+|---------|---------------|-------|
+| Cursor sparkle trail | `CursorSparkle.tsx` — DOM-based sparkle spans on mousemove | Throttled to 50ms, max 20 sparkles, CSS animation cleanup |
+| Marquee banner | `Header.tsx` — CSS `@keyframes marquee-scroll` | Continuous right-to-left scroll, dotted borders |
+| AIM-style status | `Header.tsx` + `Sidebar.tsx` — `localStorage` key `xanga-status` | Click to edit inline, Enter to save, Escape to cancel |
+| Emoji float-up | `ReactionBar.tsx` — CSS `.emoji-float-up` | Spawns floating emoji on reaction toggle, 800ms animation |
+| Lined paper empty state | `EmptyState.tsx` — CSS `repeating-linear-gradient` | Typing cursor animation, journal page aesthetic |
+
+### Styling Conventions
+
+- **Typography**: Comic Sans via `var(--title-font)`, applied on `.xanga-title` and form labels
+- **Borders**: Dotted borders via `border-2 border-dotted` with `var(--border-primary)`
+- **Cards**: `.xanga-box` class for themed card containers
+- **Buttons**: `.xanga-button` class for all primary actions
+- **Links**: `.xanga-link` class for era-appropriate underlined links
+- **Auth backgrounds**: `.xanga-auth-bg` class for full-screen auth/onboarding views
+- **iPhone responsive**: `@media (max-width: 480px)` in `index.css` for smaller text/padding
+
+### Components Restyled
+
+All of these were converted from generic modern UI (iOS-style gradients, blue/violet colors) to Xanga-themed:
+
+- `AuthModal.tsx` — Xanga tabs with dotted borders, sparkle emoji header
+- `SignUpForm.tsx` — `.xanga-box` cards, Comic Sans headers, `.xanga-button` submit
+- `LoginForm.tsx` — Native inputs with dotted borders, Xanga-era mode toggle links
+- `AgeVerification.tsx` — `.xanga-box` sections, themed dropdown, emoji-based notices
+- `OnboardingFlow.tsx` — Step counter wizard (not iOS carousel), Next/Back buttons, emoji illustrations
+- `EmptyState.tsx` — Lined paper journal page with typing cursor
+- `Toast.tsx` — `.xanga-box` with themed border colors, emoji icons instead of Lucide icons
+
 ## Known Tech Debt
 
 1. **`useLikes.ts` is unused** - The `post_likes` table exists and the RPC aggregates likes, but no UI component calls `likePost()`/`unlikePost()`. The reactions system (`useReactions`) handles all user interactions. Either wire up likes in UI or remove the hook.

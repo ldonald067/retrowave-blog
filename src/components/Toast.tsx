@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { ToastType } from '../hooks/useToast';
 
 interface ToastProps {
@@ -22,15 +22,9 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
   }, [duration, onClose]);
 
   const icons: Record<ToastType, ReactNode> = {
-    success: <CheckCircle size={20} />,
-    error: <XCircle size={20} />,
-    info: <AlertCircle size={20} />,
-  };
-
-  const colors: Record<ToastType, string> = {
-    success: 'from-green-500 to-emerald-500',
-    error: 'from-red-500 to-rose-500',
-    info: 'from-[#00ffff] to-[#ff00ff]',
+    success: <span>✅</span>,
+    error: <span>❌</span>,
+    info: <span>✨</span>,
   };
 
   return (
@@ -44,18 +38,32 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
         <div
           role="alert"
           aria-live={type === 'error' ? 'assertive' : 'polite'}
-          className={`flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r ${colors[type]} rounded-lg shadow-[0_0_20px_rgba(255,0,255,0.5)] backdrop-blur-sm`}
+          className="xanga-box flex items-center justify-between gap-3 px-4 py-3"
+          style={{
+            borderColor:
+              type === 'error'
+                ? 'var(--accent-secondary)'
+                : type === 'success'
+                  ? 'var(--accent-primary)'
+                  : 'var(--border-primary)',
+          }}
         >
-          <div className="flex items-center gap-3">
-            <span className="text-white">{icons[type]}</span>
-            <p className="text-white font-medium">{message}</p>
+          <div className="flex items-center gap-2">
+            <span className="text-base">{icons[type]}</span>
+            <p
+              className="text-sm font-bold"
+              style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
+            >
+              {message}
+            </p>
           </div>
           <button
             onClick={onClose}
             aria-label="Close notification"
-            className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+            className="p-1 rounded transition-colors hover:opacity-70 flex-shrink-0"
+            style={{ color: 'var(--text-muted)' }}
           >
-            <X size={18} />
+            <X size={16} />
           </button>
         </div>
       </motion.div>
