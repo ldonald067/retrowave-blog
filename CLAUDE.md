@@ -475,6 +475,144 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 | Toast timing by type | Success: 3s, Info: 4s, Error: 6s — configurable via `useToast.ts` `DEFAULT_DURATIONS` |
 | Collapsible sidebar | Mobile: compact bar (avatar + name + chevron), click to expand full sidebar content |
 
+## Comprehensive Backend Review
+
+Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities, and types.
+
+### CRITICAL — Security Vulnerabilities
+
+**C1: `handle_new_user()` trigger regression — migration ordering bug**
+- File: `supabase/migrations/20260125000000_add_age_validation.sql` line 18
+- Migration `005` defines `handle_new_user()` with the `username` column (which has NOT NULL). Migration `20260125000000` runs **after** `005` in lexicographic order and replaces the function **without** the `username` column. The final installed trigger will fail with a NOT NULL violation on every new user signup, leaving users without profiles.
+- Fix: Write a new migration that redefines `handle_new_user()` with the correct column list from `005` plus the `birth_year`/`age_verified`/`tos_accepted` fields from `20260125000000`.
+
+**C2: Private post exposure via `p_user_id` in RPC**
+- File: `supabase/migrations/20260223000002_get_posts_rpc.sql` line 108
+- The `get_posts_with_reactions` function trusts the caller-supplied `p_user_id` for the `WHERE (p.is_private = false OR p.user_id = p_user_id)` check. Any caller can pass another user's UUID and read their private posts. The function also grants EXECUTE to `anon`, so unauthenticated users can do this.
+- Fix: Override `p_user_id` with `auth.uid()` inside the function body. If the caller is anonymous, `auth.uid()` returns NULL and only public posts are visible.
+
+**C3: Negative `p_limit` bypasses the 100-row cap**
+- File: `supabase/migrations/20260223000002_get_posts_rpc.sql` line 111
+- `LEAST(-1, 100)` evaluates to `-1`, which PostgreSQL interprets as `LIMIT ALL` (no limit). Combined with C2, this could dump the entire posts table.
+- Fix: `LIMIT GREATEST(1, LEAST(p_limit, 100))`
+
+**C4: URL/domain blocklist is client-only — bypassed by direct API calls**
+- File: `src/lib/moderation.ts` lines 30–103
+- The `BLOCKED_DOMAINS` and `ADULT_URL_KEYWORDS` lists only run in the browser. A user calling the Supabase REST API directly (e.g., via `curl`) bypasses all URL filtering. The `embedded_links` field is never sent to the edge function for server-side validation.
+- Fix: Pass `embedded_links` to the `moderate-content` edge function and validate URLs server-side.
+
+### HIGH — Data Integrity & Correctness
+
+**H1: Migrations 001 and 002 are missing from the repository**
+- The initial `CREATE TABLE` statements for `posts`, `profiles`, and `post_likes` — along with their RLS policies — are absent. The project cannot be bootstrapped from scratch with `supabase db reset`. All RLS policies on these three tables are unauditable.
+- Fix: Reconstruct migrations 001 and 002 from the production schema and add them to the repo.
+
+**H2: Backfill in migration 005 defaults `age_verified = true` for existing users**
+- File: `supabase/migrations/005_fix_missing_profiles.sql` line 36
+- The backfill query uses `COALESCE(..., true)` for both `age_verified` and `tos_accepted`. Pre-existing users without metadata are grandfathered as verified. The trigger function in the same migration defaults to `false`. COPPA compliance gap for older users.
+
+**H3: `updatePost` / `deletePost` rely solely on RLS for ownership**
+- File: `src/hooks/usePosts.ts` lines 281–286, 309–312
+- Neither `.update()` nor `.delete()` includes `.eq('user_id', user.id)`. If the RLS UPDATE/DELETE policies on `posts` are permissive (unknown — in missing migrations), any authenticated user could modify any post.
+- Fix: Add `.eq('user_id', user.id)` as a defense-in-depth filter.
+
+**H4: `createPost` prepends raw insert data missing joined fields**
+- File: `src/hooks/usePosts.ts` line 244
+- `setPosts((prev) => [postData, ...prev])` — the raw `.insert().select()` response lacks `profile_display_name`, `profile_avatar_url`, `reactions`, and `user_reactions`. The newly created post renders without author avatar or reaction bar data until a full refetch.
+- Fix (frontend): After insert, call `refetch()` to get the complete data, or manually populate the missing fields from the current user's profile.
+
+**H5: `reaction_type` has no value constraint**
+- File: `supabase/migrations/003_post_reactions_and_theme.sql` line 9
+- Any string can be stored as `reaction_type` via the PostgREST API. An attacker could store arbitrary strings.
+- Fix: `CHECK (reaction_type IN ('heart', 'fire', 'sparkle', '100', 'skull'))` — match the frontend's known emoji set.
+
+**H6: No request body size limit in edge function**
+- File: `supabase/functions/moderate-content/index.ts` line 88
+- `req.json()` parses the full body with no size guard. A multi-gigabyte payload could exhaust edge function memory.
+- Fix: Check `Content-Length` header and reject bodies > 100KB before parsing.
+
+**H7: No timeout on OpenAI fetch in edge function**
+- File: `supabase/functions/moderate-content/index.ts` line 101
+- The `fetch()` to OpenAI has no `AbortController` timeout. A slow/hung OpenAI API would hold the edge function until Supabase's global timeout kills it.
+- Fix: Add `AbortController` with 5-second timeout.
+
+### MEDIUM — Correctness / Data Quality
+
+**M1: `validatePostInput` rejects partial updates**
+- File: `src/hooks/usePosts.ts` line 271 / `src/lib/validation.ts` line 40
+- `validatePostInput(updates)` treats missing fields as empty strings, failing min-length checks. A partial update that only changes `mood` will be rejected with "Title is required."
+- Fix: Only validate fields that are present in the `updates` object.
+
+**M2: `embedded_links` URL accepts any scheme including `javascript:`**
+- File: `src/lib/validation.ts` line 85
+- Any non-empty string passes as a valid URL. `javascript:alert(1)` or `data:text/html,...` would be stored.
+- Fix: Reject URLs not starting with `http://` or `https://`.
+
+**M3: Profile fields have no length constraints at DB level**
+- File: `supabase/migrations/004_profile_mood_music.sql`
+- `current_mood` and `current_music` on profiles have no CHECK constraints, unlike the equivalent post fields. `bio` and `display_name` are also unbounded.
+- Fix: New migration adding CHECK constraints matching the pattern in `20260223000001_post_constraints.sql`.
+
+**M4: `sanitizeContent()` is exported but never called**
+- File: `src/lib/moderation.ts` line 351
+- Dead code. The app relies on `react-markdown` + `rehype-sanitize` + `DOMPurify` at render time. Either wire it into the post creation path or delete it.
+
+**M5: 500-char threshold skips AI review on short harmful content**
+- File: `src/lib/moderation.ts` line 311
+- `content.length > 500` is the only trigger for AI moderation (besides warning words). A short post containing subtle but harmful content that doesn't match the regex patterns will skip AI review entirely.
+- Fix: Always send to AI moderation, or lower the threshold significantly.
+
+**M6: Edge function has no HTTP method guard**
+- File: `supabase/functions/moderate-content/index.ts` line 51
+- Only OPTIONS is explicitly handled. GET, PUT, DELETE all fall through to the JSON parsing path where `req.json()` would fail with an unhelpful error.
+- Fix: Return 405 for non-POST methods.
+
+**M7: `devSignUp` conflicts with `enable_anonymous_sign_ins = false`**
+- File: `supabase/config.toml` / `src/hooks/useAuth.ts` line 287
+- `devSignUp` calls `signInAnonymously()` but anonymous sign-ins are disabled in config. Will always error in local dev.
+
+**M8: Missing indexes for pagination performance**
+- No index on `posts.created_at` (used in ORDER BY + WHERE cursor). No index on `posts.user_id` (used in ownership queries). As posts grow, these become full table scans.
+- Fix: New migration adding `CREATE INDEX idx_posts_created_at ON posts(created_at DESC)` and `CREATE INDEX idx_posts_user_id ON posts(user_id)`.
+
+### LOW — Minor Issues / Cleanup
+
+**L1: `errors.ts` leaks implementation language** — "A required database table is missing" reveals DB internals. Use generic "Something went wrong" instead.
+
+**L2: No circuit breaker in `withRetry`** — Rate-limited (429) responses are retried, potentially deepening the rate limit. HTTP 429 should be non-retryable.
+
+**L3: Edge function fails open** — OpenAI API failure or missing API key returns `{ allowed: true }`. This is an intentional design choice (documented) but means moderation is completely disabled if OpenAI is down.
+
+**L4: `loadMore` uses state guard instead of ref** — `loadingMore` state check at `usePosts.ts:142` can allow concurrent calls before the first state update flushes. A `useRef<boolean>` guard would be more reliable.
+
+**L5: Cache has no maximum size** — `postsCache` accumulates entries during deep pagination with no eviction beyond TTL. Minor memory concern for heavy users.
+
+**L6: `is_admin` field on profiles has no usage or protection** — Exists in schema but no code checks it. If the UPDATE RLS policy doesn't exclude it, users could set `is_admin = true`.
+
+**L7: `createProfileForUser` redundantly calls `getUser()`** — Already has the user ID as a parameter but makes an extra network round-trip to re-fetch the user object.
+
+**L8: `SupabaseResponse<T>`, `UserStats`, dead `Post` properties** — Unused types: `SupabaseResponse<T>` in `types/supabase.ts`, `UserStats` in `types/profile.ts`, `display_name`/`avatar_url` on `Post` (replaced by `profile_display_name`/`profile_avatar_url`).
+
+**L9: Backfill INSERT in migration 005 has no `ON CONFLICT DO NOTHING`** — Could fail with `23505` if the trigger fires during migration execution.
+
+**L10: `posts_embedded_links_is_array` uses `json_typeof` on a `jsonb` column** — Should use `jsonb_typeof(embedded_links)` for consistency. Functionally correct but misleading.
+
+**L11: `WARNING_WORDS` list includes `teen` and `gay` in URL keywords** — High false-positive rate for legitimate content.
+
+### Frontend Suggestions (for the frontend agent)
+
+These are NOT backend bugs — they are UX/frontend improvements noticed during the review. The frontend agent should address these:
+
+**F1: New post renders without avatar or reactions** — After `createPost` in `usePosts.ts`, the prepended post is missing `profile_display_name`, `profile_avatar_url`, `reactions`, and `user_reactions`. The frontend should either populate these from the current user's profile data before prepending, or trigger a `refetch()` after creation.
+
+**F2: Reaction double-click race condition** — `useReactions.toggleReaction` has no debounce guard. A rapid double-click on the same emoji fires competing insert + delete requests. The `loading` boolean from `useReactions` is exposed but never used to disable the button. The frontend should either debounce reaction clicks (300ms) or disable the button while `loading` is true.
+
+**F3: `updateProfile` sends no client-side length validation** — `useAuth.updateProfile` accepts `Partial<Profile>` and sends it straight to Supabase with no length checks. Bio, display_name, mood, and music could be arbitrarily long strings. The frontend should add validation matching the DB constraints (once M3 is implemented).
+
+**F4: iPhone-specific consideration** — The reaction bar buttons were enlarged to 44px minimum tap targets in the UX overhaul. Verify that the double-click race (F2) is especially important on iPhone where touch events can fire rapidly. Consider increasing debounce to 400ms on touch devices.
+
+**F5: `sanitizeContent()` cleanup** — Either wire `sanitizeContent()` from `moderation.ts` into the post creation flow (before storing), or delete it. Currently dead code. The render-time sanitization via `rehype-sanitize` + `DOMPurify` is the correct approach, so deleting is likely the right call.
+
 ## Known Tech Debt
 
 1. **`useLikes.ts` + `types/like.ts` are unused** — The `post_likes` table exists and the RPC aggregates likes, but no UI component calls `likePost()`/`unlikePost()`. The reactions system (`useReactions`) handles all user interactions. Either wire up likes in UI or remove the hook + types.
