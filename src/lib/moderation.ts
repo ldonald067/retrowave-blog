@@ -365,18 +365,6 @@ export async function moderateContent(
   }
 }
 
-/**
- * Sanitize content by removing potentially harmful HTML/scripts
- * (Additional layer of protection)
- */
-export function sanitizeContent(text: string): string {
-  return text
-    // Remove script tags
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove onclick and other event handlers
-    .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
-    // Remove javascript: URLs
-    .replace(/javascript:/gi, '')
-    // Remove data: URLs that could be harmful
-    .replace(/data:text\/html/gi, '');
-}
+// F5 FIX: sanitizeContent() was dead code — never called anywhere.
+// The render-time sanitization via rehype-sanitize + DOMPurify is the
+// correct approach and is already wired into PostCard.tsx. Removed.

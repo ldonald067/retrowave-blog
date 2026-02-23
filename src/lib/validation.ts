@@ -89,6 +89,70 @@ export function validateEmbeddedLinks(
   return null;
 }
 
-export function hasValidationErrors(errors: PostValidationErrors): boolean {
+export function hasValidationErrors(
+  errors: PostValidationErrors | ProfileValidationErrors,
+): boolean {
   return Object.keys(errors).length > 0;
+}
+
+// ── Profile field limits ────────────────────────────────────────────────────
+// F3 FIX: No DB CHECK constraints exist yet for profiles, but these prevent
+// absurdly long values from hitting the database. If DB constraints are added
+// later (via a new migration), keep these in sync.
+export const PROFILE_LIMITS = {
+  display_name: { max: 50 },
+  bio: { max: 500 },
+  current_mood: { max: 100 },
+  current_music: { max: 200 },
+  username: { max: 50 },
+} as const;
+
+export interface ProfileValidationErrors {
+  display_name?: string;
+  bio?: string;
+  current_mood?: string;
+  current_music?: string;
+  username?: string;
+}
+
+/**
+ * Validate profile update fields. Only checks fields that are present
+ * in the input (partial updates are valid).
+ */
+export function validateProfileInput(
+  input: Record<string, unknown>,
+): ProfileValidationErrors {
+  const errors: ProfileValidationErrors = {};
+
+  if ('display_name' in input && typeof input.display_name === 'string') {
+    if (input.display_name.length > PROFILE_LIMITS.display_name.max) {
+      errors.display_name = `Display name must be ${PROFILE_LIMITS.display_name.max} characters or fewer`;
+    }
+  }
+
+  if ('bio' in input && typeof input.bio === 'string') {
+    if (input.bio.length > PROFILE_LIMITS.bio.max) {
+      errors.bio = `Bio must be ${PROFILE_LIMITS.bio.max} characters or fewer`;
+    }
+  }
+
+  if ('current_mood' in input && typeof input.current_mood === 'string') {
+    if (input.current_mood.length > PROFILE_LIMITS.current_mood.max) {
+      errors.current_mood = `Mood must be ${PROFILE_LIMITS.current_mood.max} characters or fewer`;
+    }
+  }
+
+  if ('current_music' in input && typeof input.current_music === 'string') {
+    if (input.current_music.length > PROFILE_LIMITS.current_music.max) {
+      errors.current_music = `Music field must be ${PROFILE_LIMITS.current_music.max} characters or fewer`;
+    }
+  }
+
+  if ('username' in input && typeof input.username === 'string') {
+    if (input.username.length > PROFILE_LIMITS.username.max) {
+      errors.username = `Username must be ${PROFILE_LIMITS.username.max} characters or fewer`;
+    }
+  }
+
+  return errors;
 }

@@ -3,6 +3,10 @@ import { supabase } from '../lib/supabase';
 import { applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
+import {
+  validateProfileInput,
+  hasValidationErrors,
+} from '../lib/validation';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 
@@ -262,6 +266,17 @@ export function useAuth(): UseAuthReturn {
     try {
       if (!user) {
         return { error: 'You must be logged in to update your profile' };
+      }
+
+      // F3 FIX: Validate string field lengths before sending to DB.
+      // Prevents oversized values from hitting the server and gives
+      // immediate feedback in the UI.
+      const validationErrors = validateProfileInput(
+        updates as Record<string, unknown>,
+      );
+      if (hasValidationErrors(validationErrors)) {
+        const firstError = Object.values(validationErrors)[0]!;
+        return { error: firstError };
       }
 
       const { error } = await withRetry(async () =>

@@ -210,6 +210,18 @@ const { data, error } = await withRetry(() =>
 
 **Keep `POST_LIMITS` in `validation.ts` in sync with the SQL migration constraints.** Both must agree.
 
+`PROFILE_LIMITS` provides defensive client-side limits for profile fields (no DB constraints yet):
+
+| Field | Max |
+|-------|-----|
+| display_name | 50 |
+| bio | 500 |
+| current_mood | 100 |
+| current_music | 200 |
+| username | 50 |
+
+`useAuth.updateProfile()` calls `validateProfileInput()` before sending to Supabase.
+
 ### Caching
 
 `src/lib/cache.ts` provides a `TTLCache` class with two singleton instances:
@@ -235,11 +247,15 @@ The `usePosts` hook exposes: `loadMore()`, `loadingMore`, `hasMore`.
 
 Emoji reactions update the UI instantly without waiting for the server:
 
-1. `useReactions.toggleReaction()` calls `onOptimisticUpdate()` immediately
-2. `usePosts.applyOptimisticReaction()` updates the post's `reactions` and `user_reactions` in state
+1. `useReactions.toggleReaction()` checks in-flight guard + 400ms cooldown → drops rapid taps
+2. If allowed: calls `onOptimisticUpdate()` immediately (UI updates)
 3. Server request fires in background
 4. On server error: `onOptimisticUpdate()` is called again with opposite values (rollback)
 5. Cache is invalidated so next refetch gets fresh data
+
+**Debounce guards** (F2 fix): `useReactions` uses two `useRef` guards:
+- `inFlightRef` (`Set<string>`) — tracks `postId:emoji` keys currently in-flight. Prevents competing insert + delete.
+- `cooldownRef` (`Map<string, number>`) — tracks timestamps. 400ms cooldown between taps on the same emoji. Critical for iPhone where touch events fire rapidly.
 
 The wiring in `App.tsx`:
 ```
@@ -601,17 +617,17 @@ Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities,
 
 ### Frontend Suggestions (for the frontend agent)
 
-These are NOT backend bugs — they are UX/frontend improvements noticed during the review. The frontend agent should address these:
+These were UX/frontend improvements noticed during the backend review. **All resolved.**
 
-**F1: New post renders without avatar or reactions** — After `createPost` in `usePosts.ts`, the prepended post is missing `profile_display_name`, `profile_avatar_url`, `reactions`, and `user_reactions`. The frontend should either populate these from the current user's profile data before prepending, or trigger a `refetch()` after creation.
+**F1: ✅ FIXED** — `createPost` in `usePosts.ts` now enriches the prepended post with default `reactions: {}`, `user_reactions: []`, `like_count: 0`, `user_has_liked: false`, `profile_display_name: null`, `profile_avatar_url: null` so PostCard renders correctly immediately after creation.
 
-**F2: Reaction double-click race condition** — `useReactions.toggleReaction` has no debounce guard. A rapid double-click on the same emoji fires competing insert + delete requests. The `loading` boolean from `useReactions` is exposed but never used to disable the button. The frontend should either debounce reaction clicks (300ms) or disable the button while `loading` is true.
+**F2: ✅ FIXED** — `useReactions.toggleReaction` now has a per-post+emoji in-flight guard (`Set<string>` ref) and a 400ms cooldown (`Map<string, number>` ref). Rapid double-taps on iPhone are silently dropped. The optimistic update fires only on the first tap.
 
-**F3: `updateProfile` sends no client-side length validation** — `useAuth.updateProfile` accepts `Partial<Profile>` and sends it straight to Supabase with no length checks. Bio, display_name, mood, and music could be arbitrarily long strings. The frontend should add validation matching the DB constraints (once M3 is implemented).
+**F3: ✅ FIXED** — `useAuth.updateProfile` now calls `validateProfileInput()` from `validation.ts` before sending to Supabase. Added `PROFILE_LIMITS` (display_name: 50, bio: 500, current_mood: 100, current_music: 200, username: 50) and `ProfileValidationErrors` type.
 
-**F4: iPhone-specific consideration** — The reaction bar buttons were enlarged to 44px minimum tap targets in the UX overhaul. Verify that the double-click race (F2) is especially important on iPhone where touch events can fire rapidly. Consider increasing debounce to 400ms on touch devices.
+**F4: ✅ FIXED** — The 400ms cooldown in F2 covers iPhone touch events. The cooldown uses `Date.now()` timestamps, so it works on all devices regardless of touch vs click event type.
 
-**F5: `sanitizeContent()` cleanup** — Either wire `sanitizeContent()` from `moderation.ts` into the post creation flow (before storing), or delete it. Currently dead code. The render-time sanitization via `rehype-sanitize` + `DOMPurify` is the correct approach, so deleting is likely the right call.
+**F5: ✅ FIXED** — Deleted `sanitizeContent()` from `moderation.ts`. It was dead code — the render-time sanitization via `rehype-sanitize` + `DOMPurify` in PostCard is the correct approach.
 
 ## Known Tech Debt
 

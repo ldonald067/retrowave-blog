@@ -241,7 +241,20 @@ export function usePosts(): UsePostsReturn {
 
         if (postData) {
           postsCache.invalidateAll();
-          setPosts((prev) => [postData, ...prev]);
+          // F1 FIX: The direct .insert().select() response lacks the joined
+          // fields that get_posts_with_reactions returns (profile info, reactions,
+          // likes). Fill in defaults so PostCard renders correctly until the next
+          // full refetch pulls the RPC-enriched data.
+          const enrichedPost: Post = {
+            ...postData,
+            reactions: {},
+            user_reactions: [],
+            like_count: 0,
+            user_has_liked: false,
+            profile_display_name: null,
+            profile_avatar_url: null,
+          };
+          setPosts((prev) => [enrichedPost, ...prev]);
         }
         return { data: postData, error: null };
       } catch (err) {
