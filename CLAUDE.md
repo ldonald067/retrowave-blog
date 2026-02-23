@@ -5,6 +5,53 @@
 - **NEVER open the dev server preview** (Vite `npm run dev`). It crashes the environment. Use `npm run build` to verify changes compile correctly.
 - **ALWAYS commit and push before ending a session.** Use `/commit-push-pr` or at minimum `git add . && git commit && git push`. Worktrees reset and uncommitted work is lost forever.
 
+## Cross-Agent Contract
+
+This file is the shared interface between **two independent Claude agents** — one handles frontend, one handles backend. Neither agent sees the other's conversation. This section is the canonical reference for their shared boundaries.
+
+### Frontend ↔ Backend Interface
+
+| Boundary | Frontend Owns | Backend Owns |
+|----------|--------------|-------------|
+| Auth | `useAuth.ts` consumes session, reads `user_metadata` | Supabase GoTrue config, magic link OTP settings, DB trigger in `005_fix_missing_profiles.sql` |
+| Posts | `usePosts.ts` calls RPC, applies optimistic updates | `get_posts_with_reactions` SQL function, `post_constraints` migration |
+| Reactions | `useReactions.ts` toggles + rollback | `post_reactions` table, RLS policies |
+| Profiles | `useAuth.ts` CRUD, `ProfileModal.tsx` UI | `profiles` table, auto-create trigger, RLS policies |
+| Moderation | `src/lib/moderation.ts` calls edge function | `supabase/functions/moderate-content/` (Deno + OpenAI API) |
+| Themes | `src/lib/themes.ts` defines CSS vars, UI applies them | `profiles.theme` column stores user's chosen theme |
+
+### Shared Data Shapes (must stay in sync)
+
+| Type | Frontend Location | Backend Location | Notes |
+|------|------------------|-----------------|-------|
+| Post field limits | `src/lib/validation.ts` `POST_LIMITS` | `20260223000001_post_constraints.sql` CHECK constraints | **Must match exactly** |
+| RPC params/return | `src/types/database.ts` `Functions` | `20260223000002_get_posts_rpc.sql` | Frontend types must mirror SQL return shape |
+| `ModerationResult` | `src/lib/moderation.ts` (severity optional) | `supabase/functions/moderate-content/index.ts` (severity required) | Known divergence — see Tech Debt |
+| Profile fields | `src/types/profile.ts` | `profiles` table columns | Adding a profile field requires both a migration AND a type update |
+
+### Environment Variables
+
+| Variable | Where Used | Set How |
+|----------|-----------|---------|
+| `VITE_SUPABASE_URL` | Frontend (`src/lib/supabase.ts`) | `.env` file (see `.env.example`) |
+| `VITE_SUPABASE_ANON_KEY` | Frontend (`src/lib/supabase.ts`) | `.env` file |
+| `OPENAI_API_KEY` | Edge function only | `supabase secrets set OPENAI_API_KEY=...` (never in `.env`) |
+
+### localStorage Keys
+
+| Key | Owner | Purpose |
+|-----|-------|---------|
+| `xanga-status` | `Header.tsx` / `Sidebar.tsx` | AIM-style status message |
+| `post-draft` | `PostModal.tsx` | Auto-saved draft (JSON: title, content, author, mood, music). Cleared on successful post. |
+| `sb-*` | Supabase SDK | Auth tokens — never read/write directly |
+
+### Rules for Cross-Agent Changes
+
+1. **Adding a DB column** → backend agent adds migration + RLS; frontend agent updates TypeScript type + UI
+2. **Adding an RPC function** → backend agent writes SQL + registers in `database.ts`; frontend agent calls it
+3. **Adding an edge function** → backend agent creates in `supabase/functions/`; frontend agent calls via `supabase.functions.invoke()`
+4. **Changing validation limits** → update BOTH `validation.ts` AND the SQL migration. Document in this section.
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -29,39 +76,85 @@ npm run test           # Vitest (run once)
 npm run test:watch     # Vitest (watch mode)
 npm run format         # Prettier
 npx tsc --noEmit       # Type check without emitting
+npm run preview        # Serve production build locally (run after `npm run build`)
 ```
+
+> **⚠️ Do NOT run `npm run dev`** — the Vite dev server crashes the environment. Use `npm run build` + `npm run preview` instead.
+
+## Environment Setup
+
+Copy `.env.example` to `.env` and fill in values:
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+The `OPENAI_API_KEY` is **not** in `.env`. It lives in Supabase edge function secrets:
+```bash
+supabase secrets set OPENAI_API_KEY=sk-...
+```
+
+Local Supabase dev config is in `supabase/config.toml` (ports, auth settings, email testing via Inbucket on port 54324).
 
 ## Project Structure
 
 ```
 src/
-  components/         # React components (UI layer)
-  hooks/              # Custom React hooks (data/business logic)
-    useAuth.ts        # Authentication, profile CRUD, session management
-    usePosts.ts       # Post feed with pagination, caching, CRUD, optimistic reactions
-    useReactions.ts   # Emoji reaction toggle with optimistic updates + rollback
-    useLikes.ts       # Like/unlike (legacy - currently unused, see Known Tech Debt)
-    useToast.ts       # Toast notification state
-  lib/                # Shared utilities
-    supabase.ts       # Supabase client singleton
-    errors.ts         # Error mapping - raw Supabase errors -> user-safe messages
-    retry.ts          # Exponential backoff with jitter for transient failures
-    validation.ts     # Client-side field validation (mirrors DB constraints)
-    cache.ts          # TTL cache for posts feed and YouTube titles
-    moderation.ts     # Content moderation (local filter + AI edge function)
-    themes.ts         # Theme management (CSS custom properties)
-  types/              # TypeScript type definitions
-    post.ts           # Post, CreatePostInput, UpdatePostInput
-    profile.ts        # Profile, UpdateProfileInput, SignupData
-    database.ts       # Supabase generated types + RPC function types
-    link-preview.ts   # Link preview type
-  utils/              # Pure utility functions
-    parseYouTube.ts   # YouTube URL parsing + cached oEmbed title fetch
+  App.tsx               # Root component — lazy imports, MotionConfig, toast/confirm state
+  index.css             # Global styles, keyframes, theme classes, reduced-motion query
+  components/
+    Header.tsx          # Marquee banner, AIM status, theme toggle
+    Sidebar.tsx         # Profile card, stats, collapsible on mobile
+    PostCard.tsx        # Individual post display with reactions
+    PostModal.tsx       # Create/edit post form with draft auto-save
+    ProfileModal.tsx    # Edit profile (avatar, bio, mood, music, theme)
+    AuthModal.tsx       # Login/signup tabs
+    OnboardingFlow.tsx  # Multi-step signup wizard
+    EmptyState.tsx      # Lined paper journal empty state
+    Toast.tsx           # Notification toast with stacking
+    LoadingSpinner.tsx  # Themed spinner
+    ErrorMessage.tsx    # Themed error display with retry
+    ErrorBoundary.tsx   # Class component — catches render errors, fallback UI
+    CursorSparkle.tsx   # Mouse trail sparkle effect (respects reduced-motion)
+    ConfirmDialog.tsx   # Styled confirm dialog (replaces window.confirm)
+    PostSkeleton.tsx    # Pulsing placeholder cards for initial feed load
+    LinkPreview.css     # Styles for embedded link previews
+    ui/                 # Reusable primitives (Input, Button, Card, Textarea, Avatar, AvatarPicker, Select, ReactionBar)
+  hooks/
+    useAuth.ts          # Authentication, profile CRUD, session management
+    usePosts.ts         # Post feed with pagination, caching, CRUD, optimistic reactions
+    useReactions.ts     # Emoji reaction toggle with optimistic updates + rollback
+    useLikes.ts         # Like/unlike (UNUSED — see Known Tech Debt)
+    useToast.ts         # Toast notification state (max 3, type-based durations)
+    useFocusTrap.ts     # Keyboard focus trap for modals
+  lib/
+    supabase.ts         # Supabase client singleton (reads VITE_SUPABASE_URL/KEY from env)
+    errors.ts           # Error mapping — raw Supabase errors → user-safe messages
+    retry.ts            # Exponential backoff with jitter for transient failures
+    validation.ts       # Client-side field validation (mirrors DB constraints)
+    cache.ts            # TTL cache for posts feed and YouTube titles
+    moderation.ts       # Content moderation (local filter + AI edge function)
+    themes.ts           # 8 theme definitions, CSS variable application
+    constants.ts        # App-wide constants (age limits, validation rules, mood emojis, messages)
+    linkPreview.ts      # URL detection, YouTube/Vimeo/Spotify oEmbed fetching
+  types/
+    index.ts            # Barrel re-exports from post, link-preview, supabase
+    post.ts             # Post, CreatePostInput, UpdatePostInput
+    profile.ts          # Profile, UpdateProfileInput, SignupData
+    database.ts         # Supabase generated types + RPC function types
+    link-preview.ts     # LinkPreview, LinkType
+    like.ts             # PostLike, PostWithLikes (UNUSED — see Known Tech Debt)
+    supabase.ts         # SupabaseConfig, DatabaseError, SupabaseResponse<T>
+  utils/
+    parseYouTube.ts     # YouTube URL parsing + cached oEmbed title fetch
+    formatDate.ts       # formatDate() + formatRelativeDate() via date-fns
 
 supabase/
-  migrations/         # SQL migrations (run in order by Supabase CLI)
-  functions/          # Deno edge functions
-    moderate-content/ # Content moderation endpoint (JWT-protected)
+  config.toml           # Local dev config (ports, auth settings, edge runtime)
+  migrations/           # SQL migrations (run in order by Supabase CLI)
+  functions/
+    moderate-content/   # Content moderation endpoint (Deno, JWT-protected, uses OpenAI API)
 ```
 
 ## Architecture Patterns
@@ -197,6 +290,35 @@ supabase.rpc('get_posts_with_reactions', {
 })
 ```
 
+### Lazy Loading
+
+Heavy modal components are code-split via `React.lazy()` in `App.tsx`:
+
+```typescript
+const PostModal = lazy(() => import('./components/PostModal'));
+const ProfileModal = lazy(() => import('./components/ProfileModal'));
+const AuthModal = lazy(() => import('./components/AuthModal'));
+// ... etc
+```
+
+All lazy components are wrapped in `<Suspense fallback={<LazyFallback />}>`. The `LazyFallback` renders a dark overlay with `LoadingSpinner`. When adding new heavy components, follow the same pattern.
+
+### Theme System
+
+Themes are defined in `src/lib/themes.ts` (8 themes). Each theme sets 40+ CSS custom properties on `document.documentElement.style`. Key variables:
+
+| Variable | Purpose |
+|----------|---------|
+| `--bg-primary`, `--bg-secondary` | Page background gradient stops |
+| `--card-bg` | Card/box background |
+| `--text-title`, `--text-body`, `--text-muted` | Text hierarchy |
+| `--accent-primary`, `--accent-secondary` | Brand accent colors |
+| `--border-primary` | Border color (dotted borders) |
+| `--title-font` | Theme-specific title font family |
+| `--header-gradient-from/via/to` | Header gradient stops |
+
+Theme is persisted in `profiles.theme` (database column), not localStorage. Applied on login via `applyTheme()` from `themes.ts`.
+
 ## Database Migrations
 
 Run in order by filename. Key migrations:
@@ -258,9 +380,24 @@ The entire UI is styled to evoke 2005-era Xanga blogs. All components use CSS cu
 | Emoji float-up | `ReactionBar.tsx` — CSS `.emoji-float-up` | Spawns floating emoji on reaction toggle, 800ms animation |
 | Lined paper empty state | `EmptyState.tsx` — CSS `repeating-linear-gradient` | Typing cursor animation, journal page aesthetic |
 
+### Theme Fonts
+
+Title font varies by theme — **not always Comic Sans**. Applied via `var(--title-font)` on `.xanga-title` and form labels.
+
+| Theme | `--title-font` |
+|-------|---------------|
+| Classic Xanga (default) | Comic Sans MS, Brush Script MT, cursive |
+| Emo Dark | Georgia, Times New Roman, serif |
+| Scene Kid | Impact, Arial Black, sans-serif |
+| MySpace Blue | Verdana, Tahoma, sans-serif |
+| Y2K Cyber | Trebuchet MS, Orbitron, sans-serif |
+| Cottage Core | Georgia, Palatino Linotype, serif |
+| Grunge | Courier New, Courier, monospace |
+| Pastel Goth | Georgia, Palatino, serif |
+
 ### Styling Conventions
 
-- **Typography**: Comic Sans via `var(--title-font)`, applied on `.xanga-title` and form labels
+- **Typography**: `var(--title-font)` on `.xanga-title` and form labels (see theme font table above)
 - **Borders**: Dotted borders via `border-2 border-dotted` with `var(--border-primary)`
 - **Cards**: `.xanga-box` class for themed card containers
 - **Buttons**: `.xanga-button` class for all primary actions
@@ -340,6 +477,8 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 
 ## Known Tech Debt
 
-1. **`useLikes.ts` is unused** - The `post_likes` table exists and the RPC aggregates likes, but no UI component calls `likePost()`/`unlikePost()`. The reactions system (`useReactions`) handles all user interactions. Either wire up likes in UI or remove the hook.
-2. **`ModerationResult` type is duplicated** - Defined in both `src/lib/moderation.ts` (optional `severity`) and `supabase/functions/moderate-content/index.ts` (required `severity`). The edge function is Deno so sharing types is non-trivial. If you add a shared types package, consolidate this.
-3. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` - This is intentional because it has special `23505` (unique constraint) handling that falls back to a re-fetch rather than a simple retry. The generic retry is linear (300ms * attempt) instead of exponential, which is acceptable for this specific case.
+1. **`useLikes.ts` + `types/like.ts` are unused** — The `post_likes` table exists and the RPC aggregates likes, but no UI component calls `likePost()`/`unlikePost()`. The reactions system (`useReactions`) handles all user interactions. Either wire up likes in UI or remove the hook + types.
+2. **`ModerationResult` type is duplicated** — Defined in both `src/lib/moderation.ts` (optional `severity`) and `supabase/functions/moderate-content/index.ts` (required `severity`). The edge function is Deno so sharing types is non-trivial. If you add a shared types package, consolidate this.
+3. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — This is intentional because it has special `23505` (unique constraint) handling that falls back to a re-fetch rather than a simple retry. The generic retry is linear (300ms * attempt) instead of exponential, which is acceptable for this specific case.
+4. **`react-syntax-highlighter` is installed but unused** — Listed in `package.json` (+ `@types/react-syntax-highlighter`). No component imports it. Either use it for markdown code blocks or remove both packages.
+5. **`ui/Select.tsx` uses hardcoded white background** — Not themed with CSS variables like other UI primitives. Needs `var(--card-bg)` and `var(--border-primary)` treatment to match the Xanga styling conventions.
