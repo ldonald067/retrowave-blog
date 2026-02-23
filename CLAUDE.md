@@ -264,7 +264,7 @@ Session management: `getSession()` is the initial source of truth. `onAuthStateC
 The edge function (`supabase/functions/moderate-content/index.ts`) requires JWT authentication. The client passes the auth token:
 
 ```typescript
-moderateContent(title, content, embeddedLinks, async () => {
+moderateContent(title, content, embeddedLinks, supabaseUrl, async () => {
   const { data } = await supabase.auth.getSession();
   return data.session?.access_token ?? null;
 });

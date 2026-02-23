@@ -290,21 +290,37 @@ export function quickContentCheck(text: string): ModerationResult {
  * Requires the caller to supply a function that resolves the user's JWT
  * so the edge function can authenticate the request.
  *
+ * C4 FIX: Now accepts embedded_links and forwards them to the edge function
+ * for server-side URL validation. Previously URL checking was client-only
+ * and could be bypassed by calling the REST API directly.
+ *
  * @param title - Post title
  * @param content - Post body
+ * @param embeddedLinks - Array of link preview objects (optional)
  * @param supabaseUrl - VITE_SUPABASE_URL
  * @param getAuthToken - async fn returning the user's JWT, or null
  */
 export async function moderateContent(
   title: string,
   content: string,
+  embeddedLinks: Array<{ url: string }> | null | undefined,
   supabaseUrl: string,
   getAuthToken: () => Promise<string | null>,
 ): Promise<ModerationResult> {
-  // First, do a quick local check
+  // First, do a quick local check (text patterns + client-side URL check)
   const quickCheck = quickContentCheck(`${title} ${content}`);
   if (!quickCheck.allowed) {
     return quickCheck;
+  }
+
+  // Also check embedded link URLs locally for immediate feedback
+  if (embeddedLinks) {
+    for (const link of embeddedLinks) {
+      if (link.url) {
+        const urlResult = checkUrls(link.url);
+        if (!urlResult.allowed) return urlResult;
+      }
+    }
   }
 
   // For warning-level content or longer posts, use AI moderation
@@ -326,9 +342,14 @@ export async function moderateContent(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ title, content }),
+      // C4 FIX: Pass embedded_links for server-side URL validation
+      body: JSON.stringify({
+        title,
+        content,
+        embedded_links: embeddedLinks ?? undefined,
+      }),
     });
 
     if (!response.ok) {
