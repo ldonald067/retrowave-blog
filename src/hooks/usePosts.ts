@@ -53,6 +53,11 @@ export function usePosts(): UsePostsReturn {
 
   const cursorRef = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);
+  // L4 FIX: Use a ref guard for loadMore instead of the `loadingMore` state.
+  // On iPhone momentum scroll, the virtualizer can fire loadMore rapidly.
+  // React state updates are async — the second call may see stale `false`
+  // before the first call's `setLoadingMore(true)` flushes.
+  const loadingMoreRef = useRef<boolean>(false);
 
   // ── Core fetch ─────────────────────────────────────────────────────────
   const fetchPage = useCallback(
@@ -139,16 +144,19 @@ export function usePosts(): UsePostsReturn {
 
   // ── Load more (pagination) ─────────────────────────────────────────────
   const loadMore = useCallback(async (): Promise<void> => {
-    if (loadingMore || !hasMore) return;
+    // L4 FIX: Check the ref (synchronous) instead of stale state closure.
+    if (loadingMoreRef.current || !hasMore) return;
+    loadingMoreRef.current = true;
     try {
       setLoadingMore(true);
       await fetchPage(cursorRef.current, true);
     } catch (err) {
       setError(toUserMessage(err));
     } finally {
+      loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }, [fetchPage, loadingMore, hasMore]);
+  }, [fetchPage, hasMore]);
 
   // ── Refetch (force bypass cache) ────────────────────────────────────────
   const refetch = useCallback(async (): Promise<void> => {
@@ -291,10 +299,14 @@ export function usePosts(): UsePostsReturn {
       }
 
       try {
+        // H3 FIX: Include user_id in WHERE clause as defense-in-depth.
+        // Even if RLS policies enforce ownership, this ensures the query
+        // can't modify another user's post if RLS is misconfigured.
         const { data, error } = await supabase
           .from('posts')
           .update(updates)
           .eq('id', id)
+          .eq('user_id', user.id)
           .select()
           .single();
 
@@ -319,10 +331,18 @@ export function usePosts(): UsePostsReturn {
   const deletePost = useCallback(
     async (id: string): Promise<{ error: string | null }> => {
       try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (!user)
+          return { error: 'You must be logged in to delete a post' };
+
+        // H3 FIX: Include user_id as defense-in-depth (same as updatePost).
         const { error } = await supabase
           .from('posts')
           .delete()
-          .eq('id', id);
+          .eq('id', id)
+          .eq('user_id', user.id);
         if (error) throw error;
         postsCache.invalidateAll();
         setPosts((prev) => prev.filter((p) => p.id !== id));

@@ -21,9 +21,18 @@ const NON_RETRYABLE_CODES = new Set(Object.keys(POSTGREST_CODES));
 
 function isRetryable(err: unknown): boolean {
   if (!err) return false;
-  const supaErr = err as { code?: string; message?: string };
+  const supaErr = err as {
+    code?: string;
+    message?: string;
+    status?: number;
+  };
   if (supaErr.code && NON_RETRYABLE_CODES.has(supaErr.code)) return false;
   if (supaErr.message?.match(/permission|unauthorized|jwt|rls/i)) return false;
+  // L2 FIX: Don't retry rate-limited responses — retrying deepens the
+  // rate limit hole, especially on flaky mobile connections where
+  // bursts of retried requests compound the problem.
+  if (supaErr.status === 429) return false;
+  if (supaErr.message?.match(/rate.?limit|too many/i)) return false;
   return true;
 }
 

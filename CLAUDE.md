@@ -25,11 +25,11 @@ This file is the shared interface between **two independent Claude agents** — 
 | Type | Frontend Location | Backend Location | Notes |
 |------|------------------|-----------------|-------|
 | Post field limits | `src/lib/validation.ts` `POST_LIMITS` | `20260223000001_post_constraints.sql` CHECK constraints | **Must match exactly** |
-| Profile field limits | `src/lib/validation.ts` `PROFILE_LIMITS` | No DB constraints yet (see M3) | Client-only for now; sync when DB constraints are added |
+| Profile field limits | `src/lib/validation.ts` `PROFILE_LIMITS` | `20260224000004_add_data_constraints.sql` CHECK constraints | **Must match exactly** (synced in M3 fix) |
 | RPC params/return | `src/types/database.ts` `Functions` | `20260223000002_get_posts_rpc.sql` | Frontend types must mirror SQL return shape |
 | `ModerationResult` | `src/lib/moderation.ts` (severity optional) | `supabase/functions/moderate-content/index.ts` (severity required) | Known divergence — see Tech Debt |
 | Profile fields | `src/types/profile.ts` | `profiles` table columns | Adding a profile field requires both a migration AND a type update |
-| Reaction emoji set | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS` | `post_reactions.reaction_type` column (no CHECK yet — see H5) | Canonical set: `['❤️', '🔥', '😂', '😢', '✨', '👀']` |
+| Reaction emoji set | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS` | `20260224000004_add_data_constraints.sql` CHECK constraint | Canonical set: `['❤️', '🔥', '😂', '😢', '✨', '👀']`. **Must match exactly** |
 
 ### Environment Variables
 
@@ -351,6 +351,8 @@ Run in order by filename. Key migrations:
 | `20260223000002_get_posts_rpc.sql` | `get_posts_with_reactions` RPC function |
 | `20260224000001_fix_handle_new_user.sql` | **C1 fix**: Combines username + age fields in `handle_new_user()` trigger |
 | `20260224000002_fix_rpc_security.sql` | **C2+C3 fix**: `auth.uid()` override + `GREATEST(1, LEAST(p_limit, 100))` |
+| `20260224000003_add_performance_indexes.sql` | **M8 fix**: Indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id`, `post_likes.post_id` |
+| `20260224000004_add_data_constraints.sql` | **H5+M3 fix**: `reaction_type` CHECK + profile field length constraints |
 
 ## Development Notes
 
@@ -517,17 +519,11 @@ Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities,
 - File: `supabase/migrations/005_fix_missing_profiles.sql` line 36
 - The backfill query uses `COALESCE(..., true)` for both `age_verified` and `tos_accepted`. Pre-existing users without metadata are grandfathered as verified. The trigger function in the same migration defaults to `false`. COPPA compliance gap for older users.
 
-**H3: `updatePost` / `deletePost` rely solely on RLS for ownership**
-- File: `src/hooks/usePosts.ts` lines 281–286, 309–312
-- Neither `.update()` nor `.delete()` includes `.eq('user_id', user.id)`. If the RLS UPDATE/DELETE policies on `posts` are permissive (unknown — in missing migrations), any authenticated user could modify any post.
-- Fix: Add `.eq('user_id', user.id)` as a defense-in-depth filter.
+**H3: ✅ FIXED** — `updatePost` and `deletePost` now include `.eq('user_id', user.id)` as defense-in-depth. `deletePost` also adds a login check before the operation.
 
 **H4: ✅ FIXED (F1 frontend fix)** — `createPost` now enriches the prepended post with default `reactions: {}`, `user_reactions: []`, `like_count: 0`, `user_has_liked: false`, `profile_display_name: null`, `profile_avatar_url: null`.
 
-**H5: `reaction_type` has no value constraint**
-- File: `supabase/migrations/003_post_reactions_and_theme.sql` line 9
-- Any string can be stored as `reaction_type` via the PostgREST API. An attacker could store arbitrary strings.
-- Fix: `CHECK (reaction_type IN ('❤️', '🔥', '😂', '😢', '✨', '👀'))` — match the frontend's `REACTION_EMOJIS` in `ReactionBar.tsx`. **Note**: DB stores literal emoji characters, not text labels.
+**H5: ✅ FIXED (`20260224000004_add_data_constraints.sql`)** — `reaction_type` now has a CHECK constraint matching the frontend's `REACTION_EMOJIS`: `('❤️', '🔥', '😂', '😢', '✨', '👀')`.
 
 **H6: ✅ FIXED (with C4)** — Edge function now checks `Content-Length` header and rejects bodies > 100KB before parsing.
 
@@ -535,20 +531,11 @@ Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities,
 
 ### MEDIUM — Correctness / Data Quality
 
-**M1: `validatePostInput` rejects partial updates**
-- File: `src/hooks/usePosts.ts` line 271 / `src/lib/validation.ts` line 40
-- `validatePostInput(updates)` treats missing fields as empty strings, failing min-length checks. A partial update that only changes `mood` will be rejected with "Title is required."
-- Fix: Only validate fields that are present in the `updates` object.
+**M1: ✅ FIXED** — `validatePostInput` now uses `'field' in input` guards (same pattern as `validateProfileInput`). Missing fields are skipped instead of treated as empty strings. Partial updates work correctly.
 
-**M2: `embedded_links` URL accepts any scheme including `javascript:`**
-- File: `src/lib/validation.ts` line 85
-- Any non-empty string passes as a valid URL. `javascript:alert(1)` or `data:text/html,...` would be stored.
-- Fix: Reject URLs not starting with `http://` or `https://`.
+**M2: ✅ FIXED** — `validateEmbeddedLinks` now rejects URLs not starting with `http://` or `https://`, preventing `javascript:` and `data:` scheme XSS.
 
-**M3: Profile fields have no length constraints at DB level**
-- File: `supabase/migrations/004_profile_mood_music.sql`
-- `current_mood` and `current_music` on profiles have no CHECK constraints, unlike the equivalent post fields. `bio` and `display_name` are also unbounded.
-- Fix: New migration adding CHECK constraints matching the pattern in `20260223000001_post_constraints.sql`.
+**M3: ✅ FIXED (`20260224000004_add_data_constraints.sql`)** — Profile fields now have DB CHECK constraints matching `PROFILE_LIMITS` in `validation.ts`: display_name(50), bio(500), current_mood(100), current_music(200), username(50).
 
 **M4: ✅ FIXED (F5 frontend fix)** — Deleted `sanitizeContent()` from `moderation.ts`. Render-time sanitization via `rehype-sanitize` + `DOMPurify` is the correct approach.
 
@@ -563,19 +550,17 @@ Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities,
 - File: `supabase/config.toml` / `src/hooks/useAuth.ts` line 287
 - `devSignUp` calls `signInAnonymously()` but anonymous sign-ins are disabled in config. Will always error in local dev.
 
-**M8: Missing indexes for pagination performance**
-- No index on `posts.created_at` (used in ORDER BY + WHERE cursor). No index on `posts.user_id` (used in ownership queries). As posts grow, these become full table scans.
-- Fix: New migration adding `CREATE INDEX idx_posts_created_at ON posts(created_at DESC)` and `CREATE INDEX idx_posts_user_id ON posts(user_id)`.
+**M8: ✅ FIXED (`20260224000003_add_performance_indexes.sql`)** — Added indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id`, and `post_likes.post_id`. Biggest iPhone performance impact — eliminates full table scans on every feed load.
 
 ### LOW — Minor Issues / Cleanup
 
 **L1: `errors.ts` leaks implementation language** — "A required database table is missing" reveals DB internals. Use generic "Something went wrong" instead.
 
-**L2: No circuit breaker in `withRetry`** — Rate-limited (429) responses are retried, potentially deepening the rate limit. HTTP 429 should be non-retryable.
+**L2: ✅ FIXED** — `withRetry` now treats HTTP 429 and rate-limit messages as non-retryable. Prevents deepening rate limits on flaky mobile connections.
 
 **L3: Edge function fails open** — OpenAI API failure or missing API key returns `{ allowed: true }`. This is an intentional design choice (documented) but means moderation is completely disabled if OpenAI is down.
 
-**L4: `loadMore` uses state guard instead of ref** — `loadingMore` state check at `usePosts.ts:142` can allow concurrent calls before the first state update flushes. A `useRef<boolean>` guard would be more reliable.
+**L4: ✅ FIXED** — `loadMore` now uses `loadingMoreRef` (synchronous ref) alongside the state boolean. Prevents duplicate page fetches during iPhone momentum scroll.
 
 **L5: Cache has no maximum size** — `postsCache` accumulates entries during deep pagination with no eviction beyond TTL. Minor memory concern for heavy users.
 
