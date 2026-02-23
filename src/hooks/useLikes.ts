@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { toUserMessage } from '../lib/errors';
 
 interface UseLikesReturn {
   likePost: (postId: string) => Promise<{ error: string | null }>;
@@ -40,7 +41,7 @@ export function useLikes(): UseLikesReturn {
 
       return { error: null };
     } catch (err) {
-      return { error: err instanceof Error ? err.message : 'An error occurred' };
+      return { error: toUserMessage(err) };
     } finally {
       setLoading(false);
     }
@@ -69,7 +70,7 @@ export function useLikes(): UseLikesReturn {
 
       return { error: null };
     } catch (err) {
-      return { error: err instanceof Error ? err.message : 'An error occurred' };
+      return { error: toUserMessage(err) };
     } finally {
       setLoading(false);
     }

@@ -1,13 +1,29 @@
 // Supabase Edge Function for AI content moderation
 // Deploy with: supabase functions deploy moderate-content
 // Set secret: supabase secrets set OPENAI_API_KEY=your_key
+// Set secret: supabase secrets set SITE_URL=https://yourapp.com
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// CORS: only allow the app's origin (not '*')
+const ALLOWED_ORIGINS = [
+  Deno.env.get('SITE_URL') ?? 'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5173',
+];
+
+function corsHeaders(origin: string | null) {
+  const allowed =
+    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers':
+      'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    Vary: 'Origin',
+  };
+}
 
 interface ModerationRequest {
   title: string;
@@ -21,64 +37,97 @@ interface ModerationResult {
   severity: 'blocked' | 'warning' | 'clean';
 }
 
+function jsonResponse(
+  body: ModerationResult | { error: string },
+  origin: string | null,
+  status = 200,
+) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders(origin), 'Content-Type': 'application/json' },
+  });
+}
+
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders(origin) });
   }
+
+  // ── JWT Authentication ───────────────────────────────────────────────
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return jsonResponse({ error: 'Missing or invalid Authorization header' }, origin, 401);
+  }
+
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing SUPABASE_URL or SUPABASE_ANON_KEY env vars');
+    return jsonResponse({ error: 'Server misconfiguration' }, origin, 500);
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return jsonResponse({ error: 'Unauthorized' }, origin, 401);
+  }
+  // ── End auth check ───────────────────────────────────────────────────
 
   try {
     const { title, content } = (await req.json()) as ModerationRequest;
 
     if (!title && !content) {
-      return new Response(
-        JSON.stringify({ allowed: true, severity: 'clean' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ allowed: true, severity: 'clean' }, origin);
     }
 
     const openaiKey = Deno.env.get('OPENAI_API_KEY');
 
     if (!openaiKey) {
-      // No API key configured, allow content but log warning
       console.warn('OPENAI_API_KEY not configured for content moderation');
-      return new Response(
-        JSON.stringify({ allowed: true, severity: 'clean' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return jsonResponse({ allowed: true, severity: 'clean' }, origin);
     }
 
-    // Use OpenAI's moderation endpoint (free and fast)
-    const moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openaiKey}`,
-        'Content-Type': 'application/json',
+    const moderationResponse = await fetch(
+      'https://api.openai.com/v1/moderations',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${openaiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ input: `${title}\n\n${content}` }),
       },
-      body: JSON.stringify({
-        input: `${title}\n\n${content}`,
-      }),
-    });
+    );
 
     if (!moderationResponse.ok) {
-      console.error('OpenAI moderation failed:', await moderationResponse.text());
-      return new Response(
-        JSON.stringify({ allowed: true, severity: 'clean' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      console.error(
+        'OpenAI moderation failed:',
+        await moderationResponse.text(),
       );
+      return jsonResponse({ allowed: true, severity: 'clean' }, origin);
     }
 
     const moderationData = await moderationResponse.json();
     const result = moderationData.results[0];
 
-    // Check if content is flagged
     if (result.flagged) {
-      // Find which categories were flagged
-      const flaggedCategories = Object.entries(result.categories)
-        .filter(([_, flagged]) => flagged)
+      const flaggedCategories = Object.entries(
+        result.categories as Record<string, boolean>,
+      )
+        .filter(([, flagged]) => flagged)
         .map(([category]) => category);
 
-      // Determine severity based on flagged categories
       const severeCategories = [
         'hate',
         'hate/threatening',
@@ -87,9 +136,8 @@ serve(async (req) => {
         'sexual/minors',
         'violence/graphic',
       ];
-
       const isSevere = flaggedCategories.some((cat) =>
-        severeCategories.includes(cat)
+        severeCategories.includes(cat),
       );
 
       const response: ModerationResult = {
@@ -101,22 +149,12 @@ serve(async (req) => {
         severity: isSevere ? 'blocked' : 'warning',
       };
 
-      return new Response(JSON.stringify(response), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return jsonResponse(response, origin);
     }
 
-    // Content is clean
-    return new Response(
-      JSON.stringify({ allowed: true, severity: 'clean' } as ModerationResult),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ allowed: true, severity: 'clean' }, origin);
   } catch (error) {
     console.error('Moderation error:', error);
-    // On error, allow content but log the issue
-    return new Response(
-      JSON.stringify({ allowed: true, severity: 'clean' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonResponse({ allowed: true, severity: 'clean' }, origin);
   }
 });

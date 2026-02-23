@@ -286,13 +286,20 @@ export function quickContentCheck(text: string): ModerationResult {
 }
 
 /**
- * Full moderation check using Supabase Edge Function
- * This calls an AI API to analyze content for context
+ * Full moderation check using Supabase Edge Function.
+ * Requires the caller to supply a function that resolves the user's JWT
+ * so the edge function can authenticate the request.
+ *
+ * @param title - Post title
+ * @param content - Post body
+ * @param supabaseUrl - VITE_SUPABASE_URL
+ * @param getAuthToken - async fn returning the user's JWT, or null
  */
 export async function moderateContent(
   title: string,
   content: string,
-  supabaseUrl: string
+  supabaseUrl: string,
+  getAuthToken: () => Promise<string | null>,
 ): Promise<ModerationResult> {
   // First, do a quick local check
   const quickCheck = quickContentCheck(`${title} ${content}`);
@@ -308,17 +315,23 @@ export async function moderateContent(
   }
 
   try {
-    // Call Supabase Edge Function for AI moderation
+    const token = await getAuthToken();
+    if (!token) {
+      // No authenticated user — skip AI moderation, local check already passed
+      console.warn('No auth token available for moderation; skipping AI check');
+      return { allowed: true, severity: 'clean' };
+    }
+
     const response = await fetch(`${supabaseUrl}/functions/v1/moderate-content`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ title, content }),
     });
 
     if (!response.ok) {
-      // If moderation service is down, fall back to allowing with local check
       console.warn('Moderation service unavailable, using local check only');
       return { allowed: true, severity: 'clean' };
     }
@@ -326,7 +339,6 @@ export async function moderateContent(
     const result = await response.json();
     return result as ModerationResult;
   } catch (error) {
-    // Network error - fall back to local check
     console.warn('Moderation check failed:', error);
     return { allowed: true, severity: 'clean' };
   }

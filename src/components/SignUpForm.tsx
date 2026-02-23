@@ -37,32 +37,25 @@ export default function SignUpForm() {
     setSavedTosAccepted(tosAccepted);
 
     try {
-      // Add timeout to prevent hanging forever
-      const timeoutPromise = new Promise<{ error: string }>((_, reject) =>
-        setTimeout(() => reject({ error: 'Request timed out' }), 10000)
-      );
+      const { error } = await signUp(email, birthYear, tosAccepted);
 
-      const signUpPromise = signUp(email, birthYear, tosAccepted);
-
-      const result = await Promise.race([signUpPromise, timeoutPromise]);
-
-      if (result.error) {
-        // Log error but still show success for development
-        console.warn('Signup API error (expected if email not configured):', result.error);
+      if (error) {
+        showToast(error, 'error');
+        setIsSubmitting(false);
+        return;
       }
-    } catch (err) {
-      // Timeout or other error - still show success for dev
-      console.warn('Signup request error:', err);
-    }
 
-    // Always show success screen - the magic link flow will work
-    // once Supabase email is properly configured
-    setStep('success');
-    setIsSubmitting(false);
+      setStep('success');
+    } catch (err) {
+      showToast('Something went wrong. Please try again.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // DEV ONLY: Quick signup that bypasses magic link
   const handleDevSignUp = async () => {
+    if (!devSignUp) return;
     setIsSubmitting(true);
     const { error } = await devSignUp(email, savedBirthYear, savedTosAccepted);
 

@@ -218,7 +218,36 @@ export interface Database {
         Relationships: [];
       };
     };
-    Functions: Record<string, never>;
+    Functions: {
+      get_posts_with_reactions: {
+        Args: {
+          p_cursor: string | null;
+          p_limit: number;
+          p_user_id: string | null;
+        };
+        Returns: Array<{
+          id: string;
+          user_id: string;
+          title: string;
+          content: string;
+          author: string;
+          excerpt: string;
+          mood: string | null;
+          music: string | null;
+          embedded_links: Json | null;
+          has_media: boolean;
+          is_private: boolean;
+          created_at: string;
+          updated_at: string;
+          profile_display_name: string | null;
+          profile_avatar_url: string | null;
+          like_count: number;
+          user_has_liked: boolean;
+          reactions: Record<string, number>;
+          user_reactions: string[];
+        }>;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };

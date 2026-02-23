@@ -43,6 +43,9 @@ function PostList({
   onView,
   onReaction,
   currentUserId,
+  onLoadMore,
+  loadingMore,
+  hasMore,
 }: {
   posts: Post[];
   onEdit: (post: Post) => void;
@@ -50,6 +53,9 @@ function PostList({
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
   currentUserId?: string;
+  onLoadMore: () => void;
+  loadingMore: boolean;
+  hasMore: boolean;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -61,34 +67,49 @@ function PostList({
   });
 
   return (
-    <div ref={parentRef} className="max-h-[80vh] overflow-auto scrollbar-thin">
-      <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
-        <AnimatePresence>
-          {virtualizer.getVirtualItems().map((virtualRow) => {
-            const post = posts[virtualRow.index];
-            if (!post) return null;
-            return (
-              <div
-                key={post.id}
-                ref={virtualizer.measureElement}
-                data-index={virtualRow.index}
-                className="absolute top-0 left-0 w-full pb-4"
-                style={{ transform: `translateY(${virtualRow.start}px)` }}
-              >
-                <PostCard
-                  post={post}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  onView={onView}
-                  onReaction={onReaction}
-                  viewMode="list"
-                  currentUserId={currentUserId}
-                />
-              </div>
-            );
-          })}
-        </AnimatePresence>
+    <div>
+      <div ref={parentRef} className="max-h-[80vh] overflow-auto scrollbar-thin">
+        <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
+          <AnimatePresence>
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const post = posts[virtualRow.index];
+              if (!post) return null;
+              return (
+                <div
+                  key={post.id}
+                  ref={virtualizer.measureElement}
+                  data-index={virtualRow.index}
+                  className="absolute top-0 left-0 w-full pb-4"
+                  style={{ transform: `translateY(${virtualRow.start}px)` }}
+                >
+                  <PostCard
+                    post={post}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    onView={onView}
+                    onReaction={onReaction}
+                    viewMode="list"
+                    currentUserId={currentUserId}
+                  />
+                </div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
       </div>
+
+      {/* Xanga-style pagination button */}
+      {hasMore && (
+        <div className="flex justify-center pt-4 pb-2">
+          <button
+            onClick={onLoadMore}
+            disabled={loadingMore}
+            className="xanga-button text-sm"
+          >
+            {loadingMore ? 'Loading...' : '\u00AB Older Entries'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -98,14 +119,21 @@ function App() {
   const {
     posts,
     loading: postsLoading,
+    loadingMore,
+    hasMore,
     error,
     createPost,
     updatePost,
     deletePost,
+    loadMore,
     refetch,
+    applyOptimisticReaction,
   } = usePosts();
   const { toasts, hideToast, success, error: showError } = useToast();
-  const { toggleReaction } = useReactions();
+  // T4: Pass optimistic update handler to useReactions
+  const { toggleReaction } = useReactions({
+    onOptimisticUpdate: applyOptimisticReaction,
+  });
 
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>('create');
@@ -207,17 +235,20 @@ function App() {
     }
   };
 
+  // T4: Optimistic reactions — no more refetch() after toggle
   const handleReaction = async (postId: string, emoji: string) => {
     if (!user) {
       showError('Please sign in to react');
       setShowAuthModal(true);
       return;
     }
-    const { error } = await toggleReaction(postId, emoji);
+    const post = posts.find((p) => p.id === postId);
+    const currentUserReactions = post?.user_reactions ?? [];
+
+    const { error } = await toggleReaction(postId, emoji, currentUserReactions);
     if (error) {
       showError(error);
-    } else {
-      refetch();
+      // Note: useReactions already rolled back the optimistic update on error
     }
   };
 
@@ -361,6 +392,9 @@ function App() {
                 onView={handleViewPost}
                 onReaction={handleReaction}
                 currentUserId={user?.id}
+                onLoadMore={loadMore}
+                loadingMore={loadingMore}
+                hasMore={hasMore}
               />
             )}
           </main>
