@@ -226,6 +226,24 @@ All mutation hooks follow the pattern `Promise<{ data?: T | null; error: string 
 
 Custom RPC functions must be registered in `src/types/database.ts` under `Database.public.Functions` for type safety. See `get_posts_with_reactions` for the pattern.
 
+## Claude Code Automations
+
+Configured in `.claude/settings.json`. These run automatically — no manual steps needed.
+
+### Hooks
+
+| Hook | Trigger | What It Does |
+|------|---------|-------------|
+| Prettier auto-format | After every Edit/Write | Formats the file with Prettier so code style is always consistent |
+| Block `.env` edits | Before Edit/Write | Prevents accidental exposure of Supabase API keys |
+| Block lock file edits | Before Edit/Write | Prevents hand-editing `package-lock.json` / lock files |
+
+### What We Chose Not To Add (and why)
+
+- **MCP servers** — Project is right-sized and CLAUDE.md already documents all patterns. No need for context7 or database MCPs.
+- **Custom subagents** — Built-in code-reviewer is sufficient for this codebase size.
+- **Custom skills** — Already have the right plugins installed (commit-commands, feature-dev, frontend-design, code-review).
+
 ## Known Tech Debt
 
 1. **`useLikes.ts` is unused** - The `post_likes` table exists and the RPC aggregates likes, but no UI component calls `likePost()`/`unlikePost()`. The reactions system (`useReactions`) handles all user interactions. Either wire up likes in UI or remove the hook.
