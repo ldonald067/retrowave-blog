@@ -1,11 +1,12 @@
 import { useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
-import { Youtube, ExternalLink } from 'lucide-react';
+import { Youtube, ExternalLink, Share2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
 import { parseYouTubeUrl, fetchYouTubeTitle, type YouTubeInfo } from '../utils/parseYouTube';
 import { BLOG_OWNER_EMAIL } from '../lib/constants';
+import { openUrl, sharePost } from '../lib/capacitor';
 import ReactionBar from './ui/ReactionBar';
 import type { Post } from '../types/post';
 
@@ -147,6 +148,10 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
                 href={ytInfo.watchUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  void openUrl(ytInfo.watchUrl);
+                }}
                 className="flex items-center gap-3 p-2 rounded transition hover:opacity-80"
                 style={{
                   backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))',
@@ -229,6 +234,18 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
             </a>
           )}
         </div>
+        <button
+          onClick={() => {
+            const snippet = post.content ? post.content.substring(0, 140) : '';
+            void sharePost(post.title, `${post.title}\n\n${snippet}${snippet.length < (post.content?.length ?? 0) ? '...' : ''}`);
+          }}
+          className="p-1.5 rounded transition hover:opacity-70"
+          title="Share post"
+          aria-label="Share post"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <Share2 size={14} />
+        </button>
       </div>
 
       {/* Post footer - reactions row */}

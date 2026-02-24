@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
+import { hapticImpact } from '../lib/capacitor';
 
 interface UseReactionsOptions {
   /**
@@ -73,6 +74,9 @@ export function useReactions(
 
       // T4: Optimistic update — update the UI immediately
       onOptimisticUpdate?.(postId, emoji, user.id, wasActive);
+
+      // Tactile feedback on iOS
+      void hapticImpact();
 
       try {
         if (wasActive) {

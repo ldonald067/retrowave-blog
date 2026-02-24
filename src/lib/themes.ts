@@ -1,5 +1,6 @@
 // Theme definitions for the retrowave blog
 // Each theme provides CSS custom property values applied via data-theme on <html>
+import { setStatusBarForTheme } from './capacitor';
 
 export interface ThemeDefinition {
   id: string;
@@ -442,4 +443,7 @@ export function applyTheme(themeId: string): void {
     .map(([key, value]) => `${key}: ${value}`)
     .join('; ');
   root.style.cssText = cssText;
+
+  // Update iOS status bar text color to match theme brightness
+  void setStatusBarForTheme(theme.id);
 }

@@ -20,6 +20,7 @@ import type { Post, CreatePostInput } from './types/post';
 import { useEmojiStyle, getEmojiAttribution } from './lib/emojiStyles';
 import { moderateContent } from './lib/moderation';
 import { supabase } from './lib/supabase';
+import { hideSplashScreen } from './lib/capacitor';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
@@ -209,6 +210,11 @@ function App() {
       showError(profileError);
     }
   }, [profileError, showError]);
+
+  // Hide native splash screen once auth state is resolved
+  useEffect(() => {
+    if (!authLoading) void hideSplashScreen();
+  }, [authLoading]);
 
   // Show auth modal if not authenticated
   useEffect(() => {

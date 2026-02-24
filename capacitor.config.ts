@@ -17,6 +17,18 @@ const config: CapacitorConfig = {
     // Use WKWebView (required for App Store)
     preferredContentMode: 'mobile',
   },
+  plugins: {
+    Keyboard: {
+      // Resize the web view body (not the native viewport) when the keyboard opens.
+      // Prevents modals from being pushed off-screen on iPhone.
+      resize: 'body',
+    },
+    SplashScreen: {
+      // We hide the splash screen manually after auth session resolves
+      // to prevent a flash of empty content.
+      launchAutoHide: false,
+    },
+  },
 };
 
 export default config;
