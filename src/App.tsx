@@ -90,7 +90,7 @@ function PostList({
       (entries) => {
         if (entries[0]?.isIntersecting) handleLoadMore();
       },
-      { rootMargin: '200px' },
+      { root: parentRef.current, rootMargin: '200px' },
     );
     observer.observe(sentinel);
     return () => observer.disconnect();

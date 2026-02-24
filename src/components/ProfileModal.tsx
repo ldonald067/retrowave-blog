@@ -306,17 +306,11 @@ export default function ProfileModal({
                   <Music size={14} style={{ color: 'var(--accent-secondary)' }} />
                   currently listening 2
                 </h3>
-                <input
+                <Input
                   type="text"
                   value={currentMusic}
                   onChange={(e) => setCurrentMusic(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none"
-                  style={{
-                    backgroundColor: 'var(--input-bg, var(--card-bg))',
-                    borderColor: 'var(--input-border, var(--border-primary))',
-                    color: 'var(--text-body)',
-                  }}
-                  placeholder="artist - song name"
+                  placeholder="artist - song name, or paste a youtube link"
                   maxLength={200}
                 />
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>

@@ -4,6 +4,7 @@ import { X, Save, Youtube } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { Input, Textarea, Select } from './ui';
+import ConfirmDialog from './ConfirmDialog';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { parseYouTubeUrl } from '../utils/parseYouTube';
 import type { Post, CreatePostInput } from '../types/post';
@@ -35,31 +36,34 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
   // M2: Full content fetched from get_post_by_id RPC (for truncated posts)
   const [fullContent, setFullContent] = useState<string | undefined>(undefined);
   const [loadingFullContent, setLoadingFullContent] = useState(false);
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const draftRestoredTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  // UX: Check for unsaved changes before closing
+
+  // Check if the form has unsaved changes
+  const isDirty = useCallback(() => {
+    if (loadingFullContent || mode === 'view') return false;
+    const baseContent = fullContent ?? post?.content ?? '';
+    return mode === 'create'
+      ? !!(title.trim() || content.trim())
+      : !!post &&
+          (title !== (post.title || '') ||
+            content !== baseContent ||
+            author !== (post.author || '') ||
+            mood !== (post.mood || '') ||
+            music !== (post.music || ''));
+  }, [loadingFullContent, mode, title, content, author, mood, music, post, fullContent]);
+
+  // UX: Check for unsaved changes before closing — shows styled ConfirmDialog instead of window.confirm
   const handleClose = useCallback(() => {
     if (saving) return;
-    // M2: If still loading full content, nothing has been typed yet — safe to close
-    if (!loadingFullContent && mode !== 'view') {
-      // M2: Compare content against full version when available
-      const baseContent = fullContent ?? post?.content ?? '';
-      const dirty =
-        mode === 'create'
-          ? !!(title.trim() || content.trim())
-          : !!post &&
-            (title !== (post.title || '') ||
-              content !== baseContent ||
-              author !== (post.author || '') ||
-              mood !== (post.mood || '') ||
-              music !== (post.music || ''));
-      if (dirty && !window.confirm('u have unsaved changes! r u sure u want 2 leave?')) {
-        return;
-      }
+    if (isDirty()) {
+      setShowUnsavedConfirm(true);
+      return;
     }
     onClose();
-  }, [saving, loadingFullContent, mode, title, content, author, mood, music, post, fullContent, onClose]);
+  }, [saving, isDirty, onClose]);
   useFocusTrap(dialogRef, true, handleClose);
 
   // Restore draft on mount (create mode only)
@@ -553,6 +557,20 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
             </div>
           )}
         </motion.div>
+
+        {/* Styled unsaved-changes confirmation (replaces raw window.confirm) */}
+        {showUnsavedConfirm && (
+          <ConfirmDialog
+            title="~ unsaved changes ~"
+            message="u have unsaved changes! r u sure u want 2 leave?"
+            confirmLabel="~ yes, discard ~"
+            onConfirm={() => {
+              setShowUnsavedConfirm(false);
+              onClose();
+            }}
+            onCancel={() => setShowUnsavedConfirm(false)}
+          />
+        )}
       </motion.div>
     </AnimatePresence>
   );

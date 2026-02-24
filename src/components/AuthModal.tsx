@@ -57,12 +57,16 @@ export default function AuthModal({ isOpen, onClose: _onClose, defaultTab = 'log
             {/* Xanga-style Tab Selector */}
             <div
               className="flex border-2 border-dotted rounded-lg overflow-hidden mb-6"
+              role="tablist"
+              aria-label="Sign in or sign up"
               style={{ borderColor: 'var(--border-primary)' }}
             >
               <button
                 onClick={() => setActiveTab('login')}
-                aria-label="Sign In"
-                aria-pressed={activeTab === 'login'}
+                role="tab"
+                aria-selected={activeTab === 'login'}
+                id="tab-login"
+                aria-controls="tabpanel-login"
                 className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition min-h-[44px]"
                 style={{
                   fontFamily: 'var(--title-font)',
@@ -74,8 +78,10 @@ export default function AuthModal({ isOpen, onClose: _onClose, defaultTab = 'log
               </button>
               <button
                 onClick={() => setActiveTab('signup')}
-                aria-label="Sign Up"
-                aria-pressed={activeTab === 'signup'}
+                role="tab"
+                aria-selected={activeTab === 'signup'}
+                id="tab-signup"
+                aria-controls="tabpanel-signup"
                 className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition border-l-2 border-dotted min-h-[44px]"
                 style={{
                   fontFamily: 'var(--title-font)',
@@ -109,6 +115,9 @@ export default function AuthModal({ isOpen, onClose: _onClose, defaultTab = 'log
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
+                role="tabpanel"
+                id={`tabpanel-${activeTab}`}
+                aria-labelledby={`tab-${activeTab}`}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}

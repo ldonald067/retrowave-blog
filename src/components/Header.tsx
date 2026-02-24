@@ -45,6 +45,8 @@ export default function Header({
     setStatus(trimmed);
     localStorage.setItem(STATUS_KEY, trimmed);
     setEditingStatus(false);
+    // Notify other components (e.g. Sidebar) that the status changed
+    window.dispatchEvent(new CustomEvent('xanga-status-update', { detail: trimmed }));
   };
 
   const cancelEdit = () => {

@@ -1,10 +1,10 @@
-import { useState, useEffect, memo } from 'react';
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Youtube, ExternalLink, Share2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
-import { parseYouTubeUrl, fetchYouTubeTitle, type YouTubeInfo } from '../utils/parseYouTube';
+import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { BLOG_OWNER_EMAIL } from '../lib/constants';
 import { openUrl, sharePost } from '../lib/capacitor';
 import ReactionBar from './ui/ReactionBar';
@@ -27,31 +27,7 @@ interface PostCardProps {
 
 const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReaction, currentUserId }: PostCardProps) {
   const isOwner = currentUserId === post.user_id;
-  const [ytInfo, setYtInfo] = useState<(YouTubeInfo & { title?: string }) | null>(null);
-
-  // Fetch YouTube title when post.music changes
-  useEffect(() => {
-    if (!post.music) {
-      setYtInfo(null);
-      return;
-    }
-
-    const info = parseYouTubeUrl(post.music);
-    if (!info) {
-      setYtInfo(null);
-      return;
-    }
-
-    // Set initial info without title
-    setYtInfo(info);
-
-    // Fetch title asynchronously
-    fetchYouTubeTitle(info.videoId).then((title) => {
-      if (title) {
-        setYtInfo((prev) => (prev ? { ...prev, title } : null));
-      }
-    });
-  }, [post.music]);
+  const ytInfo = useYouTubeInfo(post.music);
 
   // Xanga-style blog post card
   return (

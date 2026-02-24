@@ -437,12 +437,11 @@ export function applyTheme(themeId: string): void {
   const root = document.documentElement;
   root.setAttribute('data-theme', theme.id);
 
-  // Batch all CSS property changes into a single cssText assignment
-  // to minimize style recalculations (one reflow instead of ~40).
-  const cssText = Object.entries(theme.variables)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join('; ');
-  root.style.cssText = cssText;
+  // Set each CSS custom property individually to avoid destroying
+  // any other inline styles on the root element.
+  for (const [key, value] of Object.entries(theme.variables)) {
+    root.style.setProperty(key, value);
+  }
 
   // Update iOS status bar text color to match theme brightness
   void setStatusBarForTheme(theme.id);

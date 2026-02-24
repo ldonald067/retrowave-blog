@@ -4,7 +4,7 @@ import { Heart, Music, Calendar, Settings, BookOpen, Youtube, ExternalLink, Chev
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 import { Avatar } from './ui';
-import { parseYouTubeUrl, fetchYouTubeTitle, type YouTubeInfo } from '../utils/parseYouTube';
+import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 
 interface SidebarProps {
   user: SupabaseUser | null;
@@ -14,12 +14,20 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }: SidebarProps) {
-  const [ytInfo, setYtInfo] = useState<(YouTubeInfo & { title?: string }) | null>(null);
   const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
   const [collapsed, setCollapsed] = useState(() => {
     const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
     return stored === null ? false : stored === 'true';
   });
+  // Reactive AIM status — syncs when Header dispatches 'xanga-status-update'
+  const [aimStatus, setAimStatus] = useState(() => {
+    try { return localStorage.getItem('xanga-status') || ''; } catch { return ''; }
+  });
+  useEffect(() => {
+    const handler = (e: Event) => setAimStatus((e as CustomEvent<string>).detail);
+    window.addEventListener('xanga-status-update', handler);
+    return () => window.removeEventListener('xanga-status-update', handler);
+  }, []);
 
   const handleToggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -45,29 +53,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
     [user?.email, user?.id, profile?.display_name, profile?.avatar_url, profile?.bio, profile?.current_mood, profile?.current_music, profile?.created_at],
   );
 
-  // Fetch YouTube title when music URL changes
-  useEffect(() => {
-    if (!userData.music) {
-      setYtInfo(null);
-      return;
-    }
-
-    const info = parseYouTubeUrl(userData.music);
-    if (!info) {
-      setYtInfo(null);
-      return;
-    }
-
-    // Set initial info without title
-    setYtInfo(info);
-
-    // Fetch title asynchronously
-    fetchYouTubeTitle(info.videoId).then((title) => {
-      if (title) {
-        setYtInfo((prev) => (prev ? { ...prev, title } : null));
-      }
-    });
-  }, [userData.music]);
+  const ytInfo = useYouTubeInfo(userData.music);
 
   // Full sidebar content — shared between mobile expanded and desktop
   const sidebarContent = (
@@ -105,9 +91,9 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
           </div>
           <h2 className="xanga-title text-xl mb-1">{userData.displayName}</h2>
           <p className="xanga-subtitle">@{userData.username}</p>
-          {/* AIM-style status */}
-          {typeof window !== 'undefined' && localStorage.getItem('xanga-status') && (
-            <p className="aim-status mt-1">📟 ~ {localStorage.getItem('xanga-status')} ~</p>
+          {/* AIM-style status — reactive via custom event from Header */}
+          {aimStatus && (
+            <p className="aim-status mt-1">📟 ~ {aimStatus} ~</p>
           )}
         </div>
 
