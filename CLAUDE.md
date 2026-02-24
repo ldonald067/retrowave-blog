@@ -55,7 +55,7 @@ This file is the shared interface between **two independent Claude agents** — 
 1. **Adding a DB column** → backend agent adds migration + RLS; frontend agent updates TypeScript type + UI
 2. **Adding an RPC function** → backend agent writes SQL + registers in `database.ts`; frontend agent calls it
 3. **Adding an edge function** → backend agent creates in `supabase/functions/`; frontend agent calls via `supabase.functions.invoke()`
-4. **Changing validation limits** → update BOTH `validation.ts` AND the SQL migration. Document in this section.
+4. **Changing validation limits** → update `validation.ts` (`POST_LIMITS` or `PROFILE_LIMITS`) AND the corresponding SQL migration. `constants.ts` auto-imports from `PROFILE_LIMITS` — do NOT update it manually.
 5. **`is_admin` is trigger-protected** → `20260224000006_protect_is_admin.sql` silently preserves `is_admin` on any API UPDATE. `supabase.from('profiles').update({ is_admin: true })` will **silently fail**. Admin features require a `SECURITY DEFINER` SQL function that bypasses the trigger.
 
 ## Tech Stack
@@ -526,5 +526,43 @@ Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M
 
 1. **`ModerationResult` type is duplicated** — Defined in both `src/lib/moderation.ts` (optional `severity`) and `supabase/functions/moderate-content/index.ts` (required `severity`). The edge function is Deno so sharing types is non-trivial. If you add a shared types package, consolidate this.
 2. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — This is intentional because it has special `23505` (unique constraint) handling that falls back to a re-fetch rather than a simple retry. The generic retry is linear (300ms * attempt) instead of exponential, which is acceptable for this specific case.
-3. ~~`react-syntax-highlighter` is installed but unused~~ — **RESOLVED** (removed in UX/perf pass).
-4. ~~`ui/Select.tsx` uses hardcoded white background~~ — **RESOLVED** (themed with CSS variables in UX/perf pass).
+
+## Frontend Completion Status
+
+The frontend agent has completed **all** planned work across multiple sessions. Here is a summary of what was done and what the backend agent should know.
+
+### What Changed (Frontend-Only, No Backend Action Required)
+
+These changes are purely frontend. The backend agent does NOT need to do anything for these:
+
+| Change | Details |
+|--------|---------|
+| Xanga-style UI overhaul | All components themed with CSS variables, dotted borders, era-appropriate fonts |
+| `prefers-reduced-motion` support | CSS media query + `<MotionConfig reducedMotion="user">` + CursorSparkle early return |
+| Focus traps in all modals | `useFocusTrap.ts` hook with `onEscape` callback, integrated in PostModal/ProfileModal/AuthModal/OnboardingFlow/ConfirmDialog |
+| Collapsible mobile sidebar | Persists to `localStorage` key `sidebar-collapsed` |
+| Draft auto-save in PostModal | Saves to `localStorage` key `post-draft`, restored on reopen, cleared on save |
+| ConfirmDialog replaces `window.confirm()` | Styled Xanga modal for delete confirmations |
+| PostSkeleton loaders | Pulsing placeholder cards for initial feed load |
+| Toast stacking + type-based timing | Max 3 visible, Success 3s / Info 4s / Error 6s |
+| Touch targets 44px+ on mobile | ReactionBar, PostCard edit/delete, Toast close all enlarged |
+| `applyTheme()` batch CSS assignment | Uses single `cssText` assignment instead of ~40 `setProperty()` calls |
+| `constants.ts` imports from `validation.ts` | `VALIDATION.displayName.maxLength` now reads from `PROFILE_LIMITS` — single source of truth |
+| AvatarPicker lazy loading | `loading="lazy"` on avatar grid images |
+| Cache single-pass eviction | `TTLCache.evict()` tracks oldest entry in one loop instead of two iterations |
+
+### Backend Action Items
+
+The backend agent should review and address these areas:
+
+1. **Audit RLS policies** — The frontend now fully validates all field limits client-side (`POST_LIMITS` + `PROFILE_LIMITS` in `validation.ts`), but the backend should verify server-side CHECK constraints in migrations `20260223000001` and `20260224000004` are comprehensive and match.
+
+2. **Review edge function error responses** — The frontend uses `toUserMessage()` from `errors.ts` to map Supabase errors to user-safe messages. The backend should verify the `moderate-content` edge function returns consistent error shapes that the frontend can handle.
+
+3. **Consider adding a `posts.status` column** — The frontend currently has no concept of draft vs published posts (auto-save is `localStorage`-only). If server-side drafts are desired, the backend would need a `status` column + RLS policy updates.
+
+4. **Verify `get_posts_with_reactions` performance** — The RPC function joins posts + profiles + reactions + likes. With the frontend now using cursor-based pagination (page size 20), verify the query plan uses the indexes from migration `20260224000003`.
+
+5. **`ModerationResult` type divergence** (Tech Debt #1) — The frontend has `severity` as optional, the edge function has it required. If the backend agent touches `moderate-content`, consider aligning the types.
+
+6. **No new DB columns or RPC functions were needed** — All frontend improvements were pure UI/UX changes. The existing Supabase schema, RLS policies, and RPC functions are sufficient for all current frontend functionality.
