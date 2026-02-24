@@ -63,22 +63,23 @@ This file is the shared interface between **two independent Claude agents** — 
 
 Structured handoff between frontend and backend agents. **Every agent session must check this queue on start and update it before ending.**
 
-| ID | Status | Owner | Item | Context | Added By |
-|----|--------|-------|------|---------|----------|
-| Q1 | open | backend | Audit RLS policies match `POST_LIMITS` + `PROFILE_LIMITS` | Frontend validates all field limits client-side in `validation.ts`. Verify server-side CHECK constraints in migrations `20260223000001` and `20260224000004` are comprehensive and match. | frontend |
-| Q2 | open | backend | Review `moderate-content` error response shapes | Frontend maps errors via `toUserMessage()` in `errors.ts`. Verify edge function returns consistent error shapes (`{ flagged, reason, severity? }`). | frontend |
-| Q3 | open | backend | Align `ModerationResult` types (Tech Debt #1) | Frontend has `severity` optional, edge function has it required. Consolidate if touching `moderate-content`. | frontend |
-| Q4 | open | backend | Verify `get_posts_with_reactions` query plan | RPC joins posts+profiles+reactions+likes. Cursor pagination (page size 20). Confirm indexes from migration `20260224000003` are used. `EXPLAIN ANALYZE` recommended. | frontend |
-| Q5 | open | either | Consider `posts.status` column for server-side drafts | Frontend auto-saves drafts to `localStorage` only (`post-draft` key). Server-side drafts would need a `status` column, RLS policy updates, and frontend UI for draft/published toggle. | frontend |
+| ID | Status | Owner | Item | Context | Notes | Added By |
+|----|--------|-------|------|---------|-------|----------|
+| Q1 | open | backend | Audit RLS policies match `POST_LIMITS` + `PROFILE_LIMITS` | Frontend validates all field limits client-side in `validation.ts`. Verify server-side CHECK constraints in migrations `20260223000001` and `20260224000004` are comprehensive and match. | — | frontend |
+| Q2 | open | backend | Review `moderate-content` error response shapes | Frontend maps errors via `toUserMessage()` in `errors.ts`. Verify edge function returns consistent error shapes (`{ flagged, reason, severity? }`). | — | frontend |
+| Q3 | open | backend | Align `ModerationResult` types (Tech Debt #1) | Frontend has `severity` optional, edge function has it required. Consolidate if touching `moderate-content`. | — | frontend |
+| Q4 | open | backend | Verify `get_posts_with_reactions` query plan | RPC joins posts+profiles+reactions+likes. Cursor pagination (page size 20). Confirm indexes from migration `20260224000003` are used. `EXPLAIN ANALYZE` recommended. | — | frontend |
+| Q5 | open | either | Consider `posts.status` column for server-side drafts | Frontend auto-saves drafts to `localStorage` only (`post-draft` key). Server-side drafts would need a `status` column, RLS policy updates, and frontend UI for draft/published toggle. | — | frontend |
 
 **Queue Protocol:**
 
 1. **On session start**: Read the queue. Pick up any `open` items assigned to you → set to `in-progress`.
 2. **During work**: If your changes create work for the other agent, add a row with `status=open` and `owner=` the other agent. Use the next available `Q` number.
-3. **On completion**: Set finished items to `done`. Add a brief note to Context if needed.
+3. **On completion**: Set finished items to `done`.
 4. **Cleanup**: Items marked `done` should be deleted by the next agent session that sees them (they've served their purpose).
 5. **Either**: Items with `owner=either` can be picked up by whichever agent runs next. Set owner to yourself when you start it.
 6. **References**: Use queue IDs in commit messages when relevant (e.g., "Resolves Q3").
+7. **Notes**: Use the Notes column to communicate with the other agent about a ticket. Prefix each note with your role (`frontend:` or `backend:`). Append to existing notes with ` · ` separator. Notes die with the ticket — when a `done` item is cleaned up, its notes go too. Keep notes brief (1 sentence max per entry).
 
 ## Tech Stack
 
