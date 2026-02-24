@@ -199,6 +199,7 @@ src/
     cache.ts            # TTL cache for posts feed and YouTube titles
     moderation.ts       # Content moderation (local filter + AI edge function)
     themes.ts           # 8 theme definitions, CSS variable application
+    capacitor.ts        # Capacitor plugin wrappers (deep links, status bar, haptics, share, browser, splash)
     emojiStyles.ts      # 5 emoji styles (native + 4 CDN sets), reactive store, codepoint conversion
     constants.ts        # App-wide constants (BLOG_OWNER_EMAIL, age limits, validation rules, mood emojis)
     linkPreview.ts      # YouTube/Vimeo/Spotify oEmbed fetching + link type detection
@@ -713,3 +714,12 @@ Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga
   - **Components**: PostModal refactored to use Input/Textarea/Select primitives (DRY), YouTube card in view mode, reaction bar two-row layout, Select dropdown arrow, ConfirmDialog themed button text, AuthModal retro animation, onboarding slide accuracy, compact mobile header, ambiguous copy fix
   - **Modal overlays**: 50%→60% opacity for dark theme visibility
   - **Capacitor plugins**: @capacitor/app, status-bar, keyboard, haptics, share, browser, splash-screen (installed, not yet wired up)
+  Session 11: Capacitor plugin integration — all 7 plugins wired up:
+  - **New file**: `src/lib/capacitor.ts` — centralized Capacitor integration (platform guards, all plugin wrappers)
+  - **Deep links**: `App.addListener('appUrlOpen')` in main.tsx for magic link auth redirects
+  - **Status bar**: `setStatusBarForTheme()` called from `applyTheme()` — dark themes get light text, light themes get dark text
+  - **Keyboard**: `resize: 'body'` in capacitor.config.ts plugin config (prevents modal push on iOS)
+  - **Haptics**: Light impact on reaction toggle in `useReactions.ts`
+  - **Share**: Share2 icon button in PostCard footer, shares title + content snippet
+  - **Browser**: YouTube links in PostCard use `openUrl()` → SFSafariViewController on iOS, window.open on web
+  - **Splash screen**: `hideSplashScreen()` after auth resolves in App.tsx, `launchAutoHide: false` in config
