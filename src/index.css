@@ -317,15 +317,61 @@ body {
   font-size: 16px;
 }
 
-/* Visitor counter styling */
-.visitor-counter {
-  font-family: 'Courier New', monospace;
-  background: #000;
+/* ===== 88x31 Pixel Badges — the iconic web 1.0 flair ===== */
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+}
+
+.pixel-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 31px;
+  font-family: 'Courier New', 'Lucida Console', monospace;
+  font-size: 9px;
+  font-weight: bold;
+  letter-spacing: 0.3px;
+  line-height: 1;
+  text-align: center;
+  border: 1px solid rgba(0, 0, 0, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.pixel-badge.badge-love {
+  background: linear-gradient(180deg, #ff88bb 0%, #cc3377 100%);
+  color: #fff;
+  text-shadow: 1px 1px 0 #990044;
+}
+
+.pixel-badge.badge-xanga {
+  background: linear-gradient(180deg, #6688ff 0%, #3344aa 100%);
+  color: #eef;
+  text-shadow: 1px 1px 0 #1a1a66;
+}
+
+.pixel-badge.badge-web2 {
+  background: linear-gradient(180deg, #ffcc44 0%, #cc8800 100%);
+  color: #442200;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.pixel-badge.badge-powered {
+  background: linear-gradient(180deg, #44dd88 0%, #228844 100%);
+  color: #fff;
+  text-shadow: 1px 1px 0 #115522;
+}
+
+.pixel-badge.badge-800 {
+  background: linear-gradient(180deg, #888 0%, #333 100%);
   color: #0f0;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  border: 2px outset #666;
+  text-shadow: 0 0 4px #0f0;
+  font-family: 'Courier New', monospace;
 }
 
 /* ===== Cursor Sparkle Trail ===== */

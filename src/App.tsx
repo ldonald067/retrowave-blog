@@ -493,16 +493,20 @@ function App() {
         className="mt-12 py-6 border-t-2 border-dotted"
         style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--footer-bg)' }}
       >
-        <div className="max-w-7xl mx-auto px-4 text-center space-y-2">
-          <div className="flex items-center justify-center gap-2">
-            <span className="visitor-counter">visitors: 4,207</span>
+        <div className="max-w-7xl mx-auto px-4 text-center space-y-3">
+          {/* 88x31 pixel badges — the most iconic web 1.0 thing */}
+          <div className="badge-row">
+            <span className="pixel-badge badge-love">made w/ 💕</span>
+            <span className="pixel-badge badge-xanga">xanga revival</span>
+            <span className="pixel-badge badge-web2">web 2.0 ✓</span>
+            <span className="pixel-badge badge-powered">♻ nostalgia</span>
+            <span className="pixel-badge badge-800">800x600</span>
           </div>
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
             © 2005-2026 My Journal • All rights reserved
           </p>
           <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
-            Made with <span style={{ color: 'var(--accent-primary)' }}>💕</span> and nostalgia •{' '}
-            <span className="blink" style={{ color: 'var(--accent-secondary)' }}>best viewed in 800x600</span>
+            Made with <span style={{ color: 'var(--accent-primary)' }}>💕</span> and nostalgia
           </p>
         </div>
       </footer>

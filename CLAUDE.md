@@ -5,6 +5,20 @@
 - **NEVER open the dev server preview** (Vite `npm run dev`). It crashes the environment. Use `npm run build` to verify changes compile correctly.
 - **ALWAYS commit and push before ending a session.** Use `/commit-push-pr` or at minimum `git add . && git commit && git push`. Worktrees reset and uncommitted work is lost forever.
 
+## Product Philosophy
+
+**Solo operator, low budget, zero moderation overhead.** This blog is run by one person with limited money and no tech background. Every feature decision must pass this filter:
+
+- **No visitor counters / analytics** — storage cost, pointless for a personal blog
+- **No comments** — requires moderation, spam filtering, abuse management
+- **No RSS feed** — adds complexity for near-zero audience benefit
+- **Reactions only** — lightweight emoji reactions (❤️🔥😂😢✨👀) are the only social feature. Fixed set, no custom reactions, no moderation needed
+- **No features that require ongoing maintenance** — if it needs a cron job, webhook, or manual review, it's out
+- **Supabase free tier** — all backend costs must fit within Supabase's free tier limits
+- **Keep it decorative** — purely aesthetic features (pixel badges, custom cursors, sparkle trails) are fine because they cost nothing
+
+When in doubt, ask: "Does this require moderation, storage, or money?" If yes → don't build it.
+
 ## Cross-Agent Contract
 
 This file is the shared interface between **two independent Claude agents** — one handles frontend, one handles backend. Neither agent sees the other's conversation. This section is the canonical reference for their shared boundaries.
@@ -431,6 +445,7 @@ The entire UI is styled to evoke 2005-era Xanga blogs. All components use CSS cu
 | AIM-style status | `Header.tsx` + `Sidebar.tsx` — `localStorage` key `xanga-status` | Click to edit inline, Enter to save, Escape to cancel |
 | Emoji float-up | `ReactionBar.tsx` — CSS `.emoji-float-up` | Spawns floating emoji on reaction toggle, 800ms animation |
 | Lined paper empty state | `EmptyState.tsx` — CSS `repeating-linear-gradient` | Typing cursor animation, journal page aesthetic |
+| 88x31 pixel badges | `App.tsx` footer + `index.css` `.pixel-badge` | 5 themed CSS-only badges (love/xanga/web2/nostalgia/800x600), zero backend |
 
 ### Theme Fonts
 
@@ -565,4 +580,6 @@ Resolved Q1-Q5 from the Cross-Agent Queue. Only code change: made `ModerationRes
 
 ### Frontend (bold-wozniak) — 2026-02-24
 
-UX/performance pass: iPhone touch targets (44px min on Button, Input, ReactionBar, AvatarPicker, AuthModal tabs), React.memo on PostCard + useCallback on all handlers, lazy YouTube thumbnails, Xanga voice for all user-facing messages (constants.ts + App.tsx inline), custom CSS cursors (✦ default / ♡ hover), emoji icons replacing Lucide in PostCard, visitor counter + "best viewed in 800x600" footer.
+Session 1: UX/performance pass — iPhone touch targets (44px min on Button, Input, ReactionBar, AvatarPicker, AuthModal tabs), React.memo on PostCard + useCallback on all handlers, lazy YouTube thumbnails, Xanga voice for all user-facing messages (constants.ts + App.tsx inline), custom CSS cursors (✦ default / ♡ hover), emoji icons replacing Lucide in PostCard.
+
+Session 2: Removed visitor counter (user decision: no analytics/storage features). Replaced with 88x31 CSS pixel badges in footer (love/xanga/web2/nostalgia/800x600). Added Product Philosophy section to CLAUDE.md documenting solo-operator constraints: no visitor counts, no comments, no feeds, reactions only, zero-moderation features.
