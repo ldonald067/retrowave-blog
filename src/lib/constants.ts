@@ -25,38 +25,38 @@ export const VALIDATION = {
   },
 };
 
-// Error Messages
+// Error Messages — Xanga voice! not corporate speak
 export const ERROR_MESSAGES = {
   auth: {
-    emailRequired: 'Please enter your email',
-    emailInvalid: 'Please enter a valid email address',
-    ageVerificationRequired: 'Please select your birth year',
-    tosRequired: 'You must accept the Terms of Service to continue',
-    underage: `You must be at least ${MIN_AGE} years old to use this service`,
+    emailRequired: '~ pls enter ur email ~',
+    emailInvalid: '~ hmm that email doesnt look right :( ~',
+    ageVerificationRequired: '~ pls select ur birth year ~',
+    tosRequired: '~ u gotta accept the TOS 2 continue ~',
+    underage: `~ sorry, u gotta b at least ${MIN_AGE} 2 use this :( ~`,
   },
   profile: {
-    displayNameTooLong: `Display name must be ${VALIDATION.displayName.maxLength} characters or less`,
-    bioTooLong: `Bio must be ${VALIDATION.bio.maxLength} characters or less`,
+    displayNameTooLong: `~ ur display name is 2 long! ${VALIDATION.displayName.maxLength} chars max ~`,
+    bioTooLong: `~ ur bio is 2 long! ${VALIDATION.bio.maxLength} chars max ~`,
   },
   generic: {
-    somethingWrong: 'Something went wrong. Please try again.',
-    networkError: 'Network error. Please check your connection.',
+    somethingWrong: '~ uh oh! something glitched :( try again? ~',
+    networkError: '💔 ur connection is acting weird... try again soon?',
   },
 } as const;
 
-// Success Messages
+// Success Messages — keep it fun & personal
 export const SUCCESS_MESSAGES = {
   auth: {
-    magicLinkSent: 'Check your email for the magic link!',
-    signedOut: 'You have been signed out successfully',
+    magicLinkSent: '✨ check ur email!! theres a magic link waiting 4 u ✨',
+    signedOut: '~ goodbye 👋 come back soon! ~',
   },
   profile: {
-    updated: 'Profile updated successfully',
+    updated: '✨ ur profile is looking gr8! ✨',
   },
   post: {
-    created: 'Post created successfully',
-    updated: 'Post updated successfully',
-    deleted: 'Post deleted successfully',
+    created: '✨ ur entry is live!! 💕',
+    updated: '~ entry updated! looking good ✨ ~',
+    deleted: '~ entry deleted 💨 ~',
   },
 } as const;
 

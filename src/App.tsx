@@ -17,6 +17,7 @@ import Toast from './components/Toast';
 import ConfirmDialog from './components/ConfirmDialog';
 import ErrorBoundary from './components/ErrorBoundary';
 import type { Post, CreatePostInput } from './types/post';
+import { useEmojiStyle, getEmojiAttribution } from './lib/emojiStyles';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
@@ -167,6 +168,8 @@ function App() {
   );
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+  // Subscribe to emoji style changes for footer attribution
+  const emojiStyle = useEmojiStyle();
 
   // Show auth modal if not authenticated
   useEffect(() => {
@@ -176,50 +179,50 @@ function App() {
     }
   }, [authLoading, user]);
 
-  const handleNewPost = () => {
+  const handleNewPost = useCallback(() => {
     if (!user) {
-      showError('Please sign in to create posts');
+      showError('~ sign in 2 write entries! ~');
       setShowAuthModal(true);
       return;
     }
     setSelectedPost(null);
     setModalMode('create');
     setShowModal(true);
-  };
+  }, [user, showError]);
 
-  const handleEditPost = (post: Post) => {
+  const handleEditPost = useCallback((post: Post) => {
     if (!user) {
-      showError('Please sign in to edit posts');
+      showError('~ sign in 2 edit entries! ~');
       setShowAuthModal(true);
       return;
     }
     setSelectedPost(post);
     setModalMode('edit');
     setShowModal(true);
-  };
+  }, [user, showError]);
 
-  const handleViewPost = (post: Post) => {
+  const handleViewPost = useCallback((post: Post) => {
     setSelectedPost(post);
     setModalMode('view');
     setShowModal(true);
-  };
+  }, []);
 
-  const handleDeletePost = (post: Post) => {
+  const handleDeletePost = useCallback((post: Post) => {
     if (!user) {
-      showError('Please sign in to delete posts');
+      showError('~ sign in 2 delete entries! ~');
       setShowAuthModal(true);
       return;
     }
     setPostToDelete(post);
-  };
+  }, [user, showError]);
 
   const confirmDeletePost = async () => {
     if (!postToDelete) return;
     const { error } = await deletePost(postToDelete.id);
     if (error) {
-      showError(`Error deleting post: ${error}`);
+      showError(`~ couldnt delete that :( ${error} ~`);
     } else {
-      success('Post deleted successfully!');
+      success('~ entry deleted 💨 ~');
     }
     setPostToDelete(null);
   };
@@ -228,17 +231,17 @@ function App() {
     if (modalMode === 'edit' && selectedPost) {
       const { error } = await updatePost(selectedPost.id, postData);
       if (error) {
-        showError(`Error updating post: ${error}`);
+        showError(`~ couldnt update that :( ${error} ~`);
         return;
       }
-      success('Post updated successfully!');
+      success('~ entry updated! looking good ✨ ~');
     } else {
       const { error } = await createPost(postData);
       if (error) {
-        showError(`Error creating post: ${error}`);
+        showError(`~ couldnt post that :( ${error} ~`);
         return;
       }
-      success('Post created successfully!');
+      success('✨ ur entry is live!! 💕');
 
       // Also update profile mood/music if provided in the post
       if (postData.mood || postData.music) {
@@ -254,17 +257,18 @@ function App() {
   const handleSignOut = async () => {
     const { error } = await signOut();
     if (error) {
-      showError(`Error signing out: ${error}`);
+      showError(`~ couldnt sign out :( ${error} ~`);
     } else {
-      success('Signed out successfully!');
+      success('~ goodbye 👋 come back soon! ~');
       setShowAuthModal(true);
     }
   };
 
   // T4: Optimistic reactions — no more refetch() after toggle
-  const handleReaction = async (postId: string, emoji: string) => {
+  // Wrapped in useCallback so PostCard (React.memo) doesn't re-render on every App render
+  const handleReaction = useCallback(async (postId: string, emoji: string) => {
     if (!user) {
-      showError('Please sign in to react');
+      showError('~ sign in 2 react! ~');
       setShowAuthModal(true);
       return;
     }
@@ -276,7 +280,7 @@ function App() {
       showError(error);
       // Note: useReactions already rolled back the optimistic update on error
     }
-  };
+  }, [user, posts, toggleReaction, showError]);
 
   const handleOnboardingComplete = () => {
     localStorage.setItem('hasCompletedOnboarding', 'true');
@@ -285,7 +289,7 @@ function App() {
 
   const handleProfileClick = () => {
     if (!user) {
-      showError('Please sign in to edit your profile');
+      showError('~ sign in 2 edit ur profile! ~');
       setShowAuthModal(true);
       return;
     }
@@ -341,9 +345,9 @@ function App() {
               birth_year: birthYear,
             });
             if (error) {
-              showError(`Failed to verify age: ${error}`);
+              showError(`~ couldnt verify :( ${error} ~`);
             } else {
-              success('Age verified successfully!');
+              success('✨ verified! welcome 2 the club ~');
             }
           }}
           requireTOS={true}
@@ -492,11 +496,26 @@ function App() {
         className="mt-12 py-6 border-t-2 border-dotted"
         style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--footer-bg)' }}
       >
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>© 2005-2026 My Journal • All rights reserved</p>
+        <div className="max-w-7xl mx-auto px-4 text-center space-y-3">
+          {/* 88x31 pixel badges — the most iconic web 1.0 thing */}
+          <div className="badge-row">
+            <span className="pixel-badge badge-love">made w/ 💕</span>
+            <span className="pixel-badge badge-xanga">xanga revival</span>
+            <span className="pixel-badge badge-web2">web 2.0 ✓</span>
+            <span className="pixel-badge badge-powered">♻ nostalgia</span>
+            <span className="pixel-badge badge-800">800x600</span>
+          </div>
+          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            © 2005-2026 My Journal • All rights reserved
+          </p>
           <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
             Made with <span style={{ color: 'var(--accent-primary)' }}>💕</span> and nostalgia
           </p>
+          {emojiStyle !== 'native' && getEmojiAttribution() && (
+            <p className="text-[10px]" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
+              {getEmojiAttribution()}
+            </p>
+          )}
         </div>
       </footer>
     </div>

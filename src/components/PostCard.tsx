@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Edit, Trash2, Clock, Youtube, ExternalLink } from 'lucide-react';
+import { Youtube, ExternalLink } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
@@ -18,7 +18,7 @@ interface PostCardProps {
   currentUserId?: string;
 }
 
-export default function PostCard({ post, onEdit, onDelete, onView, onReaction, currentUserId }: PostCardProps) {
+const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReaction, currentUserId }: PostCardProps) {
   const isOwner = currentUserId === post.user_id;
   const [ytInfo, setYtInfo] = useState<(YouTubeInfo & { title?: string }) | null>(null);
 
@@ -81,13 +81,13 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
             </h2>
             <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
               <span className="flex items-center gap-1">
-                <Calendar size={12} style={{ color: 'var(--accent-primary)' }} />
+                <span style={{ color: 'var(--accent-primary)' }}>📅</span>
                 {formatDate(post.created_at, 'MMM dd, yyyy')} @{' '}
                 {formatDate(post.created_at, 'h:mm a')}
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
-                <Clock size={12} style={{ color: 'var(--accent-secondary)' }} />
+                <span style={{ color: 'var(--accent-secondary)' }}>⏰</span>
                 {formatRelativeDate(post.created_at)}
               </span>
             </div>
@@ -103,7 +103,7 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
                 aria-label="Edit post"
                 style={{ color: 'var(--link-color)' }}
               >
-                <Edit size={14} />
+                <span className="text-sm">✏️</span>
               </button>
               <button
                 onClick={() => onDelete(post)}
@@ -112,7 +112,7 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
                 aria-label="Delete post"
                 style={{ color: 'var(--accent-secondary)' }}
               >
-                <Trash2 size={14} />
+                <span className="text-sm">🗑️</span>
               </button>
             </div>
           )}
@@ -154,6 +154,7 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
                 <img
                   src={ytInfo.thumbnailUrl}
                   alt={ytInfo.title || 'YouTube thumbnail'}
+                  loading="lazy"
                   className="w-20 h-14 object-cover rounded flex-shrink-0"
                   style={{ border: '1px solid var(--border-primary)' }}
                 />
@@ -234,4 +235,6 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
       />
     </motion.article>
   );
-}
+});
+
+export default PostCard;

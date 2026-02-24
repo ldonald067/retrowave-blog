@@ -63,7 +63,7 @@ export default function AuthModal({ isOpen, onClose: _onClose, defaultTab = 'log
                 onClick={() => setActiveTab('login')}
                 aria-label="Sign In"
                 aria-pressed={activeTab === 'login'}
-                className="flex-1 py-2 px-3 font-bold text-xs sm:text-sm transition"
+                className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition min-h-[44px]"
                 style={{
                   fontFamily: 'var(--title-font)',
                   backgroundColor: activeTab === 'login' ? 'var(--button-gradient-from)' : 'var(--card-bg)',
@@ -76,7 +76,7 @@ export default function AuthModal({ isOpen, onClose: _onClose, defaultTab = 'log
                 onClick={() => setActiveTab('signup')}
                 aria-label="Sign Up"
                 aria-pressed={activeTab === 'signup'}
-                className="flex-1 py-2 px-3 font-bold text-xs sm:text-sm transition border-l-2 border-dotted"
+                className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition border-l-2 border-dotted min-h-[44px]"
                 style={{
                   fontFamily: 'var(--title-font)',
                   borderColor: 'var(--border-primary)',

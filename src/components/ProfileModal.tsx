@@ -1,9 +1,15 @@
 import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, User, FileText, Image, Palette, Heart, Music } from 'lucide-react';
-import { Avatar, AvatarPicker, Input, Textarea, Select } from './ui';
+import { X, Save, User, FileText, Image, Palette, Heart, Music, Sparkles } from 'lucide-react';
+import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji } from './ui';
 import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOODS } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
+import {
+  EMOJI_STYLES,
+  getEmojiStyle,
+  setEmojiStyle,
+  type EmojiStyleId,
+} from '../lib/emojiStyles';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { Profile } from '../types/profile';
 
@@ -38,6 +44,7 @@ export default function ProfileModal({
   const [errors, setErrors] = useState<{ displayName?: string; bio?: string }>({});
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
+  const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
   const dialogRef = useRef<HTMLDivElement>(null);
   const handleEscape = useCallback(() => {
     if (saving || isInitialSetup) return;
@@ -348,6 +355,59 @@ export default function ProfileModal({
                         {theme.name}
                       </p>
                       <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{theme.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Emoji Style Picker */}
+              <div className="xanga-box p-4">
+                <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                  <Sparkles size={14} style={{ color: 'var(--accent-primary)' }} />
+                  emoji style
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {EMOJI_STYLES.map((emojiStyle) => (
+                    <button
+                      key={emojiStyle.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedEmojiStyle(emojiStyle.id);
+                        setEmojiStyle(emojiStyle.id);
+                      }}
+                      className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
+                      style={{
+                        backgroundColor:
+                          selectedEmojiStyle === emojiStyle.id
+                            ? 'color-mix(in srgb, var(--accent-primary) 15%, var(--card-bg))'
+                            : 'var(--card-bg)',
+                        borderColor:
+                          selectedEmojiStyle === emojiStyle.id
+                            ? 'var(--accent-primary)'
+                            : 'var(--border-primary)',
+                        transform: selectedEmojiStyle === emojiStyle.id ? 'scale(1.02)' : 'scale(1)',
+                      }}
+                    >
+                      {/* Preview row showing 3 sample emoji */}
+                      <div className="flex items-center gap-1 mb-1">
+                        {['❤️', '🔥', '😂'].map((emoji) => (
+                          <StyledEmoji
+                            key={emoji}
+                            emoji={emoji}
+                            size={18}
+                            overrideStyle={emojiStyle.id}
+                          />
+                        ))}
+                      </div>
+                      <p
+                        className="text-xs font-bold"
+                        style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
+                      >
+                        {emojiStyle.name}
+                      </p>
+                      <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                        {emojiStyle.description}
+                      </p>
                     </button>
                   ))}
                 </div>
