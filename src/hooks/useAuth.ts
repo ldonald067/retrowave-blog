@@ -30,6 +30,8 @@ interface UseAuthReturn {
   updateProfile: (
     updates: Partial<Profile>,
   ) => Promise<{ error: string | null }>;
+  /** Re-fetch the profile from the database without updating it. */
+  refetchProfile: () => Promise<void>;
   // Only available in development builds. Guard call sites with import.meta.env.DEV.
   devSignUp?: (
     email: string,
@@ -334,6 +336,12 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
+  // C2 FIX: Expose refetchProfile so callers can refresh after RPC calls
+  // (e.g., set_age_verification) that bypass the normal updateProfile path.
+  const refetchProfile = async (): Promise<void> => {
+    if (user) await fetchProfile(user.id);
+  };
+
   return {
     user,
     profile,
@@ -344,6 +352,7 @@ export function useAuth(): UseAuthReturn {
     signInWithPassword,
     signOut,
     updateProfile,
+    refetchProfile,
     // T4: Only expose devSignUp in development. Vite replaces import.meta.env.DEV
     // with `false` in production, and tree-shaking removes the dead code.
     ...(import.meta.env.DEV ? { devSignUp } : {}),

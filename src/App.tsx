@@ -18,6 +18,8 @@ import ConfirmDialog from './components/ConfirmDialog';
 import ErrorBoundary from './components/ErrorBoundary';
 import type { Post, CreatePostInput } from './types/post';
 import { useEmojiStyle, getEmojiAttribution } from './lib/emojiStyles';
+import { moderateContent } from './lib/moderation';
+import { supabase } from './lib/supabase';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
@@ -164,7 +166,7 @@ function PostList({
 }
 
 function App() {
-  const { user, profile, profileError, loading: authLoading, signOut, updateProfile } = useAuth();
+  const { user, profile, profileError, loading: authLoading, signOut, updateProfile, refetchProfile } = useAuth();
   const {
     posts,
     loading: postsLoading,
@@ -267,6 +269,26 @@ function App() {
   };
 
   const handleSavePost = async (postData: CreatePostInput) => {
+    // C1 FIX: Run AI moderation before saving. quickContentCheck already ran
+    // in PostModal (instant local feedback), but this calls the edge function
+    // for full OpenAI moderation. Fail-open: if the service is down, the post
+    // goes through (local regex already passed).
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+    const modResult = await moderateContent(
+      postData.title,
+      postData.content,
+      null,
+      supabaseUrl,
+      async () => {
+        const { data } = await supabase.auth.getSession();
+        return data.session?.access_token ?? null;
+      },
+    );
+    if (!modResult.allowed) {
+      showError(modResult.reason || '~ content violates community guidelines ~');
+      throw new Error(modResult.reason || 'Content blocked by moderation');
+    }
+
     if (modalMode === 'edit' && selectedPost) {
       const { error } = await updatePost(selectedPost.id, postData);
       if (error) {
@@ -377,15 +399,17 @@ function App() {
       <Suspense fallback={<LoadingSpinner />}>
         <AgeVerification
           onVerified={async (birthYear: number, tosAccepted: boolean) => {
-            // Update the profile with age verification
-            const { error } = await updateProfile({
-              age_verified: true,
-              tos_accepted: tosAccepted,
-              birth_year: birthYear,
+            // C2 FIX: Use RPC to set COPPA fields. Direct updateProfile()
+            // is now blocked by the protect_coppa_fields trigger.
+            const { error } = await supabase.rpc('set_age_verification', {
+              p_birth_year: birthYear,
+              p_tos_accepted: tosAccepted,
             });
             if (error) {
-              showError(`~ couldnt verify :( ${error} ~`);
+              showError(`~ couldnt verify :( ${(error as { message?: string }).message || error} ~`);
             } else {
+              // Refresh profile to pick up the new COPPA values
+              await refetchProfile();
               success('✨ verified! welcome 2 the club ~');
             }
           }}

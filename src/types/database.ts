@@ -71,7 +71,6 @@ export interface Database {
           birth_year: number | null;
           age_verified: boolean;
           tos_accepted: boolean;
-          tos_accepted_at: string | null;
           theme: string | null;
           current_mood: string | null;
           current_music: string | null;
@@ -88,7 +87,6 @@ export interface Database {
           birth_year?: number | null;
           age_verified?: boolean;
           tos_accepted?: boolean;
-          tos_accepted_at?: string | null;
           theme?: string | null;
           current_mood?: string | null;
           current_music?: string | null;
@@ -105,7 +103,6 @@ export interface Database {
           birth_year?: number | null;
           age_verified?: boolean;
           tos_accepted?: boolean;
-          tos_accepted_at?: string | null;
           theme?: string | null;
           current_mood?: string | null;
           current_music?: string | null;
@@ -194,31 +191,20 @@ export interface Database {
         ];
       };
     };
-    Views: {
-      posts_with_details: {
-        Row: {
-          id: string | null;
-          user_id: string | null;
-          title: string | null;
-          content: string | null;
-          author: string | null;
-          excerpt: string | null;
-          mood: string | null;
-          music: string | null;
-          embedded_links: Json | null;
-          has_media: boolean | null;
-          is_private: boolean | null;
-          created_at: string | null;
-          updated_at: string | null;
-          profile_display_name: string | null;
-          profile_avatar_url: string | null;
-          like_count: number | null;
-          user_has_liked: boolean | null;
-        };
-        Relationships: [];
-      };
-    };
+    // H3 FIX: posts_with_details view removed — no migration ever created it.
+    // It was a ghost type from a prior architecture superseded by the
+    // get_posts_with_reactions RPC function.
+    Views: Record<string, never>;
     Functions: {
+      // C2 FIX: SECURITY DEFINER function to set COPPA fields.
+      // Bypasses the protect_coppa_fields trigger via session variable.
+      set_age_verification: {
+        Args: {
+          p_birth_year: number;
+          p_tos_accepted: boolean;
+        };
+        Returns: undefined;
+      };
       get_posts_with_reactions: {
         Args: {
           p_cursor: string | null;

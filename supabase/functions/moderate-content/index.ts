@@ -63,9 +63,16 @@ const BLOCKED_DOMAINS = [
   'thepiratebay', 'kickass', '1337x', 'rarbg',
 ];
 
+// M4 FIX: Synced with client-side ADULT_URL_KEYWORDS in src/lib/moderation.ts.
+// Previously only 13 keywords; now matches the full client list so direct
+// API callers can't bypass URL filtering.
 const ADULT_URL_KEYWORDS = [
-  'porn', 'xxx', 'nude', 'naked', 'nsfw', 'escort', 'camgirl',
-  'onlyfan', 'hentai', 'erotic', 'fetish', 'bdsm', 'milf',
+  'porn', 'xxx', 'sex', 'nude', 'naked', 'nsfw', 'adult', 'escort',
+  'camgirl', 'onlyfan', 'hentai', 'erotic', 'fetish', 'bdsm', 'milf',
+  // L11: 'teen' and 'gay' intentionally excluded (false-positive risk)
+  'fuck', 'pussy', 'cock', 'dick', 'boob', 'tits', 'ass', 'anal',
+  'blowjob', 'creampie', 'cumshot', 'gangbang', 'threesome', 'orgasm',
+  'masturbat', 'dildo', 'vibrator', 'stripper', 'hooker', 'whore', 'slut',
 ];
 
 /** Check a single URL against the server-side blocklist */

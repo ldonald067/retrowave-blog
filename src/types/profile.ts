@@ -9,7 +9,6 @@ export interface Profile {
   birth_year: number | null;
   age_verified: boolean;
   tos_accepted: boolean;
-  tos_accepted_at: string | null;
   theme: string | null;
   current_mood: string | null;
   current_music: string | null;

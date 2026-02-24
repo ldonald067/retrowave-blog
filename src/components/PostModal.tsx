@@ -127,6 +127,9 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
       await onSave(postData);
       // Clear draft on successful save
       localStorage.removeItem('post-draft');
+    } catch {
+      // Error already shown by App.tsx (toast). Keep modal open so user can
+      // revise. Draft is preserved since we only clear it on success above.
     } finally {
       setSaving(false);
     }

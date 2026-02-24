@@ -31,7 +31,8 @@ This file is the shared interface between **two independent Claude agents** — 
 | Posts | `usePosts.ts` calls RPC, applies optimistic updates | `get_posts_with_reactions` SQL function, `post_constraints` migration |
 | Reactions | `useReactions.ts` toggles + rollback | `post_reactions` table, RLS policies |
 | Profiles | `useAuth.ts` CRUD, `ProfileModal.tsx` UI | `profiles` table, auto-create trigger, RLS policies |
-| Moderation | `src/lib/moderation.ts` calls edge function | `supabase/functions/moderate-content/` (Deno + OpenAI API) |
+| Moderation | `App.tsx` calls `moderateContent()` before save; `PostModal.tsx` calls `quickContentCheck()` for instant local feedback | `supabase/functions/moderate-content/` (Deno + OpenAI API) |
+| COPPA | `App.tsx` calls `set_age_verification` RPC | `protect_coppa_fields` trigger + `set_age_verification` SECURITY DEFINER function |
 | Themes | `src/lib/themes.ts` defines CSS vars, UI applies them | `profiles.theme` column stores user's chosen theme |
 
 ### Shared Data Shapes (must stay in sync)
@@ -44,7 +45,7 @@ This file is the shared interface between **two independent Claude agents** — 
 | `ModerationResult` | `src/lib/moderation.ts` (severity required) | `supabase/functions/moderate-content/index.ts` (severity required) | Both require `severity`. Types duplicated (Deno can't share with Vite). |
 | Profile fields | `src/types/profile.ts` | `profiles` table columns | Adding a profile field requires both a migration AND a type update |
 | Reaction emoji set | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS` | `20260224000004_add_data_constraints.sql` CHECK constraint | Canonical set: `['❤️', '🔥', '😂', '😢', '✨', '👀']`. **Must match exactly** |
-| Moderation blocklists | `src/lib/moderation.ts` `BLOCKED_DOMAINS` + `ADULT_URL_KEYWORDS` | `supabase/functions/moderate-content/index.ts` (same lists, reduced) | Client has full list; edge function has reduced keyword list. **Changes must sync both files** |
+| Moderation blocklists | `src/lib/moderation.ts` `BLOCKED_DOMAINS` + `ADULT_URL_KEYWORDS` | `supabase/functions/moderate-content/index.ts` (same lists) | M4 FIX: Both now have identical keyword lists. `BLOCKED_DOMAINS` identical; `ADULT_URL_KEYWORDS` synced (30 keywords). **Changes must sync both files** |
 
 ### Environment Variables
 
@@ -72,7 +73,8 @@ This file is the shared interface between **two independent Claude agents** — 
 3. **Adding an edge function** → backend agent creates in `supabase/functions/`; frontend agent calls via `supabase.functions.invoke()`
 4. **Changing validation limits** → update `validation.ts` (`POST_LIMITS` or `PROFILE_LIMITS`) AND the corresponding SQL migration. `constants.ts` auto-imports from `PROFILE_LIMITS` — do NOT update it manually.
 5. **`is_admin` is trigger-protected** → `20260224000006_protect_is_admin.sql` silently preserves `is_admin` on any API UPDATE. `supabase.from('profiles').update({ is_admin: true })` will **silently fail**. Admin features require a `SECURITY DEFINER` SQL function that bypasses the trigger.
-6. **Always update the Cross-Agent Queue** (see below) when your work creates action items for the other agent.
+6. **COPPA fields are trigger-protected** → `20260224000007_protect_coppa_fields.sql` silently preserves `age_verified`, `tos_accepted`, and `birth_year` on any API UPDATE. The **only** legitimate way to set these is via `supabase.rpc('set_age_verification', { p_birth_year, p_tos_accepted })`. Direct `updateProfile({ age_verified: true })` will silently fail.
+7. **Always update the Cross-Agent Queue** (see below) when your work creates action items for the other agent.
 
 ### Cross-Agent Queue
 
@@ -318,11 +320,23 @@ usePosts() --applyOptimisticReaction--> useReactions({ onOptimisticUpdate })
 
 Session management: `getSession()` is the initial source of truth. `onAuthStateChange` handles subsequent changes but skips `INITIAL_SESSION` to avoid duplicate fetches.
 
+### Age Verification (COPPA)
+
+Age verification uses a dedicated SECURITY DEFINER RPC to prevent API bypass:
+
+1. `AgeVerification` component collects birth year + TOS acceptance
+2. `App.tsx` calls `supabase.rpc('set_age_verification', { p_birth_year, p_tos_accepted })`
+3. The RPC validates age >= 13, then sets `age_verified`, `tos_accepted`, `birth_year` on the profile
+4. The `protect_coppa_fields` trigger blocks direct `updateProfile()` changes to these fields
+
+**Important**: `updateProfile({ age_verified: true })` will **silently fail**. Only the RPC can set these fields.
+
 ### Content Moderation
 
-`src/lib/moderation.ts` runs a two-layer check:
-1. **Local filter** (client-side): Regex-based blocked patterns for slurs, hate speech, violence
-2. **AI moderation** (server-side): Calls `moderate-content` edge function which uses OpenAI's moderation API
+Content moderation runs in three layers:
+1. **Local filter** (PostModal, instant): `quickContentCheck()` — regex-based blocked patterns for slurs, hate speech, violence, blocked URLs
+2. **AI moderation** (App.tsx, on save): `moderateContent()` — calls `moderate-content` edge function which uses OpenAI's moderation API (free)
+3. **Fail-open**: If the edge function is down or OpenAI is unavailable, the post goes through (local regex already passed)
 
 The edge function (`supabase/functions/moderate-content/index.ts`) requires JWT authentication. The client passes the auth token:
 
@@ -352,6 +366,19 @@ supabase.rpc('get_posts_with_reactions', {
   p_user_id: userId,  // uuid | null
 })
 ```
+
+### RPC Function: `set_age_verification`
+
+SECURITY DEFINER function that sets COPPA fields on the user's profile. Uses a session variable (`app.coppa_bypass`) to bypass the `protect_coppa_fields` trigger.
+
+```typescript
+supabase.rpc('set_age_verification', {
+  p_birth_year: 2000,      // integer, must make user >= 13
+  p_tos_accepted: true,    // boolean
+})
+```
+
+Returns `void`. Raises an exception if the user is not authenticated or is under 13.
 
 ### Lazy Loading
 
@@ -402,6 +429,8 @@ Run in order by filename. Key migrations:
 | `20260224000004_add_data_constraints.sql` | **H5+M3 fix**: `reaction_type` CHECK + profile field length constraints |
 | `20260224000005_fix_coppa_backfill.sql` | **H2 fix**: Corrects previously-backfilled users |
 | `20260224000006_protect_is_admin.sql` | **L6 fix**: `BEFORE UPDATE` trigger prevents `is_admin` self-elevation via API |
+| `20260224000007_protect_coppa_fields.sql` | **C2 fix**: `BEFORE UPDATE` trigger prevents self-setting `age_verified`/`tos_accepted`/`birth_year`; `set_age_verification` SECURITY DEFINER RPC for legitimate updates |
+| `20260224000008_schema_hardening.sql` | **H1+H2+H4+L1+L3 fix**: NULL email fallback in `handle_new_user`, `avatar_url` constraint, drop `tos_accepted_at`, `search_path` on `protect_is_admin`, username min length |
 
 ## Development Notes
 
@@ -553,9 +582,11 @@ Comprehensive audit completed 2026-02-23. **All 30 findings resolved** (C1-C4, H
 | `20260224000004_add_data_constraints.sql` | H5+M3: Reaction + profile CHECK constraints |
 | `20260224000005_fix_coppa_backfill.sql` | H2: Corrects previously-backfilled users |
 | `20260224000006_protect_is_admin.sql` | L6: Trigger prevents self-elevation |
-| `moderate-content/index.ts` | C4+H6+H7+M6: Server-side blocklists, 100KB limit, 5s timeout, 405 |
+| `20260224000007_protect_coppa_fields.sql` | Backend scan C2: COPPA field trigger + `set_age_verification` RPC |
+| `20260224000008_schema_hardening.sql` | Backend scan H1+H2+H4+L1+L3: NULL email, avatar_url, tos_accepted_at, search_path, username min |
+| `moderate-content/index.ts` | C4+H6+H7+M6: Server-side blocklists, 100KB limit, 5s timeout, 405; Backend scan M4: keyword sync |
 
-Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M2 (URL scheme validation), M5 (removed 500-char AI threshold), M7 (anonymous sign-ins for dev), L1 (generic error messages), L2 (429 non-retryable), L5 (cache max size), L7 (getSession not getUser), L8 (dead code removal), L10 (jsonb_typeof), L11 (false-positive URL keywords). Frontend: F1 (optimistic defaults), F2 (reaction debounce), F3 (profile validation), F4 (iPhone touch cooldown), F5 (removed dead sanitizer). L3 documented as intentional fail-open design.
+Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M2 (URL scheme validation), M5 (removed 500-char AI threshold), M7 (anonymous sign-ins for dev), L1 (generic error messages), L2 (429 non-retryable), L5 (cache max size), L7 (getSession not getUser), L8 (dead code removal), L10 (jsonb_typeof), L11 (false-positive URL keywords). Frontend: F1 (optimistic defaults), F2 (reaction debounce), F3 (profile validation), F4 (iPhone touch cooldown), F5 (removed dead sanitizer). L3 documented as intentional fail-open design. Backend scan: C1 (AI moderation wired up), H3 (ghost view removed), H4 (dead column dropped).
 
 ## Known Tech Debt
 
@@ -574,4 +605,4 @@ Resolved Q1-Q5. Made `ModerationResult.severity` required in frontend (Q3). Queu
 
 ### Frontend (bold-wozniak) — 2026-02-24
 
-Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue). Session 4: CLAUDE.md quality audit (87→93). Session 5: Comprehensive UX audit — 9 fixes: PostModal unsaved changes guard + maxLength, ProfileModal theme/emoji revert on cancel, sidebar default expanded, separate loadMore error state, end-of-list indicator, ConfirmDialog loading state, useAuth profileError surfacing, delete loading state.
+Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue). Session 4: CLAUDE.md quality audit (87→93). Session 5: Comprehensive UX audit — 9 fixes: PostModal unsaved changes guard + maxLength, ProfileModal theme/emoji revert on cancel, sidebar default expanded, separate loadMore error state, end-of-list indicator, ConfirmDialog loading state, useAuth profileError surfacing, delete loading state. Session 6: CLAUDE.md audit (91→96). Session 7: Backend hardening — 9 fixes across 2 migrations + 6 code files: C1 (wire up AI moderation in post save flow), C2 (COPPA field trigger protection + `set_age_verification` RPC), H1 (handle_new_user NULL email fallback), H2 (avatar_url constraint), H3 (remove ghost view type), H4 (drop dead tos_accepted_at), L1 (search_path on protect_is_admin), L3 (username min length), M4 (sync server keyword lists).
