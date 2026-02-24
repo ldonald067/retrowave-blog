@@ -1,7 +1,7 @@
 {
   "name": "retrowave-blog",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,7 +13,6 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json}\""
   },
   "dependencies": {
-    "@capacitor/cli": "^8.1.0",
     "@capacitor/core": "^8.1.0",
     "@capacitor/ios": "^8.1.0",
     "@supabase/supabase-js": "^2.91.0",
@@ -27,6 +26,7 @@
     "rehype-sanitize": "^6.0.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.1.0",
     "@eslint/js": "^9.39.1",
     "@tailwindcss/vite": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",

@@ -493,6 +493,55 @@ All mutation hooks follow the pattern `Promise<{ data?: T | null; error: string 
 
 Custom RPC functions must be registered in `src/types/database.ts` under `Database.public.Functions` for type safety. See `get_posts_with_reactions` for the pattern.
 
+## iOS App Store Submission
+
+### Build & Deploy
+
+```bash
+npm run build                   # Build web assets to dist/
+npx cap sync ios                # Copy dist/ into ios/ + update native deps
+npx cap open ios                # Open Xcode project (macOS only)
+```
+
+In Xcode: select a real device or simulator → Product → Archive → Distribute to App Store Connect.
+
+### What's Done (automated by Capacitor + code changes)
+
+| Requirement | Status | Details |
+|---|---|---|
+| App icon (1024x1024 PNG) | Done | Auto-generated at `ios/App/App/Assets.xcassets/AppIcon.appiconset/` |
+| Bundle ID | Done | `com.retrowave.journal` |
+| Version / Build | Done | `1.0` / `1` (in Xcode project) |
+| Deployment target | Done | iOS 15.0 |
+| Encryption declaration | Done | `ITSAppUsesNonExemptEncryption = NO` in Info.plist |
+| COPPA age gate | Done | Birth year verification, `set_age_verification` RPC |
+| Content reporting | Done | `mailto:` report link on every post (Apple Guideline 1.2) |
+| Privacy Policy page | Done | `public/privacy.html` (static file) |
+| Terms of Service | Done | `public/terms.html` (static file) |
+| iPhone portrait-only | Done | Info.plist restricts to portrait |
+| iPad all orientations | Done | Default Capacitor config |
+| Supabase domain allowed | Done | `allowNavigation: ['*.supabase.co']` in `capacitor.config.ts` |
+
+### What YOU Must Do Manually (cannot be automated)
+
+1. **Apple Developer Account** ($99/year) — enroll at [developer.apple.com](https://developer.apple.com)
+2. **App Store Connect** — create the app listing with:
+   - App name: "My Journal"
+   - Bundle ID: `com.retrowave.journal`
+   - Content rating: **17+** (UGC apps require this)
+   - Privacy Policy URL: your deployed `privacy.html` (e.g., `https://your-supabase-url.supabase.co/storage/v1/object/public/...` or any public host)
+3. **Screenshots** — required sizes: iPhone 6.9" (1320x2868), iPhone 6.5" (1284x2778), iPad Pro 12.9" (2048x2732). Take in Xcode Simulator.
+4. **App description** — write a brief description for the App Store listing
+5. **Signing** — in Xcode, select your team under Signing & Capabilities. Xcode handles provisioning profiles automatically.
+6. **Review `terms.html` and `privacy.html`** — AI-generated content, not lawyer-reviewed. Verify accuracy before submission.
+7. **Replace SVG icons** — `public/icon-192.svg`, `icon-512.svg`, `apple-touch-icon.svg` are placeholders for PWA manifest. Replace with real PNGs if you also want PWA support.
+
+### Apple Review Gotchas
+
+- **UGC apps (Guideline 1.2)**: Must have content reporting (done — mailto link), moderation (done — OpenAI + regex), and age gate (done — COPPA). Expect extra review scrutiny.
+- **WebView apps (Guideline 4.2)**: Apple may reject "thin wrapper" apps. The Xanga aesthetic + offline-capable PWA features help differentiate from a plain website. If rejected, consider adding a native splash screen or push notifications via `@capacitor/push-notifications`.
+- **Login required (Guideline 4.0)**: App requires email login to post. Apple may ask for a demo account — prepare one in advance.
+
 ## Claude Code Automations
 
 Configured in `.claude/settings.json`. These run automatically — no manual steps needed.
