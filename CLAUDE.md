@@ -30,6 +30,7 @@ This file is the shared interface between **two independent Claude agents** — 
 | `ModerationResult` | `src/lib/moderation.ts` (severity optional) | `supabase/functions/moderate-content/index.ts` (severity required) | Known divergence — see Tech Debt |
 | Profile fields | `src/types/profile.ts` | `profiles` table columns | Adding a profile field requires both a migration AND a type update |
 | Reaction emoji set | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS` | `20260224000004_add_data_constraints.sql` CHECK constraint | Canonical set: `['❤️', '🔥', '😂', '😢', '✨', '👀']`. **Must match exactly** |
+| Moderation blocklists | `src/lib/moderation.ts` `BLOCKED_DOMAINS` + `ADULT_URL_KEYWORDS` | `supabase/functions/moderate-content/index.ts` (same lists, reduced) | Client has full list; edge function has reduced keyword list. **Changes must sync both files** |
 
 ### Environment Variables
 
@@ -45,6 +46,7 @@ This file is the shared interface between **two independent Claude agents** — 
 |-----|-------|---------|
 | `xanga-status` | `Header.tsx` / `Sidebar.tsx` | AIM-style status message |
 | `post-draft` | `PostModal.tsx` | Auto-saved draft (JSON: title, content, author, mood, music). Cleared on successful post. |
+| `hasCompletedOnboarding` | `App.tsx` | Onboarding flow completion flag. Set to `'true'` after first-time wizard. |
 | `sb-*` | Supabase SDK | Auth tokens — never read/write directly |
 
 ### Rules for Cross-Agent Changes
@@ -53,6 +55,7 @@ This file is the shared interface between **two independent Claude agents** — 
 2. **Adding an RPC function** → backend agent writes SQL + registers in `database.ts`; frontend agent calls it
 3. **Adding an edge function** → backend agent creates in `supabase/functions/`; frontend agent calls via `supabase.functions.invoke()`
 4. **Changing validation limits** → update BOTH `validation.ts` AND the SQL migration. Document in this section.
+5. **`is_admin` is trigger-protected** → `20260224000006_protect_is_admin.sql` silently preserves `is_admin` on any API UPDATE. `supabase.from('profiles').update({ is_admin: true })` will **silently fail**. Admin features require a `SECURITY DEFINER` SQL function that bypasses the trigger.
 
 ## Tech Stack
 
@@ -210,7 +213,7 @@ const { data, error } = await withRetry(() =>
 
 **Keep `POST_LIMITS` in `validation.ts` in sync with the SQL migration constraints.** Both must agree.
 
-`PROFILE_LIMITS` provides defensive client-side limits for profile fields (no DB constraints yet):
+`PROFILE_LIMITS` mirrors DB CHECK constraints added in `20260224000004_add_data_constraints.sql` (M3 fix):
 
 | Field | Max |
 |-------|-----|
@@ -499,94 +502,28 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 | Toast timing by type | Success: 3s, Info: 4s, Error: 6s — configurable via `useToast.ts` `DEFAULT_DURATIONS` |
 | Collapsible sidebar | Mobile: compact bar (avatar + name + chevron), click to expand full sidebar content |
 
-## Comprehensive Backend Review
+## Backend Review Summary
 
-Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities, and types.
+Comprehensive audit completed 2026-02-23. **All 30 findings resolved** (C1–C4, H1–H7, M1–M8, L1–L11, F1–F5). Key fixes by migration:
 
-### CRITICAL — Security Vulnerabilities
+| Migration | Fixes |
+|-----------|-------|
+| `001_create_posts.sql` | H1: Reconstructed missing initial migration |
+| `002_create_profiles_and_likes.sql` | H1: Reconstructed missing profiles + likes migration |
+| `005_fix_missing_profiles.sql` | H2: Backfill defaults `false` not `true`; L9: `ON CONFLICT DO NOTHING` |
+| `20260224000001_fix_handle_new_user.sql` | C1: Combined trigger versions |
+| `20260224000002_fix_rpc_security.sql` | C2+C3: `auth.uid()` override + limit clamping |
+| `20260224000003_add_performance_indexes.sql` | M8: 4 performance indexes |
+| `20260224000004_add_data_constraints.sql` | H5+M3: Reaction + profile CHECK constraints |
+| `20260224000005_fix_coppa_backfill.sql` | H2: Corrects previously-backfilled users |
+| `20260224000006_protect_is_admin.sql` | L6: Trigger prevents self-elevation |
+| `moderate-content/index.ts` | C4+H6+H7+M6: Server-side blocklists, 100KB limit, 5s timeout, 405 |
 
-**C1: ✅ FIXED (`20260224000001_fix_handle_new_user.sql`)** — `handle_new_user()` trigger regression. Migration `005` defined it with `username`; `20260125000000` overwrote it without `username`, causing NOT NULL violations. New migration combines both versions.
-
-**C2+C3: ✅ FIXED (`20260224000002_fix_rpc_security.sql`)** — RPC trusted caller-supplied `p_user_id` (private post leak) and allowed negative `p_limit` (table dump via `LIMIT ALL`). Fixed with `auth.uid()` override + `GREATEST(1, LEAST(p_limit, 100))`.
-
-**C4: ✅ FIXED (`moderate-content/index.ts` + `moderation.ts`)** — URL blocklist was client-only. Now `BLOCKED_DOMAINS` and `ADULT_URL_KEYWORDS` run server-side in the edge function. Client passes `embedded_links` for validation. Also fixed: H6 (100KB body limit), H7 (5s OpenAI timeout), M6 (405 for non-POST).
-
-### HIGH — Data Integrity & Correctness
-
-**H1: ✅ FIXED (`001_create_posts.sql` + `002_create_profiles_and_likes.sql`)** — Reconstructed missing initial migrations. `001` creates the `posts` table with RLS policies + `update_updated_at_column()` trigger. `002` creates `profiles` and `post_likes` tables with RLS policies. Project can now be bootstrapped from scratch with `supabase db reset`.
-
-**H2: ✅ FIXED (`005_fix_missing_profiles.sql` + `20260224000005_fix_coppa_backfill.sql`)** — Backfill in migration 005 changed from `COALESCE(..., true)` to `COALESCE(..., false)` for `age_verified` and `tos_accepted`. Corrective migration `20260224000005` updates previously-backfilled users (identified by `birth_year IS NULL`) to `false`. COPPA compliance gap closed.
-
-**H3: ✅ FIXED** — `updatePost` and `deletePost` now include `.eq('user_id', user.id)` as defense-in-depth. `deletePost` also adds a login check before the operation.
-
-**H4: ✅ FIXED (F1 frontend fix)** — `createPost` now enriches the prepended post with default `reactions: {}`, `user_reactions: []`, `like_count: 0`, `user_has_liked: false`, `profile_display_name: null`, `profile_avatar_url: null`.
-
-**H5: ✅ FIXED (`20260224000004_add_data_constraints.sql`)** — `reaction_type` now has a CHECK constraint matching the frontend's `REACTION_EMOJIS`: `('❤️', '🔥', '😂', '😢', '✨', '👀')`.
-
-**H6: ✅ FIXED (with C4)** — Edge function now checks `Content-Length` header and rejects bodies > 100KB before parsing.
-
-**H7: ✅ FIXED (with C4)** — Edge function now uses `AbortController` with 5-second timeout on OpenAI fetch.
-
-### MEDIUM — Correctness / Data Quality
-
-**M1: ✅ FIXED** — `validatePostInput` now uses `'field' in input` guards (same pattern as `validateProfileInput`). Missing fields are skipped instead of treated as empty strings. Partial updates work correctly.
-
-**M2: ✅ FIXED** — `validateEmbeddedLinks` now rejects URLs not starting with `http://` or `https://`, preventing `javascript:` and `data:` scheme XSS.
-
-**M3: ✅ FIXED (`20260224000004_add_data_constraints.sql`)** — Profile fields now have DB CHECK constraints matching `PROFILE_LIMITS` in `validation.ts`: display_name(50), bio(500), current_mood(100), current_music(200), username(50).
-
-**M4: ✅ FIXED (F5 frontend fix)** — Deleted `sanitizeContent()` from `moderation.ts`. Render-time sanitization via `rehype-sanitize` + `DOMPurify` is the correct approach.
-
-**M5: ✅ FIXED** — Removed the 500-char threshold for AI moderation. All posts are now sent to the OpenAI moderation endpoint regardless of length (endpoint is free). Short harmful content that evaded regex patterns is no longer skipped.
-
-**M6: ✅ FIXED (with C4)** — Edge function now returns 405 for non-POST methods.
-
-**M7: ✅ FIXED (`supabase/config.toml`)** — Enabled `enable_anonymous_sign_ins = true` in local dev config. This only affects local development (production uses Supabase dashboard settings). `devSignUp()` now works correctly with anonymous auth.
-
-**M8: ✅ FIXED (`20260224000003_add_performance_indexes.sql`)** — Added indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id`, and `post_likes.post_id`. Biggest iPhone performance impact — eliminates full table scans on every feed load.
-
-### LOW — Minor Issues / Cleanup
-
-**L1: ✅ FIXED** — Error message changed from "A required database table is missing" to "Something went wrong. Please contact support." No longer leaks that the backend is a relational database.
-
-**L2: ✅ FIXED** — `withRetry` now treats HTTP 429 and rate-limit messages as non-retryable. Prevents deepening rate limits on flaky mobile connections.
-
-**L3: ✅ DOCUMENTED (intentional design)** — Edge function and client-side moderation both fail open by design. Added explicit `L3 DESIGN NOTE` comments in both `moderate-content/index.ts` and `moderation.ts` explaining the rationale: local regex checks still catch obvious violations, and blocking all posts during an outage is worse UX than the small risk of subtle content slipping through.
-
-**L4: ✅ FIXED** — `loadMore` now uses `loadingMoreRef` (synchronous ref) alongside the state boolean. Prevents duplicate page fetches during iPhone momentum scroll.
-
-**L5: ✅ FIXED** — `TTLCache` now accepts a `maxSize` parameter (default 100). When at capacity, expired entries are evicted first, then the oldest entry. `postsCache` max 50, `youtubeTitleCache` max 200.
-
-**L6: ✅ FIXED (`20260224000006_protect_is_admin.sql`)** — Added a `BEFORE UPDATE` trigger on profiles that silently preserves the old `is_admin` value on any UPDATE. Users can no longer self-elevate to admin via the PostgREST API. Admin changes require direct DB access or a SECURITY DEFINER function.
-
-**L7: ✅ FIXED** — `createProfileForUser` now uses `supabase.auth.getSession()` (local, no network call) instead of `supabase.auth.getUser()` (network round-trip). Eliminates a redundant API call since the session already contains the user's email and metadata.
-
-**L8: ✅ FIXED** — Removed dead code: `useLikes.ts` hook + test, `types/like.ts`, unused `SupabaseResponse<T>` from `types/supabase.ts`, unused `UserStats` from `types/profile.ts`, deprecated `display_name`/`avatar_url` aliases from `Post` type (only `profile_display_name`/`profile_avatar_url` are used).
-
-**L9: ✅ FIXED** — Added `ON CONFLICT (id) DO NOTHING` to the backfill INSERT in migration 005. Prevents `23505` errors if the `on_auth_user_created` trigger fires during migration execution.
-
-**L10: ✅ FIXED** — Changed `json_typeof(embedded_links::json)` to `jsonb_typeof(embedded_links)` in the post constraints migration. Uses the correct function for the column's `jsonb` type.
-
-**L11: ✅ FIXED** — Removed `teen` and `gay` from `ADULT_URL_KEYWORDS` in `moderation.ts`. These had extremely high false-positive rates for legitimate content (e.g., "teenager", "teen vogue", "gay rights"). Truly adult URLs containing these terms are still caught by the domain blocklist.
-
-### Frontend Suggestions (for the frontend agent)
-
-These were UX/frontend improvements noticed during the backend review. **All resolved.**
-
-**F1: ✅ FIXED** — `createPost` in `usePosts.ts` now enriches the prepended post with default `reactions: {}`, `user_reactions: []`, `like_count: 0`, `user_has_liked: false`, `profile_display_name: null`, `profile_avatar_url: null` so PostCard renders correctly immediately after creation.
-
-**F2: ✅ FIXED** — `useReactions.toggleReaction` now has a per-post+emoji in-flight guard (`Set<string>` ref) and a 400ms cooldown (`Map<string, number>` ref). Rapid double-taps on iPhone are silently dropped. The optimistic update fires only on the first tap.
-
-**F3: ✅ FIXED** — `useAuth.updateProfile` now calls `validateProfileInput()` from `validation.ts` before sending to Supabase. Added `PROFILE_LIMITS` (display_name: 50, bio: 500, current_mood: 100, current_music: 200, username: 50) and `ProfileValidationErrors` type.
-
-**F4: ✅ FIXED** — The 400ms cooldown in F2 covers iPhone touch events. The cooldown uses `Date.now()` timestamps, so it works on all devices regardless of touch vs click event type.
-
-**F5: ✅ FIXED** — Deleted `sanitizeContent()` from `moderation.ts`. It was dead code — the render-time sanitization via `rehype-sanitize` + `DOMPurify` in PostCard is the correct approach.
+Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M2 (URL scheme validation), M5 (removed 500-char AI threshold), M7 (anonymous sign-ins for dev), L1 (generic error messages), L2 (429 non-retryable), L5 (cache max size), L7 (getSession not getUser), L8 (dead code removal), L10 (jsonb_typeof), L11 (false-positive URL keywords). Frontend: F1 (optimistic defaults), F2 (reaction debounce), F3 (profile validation), F4 (iPhone touch cooldown), F5 (removed dead sanitizer). L3 documented as intentional fail-open design.
 
 ## Known Tech Debt
 
-1. ~~**`useLikes.ts` + `types/like.ts` are unused**~~ — **✅ RESOLVED (L8)**: Removed dead hook, test, and types.
-2. **`ModerationResult` type is duplicated** — Defined in both `src/lib/moderation.ts` (optional `severity`) and `supabase/functions/moderate-content/index.ts` (required `severity`). The edge function is Deno so sharing types is non-trivial. If you add a shared types package, consolidate this.
-3. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — This is intentional because it has special `23505` (unique constraint) handling that falls back to a re-fetch rather than a simple retry. The generic retry is linear (300ms * attempt) instead of exponential, which is acceptable for this specific case.
-4. **`react-syntax-highlighter` is installed but unused** — Listed in `package.json` (+ `@types/react-syntax-highlighter`). No component imports it. Either use it for markdown code blocks or remove both packages.
-5. **`ui/Select.tsx` uses hardcoded white background** — Not themed with CSS variables like other UI primitives. Needs `var(--card-bg)` and `var(--border-primary)` treatment to match the Xanga styling conventions.
+1. **`ModerationResult` type is duplicated** — Defined in both `src/lib/moderation.ts` (optional `severity`) and `supabase/functions/moderate-content/index.ts` (required `severity`). The edge function is Deno so sharing types is non-trivial. If you add a shared types package, consolidate this.
+2. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — This is intentional because it has special `23505` (unique constraint) handling that falls back to a re-fetch rather than a simple retry. The generic retry is linear (300ms * attempt) instead of exponential, which is acceptable for this specific case.
+3. **`react-syntax-highlighter` is installed but unused** — Listed in `package.json` (+ `@types/react-syntax-highlighter`). No component imports it. Either use it for markdown code blocks or remove both packages.
+4. **`ui/Select.tsx` uses hardcoded white background** — Not themed with CSS variables like other UI primitives. Needs `var(--card-bg)` and `var(--border-primary)` treatment to match the Xanga styling conventions.
