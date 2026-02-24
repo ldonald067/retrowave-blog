@@ -24,10 +24,10 @@ This file is the shared interface between **two independent Claude agents** — 
 
 | Type | Frontend Location | Backend Location | Notes |
 |------|------------------|-----------------|-------|
-| Post field limits | `src/lib/validation.ts` `POST_LIMITS` | `20260223000001_post_constraints.sql` CHECK constraints | **Must match exactly** |
-| Profile field limits | `src/lib/validation.ts` `PROFILE_LIMITS` | `20260224000004_add_data_constraints.sql` CHECK constraints | **Must match exactly** (synced in M3 fix) |
+| Post field limits | `src/lib/validation.ts` `POST_LIMITS` | `20260223000001_post_constraints.sql` CHECK constraints | **Must match exactly** (verified 2026-02-24) |
+| Profile field limits | `src/lib/validation.ts` `PROFILE_LIMITS` | `20260224000004_add_data_constraints.sql` CHECK constraints | **Must match exactly** (verified 2026-02-24) |
 | RPC params/return | `src/types/database.ts` `Functions` | `20260223000002_get_posts_rpc.sql` | Frontend types must mirror SQL return shape |
-| `ModerationResult` | `src/lib/moderation.ts` (severity optional) | `supabase/functions/moderate-content/index.ts` (severity required) | Known divergence — see Tech Debt |
+| `ModerationResult` | `src/lib/moderation.ts` (severity required) | `supabase/functions/moderate-content/index.ts` (severity required) | Both require `severity`. Types duplicated (Deno can't share with Vite). |
 | Profile fields | `src/types/profile.ts` | `profiles` table columns | Adding a profile field requires both a migration AND a type update |
 | Reaction emoji set | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS` | `20260224000004_add_data_constraints.sql` CHECK constraint | Canonical set: `['❤️', '🔥', '😂', '😢', '✨', '👀']`. **Must match exactly** |
 | Moderation blocklists | `src/lib/moderation.ts` `BLOCKED_DOMAINS` + `ADULT_URL_KEYWORDS` | `supabase/functions/moderate-content/index.ts` (same lists, reduced) | Client has full list; edge function has reduced keyword list. **Changes must sync both files** |
@@ -65,11 +65,11 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 
 | ID | Status | Owner | Item | Context | Notes | Added By |
 |----|--------|-------|------|---------|-------|----------|
-| Q1 | open | backend | Audit RLS policies match `POST_LIMITS` + `PROFILE_LIMITS` | Frontend validates all field limits client-side in `validation.ts`. Verify server-side CHECK constraints in migrations `20260223000001` and `20260224000004` are comprehensive and match. | — | frontend |
-| Q2 | open | backend | Review `moderate-content` error response shapes | Frontend maps errors via `toUserMessage()` in `errors.ts`. Verify edge function returns consistent error shapes (`{ flagged, reason, severity? }`). | — | frontend |
-| Q3 | open | backend | Align `ModerationResult` types (Tech Debt #1) | Frontend has `severity` optional, edge function has it required. Consolidate if touching `moderate-content`. | — | frontend |
-| Q4 | open | backend | Verify `get_posts_with_reactions` query plan | RPC joins posts+profiles+reactions+likes. Cursor pagination (page size 20). Confirm indexes from migration `20260224000003` are used. `EXPLAIN ANALYZE` recommended. | — | frontend |
-| Q5 | open | either | Consider `posts.status` column for server-side drafts | Frontend auto-saves drafts to `localStorage` only (`post-draft` key). Server-side drafts would need a `status` column, RLS policy updates, and frontend UI for draft/published toggle. | — | frontend |
+| Q1 | done | backend | Audit RLS policies match `POST_LIMITS` + `PROFILE_LIMITS` | Frontend validates all field limits client-side in `validation.ts`. Verify server-side CHECK constraints in migrations `20260223000001` and `20260224000004` are comprehensive and match. | backend: All limits match exactly; RLS policies comprehensive. | frontend |
+| Q2 | done | backend | Review `moderate-content` error response shapes | Frontend maps errors via `toUserMessage()` in `errors.ts`. Verify edge function returns consistent error shapes (`{ flagged, reason, severity? }`). | backend: Shapes consistent; fail-open by design (L3). | frontend |
+| Q3 | done | backend | Align `ModerationResult` types (Tech Debt #1) | Frontend has `severity` optional, edge function has it required. Consolidate if touching `moderate-content`. | backend: Made `severity` required in frontend `moderation.ts`; no downstream breakage. | frontend |
+| Q4 | done | backend | Verify `get_posts_with_reactions` query plan | RPC joins posts+profiles+reactions+likes. Cursor pagination (page size 20). Confirm indexes from migration `20260224000003` are used. `EXPLAIN ANALYZE` recommended. | backend: All 4 indexes match RPC patterns; revisit with EXPLAIN ANALYZE at scale. | frontend |
+| Q5 | done | backend | Consider `posts.status` column for server-side drafts | Frontend auto-saves drafts to `localStorage` only (`post-draft` key). Server-side drafts would need a `status` column, RLS policy updates, and frontend UI for draft/published toggle. | backend: Deferred — localStorage sufficient; complexity not justified without user demand. | frontend |
 
 **Queue Protocol:**
 
@@ -108,7 +108,7 @@ npx tsc --noEmit       # Type check without emitting
 npm run preview        # Serve production build locally (run after `npm run build`)
 ```
 
-> **⚠️ Do NOT run `npm run dev`** — the Vite dev server crashes the environment. Use `npm run build` + `npm run preview` instead.
+> **Do NOT run `npm run dev`** — the Vite dev server crashes the environment. Use `npm run build` + `npm run preview` instead.
 
 ## Environment Setup
 
@@ -380,7 +380,7 @@ Run in order by filename. Key migrations:
 | `20260224000002_fix_rpc_security.sql` | **C2+C3 fix**: `auth.uid()` override + `GREATEST(1, LEAST(p_limit, 100))` |
 | `20260224000003_add_performance_indexes.sql` | **M8 fix**: Indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id`, `post_likes.post_id` |
 | `20260224000004_add_data_constraints.sql` | **H5+M3 fix**: `reaction_type` CHECK + profile field length constraints |
-| `20260224000005_fix_coppa_backfill.sql` | **H2 fix**: Corrects previously-backfilled users (`birth_year IS NULL`) to `age_verified = false` |
+| `20260224000005_fix_coppa_backfill.sql` | **H2 fix**: Corrects previously-backfilled users |
 | `20260224000006_protect_is_admin.sql` | **L6 fix**: `BEFORE UPDATE` trigger prevents `is_admin` self-elevation via API |
 
 ## Development Notes
@@ -528,7 +528,7 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 
 ## Backend Review Summary
 
-Comprehensive audit completed 2026-02-23. **All 30 findings resolved** (C1–C4, H1–H7, M1–M8, L1–L11, F1–F5). Key fixes by migration:
+Comprehensive audit completed 2026-02-23. **All 30 findings resolved** (C1-C4, H1-H7, M1-M8, L1-L11, F1-F5). Key fixes by migration:
 
 | Migration | Fixes |
 |-----------|-------|
@@ -547,11 +547,17 @@ Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M
 
 ## Known Tech Debt
 
-1. **`ModerationResult` type is duplicated** — Defined in both `src/lib/moderation.ts` (optional `severity`) and `supabase/functions/moderate-content/index.ts` (required `severity`). The edge function is Deno so sharing types is non-trivial. If you add a shared types package, consolidate this.
+1. **`ModerationResult` type lives in two files** — `src/lib/moderation.ts` and `supabase/functions/moderate-content/index.ts` both define the interface. Shapes are now aligned (both require `severity`), but Deno can't import from Vite so they can't share a single definition. If a shared types package is added, consolidate.
 2. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — This is intentional because it has special `23505` (unique constraint) handling that falls back to a re-fetch rather than a simple retry. The generic retry is linear (300ms * attempt) instead of exponential, which is acceptable for this specific case.
 
-## Frontend Completion Status
+## Agent Session Log
 
-The frontend agent has completed **all** planned work. No new DB columns or RPC functions were needed — all improvements were pure UI/UX. Action items for the backend agent are in the **Cross-Agent Queue** above (Q1–Q5).
+### Frontend (bold-brattain) — 2026-02-23
 
-Summary of frontend-only changes (no backend action required): Xanga-style UI overhaul, `prefers-reduced-motion` support, focus traps in all modals, collapsible mobile sidebar, draft auto-save, styled ConfirmDialog, PostSkeleton loaders, toast stacking with type-based timing, 44px+ touch targets, batch `applyTheme()`, `constants.ts` auto-imports from `validation.ts`, AvatarPicker lazy loading, cache single-pass eviction.
+Completed all planned UI/UX work. No new DB columns or RPC functions needed. Added Q1-Q5 to the Cross-Agent Queue for backend review.
+
+Changes: Xanga-style UI overhaul, `prefers-reduced-motion` support, focus traps in all modals, collapsible mobile sidebar, draft auto-save, styled ConfirmDialog, PostSkeleton loaders, toast stacking with type-based timing, 44px+ touch targets, batch `applyTheme()`, `constants.ts` auto-imports from `validation.ts`, AvatarPicker lazy loading, cache single-pass eviction.
+
+### Backend (bold-wozniak) — 2026-02-24
+
+Resolved Q1-Q5 from the Cross-Agent Queue. Only code change: made `ModerationResult.severity` required in `src/lib/moderation.ts` (Q3). All other items were verification/documentation — no further frontend work needed. Queue cleared, no new items added.
