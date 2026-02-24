@@ -57,6 +57,28 @@ This file is the shared interface between **two independent Claude agents** — 
 3. **Adding an edge function** → backend agent creates in `supabase/functions/`; frontend agent calls via `supabase.functions.invoke()`
 4. **Changing validation limits** → update `validation.ts` (`POST_LIMITS` or `PROFILE_LIMITS`) AND the corresponding SQL migration. `constants.ts` auto-imports from `PROFILE_LIMITS` — do NOT update it manually.
 5. **`is_admin` is trigger-protected** → `20260224000006_protect_is_admin.sql` silently preserves `is_admin` on any API UPDATE. `supabase.from('profiles').update({ is_admin: true })` will **silently fail**. Admin features require a `SECURITY DEFINER` SQL function that bypasses the trigger.
+6. **Always update the Cross-Agent Queue** (see below) when your work creates action items for the other agent.
+
+### Cross-Agent Queue
+
+Structured handoff between frontend and backend agents. **Every agent session must check this queue on start and update it before ending.**
+
+| ID | Status | Owner | Item | Context | Added By |
+|----|--------|-------|------|---------|----------|
+| Q1 | open | backend | Audit RLS policies match `POST_LIMITS` + `PROFILE_LIMITS` | Frontend validates all field limits client-side in `validation.ts`. Verify server-side CHECK constraints in migrations `20260223000001` and `20260224000004` are comprehensive and match. | frontend |
+| Q2 | open | backend | Review `moderate-content` error response shapes | Frontend maps errors via `toUserMessage()` in `errors.ts`. Verify edge function returns consistent error shapes (`{ flagged, reason, severity? }`). | frontend |
+| Q3 | open | backend | Align `ModerationResult` types (Tech Debt #1) | Frontend has `severity` optional, edge function has it required. Consolidate if touching `moderate-content`. | frontend |
+| Q4 | open | backend | Verify `get_posts_with_reactions` query plan | RPC joins posts+profiles+reactions+likes. Cursor pagination (page size 20). Confirm indexes from migration `20260224000003` are used. `EXPLAIN ANALYZE` recommended. | frontend |
+| Q5 | open | either | Consider `posts.status` column for server-side drafts | Frontend auto-saves drafts to `localStorage` only (`post-draft` key). Server-side drafts would need a `status` column, RLS policy updates, and frontend UI for draft/published toggle. | frontend |
+
+**Queue Protocol:**
+
+1. **On session start**: Read the queue. Pick up any `open` items assigned to you → set to `in-progress`.
+2. **During work**: If your changes create work for the other agent, add a row with `status=open` and `owner=` the other agent. Use the next available `Q` number.
+3. **On completion**: Set finished items to `done`. Add a brief note to Context if needed.
+4. **Cleanup**: Items marked `done` should be deleted by the next agent session that sees them (they've served their purpose).
+5. **Either**: Items with `owner=either` can be picked up by whichever agent runs next. Set owner to yourself when you start it.
+6. **References**: Use queue IDs in commit messages when relevant (e.g., "Resolves Q3").
 
 ## Tech Stack
 
@@ -529,40 +551,6 @@ Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M
 
 ## Frontend Completion Status
 
-The frontend agent has completed **all** planned work across multiple sessions. Here is a summary of what was done and what the backend agent should know.
+The frontend agent has completed **all** planned work. No new DB columns or RPC functions were needed — all improvements were pure UI/UX. Action items for the backend agent are in the **Cross-Agent Queue** above (Q1–Q5).
 
-### What Changed (Frontend-Only, No Backend Action Required)
-
-These changes are purely frontend. The backend agent does NOT need to do anything for these:
-
-| Change | Details |
-|--------|---------|
-| Xanga-style UI overhaul | All components themed with CSS variables, dotted borders, era-appropriate fonts |
-| `prefers-reduced-motion` support | CSS media query + `<MotionConfig reducedMotion="user">` + CursorSparkle early return |
-| Focus traps in all modals | `useFocusTrap.ts` hook with `onEscape` callback, integrated in PostModal/ProfileModal/AuthModal/OnboardingFlow/ConfirmDialog |
-| Collapsible mobile sidebar | Persists to `localStorage` key `sidebar-collapsed` |
-| Draft auto-save in PostModal | Saves to `localStorage` key `post-draft`, restored on reopen, cleared on save |
-| ConfirmDialog replaces `window.confirm()` | Styled Xanga modal for delete confirmations |
-| PostSkeleton loaders | Pulsing placeholder cards for initial feed load |
-| Toast stacking + type-based timing | Max 3 visible, Success 3s / Info 4s / Error 6s |
-| Touch targets 44px+ on mobile | ReactionBar, PostCard edit/delete, Toast close all enlarged |
-| `applyTheme()` batch CSS assignment | Uses single `cssText` assignment instead of ~40 `setProperty()` calls |
-| `constants.ts` imports from `validation.ts` | `VALIDATION.displayName.maxLength` now reads from `PROFILE_LIMITS` — single source of truth |
-| AvatarPicker lazy loading | `loading="lazy"` on avatar grid images |
-| Cache single-pass eviction | `TTLCache.evict()` tracks oldest entry in one loop instead of two iterations |
-
-### Backend Action Items
-
-The backend agent should review and address these areas:
-
-1. **Audit RLS policies** — The frontend now fully validates all field limits client-side (`POST_LIMITS` + `PROFILE_LIMITS` in `validation.ts`), but the backend should verify server-side CHECK constraints in migrations `20260223000001` and `20260224000004` are comprehensive and match.
-
-2. **Review edge function error responses** — The frontend uses `toUserMessage()` from `errors.ts` to map Supabase errors to user-safe messages. The backend should verify the `moderate-content` edge function returns consistent error shapes that the frontend can handle.
-
-3. **Consider adding a `posts.status` column** — The frontend currently has no concept of draft vs published posts (auto-save is `localStorage`-only). If server-side drafts are desired, the backend would need a `status` column + RLS policy updates.
-
-4. **Verify `get_posts_with_reactions` performance** — The RPC function joins posts + profiles + reactions + likes. With the frontend now using cursor-based pagination (page size 20), verify the query plan uses the indexes from migration `20260224000003`.
-
-5. **`ModerationResult` type divergence** (Tech Debt #1) — The frontend has `severity` as optional, the edge function has it required. If the backend agent touches `moderate-content`, consider aligning the types.
-
-6. **No new DB columns or RPC functions were needed** — All frontend improvements were pure UI/UX changes. The existing Supabase schema, RLS policies, and RPC functions are sufficient for all current frontend functionality.
+Summary of frontend-only changes (no backend action required): Xanga-style UI overhaul, `prefers-reduced-motion` support, focus traps in all modals, collapsible mobile sidebar, draft auto-save, styled ConfirmDialog, PostSkeleton loaders, toast stacking with type-based timing, 44px+ touch targets, batch `applyTheme()`, `constants.ts` auto-imports from `validation.ts`, AvatarPicker lazy loading, cache single-pass eviction.
