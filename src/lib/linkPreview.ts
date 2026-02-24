@@ -4,12 +4,16 @@
 import type {
   LinkPreview,
   LinkType,
-  YouTubeOEmbedResponse,
   VimeoOEmbedResponse,
   SpotifyMetadata,
   DetectedUrl,
 } from '../types/link-preview';
-import { extractYouTubeId, parseYouTubeUrl, hasYouTubeUrl } from '../utils/parseYouTube';
+import {
+  extractYouTubeId,
+  parseYouTubeUrl,
+  hasYouTubeUrl,
+  fetchYouTubeTitle,
+} from '../utils/parseYouTube';
 
 // Re-export YouTube utilities for consumers of this module
 export { extractYouTubeId, parseYouTubeUrl, hasYouTubeUrl };
@@ -38,29 +42,17 @@ export function detectLinkType(url: string): LinkType {
   return 'generic';
 }
 
-// Fetch YouTube metadata using oEmbed (legal and free!)
+// Fetch YouTube metadata using the cached oEmbed fetcher from parseYouTube.ts
 export async function fetchYouTubeMetadata(videoId: string): Promise<LinkPreview | null> {
-  try {
-    const oEmbedUrl = `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`;
-    const response = await fetch(oEmbedUrl);
+  const title = await fetchYouTubeTitle(videoId);
 
-    if (!response.ok) return null;
-
-    const data = (await response.json()) as YouTubeOEmbedResponse;
-
-    return {
-      url: `https://www.youtube.com/watch?v=${videoId}`,
-      type: 'youtube',
-      title: data.title,
-      author: data.author_name,
-      thumbnail: data.thumbnail_url,
-      embedHtml: data.html,
-      siteName: 'YouTube',
-    };
-  } catch (error) {
-    console.error('Error fetching YouTube metadata:', error);
-    return null;
-  }
+  return {
+    url: `https://www.youtube.com/watch?v=${videoId}`,
+    type: 'youtube',
+    title: title ?? undefined,
+    thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+    siteName: 'YouTube',
+  };
 }
 
 // Fetch Vimeo metadata using oEmbed
@@ -89,21 +81,16 @@ export async function fetchVimeoMetadata(videoId: string): Promise<LinkPreview |
 }
 
 // Fetch Spotify metadata (embed only, no API key needed)
-export async function fetchSpotifyMetadata(type: string, id: string): Promise<LinkPreview | null> {
-  try {
-    const url = `https://open.spotify.com/${type}/${id}`;
+export function fetchSpotifyMetadata(type: string, id: string): LinkPreview {
+  const url = `https://open.spotify.com/${type}/${id}`;
 
-    return {
-      url,
-      type: 'spotify',
-      title: `Spotify ${type}`,
-      embedHtml: `<iframe src="https://open.spotify.com/embed/${type}/${id}" width="100%" height="380" frameBorder="0" allowtransparency="true" allow="encrypted-media"></iframe>`,
-      siteName: 'Spotify',
-    };
-  } catch (error) {
-    console.error('Error creating Spotify embed:', error);
-    return null;
-  }
+  return {
+    url,
+    type: 'spotify',
+    title: `Spotify ${type}`,
+    embedHtml: `<iframe src="https://open.spotify.com/embed/${type}/${id}" width="100%" height="380" frameBorder="0" allowtransparency="true" allow="encrypted-media"></iframe>`,
+    siteName: 'Spotify',
+  };
 }
 
 // Main function to get link preview

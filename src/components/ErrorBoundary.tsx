@@ -42,23 +42,28 @@ export default class ErrorBoundary extends Component<Props, State> {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex items-center justify-center p-6">
+      <div className="min-h-screen themed-bg flex items-center justify-center p-6">
         <div className="xanga-box max-w-md w-full text-center space-y-4">
           <h1 className="xanga-title text-3xl">Oops! 😵</h1>
           <p className="xanga-subtitle">Something went wrong rendering this page.</p>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             {this.state.error?.message || 'An unexpected error occurred.'}
           </p>
           <div className="flex gap-3 justify-center pt-2">
             <button
               onClick={this.handleReset}
-              className="px-4 py-2 bg-gradient-to-r from-pink-400 to-purple-400 text-white rounded-lg text-sm hover:opacity-90 transition"
+              className="xanga-button text-sm"
             >
               Try Again
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 border-2 border-pink-300 text-pink-600 rounded-lg text-sm hover:bg-pink-50 transition"
+              className="px-4 py-2 border-2 border-dotted rounded-lg text-sm transition"
+              style={{
+                borderColor: 'var(--border-primary)',
+                color: 'var(--accent-primary)',
+                backgroundColor: 'var(--card-bg)',
+              }}
             >
               Reload Page
             </button>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { AnimatePresence, MotionConfig } from 'framer-motion';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAuth } from './hooks/useAuth';
@@ -15,6 +15,7 @@ import EmptyState from './components/EmptyState';
 import ErrorMessage from './components/ErrorMessage';
 import Toast from './components/Toast';
 import ConfirmDialog from './components/ConfirmDialog';
+import ErrorBoundary from './components/ErrorBoundary';
 import type { Post, CreatePostInput } from './types/post';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
@@ -61,6 +62,7 @@ function PostList({
   hasMore: boolean;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({
     count: posts.length,
@@ -69,41 +71,58 @@ function PostList({
     overscan: VIRTUAL_OVERSCAN,
   });
 
+  // Infinite scroll: auto-load when sentinel enters viewport
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadingMore) onLoadMore();
+  }, [hasMore, loadingMore, onLoadMore]);
+
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) handleLoadMore();
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleLoadMore]);
+
   return (
     <div>
       <div ref={parentRef} className="max-h-[80vh] overflow-auto scrollbar-thin">
         <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
-          <AnimatePresence>
-            {virtualizer.getVirtualItems().map((virtualRow) => {
-              const post = posts[virtualRow.index];
-              if (!post) return null;
-              return (
-                <div
-                  key={post.id}
-                  ref={virtualizer.measureElement}
-                  data-index={virtualRow.index}
-                  className="absolute top-0 left-0 w-full pb-4"
-                  style={{ transform: `translateY(${virtualRow.start}px)` }}
-                >
-                  <PostCard
-                    post={post}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    onView={onView}
-                    onReaction={onReaction}
-                    viewMode="list"
-                    currentUserId={currentUserId}
-                  />
-                </div>
-              );
-            })}
-          </AnimatePresence>
+          {virtualizer.getVirtualItems().map((virtualRow) => {
+            const post = posts[virtualRow.index];
+            if (!post) return null;
+            return (
+              <div
+                key={post.id}
+                ref={virtualizer.measureElement}
+                data-index={virtualRow.index}
+                className="absolute top-0 left-0 w-full pb-4"
+                style={{ transform: `translateY(${virtualRow.start}px)` }}
+              >
+                <PostCard
+                  post={post}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onView={onView}
+                  onReaction={onReaction}
+                  viewMode="list"
+                  currentUserId={currentUserId}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Xanga-style pagination button */}
+      {/* Infinite scroll sentinel + fallback manual button */}
       {hasMore && (
-        <div className="flex justify-center pt-4 pb-2">
+        <div ref={loadMoreRef} className="flex justify-center pt-4 pb-2">
           <button
             onClick={onLoadMore}
             disabled={loadingMore}
@@ -371,6 +390,7 @@ function App() {
   }
 
   return (
+    <ErrorBoundary>
     <MotionConfig reducedMotion="user">
     <div className="min-h-screen themed-bg">
       <CursorSparkle />
@@ -454,16 +474,18 @@ function App() {
       )}
 
       {/* Toast Notifications */}
-      {toasts.map((toast, index) => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => hideToast(toast.id)}
-          duration={toast.duration}
-          index={index}
-        />
-      ))}
+      <AnimatePresence>
+        {toasts.map((toast, index) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => hideToast(toast.id)}
+            duration={toast.duration}
+            index={index}
+          />
+        ))}
+      </AnimatePresence>
 
       {/* Footer - very Xanga! */}
       <footer
@@ -479,6 +501,7 @@ function App() {
       </footer>
     </div>
     </MotionConfig>
+    </ErrorBoundary>
   );
 }
 

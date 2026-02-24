@@ -63,9 +63,9 @@ export function usePosts(): UsePostsReturn {
   const fetchPage = useCallback(
     async (cursor: string | null, append: boolean): Promise<void> => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      const userId = user?.id ?? null;
+        data: { session },
+      } = await supabase.auth.getSession();
+      const userId = session?.user?.id ?? null;
       userIdRef.current = userId;
 
       const key = cacheKey(userId, cursor);
@@ -230,13 +230,14 @@ export function usePosts(): UsePostsReturn {
 
       try {
         const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user)
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.user)
           return {
             data: null,
             error: 'You must be logged in to create a post',
           };
+        const user = session.user;
 
         const { data, error } = await supabase
           .from('posts')
@@ -280,13 +281,14 @@ export function usePosts(): UsePostsReturn {
     ): Promise<{ data: Post | null; error: string | null }> => {
       // T3: Defensive ownership check
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user)
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user)
         return {
           data: null,
           error: 'You must be logged in to edit a post',
         };
+      const user = session.user;
 
       // T3: Validate updates
       const errors = validatePostInput(updates);
@@ -332,10 +334,11 @@ export function usePosts(): UsePostsReturn {
     async (id: string): Promise<{ error: string | null }> => {
       try {
         const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (!user)
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.user)
           return { error: 'You must be logged in to delete a post' };
+        const user = session.user;
 
         // H3 FIX: Include user_id as defense-in-depth (same as updatePost).
         const { error } = await supabase

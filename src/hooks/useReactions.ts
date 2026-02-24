@@ -62,11 +62,12 @@ export function useReactions(
       const wasActive = currentUserReactions.includes(emoji);
 
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session?.user) {
         return { error: 'You must be logged in to react' };
       }
+      const user = session.user;
 
       // Mark in-flight and record timestamp before any work
       inFlightRef.current.add(key);

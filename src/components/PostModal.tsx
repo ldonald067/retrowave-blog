@@ -218,6 +218,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                 </div>
               </div>
             ) : (
+              <fieldset disabled={saving}>
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
                 {/* Draft Restored Banner */}
                 {draftRestored && (
@@ -453,11 +454,17 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                       required
                     />
                   )}
-                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                    use **bold**, *italic*, or [links](url) 4 formatting
-                  </p>
+                  <div className="flex justify-between mt-1">
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      use **bold**, *italic*, or [links](url) 4 formatting
+                    </p>
+                    <p className="text-xs" style={{ color: content.length > 45000 ? 'var(--accent-secondary)' : 'var(--text-muted)' }}>
+                      {content.length.toLocaleString()}/50,000
+                    </p>
+                  </div>
                 </div>
               </form>
+              </fieldset>
             )}
           </div>
 

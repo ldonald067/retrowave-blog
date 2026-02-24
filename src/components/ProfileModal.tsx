@@ -180,6 +180,7 @@ export default function ProfileModal({
             className="overflow-y-auto max-h-[calc(95vh-180px)] sm:max-h-[calc(90vh-180px)]"
             style={{ backgroundColor: 'var(--modal-bg)' }}
           >
+            <fieldset disabled={saving}>
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
               {/* Avatar Section */}
               <div className="xanga-box p-4">
@@ -391,6 +392,7 @@ export default function ProfileModal({
                 </div>
               </div>
             </form>
+            </fieldset>
           </div>
 
           {/* Footer */}

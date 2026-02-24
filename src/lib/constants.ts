@@ -63,17 +63,6 @@ export const UI = {
   toast: {
     duration: 3000, // milliseconds
   },
-  animation: {
-    swipeThreshold: 50, // pixels
-    slideDistance: 300, // pixels
-  },
-} as const;
-
-// Routes (if needed later)
-export const ROUTES = {
-  home: '/',
-  profile: '/profile',
-  post: '/post',
 } as const;
 
 // Mood options for posts - Xanga/LiveJournal style!
