@@ -116,7 +116,6 @@ function PostList({
                   onDelete={onDelete}
                   onView={onView}
                   onReaction={onReaction}
-                  viewMode="list"
                   currentUserId={currentUserId}
                 />
               </div>
@@ -193,9 +192,9 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('signup');
-  const [showOnboarding, setShowOnboarding] = useState(
-    !localStorage.getItem('hasCompletedOnboarding')
-  );
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { return !localStorage.getItem('hasCompletedOnboarding'); } catch { return false; }
+  });
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -326,6 +325,11 @@ function App() {
     }
   };
 
+  // Ref keeps current posts so handleReaction's identity stays stable
+  // (no `posts` in deps → PostCard memo won't re-render on feed change).
+  const postsRef = useRef(posts);
+  postsRef.current = posts;
+
   // T4: Optimistic reactions — no more refetch() after toggle
   // Wrapped in useCallback so PostCard (React.memo) doesn't re-render on every App render
   const handleReaction = useCallback(async (postId: string, emoji: string) => {
@@ -334,7 +338,7 @@ function App() {
       setShowAuthModal(true);
       return;
     }
-    const post = posts.find((p) => p.id === postId);
+    const post = postsRef.current.find((p) => p.id === postId);
     const currentUserReactions = post?.user_reactions ?? [];
 
     const { error } = await toggleReaction(postId, emoji, currentUserReactions);
@@ -342,10 +346,10 @@ function App() {
       showError(error);
       // Note: useReactions already rolled back the optimistic update on error
     }
-  }, [user, posts, toggleReaction, showError]);
+  }, [user, toggleReaction, showError]);
 
   const handleOnboardingComplete = () => {
-    localStorage.setItem('hasCompletedOnboarding', 'true');
+    try { localStorage.setItem('hasCompletedOnboarding', 'true'); } catch { /* private browsing */ }
     setShowOnboarding(false);
   };
 
@@ -369,6 +373,15 @@ function App() {
 
   // Show loading spinner during auth initialization
   if (authLoading) {
+    return (
+      <div className="min-h-screen themed-bg flex items-center justify-center">
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
+  // Guard against age gate flash: profile fetch is async after session resolves.
+  if (user && !profile && !profileError) {
     return (
       <div className="min-h-screen themed-bg flex items-center justify-center">
         <LoadingSpinner />

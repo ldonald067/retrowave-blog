@@ -539,6 +539,14 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
   body, a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
     cursor: auto;
   }
+
+  /* IPHONE: Prevent iOS Safari auto-zoom on input focus.
+     iOS Safari zooms when focused font-size < 16px. */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 }
 
 /* ===== Reduced Motion ===== */
@@ -576,5 +584,16 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
   .blink {
     animation: none !important;
     opacity: 1 !important;
+  }
+}
+
+/* ===== Safe Area Insets (iPhone notch + home indicator) ===== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .modal-footer-safe {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+
+  .safe-area-bottom {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   }
 }

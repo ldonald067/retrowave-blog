@@ -1,0 +1,15 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Dark background -->
+  <rect width="512" height="512" fill="#1a0a2e"/>
+  
+  <!-- Pink heart -->
+  <path d="M256 412 C256 412, 80 310, 80 210 C80 160, 115 125, 160 125 C190 125, 215 145, 256 180 C297 145, 322 125, 352 125 C397 125, 432 160, 432 210 C432 310, 256 412, 256 412 Z" fill="#ff66b3"/>
+  
+  <!-- Glow effect -->
+  <circle cx="256" cy="250" r="180" fill="none" stroke="#ff66b3" stroke-width="2" opacity="0.3"/>
+  
+  <!-- Decorative stars -->
+  <circle cx="100" cy="100" r="8" fill="#ff66b3" opacity="0.6"/>
+  <circle cx="412" cy="120" r="8" fill="#ff66b3" opacity="0.6"/>
+  <circle cx="430" cy="400" r="8" fill="#ff66b3" opacity="0.6"/>
+</svg>

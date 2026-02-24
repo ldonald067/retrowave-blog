@@ -13,6 +13,9 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json}\""
   },
   "dependencies": {
+    "@capacitor/cli": "^8.1.0",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/ios": "^8.1.0",
     "@supabase/supabase-js": "^2.91.0",
     "@tanstack/react-virtual": "^3.13.18",
     "date-fns": "^4.1.0",

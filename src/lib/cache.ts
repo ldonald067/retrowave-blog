@@ -14,7 +14,7 @@ interface CacheEntry<V> {
   expiresAt: number;
 }
 
-export class TTLCache<K, V> {
+class TTLCache<K, V> {
   private store = new Map<K, CacheEntry<V>>();
   private defaultTtl: number;
   // L5 FIX: Cap maximum entries to prevent unbounded memory growth

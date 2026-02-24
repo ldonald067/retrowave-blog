@@ -140,7 +140,11 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
     draftTimerRef.current = setTimeout(() => {
       // Only save if there's meaningful content
       if (title || content) {
-        localStorage.setItem('post-draft', JSON.stringify({ title, content, author, mood, music }));
+        try {
+          localStorage.setItem('post-draft', JSON.stringify({ title, content, author, mood, music }));
+        } catch {
+          // Private browsing or storage quota exceeded — draft lives in React state
+        }
       }
     }, 500);
     return () => {
@@ -172,7 +176,11 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
     try {
       await onSave(postData);
       // Clear draft on successful save
-      localStorage.removeItem('post-draft');
+      try {
+        localStorage.removeItem('post-draft');
+      } catch {
+        // Private browsing — ignore
+      }
     } catch {
       // Error already shown by App.tsx (toast). Keep modal open so user can
       // revise. Draft is preserved since we only clear it on success above.
@@ -555,7 +563,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           {/* Footer */}
           {!isViewMode && (
             <div
-              className="p-3 sm:p-4 border-t-2 border-dotted flex justify-end gap-2"
+              className="p-3 sm:p-4 border-t-2 border-dotted flex justify-end gap-2 modal-footer-safe"
               style={{
                 background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
                 borderColor: 'var(--border-primary)',

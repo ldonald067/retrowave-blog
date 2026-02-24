@@ -147,7 +147,7 @@ export default function AgeVerification({ onVerified, requireTOS = true, loading
                     >
                       i accept the{' '}
                       <a
-                        href="/terms"
+                        href="/terms.html"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="xanga-link"
@@ -156,7 +156,7 @@ export default function AgeVerification({ onVerified, requireTOS = true, loading
                       </a>{' '}
                       and{' '}
                       <a
-                        href="/privacy"
+                        href="/privacy.html"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="xanga-link"

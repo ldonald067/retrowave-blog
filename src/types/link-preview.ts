@@ -13,14 +13,6 @@ export interface LinkPreview {
   siteName?: string;
 }
 
-export interface YouTubeOEmbedResponse {
-  title: string;
-  author_name: string;
-  thumbnail_url: string;
-  html: string;
-  provider_name: string;
-}
-
 export interface VimeoOEmbedResponse {
   title: string;
   author_name: string;
@@ -34,8 +26,3 @@ export interface SpotifyMetadata {
   id: string;
 }
 
-export interface DetectedUrl {
-  start: number;
-  end: number;
-  url: string;
-}

@@ -3,7 +3,6 @@ import {
   extractYouTubeId,
   extractVimeoId,
   extractSpotifyId,
-  detectUrlsInText,
 } from '../linkPreview';
 
 describe('extractYouTubeId', () => {
@@ -55,19 +54,3 @@ describe('extractSpotifyId', () => {
   });
 });
 
-describe('detectUrlsInText', () => {
-  it('detects URLs in text', () => {
-    const result = detectUrlsInText('Check out https://example.com for more info');
-    expect(result).toHaveLength(1);
-    expect(result[0]?.url).toBe('https://example.com');
-  });
-
-  it('detects multiple URLs', () => {
-    const result = detectUrlsInText('Visit https://a.com and https://b.com');
-    expect(result).toHaveLength(2);
-  });
-
-  it('returns empty array for text without URLs', () => {
-    expect(detectUrlsInText('No links here')).toEqual([]);
-  });
-});

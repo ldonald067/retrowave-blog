@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
 
@@ -21,7 +21,6 @@ interface UseReactionsReturn {
     emoji: string,
     currentUserReactions: string[],
   ) => Promise<{ error: string | null }>;
-  loading: boolean;
 }
 
 // F2 FIX: Cooldown prevents rapid double-taps from firing competing
@@ -31,7 +30,6 @@ const REACTION_COOLDOWN_MS = 400;
 export function useReactions(
   options: UseReactionsOptions = {},
 ): UseReactionsReturn {
-  const [loading, setLoading] = useState(false);
   const { onOptimisticUpdate } = options;
 
   // F2 FIX: Track in-flight reactions to prevent race conditions.
@@ -77,8 +75,6 @@ export function useReactions(
       onOptimisticUpdate?.(postId, emoji, user.id, wasActive);
 
       try {
-        setLoading(true);
-
         if (wasActive) {
           const { error } = await supabase
             .from('post_reactions')
@@ -103,11 +99,10 @@ export function useReactions(
         return { error: toUserMessage(err) };
       } finally {
         inFlightRef.current.delete(key);
-        setLoading(false);
       }
     },
     [onOptimisticUpdate],
   );
 
-  return { toggleReaction, loading };
+  return { toggleReaction };
 }

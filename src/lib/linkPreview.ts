@@ -6,7 +6,6 @@ import type {
   LinkType,
   VimeoOEmbedResponse,
   SpotifyMetadata,
-  DetectedUrl,
 } from '../types/link-preview';
 import {
   extractYouTubeId,
@@ -74,8 +73,7 @@ export async function fetchVimeoMetadata(videoId: string): Promise<LinkPreview |
       embedHtml: data.html,
       siteName: 'Vimeo',
     };
-  } catch (error) {
-    console.error('Error fetching Vimeo metadata:', error);
+  } catch {
     return null;
   }
 }
@@ -136,24 +134,3 @@ export async function getLinkPreview(url: string): Promise<LinkPreview | null> {
   return null;
 }
 
-// Create YouTube embed HTML
-export function createYouTubeEmbed(videoId: string, width = 560, height = 315): string {
-  return `<iframe width="${width}" height="${height}" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-}
-
-// Detect and auto-link URLs in text
-export function detectUrlsInText(text: string): DetectedUrl[] {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const matches: DetectedUrl[] = [];
-  let match: RegExpExecArray | null;
-
-  while ((match = urlRegex.exec(text)) !== null) {
-    matches.push({
-      start: match.index,
-      end: match.index + match[0].length,
-      url: match[0],
-    });
-  }
-
-  return matches;
-}

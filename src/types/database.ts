@@ -13,7 +13,6 @@ export interface Database {
           title: string;
           content: string;
           author: string;
-          excerpt: string;
           mood: string | null;
           music: string | null;
           embedded_links: Json | null;
@@ -28,7 +27,6 @@ export interface Database {
           title: string;
           content: string;
           author?: string;
-          excerpt?: string;
           mood?: string | null;
           music?: string | null;
           embedded_links?: Json | null;
@@ -43,7 +41,6 @@ export interface Database {
           title?: string;
           content?: string;
           author?: string;
-          excerpt?: string;
           mood?: string | null;
           music?: string | null;
           embedded_links?: Json | null;
@@ -184,7 +181,6 @@ export interface Database {
           title: string;
           content: string;
           author: string;
-          excerpt: string;
           mood: string | null;
           music: string | null;
           embedded_links: Json | null;
@@ -211,7 +207,6 @@ export interface Database {
           title: string;
           content: string;
           author: string;
-          excerpt: string;
           mood: string | null;
           music: string | null;
           embedded_links: Json | null;
@@ -232,10 +227,3 @@ export interface Database {
   };
 }
 
-// Helper types for easier usage
-export type Tables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Row'];
-export type InsertTables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Insert'];
-export type UpdateTables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Update'];

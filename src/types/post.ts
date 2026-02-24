@@ -9,7 +9,6 @@ export interface Post {
   title: string;
   content: string;
   author: string;
-  excerpt: string;
   mood?: string | null;
   music?: string | null;
   embedded_links?: LinkPreview[] | Json | null;
@@ -35,7 +34,6 @@ export interface CreatePostInput {
   title: string;
   content: string;
   author?: string;
-  excerpt?: string;
   mood?: string | null;
   music?: string | null;
   embedded_links?: Json | null;

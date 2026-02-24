@@ -92,13 +92,3 @@ export async function fetchYouTubeTitle(videoId: string): Promise<string | null>
   }
 }
 
-/**
- * Parse YouTube URL and fetch title (async version)
- */
-export async function parseYouTubeUrlWithTitle(text: string): Promise<YouTubeInfo | null> {
-  const info = parseYouTubeUrl(text);
-  if (!info) return null;
-
-  const title = await fetchYouTubeTitle(info.videoId);
-  return { ...info, title: title || undefined };
-}

@@ -3,6 +3,9 @@
  * Centralized configuration for the app
  */
 
+// Contact — used for report links and privacy page
+export const BLOG_OWNER_EMAIL = 'retrowave.blog.app@gmail.com';
+
 // Age Verification
 export const MIN_AGE = 13; // COPPA compliance
 export const CURRENT_YEAR = new Date().getFullYear();

@@ -5,8 +5,15 @@ import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
 import { parseYouTubeUrl, fetchYouTubeTitle, type YouTubeInfo } from '../utils/parseYouTube';
+import { BLOG_OWNER_EMAIL } from '../lib/constants';
 import ReactionBar from './ui/ReactionBar';
 import type { Post } from '../types/post';
+
+/** Truncate post content for feed preview — pure function, no re-creation per render. */
+function truncateContent(content: string, maxLength = 300): string {
+  if (!content) return '';
+  return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+}
 
 interface PostCardProps {
   post: Post;
@@ -14,7 +21,6 @@ interface PostCardProps {
   onDelete: (post: Post) => void;
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
-  viewMode?: string;
   currentUserId?: string;
 }
 
@@ -45,11 +51,6 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
       }
     });
   }, [post.music]);
-
-  const truncateContent = (content: string, maxLength = 300): string => {
-    if (!content) return '';
-    return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
-  };
 
   // Xanga-style blog post card
   return (
@@ -216,6 +217,17 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
       >
         <div className="flex items-center gap-3">
           {post.author && <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</span>}
+          {/* Apple Guideline 1.2: UGC apps must provide a reporting mechanism */}
+          {!isOwner && currentUserId && (
+            <a
+              href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
+              className="text-[10px] transition hover:underline"
+              style={{ color: 'var(--text-muted)', opacity: 0.6 }}
+              aria-label="Report this post"
+            >
+              report
+            </a>
+          )}
         </div>
 
         <ReactionBar

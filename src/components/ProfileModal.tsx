@@ -171,7 +171,7 @@ export default function ProfileModal({
               </h2>
               {!isInitialSetup && (
                 <button
-                  onClick={onClose}
+                  onClick={handleCancel}
                   className="p-2 rounded-full transition"
                   style={{ color: 'var(--text-muted)' }}
                   aria-label="Close"
@@ -455,7 +455,7 @@ export default function ProfileModal({
 
           {/* Footer */}
           <div
-            className="p-3 sm:p-4 border-t-2 border-dotted flex justify-end gap-2"
+            className="p-3 sm:p-4 border-t-2 border-dotted flex justify-end gap-2 modal-footer-safe"
             style={{
               background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
               borderColor: 'var(--border-primary)',

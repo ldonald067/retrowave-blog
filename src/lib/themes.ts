@@ -9,7 +9,7 @@ export interface ThemeDefinition {
   variables: Record<string, string>;
 }
 
-export const THEME_IDS = [
+const THEME_IDS = [
   'classic-xanga',
   'emo-dark',
   'scene-kid',
@@ -427,7 +427,7 @@ export const THEMES: ThemeDefinition[] = [
 
 export const DEFAULT_THEME: ThemeId = 'classic-xanga';
 
-export function getTheme(id: string): ThemeDefinition {
+function getTheme(id: string): ThemeDefinition {
   return THEMES.find((t) => t.id === id) ?? THEMES[0]!;
 }
 

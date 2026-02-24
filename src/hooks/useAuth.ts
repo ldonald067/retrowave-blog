@@ -115,7 +115,7 @@ export function useAuth(): UseAuthReturn {
       setProfile(profileData);
       applyTheme(profileData.theme ?? DEFAULT_THEME);
     } catch (err) {
-      console.error('Error fetching profile:', err);
+      console.error('Error fetching profile:', toUserMessage(err));
       setProfile(null);
       setProfileError('~ couldnt load ur profile :( try refreshing ~');
     } finally {
@@ -146,14 +146,15 @@ export function useAuth(): UseAuthReturn {
           ? emailLocalPart
           : `guest_${randomId}`;
 
-        // T1-1 FIX: Read actual metadata values; default to false so
-        // the age gate in App.tsx is triggered for unverified users.
+        // COPPA FIX: Derive age_verified from birth_year — never trust the
+        // metadata boolean. Matches the logic in handle_new_user trigger.
         const metadata = authUser?.user_metadata ?? {};
-        const ageVerified = Boolean(metadata['age_verified'] ?? false);
         const tosAccepted = Boolean(metadata['tos_accepted'] ?? false);
         const birthYear = metadata['birth_year']
           ? Number(metadata['birth_year'])
           : null;
+        const ageVerified =
+          birthYear !== null && new Date().getFullYear() - birthYear >= 13;
 
         const profileData = {
           id: userId,
@@ -186,7 +187,7 @@ export function useAuth(): UseAuthReturn {
             await new Promise((r) => setTimeout(r, 300 * attempt));
             continue;
           }
-          console.error('Error creating profile after retries:', error);
+          console.error('Error creating profile after retries:', toUserMessage(error));
           setProfileError('~ couldnt set up ur profile :( try refreshing ~');
           return null;
         }
@@ -197,7 +198,7 @@ export function useAuth(): UseAuthReturn {
           await new Promise((r) => setTimeout(r, 300 * attempt));
           continue;
         }
-        console.error('Error creating profile:', err);
+        console.error('Error creating profile:', toUserMessage(err));
         setProfileError('~ couldnt set up ur profile :( try refreshing ~');
         return null;
       }
@@ -218,7 +219,6 @@ export function useAuth(): UseAuthReturn {
           shouldCreateUser: true,
           data: {
             birth_year: birthYear,
-            age_verified: true,
             tos_accepted: tosAccepted,
           },
         },
@@ -323,7 +323,6 @@ export function useAuth(): UseAuthReturn {
         await supabase.auth.updateUser({
           data: {
             birth_year: birthYear,
-            age_verified: true,
             tos_accepted: tosAccepted,
           },
         });
