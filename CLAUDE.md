@@ -112,7 +112,7 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 | Animation | Framer Motion 12 |
 | Backend | Supabase (PostgreSQL + PostgREST + GoTrue Auth + Realtime) |
 | Edge Functions | Deno (Supabase Edge Functions) |
-| iOS Wrapper | Capacitor 7 (`@capacitor/core`, `@capacitor/ios`) |
+| iOS Wrapper | Capacitor 8 (`@capacitor/core`, `@capacitor/ios`, + app, status-bar, keyboard, haptics, share, browser, splash-screen) |
 | Content Moderation | OpenAI Moderation API via `moderate-content` edge function |
 | Virtualization | @tanstack/react-virtual |
 | Icons | lucide-react (selective — PostCard, Sidebar, ProfileModal) |
@@ -600,7 +600,7 @@ Title font varies by theme — **not always Comic Sans**. Applied via `var(--tit
 | Emo Dark | Georgia, Times New Roman, serif |
 | Scene Kid | Impact, Arial Black, sans-serif |
 | MySpace Blue | Verdana, Tahoma, sans-serif |
-| Y2K Cyber | Trebuchet MS, Orbitron, sans-serif |
+| Y2K Cyber | Trebuchet MS, sans-serif |
 | Cottage Core | Georgia, Palatino Linotype, serif |
 | Grunge | Courier New, Courier, monospace |
 | Pastel Goth | Georgia, Palatino, serif |
@@ -708,3 +708,8 @@ Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga
   - **Dead code**: 14 categories removed (excerpt, supabase.ts, helper types, unused functions/exports)
   - **Bug fix**: ProfileModal X button → `handleCancel` for theme/emoji revert
   - **Queue**: Added Q6-Q15 for frontend agent review
+  Session 10: 15 UX/style fixes + 7 Capacitor plugins:
+  - **CSS**: Focus-visible rings (WCAG 2.4.7), :root fallbacks for modal/input vars, explicit transition properties, dark theme shadow glow colors
+  - **Components**: PostModal refactored to use Input/Textarea/Select primitives (DRY), YouTube card in view mode, reaction bar two-row layout, Select dropdown arrow, ConfirmDialog themed button text, AuthModal retro animation, onboarding slide accuracy, compact mobile header, ambiguous copy fix
+  - **Modal overlays**: 50%→60% opacity for dark theme visibility
+  - **Capacitor plugins**: @capacitor/app, status-bar, keyboard, haptics, share, browser, splash-screen (installed, not yet wired up)
