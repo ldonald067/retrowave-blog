@@ -85,6 +85,7 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 | Q3 | done | backend | Align `ModerationResult` types (Tech Debt #1) | Frontend has `severity` optional, edge function has it required. Consolidate if touching `moderate-content`. | backend: Made `severity` required in frontend `moderation.ts`; no downstream breakage. | frontend |
 | Q4 | done | backend | Verify `get_posts_with_reactions` query plan | RPC joins posts+profiles+reactions+likes. Cursor pagination (page size 20). Confirm indexes from migration `20260224000003` are used. `EXPLAIN ANALYZE` recommended. | backend: All 4 indexes match RPC patterns; revisit with EXPLAIN ANALYZE at scale. | frontend |
 | Q5 | done | backend | Consider `posts.status` column for server-side drafts | Frontend auto-saves drafts to `localStorage` only (`post-draft` key). Server-side drafts would need a `status` column, RLS policy updates, and frontend UI for draft/published toggle. | backend: Deferred — localStorage sufficient; complexity not justified without user demand. | frontend |
+| Q6 | done | backend | Consider `profiles.emoji_style` column | Frontend stores emoji style in localStorage (`emoji-style` key). DB column would sync across devices. Valid values: `native`, `fluent`, `twemoji`, `openmoji`, `blob`. | frontend: Deferred — iPhone-only app, single device, localStorage sufficient. No DB migration needed. | frontend |
 
 **Queue Protocol:**
 
