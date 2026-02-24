@@ -16,6 +16,10 @@ export default function CursorSparkle() {
     // Respect reduced motion preference
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+    // Skip on touch-only devices — sparkles follow mouse cursor, not finger
+    const hasFineMouse = window.matchMedia('(pointer: fine)').matches;
+    if (!hasFineMouse) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       const now = Date.now();
       if (now - lastSpawn.current < SPAWN_INTERVAL) return;

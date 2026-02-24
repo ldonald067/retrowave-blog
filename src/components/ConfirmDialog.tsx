@@ -22,7 +22,7 @@ export default function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(dialogRef, true);
+  useFocusTrap(dialogRef, true, onCancel);
 
   return (
     <AnimatePresence>
@@ -37,7 +37,8 @@ export default function ConfirmDialog({
           ref={dialogRef}
           role="alertdialog"
           aria-modal="true"
-          aria-label={title}
+          aria-labelledby="confirm-dialog-title"
+          aria-describedby="confirm-dialog-message"
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20 }}
@@ -45,12 +46,14 @@ export default function ConfirmDialog({
           onClick={(e) => e.stopPropagation()}
         >
           <h3
+            id="confirm-dialog-title"
             className="xanga-title text-lg mb-2"
           >
             ⚠️ {title}
           </h3>
 
           <p
+            id="confirm-dialog-message"
             className="text-sm mb-5"
             style={{ color: 'var(--text-body)' }}
           >

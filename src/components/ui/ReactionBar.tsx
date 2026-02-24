@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import StyledEmoji from './StyledEmoji';
+import { useEmojiStyle } from '../../lib/emojiStyles';
 
 export const REACTION_EMOJIS = ['❤️', '🔥', '😂', '😢', '✨', '👀'] as const;
 export type ReactionEmoji = (typeof REACTION_EMOJIS)[number];
@@ -27,6 +28,8 @@ export default function ReactionBar({
   disabled = false,
 }: ReactionBarProps) {
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
+  // Subscribe once at the bar level instead of per-emoji (6→1 subscriptions)
+  const emojiStyle = useEmojiStyle();
 
   const handleToggle = useCallback(
     (emoji: string) => {
@@ -72,7 +75,7 @@ export default function ReactionBar({
             aria-label={`${isActive ? 'Remove' : 'Add'} ${emoji} reaction`}
             aria-pressed={isActive}
           >
-            <StyledEmoji emoji={emoji} size={18} />
+            <StyledEmoji emoji={emoji} size={18} overrideStyle={emojiStyle} />
             {count > 0 && (
               <span
                 className="text-[10px] font-semibold"
@@ -92,7 +95,7 @@ export default function ReactionBar({
           className="emoji-float-up text-lg"
           style={{ left: `${f.offsetX + 20}px`, bottom: '100%' }}
         >
-          <StyledEmoji emoji={f.emoji} size={24} />
+          <StyledEmoji emoji={f.emoji} size={24} overrideStyle={emojiStyle} />
         </span>
       ))}
     </div>

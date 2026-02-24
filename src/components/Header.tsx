@@ -139,6 +139,7 @@ export default function Header({
                 onBlur={saveStatus}
                 maxLength={100}
                 placeholder="what's on ur mind..."
+                aria-label="Set your status message"
               />
             ) : (
               <button

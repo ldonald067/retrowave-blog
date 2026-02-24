@@ -124,7 +124,7 @@ export default function AvatarPicker({
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           src={currentSelection}
-          alt="Selected avatar"
+          alt={`Selected avatar: ${selectedStyle} style, ${selectedSeed} seed`}
           className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4"
           style={{ borderColor: 'var(--accent-primary)', backgroundColor: 'var(--card-bg)' }}
         />
@@ -241,6 +241,8 @@ export default function AvatarPicker({
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedSeed(seed)}
+                aria-pressed={selected}
+                aria-label={`Avatar: ${selectedStyle} ${seed}${selected ? ' (selected)' : ''}`}
                 className="relative p-1 rounded-full transition"
                 style={{
                   outline: selected ? '2px solid var(--accent-primary)' : undefined,
@@ -249,7 +251,7 @@ export default function AvatarPicker({
               >
                 <img
                   src={url}
-                  alt={seed}
+                  alt={`${selectedStyle} avatar with seed "${seed}"`}
                   loading="lazy"
                   className="w-11 h-11 rounded-full"
                   style={{ backgroundColor: 'var(--card-bg)' }}
@@ -270,13 +272,15 @@ export default function AvatarPicker({
 
       {/* Custom seed input */}
       <div>
-        <p
-          className="text-xs font-bold mb-1"
+        <label
+          htmlFor="avatar-custom-seed"
+          className="text-xs font-bold mb-1 block"
           style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
         >
           or type a custom word:
-        </p>
+        </label>
         <input
+          id="avatar-custom-seed"
           type="text"
           value={selectedSeed}
           onChange={(e) => setSelectedSeed(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}

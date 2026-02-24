@@ -111,7 +111,14 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         className="flex-shrink-0 py-2 px-4 border-b border-dotted"
         style={{ borderColor: 'var(--border-primary)' }}
       >
-        <div className="max-w-md mx-auto flex gap-1">
+        <div
+          className="max-w-md mx-auto flex gap-1"
+          role="progressbar"
+          aria-valuenow={currentStep + 1}
+          aria-valuemin={1}
+          aria-valuemax={slides.length}
+          aria-label={`Step ${currentStep + 1} of ${slides.length}`}
+        >
           {slides.map((_, index) => (
             <div
               key={index}
@@ -128,7 +135,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden px-4 sm:px-6 py-6 sm:py-8 flex flex-col items-center justify-center">
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md" aria-live="polite" aria-atomic="true">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentStep}

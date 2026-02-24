@@ -10,7 +10,7 @@ import Sidebar from './components/Sidebar';
 import CursorSparkle from './components/CursorSparkle';
 import PostCard from './components/PostCard';
 import LoadingSpinner from './components/LoadingSpinner';
-import PostSkeleton from './components/PostSkeleton';
+import PostSkeleton, { SidebarSkeleton } from './components/PostSkeleton';
 import EmptyState from './components/EmptyState';
 import ErrorMessage from './components/ErrorMessage';
 import Toast from './components/Toast';
@@ -90,7 +90,7 @@ function PostList({
       (entries) => {
         if (entries[0]?.isIntersecting) handleLoadMore();
       },
-      { root: parentRef.current, rootMargin: '200px' },
+      { root: parentRef.current, rootMargin: '0px 0px 200px 0px' },
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
@@ -98,7 +98,7 @@ function PostList({
 
   return (
     <div>
-      <div ref={parentRef} className="overflow-auto scrollbar-thin" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+      <div ref={parentRef} className="overflow-auto" style={{ maxHeight: 'calc(100vh - 200px)', scrollbarWidth: 'thin' }}>
         <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const post = posts[virtualRow.index];
@@ -261,7 +261,7 @@ function App() {
     setPostToDelete(post);
   }, [user, showError]);
 
-  const confirmDeletePost = async () => {
+  const confirmDeletePost = useCallback(async () => {
     if (!postToDelete) return;
     setDeleteLoading(true);
     const { error } = await deletePost(postToDelete.id);
@@ -272,7 +272,7 @@ function App() {
       success('~ entry deleted 💨 ~');
     }
     setPostToDelete(null);
-  };
+  }, [postToDelete, deletePost, showError, success]);
 
   const handleSavePost = async (postData: CreatePostInput) => {
     // C1 FIX: Run AI moderation before saving. quickContentCheck already ran
@@ -454,7 +454,12 @@ function App() {
           onProfileClick={handleProfileClick}
         />
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <PostSkeleton />
+          <div className="flex flex-col lg:flex-row gap-6">
+            <SidebarSkeleton />
+            <main className="flex-1 min-w-0">
+              <PostSkeleton />
+            </main>
+          </div>
         </div>
       </div>
     );
