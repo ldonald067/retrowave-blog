@@ -58,7 +58,7 @@ export default function ReactionBar({
             disabled={disabled}
             onClick={() => handleToggle(emoji)}
             whileTap={{ scale: 0.9 }}
-            className={`relative inline-flex items-center gap-1 px-3 py-2 rounded-full text-xs border transition-all ${
+            className={`relative inline-flex items-center gap-1 px-3 py-2 rounded-full text-xs border transition-all min-h-[44px] sm:min-h-0 ${
               disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
             }`}
             style={{

@@ -41,7 +41,7 @@ export default function Input({
         )}
         <input
           id={inputId}
-          className={`w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none ${iconPadding} ${className}`}
+          className={`w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none min-h-[44px] ${iconPadding} ${className}`}
           style={{
             backgroundColor: 'var(--input-bg, var(--card-bg))',
             borderColor: error ? 'var(--accent-secondary)' : 'var(--input-border, var(--border-primary))',

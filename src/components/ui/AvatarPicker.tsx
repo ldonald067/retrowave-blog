@@ -168,7 +168,7 @@ export default function AvatarPicker({
                   : AVATAR_STYLES.find(s => s.category === cat.id);
                 if (firstInCategory) setSelectedStyle(firstInCategory.id);
               }}
-              className="px-2 py-1 text-xs rounded-lg border-2 border-dotted transition font-bold"
+              className="px-3 py-2 text-xs rounded-lg border-2 border-dotted transition font-bold min-h-[44px] sm:min-h-0"
               style={{
                 backgroundColor: selectedCategory === cat.id
                   ? 'color-mix(in srgb, var(--accent-primary) 20%, var(--card-bg))'
@@ -202,7 +202,7 @@ export default function AvatarPicker({
               key={style.id}
               type="button"
               onClick={() => setSelectedStyle(style.id)}
-              className="px-2 py-1 text-xs rounded-lg border-2 border-dotted transition"
+              className="px-3 py-2 text-xs rounded-lg border-2 border-dotted transition min-h-[44px] sm:min-h-0"
               style={{
                 backgroundColor: selectedStyle === style.id
                   ? 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))'
@@ -251,7 +251,7 @@ export default function AvatarPicker({
                   src={url}
                   alt={seed}
                   loading="lazy"
-                  className="w-10 h-10 rounded-full"
+                  className="w-11 h-11 rounded-full"
                   style={{ backgroundColor: 'var(--card-bg)' }}
                 />
                 {selected && (
@@ -282,7 +282,7 @@ export default function AvatarPicker({
           onChange={(e) => setSelectedSeed(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
           placeholder="your-custom-seed"
           maxLength={20}
-          className="w-full px-3 py-2 text-sm border-2 border-dotted rounded-lg focus:outline-none"
+          className="w-full px-3 py-2 text-sm border-2 border-dotted rounded-lg focus:outline-none min-h-[44px]"
           style={{
             backgroundColor: 'var(--card-bg)',
             borderColor: 'var(--border-primary)',

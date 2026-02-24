@@ -464,6 +464,15 @@ body {
   animation-play-state: paused;
 }
 
+/* ===== Custom cursor — very 2005 ===== */
+body {
+  cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><text y='16' font-size='16'>✦</text></svg>") 8 8, auto;
+}
+
+a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
+  cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><text y='16' font-size='16'>♡</text></svg>") 8 8, pointer;
+}
+
 /* ===== iPhone Responsive ===== */
 @media (max-width: 480px) {
   .marquee-banner {
@@ -478,6 +487,11 @@ body {
 
   .aim-status-edit {
     max-width: 180px;
+  }
+
+  /* Disable custom cursor on touch devices — they don't use cursors */
+  body, a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
+    cursor: auto;
   }
 }
 
