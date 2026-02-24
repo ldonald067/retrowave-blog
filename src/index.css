@@ -40,6 +40,12 @@
   --blockquote-border: #ffb3d9;
   --strong-color: #ff66b3;
   --em-color: #9966ff;
+  --modal-bg: #ffffff;
+  --modal-border: #ff99cc;
+  --input-bg: #ffffff;
+  --input-border: #ffb3d9;
+  --input-focus: #ff1493;
+  --button-text: #ff66b3;
 }
 
 /* Cute, playful animations */
@@ -180,7 +186,7 @@ body {
 .prose a {
   color: var(--link-color);
   text-decoration: underline;
-  transition: all 0.2s;
+  transition: color 0.2s;
 }
 
 .prose a:hover {
@@ -295,7 +301,7 @@ body {
   color: var(--button-text, var(--text-title));
   cursor: pointer;
   box-shadow: 2px 2px 0px var(--shadow-color);
-  transition: all 0.2s;
+  transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 .xanga-button:hover {
@@ -372,6 +378,15 @@ body {
   color: #0f0;
   text-shadow: 0 0 4px #0f0;
   font-family: 'Courier New', monospace;
+}
+
+/* ===== Focus Rings — WCAG 2.4.7 visible focus ===== */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  border-color: var(--input-focus, var(--accent-primary)) !important;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--input-focus, var(--accent-primary)) 30%, transparent);
+  outline: none;
 }
 
 /* ===== Cursor Sparkle Trail ===== */

@@ -30,7 +30,7 @@ export default function ConfirmDialog({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
         onClick={onCancel}
       >
         <motion.div
@@ -80,7 +80,7 @@ export default function ConfirmDialog({
               className="px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110"
               style={{
                 background: 'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, #000))',
-                color: '#ffffff',
+                color: 'var(--button-text, #ffffff)',
                 borderColor: 'var(--accent-secondary)',
                 fontFamily: 'var(--title-font)',
                 boxShadow: '0 2px 8px color-mix(in srgb, var(--accent-secondary) 40%, transparent)',

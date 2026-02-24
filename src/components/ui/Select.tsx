@@ -35,27 +35,35 @@ export default function Select({
           {label}
         </label>
       )}
-      <select
-        id={selectId}
-        className={`w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition cursor-pointer focus:outline-none appearance-none ${className}`}
-        style={{
-          backgroundColor: 'var(--input-bg, var(--card-bg))',
-          borderColor: error
-            ? 'var(--accent-secondary)'
-            : 'var(--input-border, var(--border-primary))',
-          color: 'var(--text-body)',
-        }}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${selectId}-error` : undefined}
-        {...props}
-      >
-        {placeholder && <option value="">{placeholder}</option>}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          id={selectId}
+          className={`w-full px-3 py-2.5 pr-8 rounded-lg text-sm border-2 border-dotted transition cursor-pointer focus:outline-none appearance-none ${className}`}
+          style={{
+            backgroundColor: 'var(--input-bg, var(--card-bg))',
+            borderColor: error
+              ? 'var(--accent-secondary)'
+              : 'var(--input-border, var(--border-primary))',
+            color: 'var(--text-body)',
+          }}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? `${selectId}-error` : undefined}
+          {...props}
+        >
+          {placeholder && <option value="">{placeholder}</option>}
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <div
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px]"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          ▼
+        </div>
+      </div>
       {error && (
         <p
           id={`${selectId}-error`}

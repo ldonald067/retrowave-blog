@@ -153,12 +153,12 @@ export default function Header({
       )}
 
       {/* Main header */}
-      <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
+      <div className="max-w-7xl mx-auto px-4 py-2 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Site title */}
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex-1">
-            <h1 className="xanga-title text-2xl sm:text-3xl mb-1">✨ My Journal ✨</h1>
-            <p className="xanga-subtitle">~ where my thoughts come alive ~</p>
+            <h1 className="xanga-title text-xl sm:text-3xl mb-0 sm:mb-1">✨ My Journal ✨</h1>
+            <p className="xanga-subtitle hidden sm:block">~ where my thoughts come alive ~</p>
           </motion.div>
 
           {/* Navigation */}

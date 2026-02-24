@@ -153,7 +153,7 @@ function PostList({
       {!hasMore && posts.length > 0 && (
         <div className="text-center py-6">
           <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
-            ~ that's all 4 now! ~
+            ~ that's all for now! ~
           </p>
           <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
             ✨ u've reached the end of the feed ✨

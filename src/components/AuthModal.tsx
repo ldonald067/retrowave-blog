@@ -29,10 +29,10 @@ export default function AuthModal({ isOpen, onClose: _onClose, defaultTab = 'log
         role="dialog"
         aria-modal="true"
         aria-label="Sign in or sign up"
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.98 }}
+        transition={{ duration: 0.3 }}
         className="fixed inset-0 xanga-auth-bg z-50 overflow-hidden flex flex-col"
       >
         {/* Xanga-style Header */}

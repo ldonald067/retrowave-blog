@@ -1,9 +1,11 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save } from 'lucide-react';
+import { X, Save, Youtube } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
+import { Input, Textarea, Select } from './ui';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { parseYouTubeUrl } from '../utils/parseYouTube';
 import type { Post, CreatePostInput } from '../types/post';
 import { MOODS } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
@@ -191,13 +193,22 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
 
   const isViewMode = mode === 'view';
 
+  // Fix 9: YouTube card in view mode
+  const viewModeYtInfo = isViewMode && post?.music ? parseYouTubeUrl(post.music) : null;
+
+  // Fix 6: Map MOODS to Select options format
+  const moodOptions = MOODS.map((m) => ({
+    value: `${m.emoji} ${m.label}`,
+    label: `${m.emoji} ${m.label}`,
+  }));
+
   return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={handleClose}
       >
         <motion.div
@@ -271,7 +282,32 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                     style={{ borderColor: 'var(--accent-secondary)' }}
                   >
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🎵 currently listening 2: </span>
-                    <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
+                    {viewModeYtInfo ? (
+                      <a
+                        href={viewModeYtInfo.watchUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 mt-2 p-2 rounded transition hover:opacity-80"
+                        style={{ backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))' }}
+                      >
+                        <img
+                          src={viewModeYtInfo.thumbnailUrl}
+                          alt="YouTube thumbnail"
+                          loading="lazy"
+                          className="w-20 h-14 object-cover rounded flex-shrink-0"
+                          style={{ border: '1px solid var(--border-primary)' }}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs truncate" style={{ color: 'var(--text-body)' }}>{post.music}</p>
+                          <div className="flex items-center gap-1 mt-1">
+                            <Youtube size={12} style={{ color: '#ff0000' }} />
+                            <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>YouTube</span>
+                          </div>
+                        </div>
+                      </a>
+                    ) : (
+                      <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
+                    )}
                   </div>
                 )}
 
@@ -332,24 +368,10 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
 
                 {/* Title */}
                 <div>
-                  <label
-                    htmlFor="post-title"
-                    className="block text-xs font-bold mb-1"
-                    style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-                  >
-                    entry title: *
-                  </label>
-                  <input
-                    id="post-title"
-                    type="text"
+                  <Input
+                    label="entry title: *"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none"
-                    style={{
-                      backgroundColor: 'var(--input-bg, var(--card-bg))',
-                      borderColor: 'var(--input-border, var(--border-primary))',
-                      color: 'var(--text-body)',
-                    }}
                     placeholder="what's on ur mind 2day?"
                     required
                     maxLength={200}
@@ -360,80 +382,29 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
 
                 {/* Author + Mood row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label
-                      htmlFor="post-author"
-                      className="block text-xs font-bold mb-1"
-                      style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-                    >
-                      ur name:
-                    </label>
-                    <input
-                      id="post-author"
-                      type="text"
-                      value={author}
-                      onChange={(e) => setAuthor(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none"
-                      style={{
-                        backgroundColor: 'var(--input-bg, var(--card-bg))',
-                        borderColor: 'var(--input-border, var(--border-primary))',
-                        color: 'var(--text-body)',
-                      }}
-                      placeholder="anonymous"
-                      maxLength={50}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="post-mood"
-                      className="block text-xs font-bold mb-1"
-                      style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-                    >
-                      current mood:
-                    </label>
-                    <select
-                      id="post-mood"
-                      value={mood}
-                      onChange={(e) => setMood(e.target.value)}
-                      className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition cursor-pointer focus:outline-none appearance-none"
-                      style={{
-                        backgroundColor: 'var(--input-bg, var(--card-bg))',
-                        borderColor: 'var(--input-border, var(--border-primary))',
-                        color: 'var(--text-body)',
-                      }}
-                      aria-label="Select your current mood"
-                    >
-                      <option value="">select a mood...</option>
-                      {MOODS.map((m) => (
-                        <option key={m.label} value={`${m.emoji} ${m.label}`}>
-                          {m.emoji} {m.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <Input
+                    label="ur name:"
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                    placeholder="anonymous"
+                    maxLength={50}
+                  />
+                  <Select
+                    label="current mood:"
+                    value={mood}
+                    onChange={(e) => setMood(e.target.value)}
+                    placeholder="select a mood..."
+                    options={moodOptions}
+                    aria-label="Select your current mood"
+                  />
                 </div>
 
                 {/* Music */}
                 <div>
-                  <label
-                    htmlFor="post-music"
-                    className="block text-xs font-bold mb-1"
-                    style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-                  >
-                    🎵 currently listening 2:
-                  </label>
-                  <input
-                    id="post-music"
-                    type="text"
+                  <Input
+                    label="🎵 currently listening 2:"
                     value={music}
                     onChange={(e) => setMusic(e.target.value)}
-                    className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none"
-                    style={{
-                      backgroundColor: 'var(--input-bg, var(--card-bg))',
-                      borderColor: 'var(--input-border, var(--border-primary))',
-                      color: 'var(--text-body)',
-                    }}
                     placeholder="song name, artist, or paste a youtube link..."
                     maxLength={200}
                   />
@@ -531,29 +502,18 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                       </div>
                     </div>
                   ) : (
-                    <textarea
+                    <Textarea
                       id="post-content"
                       value={content}
                       onChange={(e) => setContent(e.target.value)}
-                      className="w-full h-[200px] sm:h-[250px] px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition resize-none focus:outline-none"
-                      style={{
-                        backgroundColor: 'var(--input-bg, var(--card-bg))',
-                        borderColor: 'var(--input-border, var(--border-primary))',
-                        color: 'var(--text-body)',
-                      }}
+                      className="h-[200px] sm:h-[250px]"
                       placeholder="dear diary... 2day i..."
                       required
                       maxLength={50000}
+                      charCount={{ current: content.length, max: 50000 }}
+                      hint="use **bold**, *italic*, or [links](url) 4 formatting"
                     />
                   )}
-                  <div className="flex justify-between mt-1">
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      use **bold**, *italic*, or [links](url) 4 formatting
-                    </p>
-                    <p className="text-xs" style={{ color: content.length > 45000 ? 'var(--accent-secondary)' : 'var(--text-muted)' }}>
-                      {content.length.toLocaleString()}/50,000
-                    </p>
-                  </div>
                 </div>
               </form>
               </fieldset>

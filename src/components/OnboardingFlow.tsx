@@ -21,17 +21,17 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       decoration: '· _ · _ · _ ·  ♡  · _ · _ · _ ·',
     },
     {
-      emoji: '💕🎵📸',
+      emoji: '💕🎵✨',
       title: '~ Express Yourself ~',
       description:
-        'add music, videos, photos, & mood tags 2 ur posts. set ur current mood & what ur listening 2. make it *~totally u~*',
+        'add mood tags & what ur listening 2 on every post. paste a youtube link 2 share ur fav songs. make it *~totally u~*',
       decoration: '★·.·´¯`·.·★ ♫ ★·.·´¯`·.·★',
     },
     {
-      emoji: '🔒✨🛡️',
-      title: '~ Ur Space, Ur Rules ~',
+      emoji: '🎨✨🌈',
+      title: '~ Make It Ur Own ~',
       description:
-        'make posts public or private. share only what u want, when u want. no surprises, no drama. ur journal = ur rules.',
+        'choose from 8 unique themes 2 match ur vibe — emo dark, scene kid, cottage core & more. pick an emoji style 2. ur journal = ur rules.',
       decoration: '- - - ♥ - - - ♥ - - -',
     },
     {

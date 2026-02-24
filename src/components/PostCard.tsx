@@ -206,9 +206,9 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
         )}
       </div>
 
-      {/* Post footer - reactions */}
+      {/* Post footer - author row */}
       <div
-        className="px-4 py-2 border-t flex items-center justify-between text-xs"
+        className="px-4 pt-2 pb-1 border-t flex items-center justify-between text-xs"
         style={{
           backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
           borderColor: 'var(--border-primary)',
@@ -229,7 +229,15 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
             </a>
           )}
         </div>
+      </div>
 
+      {/* Post footer - reactions row */}
+      <div
+        className="px-4 pb-2 pt-1"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
+        }}
+      >
         <ReactionBar
           reactions={post.reactions ?? {}}
           userReactions={post.user_reactions ?? []}
