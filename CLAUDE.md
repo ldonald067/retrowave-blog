@@ -80,12 +80,6 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 
 | ID | Status | Owner | Item | Context | Notes | Added By |
 |----|--------|-------|------|---------|-------|----------|
-| Q1 | done | backend | Audit RLS policies match `POST_LIMITS` + `PROFILE_LIMITS` | Frontend validates all field limits client-side in `validation.ts`. Verify server-side CHECK constraints in migrations `20260223000001` and `20260224000004` are comprehensive and match. | backend: All limits match exactly; RLS policies comprehensive. | frontend |
-| Q2 | done | backend | Review `moderate-content` error response shapes | Frontend maps errors via `toUserMessage()` in `errors.ts`. Verify edge function returns consistent error shapes (`{ flagged, reason, severity? }`). | backend: Shapes consistent; fail-open by design (L3). | frontend |
-| Q3 | done | backend | Align `ModerationResult` types (Tech Debt #1) | Frontend has `severity` optional, edge function has it required. Consolidate if touching `moderate-content`. | backend: Made `severity` required in frontend `moderation.ts`; no downstream breakage. | frontend |
-| Q4 | done | backend | Verify `get_posts_with_reactions` query plan | RPC joins posts+profiles+reactions+likes. Cursor pagination (page size 20). Confirm indexes from migration `20260224000003` are used. `EXPLAIN ANALYZE` recommended. | backend: All 4 indexes match RPC patterns; revisit with EXPLAIN ANALYZE at scale. | frontend |
-| Q5 | done | backend | Consider `posts.status` column for server-side drafts | Frontend auto-saves drafts to `localStorage` only (`post-draft` key). Server-side drafts would need a `status` column, RLS policy updates, and frontend UI for draft/published toggle. | backend: Deferred — localStorage sufficient; complexity not justified without user demand. | frontend |
-| Q6 | done | backend | Consider `profiles.emoji_style` column | Frontend stores emoji style in localStorage (`emoji-style` key). DB column would sync across devices. Valid values: `native`, `fluent`, `twemoji`, `openmoji`, `blob`. | frontend: Deferred — iPhone-only app, single device, localStorage sufficient. No DB migration needed. | frontend |
 
 **Queue Protocol:**
 
@@ -108,7 +102,7 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 | Edge Functions | Deno (Supabase Edge Functions) |
 | Content Moderation | OpenAI Moderation API via `moderate-content` edge function |
 | Virtualization | @tanstack/react-virtual |
-| Markdown | react-markdown + rehype-sanitize + DOMPurify |
+| Markdown | react-markdown + rehype-sanitize |
 
 **There is no traditional Express/Node server.** The entire backend is Supabase. PostgREST auto-generates a REST API from the PostgreSQL schema. All "backend" logic lives in SQL migrations, RLS policies, database functions, and Deno edge functions.
 
@@ -146,9 +140,13 @@ Local Supabase dev config is in `supabase/config.toml` (ports, auth settings, em
 
 ```
 src/
+  main.tsx              # Entry point — StrictMode, root render
   App.tsx               # Root component — lazy imports, MotionConfig, toast/confirm state
   index.css             # Global styles, keyframes, theme classes, reduced-motion query
   components/
+    AgeVerification.tsx # Birth year / TOS verification (lazy-loaded)
+    LoginForm.tsx       # Email + magic link login form
+    SignUpForm.tsx       # Email + age + TOS signup form
     Header.tsx          # Marquee banner, AIM status, theme toggle
     Sidebar.tsx         # Profile card, stats, collapsible on mobile
     PostCard.tsx        # Individual post display with reactions
@@ -491,36 +489,7 @@ Title font varies by theme — **not always Comic Sans**. Applied via `var(--tit
 
 ### UI Primitive Components
 
-All reusable UI components use CSS variables so they adapt to the active theme:
-
-| Component | Key Changes |
-|-----------|-------------|
-| `Input.tsx` | Dotted borders, themed label (Comic Sans), emoji error prefix |
-| `Button.tsx` | Primary uses `.xanga-button`, secondary/ghost/danger use themed CSS vars, spinner is `✦` |
-| `Card.tsx` | Uses `.xanga-box` base with variant-specific border colors |
-| `Textarea.tsx` | Dotted borders, themed label, themed char count colors |
-| `Avatar.tsx` | Border uses `var(--accent-primary)` instead of hardcoded pink |
-| `AvatarPicker.tsx` | All pills/buttons use CSS vars, grid is 4-col on mobile / 5-col desktop |
-
-### Components Restyled
-
-All of these were converted from generic modern UI (iOS-style gradients, blue/violet colors) to Xanga-themed:
-
-**Auth flow:**
-- `AuthModal.tsx` — Xanga tabs with dotted borders, sparkle emoji header
-- `SignUpForm.tsx` — `.xanga-box` cards, Comic Sans headers, `.xanga-button` submit
-- `LoginForm.tsx` — Native inputs with dotted borders, Xanga-era mode toggle links
-- `AgeVerification.tsx` — `.xanga-box` sections, themed dropdown, emoji-based notices
-- `OnboardingFlow.tsx` — Step counter wizard (not iOS carousel), Next/Back buttons, emoji illustrations
-
-**Core screens:**
-- `PostModal.tsx` — Comic Sans labels ("entry title:", "ur thoughts:"), dotted-border inputs, `.xanga-link` preview toggle, themed cancel button
-- `ProfileModal.tsx` — Xanga-styled section headers, themed dropdowns/inputs, dotted-border theme picker, responsive 2-col grid
-- `PostCard.tsx` — `.xanga-link` for "read more", emoji icons (📅⏰✏️🗑️ replace Lucide), `React.memo` wrapped, fully themed via CSS vars
-- `EmptyState.tsx` — Lined paper journal page with typing cursor
-- `Toast.tsx` — `.xanga-box` with themed border colors, emoji icons instead of Lucide icons
-- `LoadingSpinner.tsx` — Themed border colors via CSS vars, "~ loading... ~" text
-- `ErrorMessage.tsx` — `.xanga-box` error display with emoji, themed retry button
+All UI components (primitives + screens) use CSS variables and Xanga-themed classes (`.xanga-box`, `.xanga-button`, `.xanga-link`). Converted from generic modern UI to 2005 Xanga aesthetic: dotted borders, Comic Sans labels, emoji icons (📅⏰✏️🗑️ in PostCard), sparkle headers. `PostCard.tsx` retains Lucide for YouTube/ExternalLink icons. Read individual component files for styling details.
 
 ### iPhone Responsiveness
 
@@ -587,18 +556,12 @@ Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M
 
 ### Frontend (bold-brattain) — 2026-02-23
 
-Completed all planned UI/UX work. No new DB columns or RPC functions needed. Added Q1-Q5 to the Cross-Agent Queue for backend review.
-
-Changes: Xanga-style UI overhaul, `prefers-reduced-motion` support, focus traps in all modals, collapsible mobile sidebar, draft auto-save, styled ConfirmDialog, PostSkeleton loaders, toast stacking with type-based timing, 44px+ touch targets, batch `applyTheme()`, `constants.ts` auto-imports from `validation.ts`, AvatarPicker lazy loading, cache single-pass eviction.
+Xanga-style UI overhaul, accessibility, mobile polish, interaction improvements. Added Q1-Q5 to the Cross-Agent Queue for backend review (all resolved).
 
 ### Backend (bold-wozniak) — 2026-02-24
 
-Resolved Q1-Q5 from the Cross-Agent Queue. Only code change: made `ModerationResult.severity` required in `src/lib/moderation.ts` (Q3). All other items were verification/documentation — no further frontend work needed. Queue cleared, no new items added.
+Resolved Q1-Q5. Made `ModerationResult.severity` required in frontend (Q3). Queue cleared.
 
 ### Frontend (bold-wozniak) — 2026-02-24
 
-Session 1: UX/performance pass — iPhone touch targets (44px min on Button, Input, ReactionBar, AvatarPicker, AuthModal tabs), React.memo on PostCard + useCallback on all handlers, lazy YouTube thumbnails, Xanga voice for all user-facing messages (constants.ts + App.tsx inline), custom CSS cursors (✦ default / ♡ hover), emoji icons replacing Lucide in PostCard.
-
-Session 2: Removed visitor counter (user decision: no analytics/storage features). Replaced with 88x31 CSS pixel badges in footer (love/xanga/web2/nostalgia/800x600). Added Product Philosophy section to CLAUDE.md documenting solo-operator constraints: no visitor counts, no comments, no feeds, reactions only, zero-moderation features.
-
-Session 3: Emoji style system — 5 styles (native, Fluent 3D, Twemoji, OpenMoji, Google Blob). New files: `emojiStyles.ts` (reactive store + CDN URL builder), `StyledEmoji.tsx` (renders emoji as `<img>` or native). ReactionBar uses StyledEmoji for reaction + float-up emoji. ProfileModal has emoji style picker (grid with live preview). Preference in localStorage (`emoji-style` key), no DB migration. Footer shows attribution for CC-licensed sets. Skipped JoyPixels (license prohibits open-source use).
+Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue).
