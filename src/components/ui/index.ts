@@ -12,3 +12,5 @@ export type { CardVariant } from './Card';
 export { default as ReactionBar } from './ReactionBar';
 export { REACTION_EMOJIS } from './ReactionBar';
 export type { ReactionEmoji } from './ReactionBar';
+
+export { default as StyledEmoji } from './StyledEmoji';

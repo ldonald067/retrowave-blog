@@ -17,6 +17,7 @@ import Toast from './components/Toast';
 import ConfirmDialog from './components/ConfirmDialog';
 import ErrorBoundary from './components/ErrorBoundary';
 import type { Post, CreatePostInput } from './types/post';
+import { useEmojiStyle, getEmojiAttribution } from './lib/emojiStyles';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
@@ -167,6 +168,8 @@ function App() {
   );
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+  // Subscribe to emoji style changes for footer attribution
+  const emojiStyle = useEmojiStyle();
 
   // Show auth modal if not authenticated
   useEffect(() => {
@@ -508,6 +511,11 @@ function App() {
           <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
             Made with <span style={{ color: 'var(--accent-primary)' }}>💕</span> and nostalgia
           </p>
+          {emojiStyle !== 'native' && getEmojiAttribution() && (
+            <p className="text-[10px]" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
+              {getEmojiAttribution()}
+            </p>
+          )}
         </div>
       </footer>
     </div>
