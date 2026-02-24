@@ -12,7 +12,5 @@ export interface DatabaseError {
   code?: string;
 }
 
-export interface SupabaseResponse<T> {
-  data: T | null;
-  error: DatabaseError | null;
-}
+// L8 FIX: Removed unused SupabaseResponse<T> — nothing imports it.
+// If needed in the future, re-add it here.

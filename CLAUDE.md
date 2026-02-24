@@ -127,7 +127,6 @@ src/
     useAuth.ts          # Authentication, profile CRUD, session management
     usePosts.ts         # Post feed with pagination, caching, CRUD, optimistic reactions
     useReactions.ts     # Emoji reaction toggle with optimistic updates + rollback
-    useLikes.ts         # Like/unlike (UNUSED — see Known Tech Debt)
     useToast.ts         # Toast notification state (max 3, type-based durations)
     useFocusTrap.ts     # Keyboard focus trap for modals
   lib/
@@ -146,8 +145,7 @@ src/
     profile.ts          # Profile, UpdateProfileInput, SignupData
     database.ts         # Supabase generated types + RPC function types
     link-preview.ts     # LinkPreview, LinkType
-    like.ts             # PostLike, PostWithLikes (UNUSED — see Known Tech Debt)
-    supabase.ts         # SupabaseConfig, DatabaseError, SupabaseResponse<T>
+    supabase.ts         # SupabaseConfig, DatabaseError
   utils/
     parseYouTube.ts     # YouTube URL parsing + cached oEmbed title fetch
     formatDate.ts       # formatDate() + formatRelativeDate() via date-fns
@@ -228,10 +226,10 @@ const { data, error } = await withRetry(() =>
 
 `src/lib/cache.ts` provides a `TTLCache` class with two singleton instances:
 
-- `postsCache` (5 min TTL) - Keyed by `"userId:cursor"`. Invalidated on any mutation (create/update/delete/reaction).
-- `youtubeTitleCache` (60 min TTL) - Keyed by YouTube video ID. Prevents redundant oEmbed fetches.
+- `postsCache` (5 min TTL, max 50 entries) - Keyed by `"userId:cursor"`. Invalidated on any mutation (create/update/delete/reaction).
+- `youtubeTitleCache` (60 min TTL, max 200 entries) - Keyed by YouTube video ID. Prevents redundant oEmbed fetches.
 
-Both caches are in-memory Maps that persist across re-renders but reset on page reload.
+Both caches are in-memory Maps that persist across re-renders but reset on page reload. When at capacity, expired entries are evicted first, then the oldest entry is dropped (L5 fix).
 
 ### Pagination
 
@@ -343,16 +341,20 @@ Run in order by filename. Key migrations:
 
 | Migration | Purpose |
 |-----------|---------|
+| `001_create_posts.sql` | **H1 fix**: `posts` table + RLS policies + `update_updated_at_column()` trigger |
+| `002_create_profiles_and_likes.sql` | **H1 fix**: `profiles` + `post_likes` tables + RLS policies |
 | `003_post_reactions_and_theme.sql` | Reactions table, theme support |
 | `004_profile_mood_music.sql` | Mood/music fields on profiles |
-| `005_fix_missing_profiles.sql` | DB trigger auto-creates profiles on signup |
+| `005_fix_missing_profiles.sql` | DB trigger auto-creates profiles on signup (**H2+L9 fix**: backfill defaults to `false`, `ON CONFLICT DO NOTHING`) |
 | `20260125000000_add_age_validation.sql` | Age verification fields |
-| `20260223000001_post_constraints.sql` | CHECK constraints on posts (sync with `validation.ts`) |
+| `20260223000001_post_constraints.sql` | CHECK constraints on posts (sync with `validation.ts`) (**L10 fix**: `jsonb_typeof`) |
 | `20260223000002_get_posts_rpc.sql` | `get_posts_with_reactions` RPC function |
 | `20260224000001_fix_handle_new_user.sql` | **C1 fix**: Combines username + age fields in `handle_new_user()` trigger |
 | `20260224000002_fix_rpc_security.sql` | **C2+C3 fix**: `auth.uid()` override + `GREATEST(1, LEAST(p_limit, 100))` |
 | `20260224000003_add_performance_indexes.sql` | **M8 fix**: Indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id`, `post_likes.post_id` |
 | `20260224000004_add_data_constraints.sql` | **H5+M3 fix**: `reaction_type` CHECK + profile field length constraints |
+| `20260224000005_fix_coppa_backfill.sql` | **H2 fix**: Corrects previously-backfilled users (`birth_year IS NULL`) to `age_verified = false` |
+| `20260224000006_protect_is_admin.sql` | **L6 fix**: `BEFORE UPDATE` trigger prevents `is_admin` self-elevation via API |
 
 ## Development Notes
 
@@ -511,13 +513,9 @@ Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities,
 
 ### HIGH — Data Integrity & Correctness
 
-**H1: Migrations 001 and 002 are missing from the repository**
-- The initial `CREATE TABLE` statements for `posts`, `profiles`, and `post_likes` — along with their RLS policies — are absent. The project cannot be bootstrapped from scratch with `supabase db reset`. All RLS policies on these three tables are unauditable.
-- Fix: Reconstruct migrations 001 and 002 from the production schema and add them to the repo.
+**H1: ✅ FIXED (`001_create_posts.sql` + `002_create_profiles_and_likes.sql`)** — Reconstructed missing initial migrations. `001` creates the `posts` table with RLS policies + `update_updated_at_column()` trigger. `002` creates `profiles` and `post_likes` tables with RLS policies. Project can now be bootstrapped from scratch with `supabase db reset`.
 
-**H2: Backfill in migration 005 defaults `age_verified = true` for existing users**
-- File: `supabase/migrations/005_fix_missing_profiles.sql` line 36
-- The backfill query uses `COALESCE(..., true)` for both `age_verified` and `tos_accepted`. Pre-existing users without metadata are grandfathered as verified. The trigger function in the same migration defaults to `false`. COPPA compliance gap for older users.
+**H2: ✅ FIXED (`005_fix_missing_profiles.sql` + `20260224000005_fix_coppa_backfill.sql`)** — Backfill in migration 005 changed from `COALESCE(..., true)` to `COALESCE(..., false)` for `age_verified` and `tos_accepted`. Corrective migration `20260224000005` updates previously-backfilled users (identified by `birth_year IS NULL`) to `false`. COPPA compliance gap closed.
 
 **H3: ✅ FIXED** — `updatePost` and `deletePost` now include `.eq('user_id', user.id)` as defense-in-depth. `deletePost` also adds a login check before the operation.
 
@@ -539,42 +537,37 @@ Audited 2026-02-23. Covers all migrations, edge functions, hooks, lib utilities,
 
 **M4: ✅ FIXED (F5 frontend fix)** — Deleted `sanitizeContent()` from `moderation.ts`. Render-time sanitization via `rehype-sanitize` + `DOMPurify` is the correct approach.
 
-**M5: 500-char threshold skips AI review on short harmful content**
-- File: `src/lib/moderation.ts` line 311
-- `content.length > 500` is the only trigger for AI moderation (besides warning words). A short post containing subtle but harmful content that doesn't match the regex patterns will skip AI review entirely.
-- Fix: Always send to AI moderation, or lower the threshold significantly.
+**M5: ✅ FIXED** — Removed the 500-char threshold for AI moderation. All posts are now sent to the OpenAI moderation endpoint regardless of length (endpoint is free). Short harmful content that evaded regex patterns is no longer skipped.
 
 **M6: ✅ FIXED (with C4)** — Edge function now returns 405 for non-POST methods.
 
-**M7: `devSignUp` conflicts with `enable_anonymous_sign_ins = false`**
-- File: `supabase/config.toml` / `src/hooks/useAuth.ts` line 287
-- `devSignUp` calls `signInAnonymously()` but anonymous sign-ins are disabled in config. Will always error in local dev.
+**M7: ✅ FIXED (`supabase/config.toml`)** — Enabled `enable_anonymous_sign_ins = true` in local dev config. This only affects local development (production uses Supabase dashboard settings). `devSignUp()` now works correctly with anonymous auth.
 
 **M8: ✅ FIXED (`20260224000003_add_performance_indexes.sql`)** — Added indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id`, and `post_likes.post_id`. Biggest iPhone performance impact — eliminates full table scans on every feed load.
 
 ### LOW — Minor Issues / Cleanup
 
-**L1: `errors.ts` leaks implementation language** — "A required database table is missing" reveals DB internals. Use generic "Something went wrong" instead.
+**L1: ✅ FIXED** — Error message changed from "A required database table is missing" to "Something went wrong. Please contact support." No longer leaks that the backend is a relational database.
 
 **L2: ✅ FIXED** — `withRetry` now treats HTTP 429 and rate-limit messages as non-retryable. Prevents deepening rate limits on flaky mobile connections.
 
-**L3: Edge function fails open** — OpenAI API failure or missing API key returns `{ allowed: true }`. This is an intentional design choice (documented) but means moderation is completely disabled if OpenAI is down.
+**L3: ✅ DOCUMENTED (intentional design)** — Edge function and client-side moderation both fail open by design. Added explicit `L3 DESIGN NOTE` comments in both `moderate-content/index.ts` and `moderation.ts` explaining the rationale: local regex checks still catch obvious violations, and blocking all posts during an outage is worse UX than the small risk of subtle content slipping through.
 
 **L4: ✅ FIXED** — `loadMore` now uses `loadingMoreRef` (synchronous ref) alongside the state boolean. Prevents duplicate page fetches during iPhone momentum scroll.
 
-**L5: Cache has no maximum size** — `postsCache` accumulates entries during deep pagination with no eviction beyond TTL. Minor memory concern for heavy users.
+**L5: ✅ FIXED** — `TTLCache` now accepts a `maxSize` parameter (default 100). When at capacity, expired entries are evicted first, then the oldest entry. `postsCache` max 50, `youtubeTitleCache` max 200.
 
-**L6: `is_admin` field on profiles has no usage or protection** — Exists in schema but no code checks it. If the UPDATE RLS policy doesn't exclude it, users could set `is_admin = true`.
+**L6: ✅ FIXED (`20260224000006_protect_is_admin.sql`)** — Added a `BEFORE UPDATE` trigger on profiles that silently preserves the old `is_admin` value on any UPDATE. Users can no longer self-elevate to admin via the PostgREST API. Admin changes require direct DB access or a SECURITY DEFINER function.
 
-**L7: `createProfileForUser` redundantly calls `getUser()`** — Already has the user ID as a parameter but makes an extra network round-trip to re-fetch the user object.
+**L7: ✅ FIXED** — `createProfileForUser` now uses `supabase.auth.getSession()` (local, no network call) instead of `supabase.auth.getUser()` (network round-trip). Eliminates a redundant API call since the session already contains the user's email and metadata.
 
-**L8: `SupabaseResponse<T>`, `UserStats`, dead `Post` properties** — Unused types: `SupabaseResponse<T>` in `types/supabase.ts`, `UserStats` in `types/profile.ts`, `display_name`/`avatar_url` on `Post` (replaced by `profile_display_name`/`profile_avatar_url`).
+**L8: ✅ FIXED** — Removed dead code: `useLikes.ts` hook + test, `types/like.ts`, unused `SupabaseResponse<T>` from `types/supabase.ts`, unused `UserStats` from `types/profile.ts`, deprecated `display_name`/`avatar_url` aliases from `Post` type (only `profile_display_name`/`profile_avatar_url` are used).
 
-**L9: Backfill INSERT in migration 005 has no `ON CONFLICT DO NOTHING`** — Could fail with `23505` if the trigger fires during migration execution.
+**L9: ✅ FIXED** — Added `ON CONFLICT (id) DO NOTHING` to the backfill INSERT in migration 005. Prevents `23505` errors if the `on_auth_user_created` trigger fires during migration execution.
 
-**L10: `posts_embedded_links_is_array` uses `json_typeof` on a `jsonb` column** — Should use `jsonb_typeof(embedded_links)` for consistency. Functionally correct but misleading.
+**L10: ✅ FIXED** — Changed `json_typeof(embedded_links::json)` to `jsonb_typeof(embedded_links)` in the post constraints migration. Uses the correct function for the column's `jsonb` type.
 
-**L11: `WARNING_WORDS` list includes `teen` and `gay` in URL keywords** — High false-positive rate for legitimate content.
+**L11: ✅ FIXED** — Removed `teen` and `gay` from `ADULT_URL_KEYWORDS` in `moderation.ts`. These had extremely high false-positive rates for legitimate content (e.g., "teenager", "teen vogue", "gay rights"). Truly adult URLs containing these terms are still caught by the domain blocklist.
 
 ### Frontend Suggestions (for the frontend agent)
 
@@ -592,7 +585,7 @@ These were UX/frontend improvements noticed during the backend review. **All res
 
 ## Known Tech Debt
 
-1. **`useLikes.ts` + `types/like.ts` are unused** — The `post_likes` table exists and the RPC aggregates likes, but no UI component calls `likePost()`/`unlikePost()`. The reactions system (`useReactions`) handles all user interactions. Either wire up likes in UI or remove the hook + types.
+1. ~~**`useLikes.ts` + `types/like.ts` are unused**~~ — **✅ RESOLVED (L8)**: Removed dead hook, test, and types.
 2. **`ModerationResult` type is duplicated** — Defined in both `src/lib/moderation.ts` (optional `severity`) and `supabase/functions/moderate-content/index.ts` (required `severity`). The edge function is Deno so sharing types is non-trivial. If you add a shared types package, consolidate this.
 3. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — This is intentional because it has special `23505` (unique constraint) handling that falls back to a re-fetch rather than a simple retry. The generic retry is linear (300ms * attempt) instead of exponential, which is acceptable for this specific case.
 4. **`react-syntax-highlighter` is installed but unused** — Listed in `package.json` (+ `@types/react-syntax-highlighter`). No component imports it. Either use it for markdown code blocks or remove both packages.

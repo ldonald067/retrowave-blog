@@ -34,11 +34,5 @@ export interface SignupData {
   display_name?: string;
 }
 
-export interface UserStats {
-  id: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  public_post_count: number;
-  total_post_count: number;
-  total_likes_received: number;
-}
+// L8 FIX: Removed unused UserStats interface — nothing imports it.
+// If a stats feature is added later, re-create it here.

@@ -2,6 +2,15 @@
 // Deploy with: supabase functions deploy moderate-content
 // Set secret: supabase secrets set OPENAI_API_KEY=your_key
 // Set secret: supabase secrets set SITE_URL=https://yourapp.com
+//
+// L3 DESIGN NOTE — INTENTIONAL FAIL-OPEN BEHAVIOR:
+// When the OpenAI API is unavailable (missing key, timeout, network error,
+// or non-200 response), this function returns { allowed: true }. This is
+// a deliberate design choice: the client-side regex filter already catches
+// obvious slurs, hate speech, and blocked URLs. Blocking ALL posts because
+// the moderation API is down would be a worse user experience than the small
+// risk of subtle harmful content slipping through during an outage.
+// The client-side moderation.ts mirrors this same fail-open pattern.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';

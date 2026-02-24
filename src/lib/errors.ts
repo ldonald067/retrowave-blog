@@ -39,7 +39,8 @@ const AUTH_MESSAGE_MAP: Array<[RegExp, string]> = [
   [/failed to fetch/i, 'Could not reach the server. Please check your connection.'],
   [/row-level security/i, 'You do not have permission to perform this action.'],
   [/violates.*constraint/i, 'The data you submitted does not meet requirements.'],
-  [/relation.*does not exist/i, 'A required database table is missing. Please contact support.'],
+  // L1 FIX: Previous message leaked that the backend uses a relational database.
+  [/relation.*does not exist/i, 'Something went wrong. Please contact support.'],
   [/anonymous sign-ins are disabled/i, 'Anonymous sign-ins are disabled. Enable them in your Supabase project settings.'],
 ];
 

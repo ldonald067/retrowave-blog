@@ -44,7 +44,8 @@ ALTER TABLE public.posts
   ADD CONSTRAINT posts_embedded_links_is_array
   CHECK (
     embedded_links IS NULL
-    OR json_typeof(embedded_links::json) = 'array'
+    -- L10 FIX: Use jsonb_typeof for a jsonb column (was json_typeof with cast)
+    OR jsonb_typeof(embedded_links) = 'array'
   );
 
 NOTIFY pgrst, 'reload schema';

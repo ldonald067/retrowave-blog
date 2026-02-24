@@ -1,5 +1,5 @@
 /**
- * Lightweight in-memory TTL cache.
+ * Lightweight in-memory TTL cache with optional max-size eviction.
  * State persists across re-renders but resets on page reload.
  *
  * USAGE:
@@ -17,9 +17,13 @@ interface CacheEntry<V> {
 export class TTLCache<K, V> {
   private store = new Map<K, CacheEntry<V>>();
   private defaultTtl: number;
+  // L5 FIX: Cap maximum entries to prevent unbounded memory growth
+  // during deep pagination. When full, the oldest entry is evicted.
+  private maxSize: number;
 
-  constructor(defaultTtlMs: number) {
+  constructor(defaultTtlMs: number, maxSize = 100) {
     this.defaultTtl = defaultTtlMs;
+    this.maxSize = maxSize;
   }
 
   get(key: K): V | undefined {
@@ -33,6 +37,10 @@ export class TTLCache<K, V> {
   }
 
   set(key: K, value: V, ttlMs?: number): void {
+    // Evict expired entries first, then oldest if still over limit
+    if (this.store.size >= this.maxSize) {
+      this.evict();
+    }
     this.store.set(key, {
       value,
       expiresAt: Date.now() + (ttlMs ?? this.defaultTtl),
@@ -50,12 +58,33 @@ export class TTLCache<K, V> {
   invalidateAll(): void {
     this.store.clear();
   }
+
+  /** Remove expired entries, then evict oldest if still at capacity. */
+  private evict(): void {
+    const now = Date.now();
+
+    // Pass 1: remove expired entries
+    for (const [key, entry] of this.store) {
+      if (now > entry.expiresAt) {
+        this.store.delete(key);
+      }
+    }
+
+    // Pass 2: if still at capacity, drop the oldest entry (first inserted)
+    if (this.store.size >= this.maxSize) {
+      const oldest = this.store.keys().next().value;
+      if (oldest !== undefined) {
+        this.store.delete(oldest);
+      }
+    }
+  }
 }
 
-/** Post feed page cache. Key = "userId:cursor". TTL = 5 min. */
-export const postsCache = new TTLCache<string, unknown[]>(5 * 60 * 1000);
+/** Post feed page cache. Key = "userId:cursor". TTL = 5 min. Max 50 entries. */
+export const postsCache = new TTLCache<string, unknown[]>(5 * 60 * 1000, 50);
 
-/** YouTube oEmbed title cache. Key = video ID. TTL = 60 min. */
+/** YouTube oEmbed title cache. Key = video ID. TTL = 60 min. Max 200 entries. */
 export const youtubeTitleCache = new TTLCache<string, string | null>(
   60 * 60 * 1000,
+  200,
 );

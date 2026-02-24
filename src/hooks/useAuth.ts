@@ -127,9 +127,13 @@ export function useAuth(): UseAuthReturn {
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
+        // L7 FIX: Use getSession() (local, no network call) instead of
+        // getUser() (network round-trip). We already have the userId param
+        // and just need the user's email + metadata from the cached session.
         const {
-          data: { user: authUser },
-        } = await supabase.auth.getUser();
+          data: { session },
+        } = await supabase.auth.getSession();
+        const authUser = session?.user ?? null;
         const emailLocalPart = authUser?.email?.split('@')[0] || 'user';
         const randomId = Math.random().toString(36).substring(2, 8);
         const defaultUsername = authUser?.email

@@ -119,7 +119,9 @@ const ADULT_URL_KEYWORDS = [
   'fetish',
   'bdsm',
   'milf',
-  'teen', // Often used in adult context
+  // L11 FIX: Removed 'teen' and 'gay' — extremely high false-positive rate
+  // for legitimate content (e.g., "teenager", "gay rights", "teen vogue").
+  // These terms in URLs are caught by the domain blocklist when actually adult.
   'fuck',
   'pussy',
   'cock',
@@ -133,8 +135,6 @@ const ADULT_URL_KEYWORDS = [
   'cumshot',
   'gangbang',
   'threesome',
-  'lesbian',
-  'gay', // In adult context URLs
   'orgasm',
   'masturbat',
   'dildo',
@@ -323,12 +323,10 @@ export async function moderateContent(
     }
   }
 
-  // For warning-level content or longer posts, use AI moderation
-  const needsAIReview = quickCheck.severity === 'warning' || content.length > 500;
-
-  if (!needsAIReview) {
-    return { allowed: true, severity: 'clean' };
-  }
+  // M5 FIX: Always send to AI moderation regardless of content length.
+  // The previous 500-char threshold allowed short harmful content that
+  // evaded regex patterns to skip AI review entirely. OpenAI's moderation
+  // endpoint is free, so there's no cost concern.
 
   try {
     const token = await getAuthToken();
@@ -353,6 +351,12 @@ export async function moderateContent(
     });
 
     if (!response.ok) {
+      // L3 DESIGN NOTE: Intentional fail-open. If the moderation service is
+      // unavailable, we allow the post through because the local regex check
+      // already passed. This prevents the moderation service from becoming a
+      // single point of failure that blocks all posts. The trade-off is that
+      // subtle harmful content may slip through during outages, but blocking
+      // all posting is worse for UX. See also: edge function index.ts.
       console.warn('Moderation service unavailable, using local check only');
       return { allowed: true, severity: 'clean' };
     }
@@ -360,6 +364,8 @@ export async function moderateContent(
     const result = await response.json();
     return result as ModerationResult;
   } catch (error) {
+    // L3 DESIGN NOTE: Same fail-open reasoning as above — network errors,
+    // timeouts, etc. don't block post creation. Local checks still apply.
     console.warn('Moderation check failed:', error);
     return { allowed: true, severity: 'clean' };
   }
