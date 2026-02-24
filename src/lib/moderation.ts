@@ -160,7 +160,7 @@ export interface ModerationResult {
   allowed: boolean;
   reason?: string;
   flagged_content?: string;
-  severity?: 'blocked' | 'warning' | 'clean';
+  severity: 'blocked' | 'warning' | 'clean';
 }
 
 /**
