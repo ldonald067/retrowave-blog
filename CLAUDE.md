@@ -61,7 +61,7 @@ This file is the shared interface between **two independent Claude agents** — 
 | `xanga-status` | `Header.tsx` / `Sidebar.tsx` | AIM-style status message |
 | `post-draft` | `PostModal.tsx` | Auto-saved draft (JSON: title, content, author, mood, music). Cleared on successful post. |
 | `hasCompletedOnboarding` | `App.tsx` | Onboarding flow completion flag. Set to `'true'` after first-time wizard. |
-| `sidebar-collapsed` | `Sidebar.tsx` | Mobile sidebar collapse state. Persists between navigations. |
+| `sidebar-collapsed` | `Sidebar.tsx` | Mobile sidebar collapse state. Absent key = expanded (default for new users). |
 | `emoji-style` | `emojiStyles.ts` / `ProfileModal.tsx` | Emoji rendering style: `native`, `fluent`, `twemoji`, `openmoji`, `blob`. Defaults to `native`. |
 | `sb-*` | Supabase SDK | Auth tokens — never read/write directly |
 
@@ -102,6 +102,7 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 | Edge Functions | Deno (Supabase Edge Functions) |
 | Content Moderation | OpenAI Moderation API via `moderate-content` edge function |
 | Virtualization | @tanstack/react-virtual |
+| Icons | lucide-react (selective — PostCard, Sidebar, ProfileModal) |
 | Markdown | react-markdown + rehype-sanitize |
 
 **There is no traditional Express/Node server.** The entire backend is Supabase. PostgREST auto-generates a REST API from the PostgreSQL schema. All "backend" logic lives in SQL migrations, RLS policies, database functions, and Deno edge functions.
@@ -140,7 +141,7 @@ Local Supabase dev config is in `supabase/config.toml` (ports, auth settings, em
 
 ```
 src/
-  main.tsx              # Entry point — StrictMode, root render
+  main.tsx              # Entry point — StrictMode + ErrorBoundary wrapper, root render
   App.tsx               # Root component — lazy imports, MotionConfig, toast/confirm state
   index.css             # Global styles, keyframes, theme classes, reduced-motion query
   components/
@@ -160,7 +161,7 @@ src/
     ErrorMessage.tsx    # Themed error display with retry
     ErrorBoundary.tsx   # Class component — catches render errors, fallback UI
     CursorSparkle.tsx   # Mouse trail sparkle effect (respects reduced-motion)
-    ConfirmDialog.tsx   # Styled confirm dialog (replaces window.confirm)
+    ConfirmDialog.tsx   # Styled confirm dialog for delete actions (loading state, focus trap)
     PostSkeleton.tsx    # Pulsing placeholder cards for initial feed load
     LinkPreview.css     # Styles for embedded link previews
     ui/                 # Reusable primitives (Input, Button, Card, Textarea, Avatar, AvatarPicker, Select, ReactionBar, StyledEmoji)
@@ -170,6 +171,7 @@ src/
     useReactions.ts     # Emoji reaction toggle with optimistic updates + rollback
     useToast.ts         # Toast notification state (max 3, type-based durations)
     useFocusTrap.ts     # Keyboard focus trap for modals
+    __tests__/          # Hook tests (useAuth, useToast)
   lib/
     supabase.ts         # Supabase client singleton (reads VITE_SUPABASE_URL/KEY from env)
     errors.ts           # Error mapping — raw Supabase errors → user-safe messages
@@ -181,6 +183,7 @@ src/
     emojiStyles.ts      # 5 emoji styles (native + 4 CDN sets), reactive store, codepoint conversion
     constants.ts        # App-wide constants (age limits, validation rules, mood emojis, messages)
     linkPreview.ts      # URL detection, YouTube/Vimeo/Spotify oEmbed fetching
+    __tests__/          # Lib tests (constants, linkPreview)
   types/
     index.ts            # Barrel re-exports from post, link-preview, supabase
     post.ts             # Post, CreatePostInput, UpdatePostInput
@@ -188,6 +191,8 @@ src/
     database.ts         # Supabase generated types + RPC function types
     link-preview.ts     # LinkPreview, LinkType
     supabase.ts         # SupabaseConfig, DatabaseError
+  test/
+    setup.ts            # Vitest setup file
   utils/
     parseYouTube.ts     # YouTube URL parsing + cached oEmbed title fetch
     formatDate.ts       # formatDate() + formatRelativeDate() via date-fns
@@ -522,7 +527,7 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 |---------|---------------|
 | Draft auto-save | `PostModal.tsx` — debounced 500ms save to `localStorage` key `post-draft` (create mode only), restored on reopen, cleared on save |
 | Marquee pause on hover | CSS-only: `.marquee-banner:hover .marquee-banner-inner { animation-play-state: paused }` |
-| Unsaved changes guard | `PostModal.tsx` — warns on close (X/Escape/backdrop/cancel) if form has unsaved changes |
+| Unsaved changes guard | `PostModal.tsx` — warns on close (X/Escape/backdrop/cancel) via native `window.confirm()` if form has unsaved changes |
 | Theme/emoji revert | `ProfileModal.tsx` — canceling reverts theme and emoji style to pre-edit values |
 | Delete confirmation | `ConfirmDialog.tsx` — styled Xanga modal with loading state, uses focus trap |
 | Skeleton loaders | `PostSkeleton.tsx` — 3 pulsing placeholder cards for initial feed load, matches PostCard layout |
@@ -569,4 +574,4 @@ Resolved Q1-Q5. Made `ModerationResult.severity` required in frontend (Q3). Queu
 
 ### Frontend (bold-wozniak) — 2026-02-24
 
-Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue). Session 4: CLAUDE.md quality audit (87→93). Session 5: Comprehensive UX audit — 11 fixes: PostModal unsaved changes guard + maxLength, ProfileModal theme/emoji revert on cancel, sidebar default expanded, separate loadMore error state, end-of-list indicator, ConfirmDialog loading state, useAuth profileError surfacing, delete loading state.
+Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue). Session 4: CLAUDE.md quality audit (87→93). Session 5: Comprehensive UX audit — 9 fixes: PostModal unsaved changes guard + maxLength, ProfileModal theme/emoji revert on cancel, sidebar default expanded, separate loadMore error state, end-of-list indicator, ConfirmDialog loading state, useAuth profileError surfacing, delete loading state.
