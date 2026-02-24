@@ -522,11 +522,16 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 |---------|---------------|
 | Draft auto-save | `PostModal.tsx` — debounced 500ms save to `localStorage` key `post-draft` (create mode only), restored on reopen, cleared on save |
 | Marquee pause on hover | CSS-only: `.marquee-banner:hover .marquee-banner-inner { animation-play-state: paused }` |
-| Delete confirmation | `ConfirmDialog.tsx` — styled Xanga modal replaces `window.confirm()`, uses focus trap |
+| Unsaved changes guard | `PostModal.tsx` — warns on close (X/Escape/backdrop/cancel) if form has unsaved changes |
+| Theme/emoji revert | `ProfileModal.tsx` — canceling reverts theme and emoji style to pre-edit values |
+| Delete confirmation | `ConfirmDialog.tsx` — styled Xanga modal with loading state, uses focus trap |
 | Skeleton loaders | `PostSkeleton.tsx` — 3 pulsing placeholder cards for initial feed load, matches PostCard layout |
 | Toast stacking | `index` prop offsets toasts vertically, max 3 visible via `useToast.ts` |
 | Toast timing by type | Success: 3s, Info: 4s, Error: 6s — configurable via `useToast.ts` `DEFAULT_DURATIONS` |
-| Collapsible sidebar | Mobile: compact bar (avatar + name + chevron), click to expand. State persisted to `localStorage` key `sidebar-collapsed` |
+| Collapsible sidebar | Mobile: compact bar (avatar + name + chevron), click to expand. Default **expanded** for new users. State persisted to `localStorage` key `sidebar-collapsed` |
+| End-of-list indicator | Feed shows "~ that's all 4 now! ~" when all posts loaded (no silent cutoff) |
+| Pagination error handling | `loadMore` failures show inline error with retry link, not full-page error |
+| Profile error surfacing | `useAuth` exposes `profileError` — toast shown when profile creation/fetch fails |
 
 ## Backend Review Summary
 
@@ -564,4 +569,4 @@ Resolved Q1-Q5. Made `ModerationResult.severity` required in frontend (Q3). Queu
 
 ### Frontend (bold-wozniak) — 2026-02-24
 
-Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue).
+Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue). Session 4: CLAUDE.md quality audit (87→93). Session 5: Comprehensive UX audit — 11 fixes: PostModal unsaved changes guard + maxLength, ProfileModal theme/emoji revert on cancel, sidebar default expanded, separate loadMore error state, end-of-list indicator, ConfirmDialog loading state, useAuth profileError surfacing, delete loading state.

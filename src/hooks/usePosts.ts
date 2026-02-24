@@ -25,6 +25,8 @@ export interface UsePostsReturn {
   loadingMore: boolean;
   hasMore: boolean;
   error: string | null;
+  /** Error from pagination (loadMore) — shown inline, not full-page */
+  loadMoreError: string | null;
   createPost: (
     post: CreatePostInput,
   ) => Promise<{ data: Post | null; error: string | null }>;
@@ -50,6 +52,7 @@ export function usePosts(): UsePostsReturn {
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
 
   const cursorRef = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);
@@ -147,11 +150,13 @@ export function usePosts(): UsePostsReturn {
     // L4 FIX: Check the ref (synchronous) instead of stale state closure.
     if (loadingMoreRef.current || !hasMore) return;
     loadingMoreRef.current = true;
+    setLoadMoreError(null);
     try {
       setLoadingMore(true);
       await fetchPage(cursorRef.current, true);
     } catch (err) {
-      setError(toUserMessage(err));
+      // UX: Use separate state so pagination errors show inline, not full-page
+      setLoadMoreError(toUserMessage(err));
     } finally {
       loadingMoreRef.current = false;
       setLoadingMore(false);
@@ -363,6 +368,7 @@ export function usePosts(): UsePostsReturn {
     loadingMore,
     hasMore,
     error,
+    loadMoreError,
     createPost,
     updatePost,
     deletePost,

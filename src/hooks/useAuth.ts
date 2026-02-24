@@ -13,6 +13,8 @@ import type { Profile } from '../types/profile';
 interface UseAuthReturn {
   user: User | null;
   profile: Profile | null;
+  /** Set when profile fetch/creation fails — show in UI so user knows */
+  profileError: string | null;
   loading: boolean;
   signUp: (
     email: string,
@@ -39,6 +41,7 @@ interface UseAuthReturn {
 export function useAuth(): UseAuthReturn {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // T2-3 FIX: Track in-flight fetchProfile to avoid duplicate concurrent calls.
@@ -112,6 +115,7 @@ export function useAuth(): UseAuthReturn {
     } catch (err) {
       console.error('Error fetching profile:', err);
       setProfile(null);
+      setProfileError('~ couldnt load ur profile :( try refreshing ~');
     } finally {
       fetchingProfileFor.current = null;
       setLoading(false);
@@ -181,6 +185,7 @@ export function useAuth(): UseAuthReturn {
             continue;
           }
           console.error('Error creating profile after retries:', error);
+          setProfileError('~ couldnt set up ur profile :( try refreshing ~');
           return null;
         }
 
@@ -191,6 +196,7 @@ export function useAuth(): UseAuthReturn {
           continue;
         }
         console.error('Error creating profile:', err);
+        setProfileError('~ couldnt set up ur profile :( try refreshing ~');
         return null;
       }
     }
@@ -331,6 +337,7 @@ export function useAuth(): UseAuthReturn {
   return {
     user,
     profile,
+    profileError,
     loading,
     signUp,
     signIn,

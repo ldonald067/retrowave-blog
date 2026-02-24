@@ -31,10 +31,26 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
   const dialogRef = useRef<HTMLDivElement>(null);
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const draftRestoredTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const handleEscape = useCallback(() => {
-    if (!saving) onClose();
-  }, [saving, onClose]);
-  useFocusTrap(dialogRef, true, handleEscape);
+  // UX: Check for unsaved changes before closing
+  const handleClose = useCallback(() => {
+    if (saving) return;
+    if (mode !== 'view') {
+      const dirty =
+        mode === 'create'
+          ? !!(title.trim() || content.trim())
+          : !!post &&
+            (title !== (post.title || '') ||
+              content !== (post.content || '') ||
+              author !== (post.author || '') ||
+              mood !== (post.mood || '') ||
+              music !== (post.music || ''));
+      if (dirty && !window.confirm('u have unsaved changes! r u sure u want 2 leave?')) {
+        return;
+      }
+    }
+    onClose();
+  }, [saving, mode, title, content, author, mood, music, post, onClose]);
+  useFocusTrap(dialogRef, true, handleClose);
 
   // Restore draft on mount (create mode only)
   useEffect(() => {
@@ -125,7 +141,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
-        onClick={onClose}
+        onClick={handleClose}
       >
         <motion.div
           ref={dialogRef}
@@ -165,7 +181,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                 )}
               </h2>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 aria-label="Close modal"
                 className="p-2 rounded-full transition"
                 style={{ color: 'var(--text-muted)' }}
@@ -450,6 +466,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                       }}
                       placeholder="dear diary... 2day i..."
                       required
+                      maxLength={50000}
                     />
                   )}
                   <div className="flex justify-between mt-1">
@@ -477,7 +494,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
             >
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted"
                 style={{
                   backgroundColor: 'var(--card-bg)',

@@ -7,6 +7,7 @@ interface ConfirmDialogProps {
   message: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  loading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -16,6 +17,7 @@ export default function ConfirmDialog({
   message,
   confirmLabel = '~ yes, do it ~',
   cancelLabel = 'cancel',
+  loading = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -59,12 +61,14 @@ export default function ConfirmDialog({
             <button
               type="button"
               onClick={onCancel}
+              disabled={loading}
               className="px-4 py-2.5 rounded-lg transition text-xs font-bold border-2 border-dotted hover:opacity-80"
               style={{
                 backgroundColor: 'var(--card-bg)',
                 color: 'var(--text-muted)',
                 borderColor: 'var(--border-primary)',
                 fontFamily: 'var(--title-font)',
+                opacity: loading ? 0.5 : 1,
               }}
             >
               {cancelLabel}
@@ -72,6 +76,7 @@ export default function ConfirmDialog({
             <button
               type="button"
               onClick={onConfirm}
+              disabled={loading}
               className="px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110"
               style={{
                 background: 'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, #000))',
@@ -81,7 +86,7 @@ export default function ConfirmDialog({
                 boxShadow: '0 2px 8px color-mix(in srgb, var(--accent-secondary) 40%, transparent)',
               }}
             >
-              {confirmLabel}
+              {loading ? '~ working... ~' : confirmLabel}
             </button>
           </div>
         </motion.div>

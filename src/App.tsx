@@ -51,6 +51,7 @@ function PostList({
   onLoadMore,
   loadingMore,
   hasMore,
+  loadMoreError,
 }: {
   posts: Post[];
   onEdit: (post: Post) => void;
@@ -61,6 +62,7 @@ function PostList({
   onLoadMore: () => void;
   loadingMore: boolean;
   hasMore: boolean;
+  loadMoreError?: string | null;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -121,8 +123,20 @@ function PostList({
         </div>
       </div>
 
+      {/* Inline error for pagination failures */}
+      {loadMoreError && (
+        <div className="xanga-box p-3 mt-4 text-center">
+          <p className="text-xs" style={{ color: 'var(--accent-secondary)', fontFamily: 'var(--title-font)' }}>
+            ❌ {loadMoreError}
+          </p>
+          <button onClick={onLoadMore} className="xanga-link text-xs mt-2">
+            ~ try again ~
+          </button>
+        </div>
+      )}
+
       {/* Infinite scroll sentinel + fallback manual button */}
-      {hasMore && (
+      {hasMore && !loadMoreError && (
         <div ref={loadMoreRef} className="flex justify-center pt-4 pb-2">
           <button
             onClick={onLoadMore}
@@ -133,12 +147,24 @@ function PostList({
           </button>
         </div>
       )}
+
+      {/* End-of-list indicator */}
+      {!hasMore && posts.length > 0 && (
+        <div className="text-center py-6">
+          <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
+            ~ that's all 4 now! ~
+          </p>
+          <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+            ✨ u've reached the end of the feed ✨
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
 function App() {
-  const { user, profile, loading: authLoading, signOut, updateProfile } = useAuth();
+  const { user, profile, profileError, loading: authLoading, signOut, updateProfile } = useAuth();
   const {
     posts,
     loading: postsLoading,
@@ -149,6 +175,7 @@ function App() {
     updatePost,
     deletePost,
     loadMore,
+    loadMoreError,
     refetch,
     applyOptimisticReaction,
   } = usePosts();
@@ -168,8 +195,18 @@ function App() {
   );
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   // Subscribe to emoji style changes for footer attribution
   const emojiStyle = useEmojiStyle();
+
+  // UX: Show toast when profile creation/fetch fails silently
+  const profileErrorShownRef = useRef(false);
+  useEffect(() => {
+    if (profileError && !profileErrorShownRef.current) {
+      profileErrorShownRef.current = true;
+      showError(profileError);
+    }
+  }, [profileError, showError]);
 
   // Show auth modal if not authenticated
   useEffect(() => {
@@ -218,7 +255,9 @@ function App() {
 
   const confirmDeletePost = async () => {
     if (!postToDelete) return;
+    setDeleteLoading(true);
     const { error } = await deletePost(postToDelete.id);
+    setDeleteLoading(false);
     if (error) {
       showError(`~ couldnt delete that :( ${error} ~`);
     } else {
@@ -428,6 +467,7 @@ function App() {
                 onLoadMore={loadMore}
                 loadingMore={loadingMore}
                 hasMore={hasMore}
+                loadMoreError={loadMoreError}
               />
             )}
           </main>
@@ -472,6 +512,7 @@ function App() {
           title="~ delete entry? ~"
           message={`r u sure u want 2 delete "${postToDelete.title}"? this can't b undone!`}
           confirmLabel="~ yes, delete ~"
+          loading={deleteLoading}
           onConfirm={confirmDeletePost}
           onCancel={() => setPostToDelete(null)}
         />

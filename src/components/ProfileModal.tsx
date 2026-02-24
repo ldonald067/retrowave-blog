@@ -46,14 +46,25 @@ export default function ProfileModal({
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
   const dialogRef = useRef<HTMLDivElement>(null);
+  // UX: Capture initial theme/emoji to revert on cancel (preview-without-commit)
+  const originalThemeRef = useRef<string>(profile?.theme || DEFAULT_THEME);
+  const originalEmojiStyleRef = useRef<EmojiStyleId>(getEmojiStyle());
+
+  const handleCancel = useCallback(() => {
+    // Revert previewed theme and emoji style changes
+    applyTheme(originalThemeRef.current);
+    setEmojiStyle(originalEmojiStyleRef.current);
+    onClose();
+  }, [onClose]);
+
   const handleEscape = useCallback(() => {
     if (saving || isInitialSetup) return;
     if (showAvatarPicker) {
       setShowAvatarPicker(false);
     } else {
-      onClose();
+      handleCancel();
     }
-  }, [saving, isInitialSetup, showAvatarPicker, onClose]);
+  }, [saving, isInitialSetup, showAvatarPicker, handleCancel]);
   useFocusTrap(dialogRef, true, handleEscape);
 
   useEffect(() => {
@@ -129,7 +140,7 @@ export default function ProfileModal({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
-        onClick={isInitialSetup ? undefined : onClose}
+        onClick={isInitialSetup ? undefined : handleCancel}
       >
         <motion.div
           ref={dialogRef}
@@ -453,7 +464,7 @@ export default function ProfileModal({
             {!isInitialSetup && (
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleCancel}
                 disabled={saving}
                 className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted"
                 style={{

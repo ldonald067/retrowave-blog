@@ -18,7 +18,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
   const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
   const [collapsed, setCollapsed] = useState(() => {
     const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
-    return stored === null ? true : stored === 'true';
+    return stored === null ? false : stored === 'true';
   });
 
   const handleToggleCollapsed = () => {
