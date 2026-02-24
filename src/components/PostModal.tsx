@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, FormEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
@@ -7,6 +7,9 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { Post, CreatePostInput } from '../types/post';
 import { MOODS } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
+
+// Header (~60px) + Footer (~80px) = ~140px of non-scrollable modal chrome
+const MODAL_CHROME_HEIGHT = 140;
 
 interface PostModalProps {
   post?: Post | null;
@@ -27,7 +30,11 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
   const [draftRestored, setDraftRestored] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useFocusTrap(dialogRef, true);
+  const draftRestoredTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const handleEscape = useCallback(() => {
+    if (!saving) onClose();
+  }, [saving, onClose]);
+  useFocusTrap(dialogRef, true, handleEscape);
 
   // Restore draft on mount (create mode only)
   useEffect(() => {
@@ -42,13 +49,16 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
           if (draft.mood) setMood(draft.mood);
           if (draft.music) setMusic(draft.music);
           setDraftRestored(true);
-          // Auto-dismiss the restored banner after 3s
-          setTimeout(() => setDraftRestored(false), 3000);
+          // Auto-dismiss the restored banner after 3s (cleaned up on unmount)
+          draftRestoredTimerRef.current = setTimeout(() => setDraftRestored(false), 3000);
         }
       } catch {
         // Ignore malformed draft
       }
     }
+    return () => {
+      if (draftRestoredTimerRef.current) clearTimeout(draftRestoredTimerRef.current);
+    };
   }, [mode]);
 
   useEffect(() => {
@@ -75,21 +85,6 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
   }, [title, content, author, mood, music, mode]);
-
-  // Handle escape key to close modal
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving) {
-        onClose();
-      }
-    },
-    [onClose, saving]
-  );
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -180,10 +175,13 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
             </div>
           </div>
 
-          {/* Content */}
+          {/* Content — maxHeight = viewport minus header + footer chrome */}
           <div
-            className="overflow-y-auto max-h-[calc(95vh-140px)] sm:max-h-[calc(90vh-140px)]"
-            style={{ backgroundColor: 'var(--modal-bg)' }}
+            className="overflow-y-auto"
+            style={{
+              maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)`,
+              backgroundColor: 'var(--modal-bg)',
+            }}
           >
             {isViewMode ? (
               <div className="p-4 sm:p-6">

@@ -59,23 +59,24 @@ export class TTLCache<K, V> {
     this.store.clear();
   }
 
-  /** Remove expired entries, then evict oldest if still at capacity. */
+  /** Remove expired entries, then evict oldest if still at capacity. Single-pass. */
   private evict(): void {
     const now = Date.now();
+    let oldestKey: K | undefined;
+    let oldestTime = Infinity;
 
-    // Pass 1: remove expired entries
     for (const [key, entry] of this.store) {
       if (now > entry.expiresAt) {
         this.store.delete(key);
+      } else if (entry.expiresAt < oldestTime) {
+        oldestKey = key;
+        oldestTime = entry.expiresAt;
       }
     }
 
-    // Pass 2: if still at capacity, drop the oldest entry (first inserted)
-    if (this.store.size >= this.maxSize) {
-      const oldest = this.store.keys().next().value;
-      if (oldest !== undefined) {
-        this.store.delete(oldest);
-      }
+    // If still at capacity after removing expired, drop the oldest valid entry
+    if (this.store.size >= this.maxSize && oldestKey !== undefined) {
+      this.store.delete(oldestKey);
     }
   }
 }

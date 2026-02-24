@@ -29,6 +29,7 @@ export default function ReactionBar({
 
   const handleToggle = useCallback(
     (emoji: string) => {
+      if (disabled) return;
       onToggle(emoji);
 
       // Spawn floating emoji
@@ -41,7 +42,7 @@ export default function ReactionBar({
         setFloatingEmojis((prev) => prev.filter((e) => e.id !== id));
       }, 850);
     },
-    [onToggle],
+    [onToggle, disabled],
   );
 
   return (

@@ -1,11 +1,14 @@
 import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, User, FileText, Image, Palette, Heart, Music } from 'lucide-react';
-import { Avatar, AvatarPicker, Input, Textarea } from './ui';
+import { Avatar, AvatarPicker, Input, Textarea, Select } from './ui';
 import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOODS } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { Profile } from '../types/profile';
+
+// Header (~70px) + Footer (~70px) + padding = ~180px of non-scrollable modal chrome
+const MODAL_CHROME_HEIGHT = 180;
 
 interface ProfileModalProps {
   profile: Profile | null;
@@ -36,7 +39,15 @@ export default function ProfileModal({
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
   const dialogRef = useRef<HTMLDivElement>(null);
-  useFocusTrap(dialogRef, true);
+  const handleEscape = useCallback(() => {
+    if (saving || isInitialSetup) return;
+    if (showAvatarPicker) {
+      setShowAvatarPicker(false);
+    } else {
+      onClose();
+    }
+  }, [saving, isInitialSetup, showAvatarPicker, onClose]);
+  useFocusTrap(dialogRef, true, handleEscape);
 
   useEffect(() => {
     if (profile) {
@@ -48,25 +59,6 @@ export default function ProfileModal({
       setSelectedTheme(profile.theme || DEFAULT_THEME);
     }
   }, [profile]);
-
-  // Handle escape key to close modal (disabled during initial setup)
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving && !isInitialSetup) {
-        if (showAvatarPicker) {
-          setShowAvatarPicker(false);
-        } else {
-          onClose();
-        }
-      }
-    },
-    [onClose, saving, showAvatarPicker, isInitialSetup]
-  );
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
 
   const validate = (): boolean => {
     const newErrors: { displayName?: string; bio?: string } = {};
@@ -175,10 +167,13 @@ export default function ProfileModal({
             </p>
           </div>
 
-          {/* Content */}
+          {/* Content — maxHeight = viewport minus header + footer chrome */}
           <div
-            className="overflow-y-auto max-h-[calc(95vh-180px)] sm:max-h-[calc(90vh-180px)]"
-            style={{ backgroundColor: 'var(--modal-bg)' }}
+            className="overflow-y-auto"
+            style={{
+              maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)`,
+              backgroundColor: 'var(--modal-bg)',
+            }}
           >
             <fieldset disabled={saving}>
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
@@ -237,7 +232,7 @@ export default function ProfileModal({
                   }}
                   placeholder="what should we call u?"
                   error={errors.displayName}
-                  maxLength={VALIDATION.displayName.maxLength + 10}
+                  maxLength={VALIDATION.displayName.maxLength}
                 />
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
                   this is how u'll appear 2 others
@@ -272,24 +267,16 @@ export default function ProfileModal({
                   <Heart size={14} style={{ color: 'var(--accent-primary)' }} />
                   current mood
                 </h3>
-                <select
+                <Select
                   value={currentMood}
                   onChange={(e) => setCurrentMood(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition cursor-pointer focus:outline-none appearance-none"
-                  style={{
-                    backgroundColor: 'var(--input-bg, var(--card-bg))',
-                    borderColor: 'var(--input-border, var(--border-primary))',
-                    color: 'var(--text-body)',
-                  }}
+                  placeholder="no mood set"
+                  options={MOODS.map((m) => ({
+                    value: `${m.emoji} ${m.label}`,
+                    label: `${m.emoji} ${m.label}`,
+                  }))}
                   aria-label="Select your current mood"
-                >
-                  <option value="">no mood set</option>
-                  {MOODS.map((m) => (
-                    <option key={m.label} value={`${m.emoji} ${m.label}`}>
-                      {m.emoji} {m.label}
-                    </option>
-                  ))}
-                </select>
+                />
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
                   shows on ur sidebar - update anytime!
                 </p>

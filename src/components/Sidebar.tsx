@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Music, Calendar, Settings, BookOpen, Youtube, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -15,20 +15,35 @@ interface SidebarProps {
 
 export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }: SidebarProps) {
   const [ytInfo, setYtInfo] = useState<(YouTubeInfo & { title?: string }) | null>(null);
-  const [collapsed, setCollapsed] = useState(true);
+  const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
+  const [collapsed, setCollapsed] = useState(() => {
+    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    return stored === null ? true : stored === 'true';
+  });
 
-  const userData = {
-    username: user?.email?.split('@')[0] || 'guest',
-    displayName: profile?.display_name || '✨ New User ✨',
-    avatar:
-      profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'guest'}`,
-    bio: profile?.bio || 'Welcome to my journal!',
-    mood: profile?.current_mood || null,
-    music: profile?.current_music || null,
-    memberSince: profile?.created_at
-      ? new Date(profile.created_at).getFullYear().toString()
-      : '2026',
+  const handleToggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      return next;
+    });
   };
+
+  const userData = useMemo(
+    () => ({
+      username: user?.email?.split('@')[0] || 'guest',
+      displayName: profile?.display_name || '✨ New User ✨',
+      avatar:
+        profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'guest'}`,
+      bio: profile?.bio || 'Welcome to my journal!',
+      mood: profile?.current_mood || null,
+      music: profile?.current_music || null,
+      memberSince: profile?.created_at
+        ? new Date(profile.created_at).getFullYear().toString()
+        : '2026',
+    }),
+    [user?.email, user?.id, profile?.display_name, profile?.avatar_url, profile?.bio, profile?.current_mood, profile?.current_music, profile?.created_at],
+  );
 
   // Fetch YouTube title when music URL changes
   useEffect(() => {
@@ -245,7 +260,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
       {/* Mobile: compact summary bar + collapsible */}
       <div className="lg:hidden">
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={handleToggleCollapsed}
           className="xanga-box w-full p-3 flex items-center gap-3"
         >
           <Avatar

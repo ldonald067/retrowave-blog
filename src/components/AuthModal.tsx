@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft } from 'lucide-react';
 import SignUpForm from './SignUpForm';
 import LoginForm from './LoginForm';
 import { useFocusTrap } from '../hooks/useFocusTrap';
@@ -11,7 +10,7 @@ interface AuthModalProps {
   defaultTab?: 'login' | 'signup';
 }
 
-export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalProps) {
+export default function AuthModal({ isOpen, onClose: _onClose, defaultTab = 'login' }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>(defaultTab);
   const dialogRef = useRef<HTMLDivElement>(null);
   useFocusTrap(dialogRef, isOpen);
@@ -22,8 +21,6 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
   }, [defaultTab]);
 
   if (!isOpen) return null;
-
-  const canClose = false;
 
   return (
     <AnimatePresence>
@@ -47,15 +44,6 @@ export default function AuthModal({ isOpen, onClose, defaultTab = 'login' }: Aut
           }}
         >
           <div className="flex items-center justify-between px-4 h-14">
-            {canClose && (
-              <button
-                onClick={onClose}
-                className="flex items-center gap-1 xanga-link"
-              >
-                <ChevronLeft size={16} />
-                back
-              </button>
-            )}
             <h1 className="flex-1 text-center xanga-title text-lg">
               ✨ {activeTab === 'signup' ? 'Create Your Xanga' : 'Sign In'} ✨
             </h1>

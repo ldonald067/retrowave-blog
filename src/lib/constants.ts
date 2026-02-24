@@ -9,19 +9,21 @@ export const CURRENT_YEAR = new Date().getFullYear();
 export const MIN_BIRTH_YEAR = 1900;
 export const MAX_AGE = 100;
 
-// Validation Rules
+// Validation Rules — derived from PROFILE_LIMITS in validation.ts (single source of truth)
+import { PROFILE_LIMITS } from './validation';
+
 export const VALIDATION = {
   displayName: {
-    maxLength: 50,
+    maxLength: PROFILE_LIMITS.display_name.max,
     minLength: 1,
   },
   bio: {
-    maxLength: 500,
+    maxLength: PROFILE_LIMITS.bio.max,
   },
   email: {
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   },
-} as const;
+};
 
 // Error Messages
 export const ERROR_MESSAGES = {

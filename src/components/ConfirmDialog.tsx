@@ -55,14 +55,14 @@ export default function ConfirmDialog({
             {message}
           </p>
 
-          <div className="flex gap-2 justify-end">
+          <div className="flex gap-3 justify-end">
             <button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted"
+              className="px-4 py-2.5 rounded-lg transition text-xs font-bold border-2 border-dotted hover:opacity-80"
               style={{
                 backgroundColor: 'var(--card-bg)',
-                color: 'var(--text-body)',
+                color: 'var(--text-muted)',
                 borderColor: 'var(--border-primary)',
                 fontFamily: 'var(--title-font)',
               }}
@@ -72,12 +72,13 @@ export default function ConfirmDialog({
             <button
               type="button"
               onClick={onConfirm}
-              className="px-4 py-2 rounded-lg transition text-xs font-bold border-2"
+              className="px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110"
               style={{
-                backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))',
-                color: 'var(--accent-secondary)',
+                background: 'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, #000))',
+                color: '#ffffff',
                 borderColor: 'var(--accent-secondary)',
                 fontFamily: 'var(--title-font)',
+                boxShadow: '0 2px 8px color-mix(in srgb, var(--accent-secondary) 40%, transparent)',
               }}
             >
               {confirmLabel}

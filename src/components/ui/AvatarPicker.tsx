@@ -250,6 +250,7 @@ export default function AvatarPicker({
                 <img
                   src={url}
                   alt={seed}
+                  loading="lazy"
                   className="w-10 h-10 rounded-full"
                   style={{ backgroundColor: 'var(--card-bg)' }}
                 />

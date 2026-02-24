@@ -92,7 +92,7 @@ function PostList({
 
   return (
     <div>
-      <div ref={parentRef} className="max-h-[80vh] overflow-auto scrollbar-thin">
+      <div ref={parentRef} className="overflow-auto scrollbar-thin" style={{ maxHeight: 'calc(100vh - 200px)' }}>
         <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const post = posts[virtualRow.index];

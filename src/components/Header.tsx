@@ -163,7 +163,11 @@ export default function Header({
 
           {/* Navigation */}
           <nav className="flex items-center gap-1 sm:gap-2">
-            <button className="xanga-button flex items-center gap-1">
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="xanga-button flex items-center gap-1"
+              aria-label="Scroll to top"
+            >
               <Home size={14} />
               <span className="hidden sm:inline">Home</span>
             </button>

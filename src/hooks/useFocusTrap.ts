@@ -1,4 +1,4 @@
-import { useEffect, useRef, type RefObject } from 'react';
+import { useEffect, useRef, useCallback, type RefObject } from 'react';
 
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -8,28 +8,33 @@ const FOCUSABLE_SELECTOR =
  * When active, Tab/Shift+Tab cycle through focusable children.
  * On mount: focuses the first focusable element.
  * On unmount: restores focus to the previously-focused element.
+ *
+ * Also handles Escape key — calls `onEscape` if provided.
+ * Focusable element list is re-queried on every Tab press so
+ * dynamic content (e.g. AvatarPicker opening) is always captured.
  */
-export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, active: boolean) {
+export function useFocusTrap(
+  containerRef: RefObject<HTMLElement | null>,
+  active: boolean,
+  onEscape?: () => void,
+) {
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    if (!active) return;
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const container = containerRef.current;
+      if (!container) return;
 
-    const container = containerRef.current;
-    if (!container) return;
+      // Handle Escape key
+      if (e.key === 'Escape' && onEscape) {
+        e.preventDefault();
+        onEscape();
+        return;
+      }
 
-    // Save the currently focused element so we can restore it later
-    previousFocusRef.current = document.activeElement as HTMLElement | null;
-
-    // Focus the first focusable element inside the container
-    const focusableElements = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
-    if (focusableElements.length > 0) {
-      focusableElements[0]!.focus();
-    }
-
-    const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return;
 
+      // Re-query focusable elements on every Tab press to handle dynamic content
       const focusable = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
       if (focusable.length === 0) return;
 
@@ -49,7 +54,24 @@ export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, active
           first.focus();
         }
       }
-    };
+    },
+    [containerRef, onEscape],
+  );
+
+  useEffect(() => {
+    if (!active) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Save the currently focused element so we can restore it later
+    previousFocusRef.current = document.activeElement as HTMLElement | null;
+
+    // Focus the first focusable element inside the container
+    const focusableElements = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+    if (focusableElements.length > 0) {
+      focusableElements[0]!.focus();
+    }
 
     container.addEventListener('keydown', handleKeyDown);
 
@@ -60,5 +82,5 @@ export function useFocusTrap(containerRef: RefObject<HTMLElement | null>, active
         previousFocusRef.current.focus();
       }
     };
-  }, [containerRef, active]);
+  }, [containerRef, active, handleKeyDown]);
 }

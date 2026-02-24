@@ -47,6 +47,7 @@ This file is the shared interface between **two independent Claude agents** — 
 | `xanga-status` | `Header.tsx` / `Sidebar.tsx` | AIM-style status message |
 | `post-draft` | `PostModal.tsx` | Auto-saved draft (JSON: title, content, author, mood, music). Cleared on successful post. |
 | `hasCompletedOnboarding` | `App.tsx` | Onboarding flow completion flag. Set to `'true'` after first-time wizard. |
+| `sidebar-collapsed` | `Sidebar.tsx` | Mobile sidebar collapse state. Persists between navigations. |
 | `sb-*` | Supabase SDK | Auth tokens — never read/write directly |
 
 ### Rules for Cross-Agent Changes
@@ -213,7 +214,7 @@ const { data, error } = await withRetry(() =>
 
 **Keep `POST_LIMITS` in `validation.ts` in sync with the SQL migration constraints.** Both must agree.
 
-`PROFILE_LIMITS` mirrors DB CHECK constraints added in `20260224000004_add_data_constraints.sql` (M3 fix):
+`PROFILE_LIMITS` in `validation.ts` is the **single source of truth** for profile field limits. `VALIDATION` in `constants.ts` imports from `PROFILE_LIMITS` (not duplicated). DB CHECK constraints in `20260224000004_add_data_constraints.sql` must match:
 
 | Field | Max |
 |-------|-----|
@@ -484,7 +485,7 @@ All modals and overlays use `max-h-[95vh]` on mobile (vs `90vh` on desktop). Key
 | Feature | Implementation |
 |---------|---------------|
 | `prefers-reduced-motion` | CSS media query disables all animations; CursorSparkle early-returns; `<MotionConfig reducedMotion="user">` wraps app |
-| Focus traps | `src/hooks/useFocusTrap.ts` — Tab/Shift+Tab wrapping in modals, focus restore on close |
+| Focus traps | `src/hooks/useFocusTrap.ts` — Tab/Shift+Tab wrapping in modals, focus restore on close, optional `onEscape` callback (consolidates all Escape key handlers) |
 | ARIA attributes | Marquee: `role="marquee" aria-live="off"`. Sidebar: `role="complementary"`. Status: `aria-label`. Edit/delete: `aria-label` |
 | PostCard title semantics | `<h2>` wraps a `<button>` with `aria-label="View post: {title}"` |
 
@@ -500,7 +501,7 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 | Skeleton loaders | `PostSkeleton.tsx` — 3 pulsing placeholder cards for initial feed load, matches PostCard layout |
 | Toast stacking | `index` prop offsets toasts vertically, max 3 visible via `useToast.ts` |
 | Toast timing by type | Success: 3s, Info: 4s, Error: 6s — configurable via `useToast.ts` `DEFAULT_DURATIONS` |
-| Collapsible sidebar | Mobile: compact bar (avatar + name + chevron), click to expand full sidebar content |
+| Collapsible sidebar | Mobile: compact bar (avatar + name + chevron), click to expand. State persisted to `localStorage` key `sidebar-collapsed` |
 
 ## Backend Review Summary
 
@@ -525,5 +526,5 @@ Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M
 
 1. **`ModerationResult` type is duplicated** — Defined in both `src/lib/moderation.ts` (optional `severity`) and `supabase/functions/moderate-content/index.ts` (required `severity`). The edge function is Deno so sharing types is non-trivial. If you add a shared types package, consolidate this.
 2. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — This is intentional because it has special `23505` (unique constraint) handling that falls back to a re-fetch rather than a simple retry. The generic retry is linear (300ms * attempt) instead of exponential, which is acceptable for this specific case.
-3. **`react-syntax-highlighter` is installed but unused** — Listed in `package.json` (+ `@types/react-syntax-highlighter`). No component imports it. Either use it for markdown code blocks or remove both packages.
-4. **`ui/Select.tsx` uses hardcoded white background** — Not themed with CSS variables like other UI primitives. Needs `var(--card-bg)` and `var(--border-primary)` treatment to match the Xanga styling conventions.
+3. ~~`react-syntax-highlighter` is installed but unused~~ — **RESOLVED** (removed in UX/perf pass).
+4. ~~`ui/Select.tsx` uses hardcoded white background~~ — **RESOLVED** (themed with CSS variables in UX/perf pass).
