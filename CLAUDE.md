@@ -425,6 +425,7 @@ The entire UI is styled to evoke 2005-era Xanga blogs. All components use CSS cu
 
 | Feature | Implementation | Notes |
 |---------|---------------|-------|
+| Custom cursors | `index.css` — ✦ default cursor, ♡ for interactive elements | SVG data URIs, disabled on touch devices via `@media (max-width: 480px)` |
 | Cursor sparkle trail | `CursorSparkle.tsx` — DOM-based sparkle spans on mousemove | Throttled to 50ms, max 20 sparkles, CSS animation cleanup |
 | Marquee banner | `Header.tsx` — CSS `@keyframes marquee-scroll` | Continuous right-to-left scroll, dotted borders |
 | AIM-style status | `Header.tsx` + `Sidebar.tsx` — `localStorage` key `xanga-status` | Click to edit inline, Enter to save, Escape to cancel |
@@ -483,7 +484,7 @@ All of these were converted from generic modern UI (iOS-style gradients, blue/vi
 **Core screens:**
 - `PostModal.tsx` — Comic Sans labels ("entry title:", "ur thoughts:"), dotted-border inputs, `.xanga-link` preview toggle, themed cancel button
 - `ProfileModal.tsx` — Xanga-styled section headers, themed dropdowns/inputs, dotted-border theme picker, responsive 2-col grid
-- `PostCard.tsx` — `.xanga-link` for "read more", fully themed via CSS vars
+- `PostCard.tsx` — `.xanga-link` for "read more", emoji icons (📅⏰✏️🗑️ replace Lucide), `React.memo` wrapped, fully themed via CSS vars
 - `EmptyState.tsx` — Lined paper journal page with typing cursor
 - `Toast.tsx` — `.xanga-box` with themed border colors, emoji icons instead of Lucide icons
 - `LoadingSpinner.tsx` — Themed border colors via CSS vars, "~ loading... ~" text
@@ -501,7 +502,7 @@ All modals and overlays use `max-h-[95vh]` on mobile (vs `90vh` on desktop). Key
 - Global `@media (max-width: 480px)` reduces marquee speed, header padding, font sizes
 - Sidebar: collapsible on mobile (`< lg`), compact summary bar with avatar + name + toggle
 - Toast: `left-4 right-4` on mobile (full width), stacked vertically via index
-- Touch targets: all interactive elements meet 44px minimum (ReactionBar, PostCard edit/delete, Toast close)
+- Touch targets: all interactive elements meet 44px minimum (Button sm/md/lg, Input, ReactionBar, PostCard edit/delete, Toast close, AuthModal tabs, AvatarPicker pills/grid/input)
 
 ### Accessibility
 
@@ -561,3 +562,7 @@ Changes: Xanga-style UI overhaul, `prefers-reduced-motion` support, focus traps 
 ### Backend (bold-wozniak) — 2026-02-24
 
 Resolved Q1-Q5 from the Cross-Agent Queue. Only code change: made `ModerationResult.severity` required in `src/lib/moderation.ts` (Q3). All other items were verification/documentation — no further frontend work needed. Queue cleared, no new items added.
+
+### Frontend (bold-wozniak) — 2026-02-24
+
+UX/performance pass: iPhone touch targets (44px min on Button, Input, ReactionBar, AvatarPicker, AuthModal tabs), React.memo on PostCard + useCallback on all handlers, lazy YouTube thumbnails, Xanga voice for all user-facing messages (constants.ts + App.tsx inline), custom CSS cursors (✦ default / ♡ hover), emoji icons replacing Lucide in PostCard, visitor counter + "best viewed in 800x600" footer.
