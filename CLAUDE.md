@@ -83,7 +83,7 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 | ID | Status | Owner | Item | Context | Notes | Added By |
 |----|--------|-------|------|---------|-------|----------|
 | Q6 | open | frontend | Verify `BLOG_OWNER_EMAIL` value is correct | Session 9 added `retrowave.blog.app@gmail.com` in `constants.ts` — used in PostCard report link, terms.html, privacy.html | backend: confirm or change the email before shipping | backend |
-| Q7 | open | frontend | Replace SVG placeholder icons with real PNG app icons | `public/icon-192.svg`, `icon-512.svg`, `apple-touch-icon.svg` are pink-heart SVG placeholders — App Store requires real PNG assets | backend: created SVGs as scaffolding; PNGs needed for `manifest.json` and iOS submission | backend |
+| Q7 | done | frontend | Replace SVG placeholder icons with real PNG app icons | `public/icon-192.svg`, `icon-512.svg`, `apple-touch-icon.svg` are pink-heart SVG placeholders — App Store requires real PNG assets | frontend: replaced with user's custom PNG via `scripts/generate-icons.mjs` + sharp. SVGs deleted. | backend |
 | Q8 | open | frontend | Review `terms.html` and `privacy.html` content for accuracy | Static pages in `public/` — generic legal text written by AI, not lawyer-reviewed | backend: created as App Store requirement (Apple Guideline 5.1.1); user should review before launch | backend |
 | Q9 | open | frontend | Test Capacitor iOS build on macOS with Xcode | `capacitor.config.ts` + `ios/` directory scaffolded but never built | backend: ran `npx cap add ios` only; needs `npm run build && npx cap sync && npx cap open ios` on a Mac | backend |
 | Q10 | open | frontend | Audit: `useReactions` no longer exports `loading` — verify no consumers relied on it | Removed `loading` state from `useReactions.ts` return (dead code — optimistic updates made it unnecessary) | backend: grep confirmed zero imports of `loading` from useReactions before removal | backend |
@@ -188,6 +188,7 @@ src/
     useAuth.ts          # Authentication, profile CRUD, session management
     usePosts.ts         # Post feed with pagination, caching, CRUD, optimistic reactions
     useReactions.ts     # Emoji reaction toggle with optimistic updates + rollback
+    useYouTubeInfo.ts   # YouTube URL parsing + title fetch (shared by PostCard + Sidebar)
     useToast.ts         # Toast notification state (max 3, type-based durations)
     useFocusTrap.ts     # Keyboard focus trap for modals
     __tests__/          # Hook tests (useAuth, useToast)
@@ -220,9 +221,16 @@ public/
   manifest.json         # PWA manifest (app name, icons, theme color)
   terms.html            # Terms of Service (static, linked from AgeVerification)
   privacy.html          # Privacy Policy (static, linked from AgeVerification)
-  apple-touch-icon.svg  # iOS home screen icon (SVG placeholder — needs real PNG)
-  icon-192.svg          # PWA icon 192x192 (SVG placeholder)
-  icon-512.svg          # PWA icon 512x512 (SVG placeholder)
+  favicon.png           # Browser favicon (32x32 PNG, generated from assets/appicon.png)
+  apple-touch-icon.png  # iOS home screen icon (180x180 PNG)
+  icon-192.png          # PWA icon 192x192 (PNG)
+  icon-512.png          # PWA icon 512x512 (PNG)
+
+assets/
+  appicon.png             # Master app icon (1024x1024 PNG, user-provided)
+
+scripts/
+  generate-icons.mjs      # Generates all iOS + web icons from assets/appicon.png (requires sharp)
 
 supabase/
   config.toml           # Local dev config (ports, auth settings, edge runtime)
@@ -535,7 +543,7 @@ In Xcode: select a real device or simulator → Product → Archive → Distribu
 4. **App description** — write a brief description for the App Store listing
 5. **Signing** — in Xcode, select your team under Signing & Capabilities. Xcode handles provisioning profiles automatically.
 6. **Review `terms.html` and `privacy.html`** — AI-generated content, not lawyer-reviewed. Verify accuracy before submission.
-7. **Replace SVG icons** — `public/icon-192.svg`, `icon-512.svg`, `apple-touch-icon.svg` are placeholders for PWA manifest. Replace with real PNGs if you also want PWA support.
+7. ~~**Replace SVG icons**~~ — **Done.** All icons now generated as PNGs from `assets/appicon.png` via `node scripts/generate-icons.mjs`.
 
 ### Apple Review Gotchas
 
@@ -688,7 +696,7 @@ Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M
 
 1. **`ModerationResult` type lives in two files** — `src/lib/moderation.ts` and `supabase/functions/moderate-content/index.ts` both define the interface. Shapes are now aligned (both require `severity`), but Deno can't import from Vite so they can't share a single definition. If a shared types package is added, consolidate.
 2. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — Intentional: has special `23505` (unique constraint) handling that falls back to a re-fetch. Linear retry (300ms * attempt) is acceptable for this case.
-3. **Capacitor iOS setup is scaffolded but not deployed** — `ios/` directory generated, but no Apple Developer account or Xcode build has been run yet. PWA icons are SVG placeholders that need real PNG assets for App Store submission.
+3. **Capacitor iOS setup is scaffolded but not deployed** — `ios/` directory generated, but no Apple Developer account or Xcode build has been run yet. PWA icons are now real PNGs (generated from user's app icon via `scripts/generate-icons.mjs`).
 
 ## Agent Session Log
 
@@ -723,3 +731,14 @@ Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga
   - **Share**: Share2 icon button in PostCard footer, shares title + content snippet
   - **Browser**: YouTube links in PostCard use `openUrl()` → SFSafariViewController on iOS, window.open on web
   - **Splash screen**: `hideSplashScreen()` after auth resolves in App.tsx, `launchAutoHide: false` in config
+  Session 12: Custom app icon + comprehensive audit (8 fixes):
+  - **App icons**: User's custom PNG → iOS app icon (1024×1024), splash (2732×2732 ×3), favicon (32×32), PWA icons (192, 512, 180). `scripts/generate-icons.mjs` + sharp.
+  - **Manifest/HTML**: SVG icon refs → PNG, `background_color` → `#1a0a2e`, metadata branding "Retrowave Blog" → "My Journal"
+  - **Bug fix**: IntersectionObserver used viewport root instead of scroll container — infinite scroll could silently break
+  - **Bug fix**: `applyTheme` used `cssText` which destroyed all root inline styles — replaced with `setProperty()` loop
+  - **Bug fix**: Sidebar AIM status read localStorage directly — never updated when Header changed it. Added CustomEvent sync.
+  - **UX**: PostModal `window.confirm` → styled `ConfirmDialog` for unsaved changes (consistent Xanga aesthetic)
+  - **DRY**: Extracted `useYouTubeInfo` hook from identical 25-line blocks in PostCard + Sidebar
+  - **A11y**: AuthModal tabs: `aria-pressed` → correct `role="tab"` + `aria-selected` + `role="tabpanel"`
+  - **Consistency**: ProfileModal "Currently Listening" raw `<input>` → `Input` primitive
+  - **Cleanup**: Removed SVG placeholder icons, scaffold leftovers (vite.svg, react.svg). Resolves Q7.
