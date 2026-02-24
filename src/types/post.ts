@@ -18,15 +18,13 @@ export interface Post {
   created_at: string;
   updated_at: string;
 
-  // From joined views
-  display_name?: string | null;
-  avatar_url?: string | null;
-  like_count?: number | null;
-  user_has_liked?: boolean | null;
-
-  // Alias for view column names
+  // From get_posts_with_reactions RPC view
+  // L8 FIX: Removed deprecated display_name/avatar_url aliases —
+  // only profile_display_name/profile_avatar_url are used.
   profile_display_name?: string | null;
   profile_avatar_url?: string | null;
+  like_count?: number | null;
+  user_has_liked?: boolean | null;
 
   // Emoji reactions (populated client-side or from view)
   reactions?: Record<string, number>;

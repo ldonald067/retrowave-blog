@@ -39,7 +39,7 @@ export default function Avatar({
   const fallbackUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${fallbackSeed}`;
   const imageSrc = imgError || !src ? fallbackUrl : src;
 
-  const baseClasses = `${sizeClasses[size]} rounded-full border-4 border-pink-300 object-cover`;
+  const baseClasses = `${sizeClasses[size]} rounded-full border-4 object-cover`;
   const interactiveClasses = onClick || editable ? 'cursor-pointer' : '';
 
   return (
@@ -51,7 +51,11 @@ export default function Avatar({
         src={imageSrc}
         alt={alt}
         loading="lazy"
-        className={`${baseClasses} ${interactiveClasses} bg-gradient-to-br from-pink-200 to-purple-200`}
+        className={`${baseClasses} ${interactiveClasses}`}
+        style={{
+          borderColor: 'var(--accent-primary)',
+          backgroundColor: 'var(--card-bg)',
+        }}
         onClick={onClick}
         onError={() => setImgError(true)}
       />
@@ -60,7 +64,12 @@ export default function Avatar({
           className="absolute inset-0 rounded-full bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
           onClick={onClick}
         >
-          <span className="text-white text-xs font-medium">Edit</span>
+          <span
+            className="text-white text-xs font-bold"
+            style={{ fontFamily: 'var(--title-font)' }}
+          >
+            edit
+          </span>
         </div>
       )}
     </motion.div>

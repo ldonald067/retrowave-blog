@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { AnimatePresence, MotionConfig } from 'framer-motion';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAuth } from './hooks/useAuth';
 import { usePosts } from './hooks/usePosts';
@@ -7,11 +7,15 @@ import { useToast } from './hooks/useToast';
 import { useReactions } from './hooks/useReactions';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
+import CursorSparkle from './components/CursorSparkle';
 import PostCard from './components/PostCard';
 import LoadingSpinner from './components/LoadingSpinner';
+import PostSkeleton from './components/PostSkeleton';
 import EmptyState from './components/EmptyState';
 import ErrorMessage from './components/ErrorMessage';
 import Toast from './components/Toast';
+import ConfirmDialog from './components/ConfirmDialog';
+import ErrorBoundary from './components/ErrorBoundary';
 import type { Post, CreatePostInput } from './types/post';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
@@ -43,6 +47,9 @@ function PostList({
   onView,
   onReaction,
   currentUserId,
+  onLoadMore,
+  loadingMore,
+  hasMore,
 }: {
   posts: Post[];
   onEdit: (post: Post) => void;
@@ -50,8 +57,12 @@ function PostList({
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
   currentUserId?: string;
+  onLoadMore: () => void;
+  loadingMore: boolean;
+  hasMore: boolean;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({
     count: posts.length,
@@ -60,10 +71,29 @@ function PostList({
     overscan: VIRTUAL_OVERSCAN,
   });
 
+  // Infinite scroll: auto-load when sentinel enters viewport
+  const handleLoadMore = useCallback(() => {
+    if (hasMore && !loadingMore) onLoadMore();
+  }, [hasMore, loadingMore, onLoadMore]);
+
+  useEffect(() => {
+    const sentinel = loadMoreRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) handleLoadMore();
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [handleLoadMore]);
+
   return (
-    <div ref={parentRef} className="max-h-[80vh] overflow-auto scrollbar-thin">
-      <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
-        <AnimatePresence>
+    <div>
+      <div ref={parentRef} className="overflow-auto scrollbar-thin" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+        <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const post = posts[virtualRow.index];
             if (!post) return null;
@@ -87,8 +117,21 @@ function PostList({
               </div>
             );
           })}
-        </AnimatePresence>
+        </div>
       </div>
+
+      {/* Infinite scroll sentinel + fallback manual button */}
+      {hasMore && (
+        <div ref={loadMoreRef} className="flex justify-center pt-4 pb-2">
+          <button
+            onClick={onLoadMore}
+            disabled={loadingMore}
+            className="xanga-button text-sm"
+          >
+            {loadingMore ? 'Loading...' : '\u00AB Older Entries'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -98,14 +141,21 @@ function App() {
   const {
     posts,
     loading: postsLoading,
+    loadingMore,
+    hasMore,
     error,
     createPost,
     updatePost,
     deletePost,
+    loadMore,
     refetch,
+    applyOptimisticReaction,
   } = usePosts();
   const { toasts, hideToast, success, error: showError } = useToast();
-  const { toggleReaction } = useReactions();
+  // T4: Pass optimistic update handler to useReactions
+  const { toggleReaction } = useReactions({
+    onOptimisticUpdate: applyOptimisticReaction,
+  });
 
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>('create');
@@ -116,6 +166,7 @@ function App() {
     !localStorage.getItem('hasCompletedOnboarding')
   );
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null);
 
   // Show auth modal if not authenticated
   useEffect(() => {
@@ -153,21 +204,24 @@ function App() {
     setShowModal(true);
   };
 
-  const handleDeletePost = async (post: Post) => {
+  const handleDeletePost = (post: Post) => {
     if (!user) {
       showError('Please sign in to delete posts');
       setShowAuthModal(true);
       return;
     }
+    setPostToDelete(post);
+  };
 
-    if (window.confirm(`Are you sure you want to delete "${post.title}"?`)) {
-      const { error } = await deletePost(post.id);
-      if (error) {
-        showError(`Error deleting post: ${error}`);
-      } else {
-        success('Post deleted successfully!');
-      }
+  const confirmDeletePost = async () => {
+    if (!postToDelete) return;
+    const { error } = await deletePost(postToDelete.id);
+    if (error) {
+      showError(`Error deleting post: ${error}`);
+    } else {
+      success('Post deleted successfully!');
     }
+    setPostToDelete(null);
   };
 
   const handleSavePost = async (postData: CreatePostInput) => {
@@ -207,17 +261,20 @@ function App() {
     }
   };
 
+  // T4: Optimistic reactions — no more refetch() after toggle
   const handleReaction = async (postId: string, emoji: string) => {
     if (!user) {
       showError('Please sign in to react');
       setShowAuthModal(true);
       return;
     }
-    const { error } = await toggleReaction(postId, emoji);
+    const post = posts.find((p) => p.id === postId);
+    const currentUserReactions = post?.user_reactions ?? [];
+
+    const { error } = await toggleReaction(postId, emoji, currentUserReactions);
     if (error) {
       showError(error);
-    } else {
-      refetch();
+      // Note: useReactions already rolled back the optimistic update on error
     }
   };
 
@@ -309,8 +366,8 @@ function App() {
           onAuthClick={() => setShowAuthModal(true)}
           onProfileClick={handleProfileClick}
         />
-        <div className="flex items-center justify-center py-20">
-          <LoadingSpinner />
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <PostSkeleton />
         </div>
       </div>
     );
@@ -333,7 +390,10 @@ function App() {
   }
 
   return (
+    <ErrorBoundary>
+    <MotionConfig reducedMotion="user">
     <div className="min-h-screen themed-bg">
+      <CursorSparkle />
       <Header
         onNewPost={handleNewPost}
         user={user}
@@ -361,6 +421,9 @@ function App() {
                 onView={handleViewPost}
                 onReaction={handleReaction}
                 currentUserId={user?.id}
+                onLoadMore={loadMore}
+                loadingMore={loadingMore}
+                hasMore={hasMore}
               />
             )}
           </main>
@@ -399,16 +462,30 @@ function App() {
         </Suspense>
       )}
 
-      {/* Toast Notifications */}
-      {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          message={toast.message}
-          type={toast.type}
-          onClose={() => hideToast(toast.id)}
-          duration={toast.duration}
+      {/* Delete Confirmation Dialog */}
+      {postToDelete && (
+        <ConfirmDialog
+          title="~ delete entry? ~"
+          message={`r u sure u want 2 delete "${postToDelete.title}"? this can't b undone!`}
+          confirmLabel="~ yes, delete ~"
+          onConfirm={confirmDeletePost}
+          onCancel={() => setPostToDelete(null)}
         />
-      ))}
+      )}
+
+      {/* Toast Notifications */}
+      <AnimatePresence>
+        {toasts.map((toast, index) => (
+          <Toast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => hideToast(toast.id)}
+            duration={toast.duration}
+            index={index}
+          />
+        ))}
+      </AnimatePresence>
 
       {/* Footer - very Xanga! */}
       <footer
@@ -423,6 +500,8 @@ function App() {
         </div>
       </footer>
     </div>
+    </MotionConfig>
+    </ErrorBoundary>
   );
 }
 

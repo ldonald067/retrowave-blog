@@ -1,4 +1,5 @@
 // YouTube URL parser utility
+import { youtubeTitleCache } from '../lib/cache';
 
 export interface YouTubeInfo {
   videoId: string;
@@ -64,17 +65,29 @@ export function hasYouTubeUrl(text: string): boolean {
 }
 
 /**
- * Fetch YouTube video title using oEmbed API (no API key required)
+ * Fetch YouTube video title using oEmbed API (no API key required).
+ * T4: Results are cached in-memory for 60 minutes to avoid repeated fetches.
  */
 export async function fetchYouTubeTitle(videoId: string): Promise<string | null> {
+  // Check cache first (includes cached null = previous failure)
+  if (youtubeTitleCache.has(videoId)) {
+    return youtubeTitleCache.get(videoId) ?? null;
+  }
+
   try {
     const response = await fetch(
       `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`
     );
-    if (!response.ok) return null;
+    if (!response.ok) {
+      youtubeTitleCache.set(videoId, null);
+      return null;
+    }
     const data = await response.json();
-    return data.title || null;
+    const title: string | null = data.title || null;
+    youtubeTitleCache.set(videoId, title);
+    return title;
   } catch {
+    youtubeTitleCache.set(videoId, null);
     return null;
   }
 }

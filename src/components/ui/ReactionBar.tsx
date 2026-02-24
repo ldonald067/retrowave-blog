@@ -1,7 +1,14 @@
+import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 export const REACTION_EMOJIS = ['❤️', '🔥', '😂', '😢', '✨', '👀'] as const;
 export type ReactionEmoji = (typeof REACTION_EMOJIS)[number];
+
+interface FloatingEmoji {
+  id: number;
+  emoji: string;
+  offsetX: number;
+}
 
 interface ReactionBarProps {
   reactions: Record<string, number>;
@@ -10,14 +17,36 @@ interface ReactionBarProps {
   disabled?: boolean;
 }
 
+let floatId = 0;
+
 export default function ReactionBar({
   reactions,
   userReactions,
   onToggle,
   disabled = false,
 }: ReactionBarProps) {
+  const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
+
+  const handleToggle = useCallback(
+    (emoji: string) => {
+      if (disabled) return;
+      onToggle(emoji);
+
+      // Spawn floating emoji
+      const id = ++floatId;
+      const offsetX = (Math.random() - 0.5) * 20;
+      setFloatingEmojis((prev) => [...prev, { id, emoji, offsetX }]);
+
+      // Clean up after animation
+      setTimeout(() => {
+        setFloatingEmojis((prev) => prev.filter((e) => e.id !== id));
+      }, 850);
+    },
+    [onToggle, disabled],
+  );
+
   return (
-    <div className="flex items-center gap-1.5 flex-wrap">
+    <div className="flex items-center gap-1.5 flex-wrap relative">
       {REACTION_EMOJIS.map((emoji) => {
         const count = reactions[emoji] ?? 0;
         const isActive = userReactions.includes(emoji);
@@ -27,9 +56,9 @@ export default function ReactionBar({
             key={emoji}
             type="button"
             disabled={disabled}
-            onClick={() => onToggle(emoji)}
+            onClick={() => handleToggle(emoji)}
             whileTap={{ scale: 0.9 }}
-            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border transition-all ${
+            className={`relative inline-flex items-center gap-1 px-3 py-2 rounded-full text-xs border transition-all ${
               disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
             }`}
             style={{
@@ -54,6 +83,17 @@ export default function ReactionBar({
           </motion.button>
         );
       })}
+
+      {/* Floating emoji animations */}
+      {floatingEmojis.map((f) => (
+        <span
+          key={f.id}
+          className="emoji-float-up text-lg"
+          style={{ left: `${f.offsetX + 20}px`, bottom: '100%' }}
+        >
+          {f.emoji}
+        </span>
+      ))}
     </div>
   );
 }

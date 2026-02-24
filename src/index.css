@@ -302,7 +302,7 @@ body {
   background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
   color: var(--button-text, #ffffff);
   transform: translateY(-1px);
-  box-shadow: 3px 3px 0px var(--shadow-color);
+  box-shadow: 3px 3px 0px var(--shadow-color), 0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
 .xanga-button:active {
@@ -326,4 +326,195 @@ body {
   border-radius: 4px;
   font-size: 12px;
   border: 2px outset #666;
+}
+
+/* ===== Cursor Sparkle Trail ===== */
+.cursor-sparkle {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  font-size: 10px;
+  animation: sparkle-trail 600ms ease-out forwards;
+}
+
+@keyframes sparkle-trail {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.3) translateY(25px) rotate(120deg);
+  }
+}
+
+/* ===== Marquee Banner ===== */
+.marquee-banner {
+  overflow: hidden;
+  white-space: nowrap;
+  border-top: 1px dotted var(--border-primary);
+  border-bottom: 1px dotted var(--border-primary);
+  background: color-mix(in srgb, var(--header-gradient-from) 50%, transparent);
+  padding: 3px 0;
+}
+
+.marquee-banner-inner {
+  display: inline-block;
+  animation: marquee-scroll 20s linear infinite;
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* ===== Emoji Float-Up Animation ===== */
+@keyframes float-up-fade {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-60px) scale(1.4);
+  }
+}
+
+.emoji-float-up {
+  position: absolute;
+  pointer-events: none;
+  animation: float-up-fade 800ms ease-out forwards;
+  z-index: 10;
+}
+
+/* ===== Cursor Blink (Empty State) ===== */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: var(--accent-primary);
+  animation: cursor-blink 1s step-end infinite;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+}
+
+/* ===== Lined Paper Background ===== */
+.lined-paper {
+  background-image: repeating-linear-gradient(
+    transparent,
+    transparent 27px,
+    color-mix(in srgb, var(--border-primary) 30%, transparent) 27px,
+    color-mix(in srgb, var(--border-primary) 30%, transparent) 28px
+  );
+  background-position: 0 12px;
+}
+
+/* ===== Xanga Link Style ===== */
+.xanga-link {
+  color: var(--link-color);
+  text-decoration: underline;
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.xanga-link:hover {
+  color: var(--link-hover);
+  text-decoration: none;
+}
+
+/* ===== AIM Status Style ===== */
+.aim-status {
+  font-family: 'Verdana', sans-serif;
+  font-size: 10px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.aim-status-edit {
+  font-family: 'Verdana', sans-serif;
+  font-size: 10px;
+  font-style: italic;
+  background: var(--card-bg);
+  border: 1px dotted var(--border-primary);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--text-body);
+  outline: none;
+  width: 100%;
+  max-width: 250px;
+}
+
+.aim-status-edit:focus {
+  border-color: var(--accent-primary);
+}
+
+/* ===== Xanga Auth Container ===== */
+.xanga-auth-bg {
+  background: linear-gradient(to bottom, var(--bg-gradient-from), var(--bg-gradient-via), var(--bg-gradient-to));
+}
+
+/* ===== Marquee Pause on Hover ===== */
+.marquee-banner:hover .marquee-banner-inner {
+  animation-play-state: paused;
+}
+
+/* ===== iPhone Responsive ===== */
+@media (max-width: 480px) {
+  .marquee-banner {
+    font-size: 9px;
+    padding: 2px 0;
+  }
+
+  .xanga-button {
+    padding: 5px 10px;
+    font-size: 10px;
+  }
+
+  .aim-status-edit {
+    max-width: 180px;
+  }
+}
+
+/* ===== Reduced Motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  .marquee-banner-inner {
+    animation: none !important;
+  }
+
+  .cursor-sparkle {
+    display: none !important;
+  }
+
+  .emoji-float-up {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  .typing-cursor {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  .blink {
+    animation: none !important;
+    opacity: 1 !important;
+  }
 }

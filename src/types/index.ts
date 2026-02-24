@@ -2,4 +2,5 @@
 
 export type { Post, CreatePostInput, UpdatePostInput } from './post';
 export type { LinkPreview, LinkType } from './link-preview';
-export type { SupabaseConfig, DatabaseError, SupabaseResponse } from './supabase';
+// L8 FIX: Removed SupabaseResponse (unused dead type)
+export type { SupabaseConfig, DatabaseError } from './supabase';

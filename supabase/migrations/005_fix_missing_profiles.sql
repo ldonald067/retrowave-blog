@@ -33,11 +33,16 @@ SELECT
   u.id,
   COALESCE(u.raw_user_meta_data->>'username', split_part(u.email, '@', 1)) AS username,
   COALESCE(u.raw_user_meta_data->>'display_name', split_part(u.email, '@', 1)) AS display_name,
-  COALESCE((u.raw_user_meta_data->>'age_verified')::boolean, true) AS age_verified,
-  COALESCE((u.raw_user_meta_data->>'tos_accepted')::boolean, true) AS tos_accepted
+  -- H2 FIX: Default to false, not true. Users without metadata have not
+  -- completed verification and must go through the age gate on next login.
+  COALESCE((u.raw_user_meta_data->>'age_verified')::boolean, false) AS age_verified,
+  COALESCE((u.raw_user_meta_data->>'tos_accepted')::boolean, false) AS tos_accepted
 FROM auth.users u
 LEFT JOIN public.profiles p ON u.id = p.id
-WHERE p.id IS NULL;
+WHERE p.id IS NULL
+-- L9 FIX: Prevent 23505 if the on_auth_user_created trigger fires
+-- during migration execution and inserts the profile first.
+ON CONFLICT (id) DO NOTHING;
 
 -- Notify PostgREST to reload schema
 NOTIFY pgrst, 'reload schema';

@@ -1,10 +1,14 @@
-import { useState, useEffect, FormEvent, useCallback } from 'react';
+import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Sparkles, User, FileText, Image, Palette, Heart, Music } from 'lucide-react';
-import { Avatar, AvatarPicker, Button, Input, Textarea } from './ui';
+import { X, Save, User, FileText, Image, Palette, Heart, Music } from 'lucide-react';
+import { Avatar, AvatarPicker, Input, Textarea, Select } from './ui';
 import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOODS } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import type { Profile } from '../types/profile';
+
+// Header (~70px) + Footer (~70px) + padding = ~180px of non-scrollable modal chrome
+const MODAL_CHROME_HEIGHT = 180;
 
 interface ProfileModalProps {
   profile: Profile | null;
@@ -34,6 +38,16 @@ export default function ProfileModal({
   const [errors, setErrors] = useState<{ displayName?: string; bio?: string }>({});
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const handleEscape = useCallback(() => {
+    if (saving || isInitialSetup) return;
+    if (showAvatarPicker) {
+      setShowAvatarPicker(false);
+    } else {
+      onClose();
+    }
+  }, [saving, isInitialSetup, showAvatarPicker, onClose]);
+  useFocusTrap(dialogRef, true, handleEscape);
 
   useEffect(() => {
     if (profile) {
@@ -45,25 +59,6 @@ export default function ProfileModal({
       setSelectedTheme(profile.theme || DEFAULT_THEME);
     }
   }, [profile]);
-
-  // Handle escape key to close modal (disabled during initial setup)
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving && !isInitialSetup) {
-        if (showAvatarPicker) {
-          setShowAvatarPicker(false);
-        } else {
-          onClose();
-        }
-      }
-    },
-    [onClose, saving, showAvatarPicker, isInitialSetup]
-  );
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
 
   const validate = (): boolean => {
     const newErrors: { displayName?: string; bio?: string } = {};
@@ -126,17 +121,18 @@ export default function ProfileModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
         onClick={isInitialSetup ? undefined : onClose}
       >
         <motion.div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label="Edit profile"
           initial={{ scale: 0.95, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.95, y: 20 }}
-          className="rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-hidden"
+          className="rounded-xl shadow-2xl max-w-lg w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
           style={{
             backgroundColor: 'var(--modal-bg)',
             border: '4px solid var(--modal-border)',
@@ -145,16 +141,15 @@ export default function ProfileModal({
         >
           {/* Header */}
           <div
-            className="p-4 border-b-2 border-dotted"
+            className="p-3 sm:p-4 border-b-2 border-dotted"
             style={{
               background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
               borderColor: 'var(--border-primary)',
             }}
           >
             <div className="flex items-center justify-between">
-              <h2 className="xanga-title text-2xl flex items-center gap-2">
-                <Sparkles size={20} style={{ color: 'var(--accent-primary)' }} />
-                {isInitialSetup ? 'Welcome! Set Up Your Profile' : 'Edit Profile'}
+              <h2 className="xanga-title text-xl sm:text-2xl flex items-center gap-2">
+                ✨ {isInitialSetup ? '~ welcome! set up ur profile ~' : '~ edit profile ~'}
               </h2>
               {!isInitialSetup && (
                 <button
@@ -163,26 +158,30 @@ export default function ProfileModal({
                   style={{ color: 'var(--text-muted)' }}
                   aria-label="Close"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               )}
             </div>
             <p className="xanga-subtitle mt-1">
-              {isInitialSetup ? '~ tell us a bit about yourself ~' : '~ customize your space ~'}
+              {isInitialSetup ? '~ tell us a bit about urself ~' : '~ customize ur space ~'}
             </p>
           </div>
 
-          {/* Content */}
+          {/* Content — maxHeight = viewport minus header + footer chrome */}
           <div
-            className="overflow-y-auto max-h-[calc(90vh-180px)]"
-            style={{ backgroundColor: 'var(--modal-bg)' }}
+            className="overflow-y-auto"
+            style={{
+              maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)`,
+              backgroundColor: 'var(--modal-bg)',
+            }}
           >
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <fieldset disabled={saving}>
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
               {/* Avatar Section */}
               <div className="xanga-box p-4">
-                <h3 className="xanga-title text-lg mb-4 flex items-center gap-2">
-                  <Image size={16} style={{ color: 'var(--accent-primary)' }} />
-                  Profile Picture
+                <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                  <Image size={14} style={{ color: 'var(--accent-primary)' }} />
+                  profile pic
                 </h3>
 
                 {showAvatarPicker ? (
@@ -193,7 +192,7 @@ export default function ProfileModal({
                     onCancel={() => setShowAvatarPicker(false)}
                   />
                 ) : (
-                  <div className="flex flex-col items-center gap-4">
+                  <div className="flex flex-col items-center gap-3">
                     <Avatar
                       src={avatarUrl}
                       alt="Your avatar"
@@ -207,10 +206,10 @@ export default function ProfileModal({
                       onClick={() => setShowAvatarPicker(true)}
                       className="xanga-button text-xs"
                     >
-                      Choose Avatar
+                      ~ choose avatar ~
                     </button>
                     <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      Click to pick from our avatar collection
+                      click 2 pick from our avatar collection
                     </p>
                   </div>
                 )}
@@ -218,9 +217,9 @@ export default function ProfileModal({
 
               {/* Display Name */}
               <div className="xanga-box p-4">
-                <h3 className="xanga-title text-lg mb-4 flex items-center gap-2">
-                  <User size={16} style={{ color: 'var(--accent-primary)' }} />
-                  Display Name
+                <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                  <User size={14} style={{ color: 'var(--accent-primary)' }} />
+                  display name
                 </h3>
                 <Input
                   type="text"
@@ -231,20 +230,20 @@ export default function ProfileModal({
                       setErrors((prev) => ({ ...prev, displayName: undefined }));
                     }
                   }}
-                  placeholder="What should we call you?"
+                  placeholder="what should we call u?"
                   error={errors.displayName}
-                  maxLength={VALIDATION.displayName.maxLength + 10}
+                  maxLength={VALIDATION.displayName.maxLength}
                 />
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                  This is how you'll appear to others
+                  this is how u'll appear 2 others
                 </p>
               </div>
 
               {/* Bio */}
               <div className="xanga-box p-4">
-                <h3 className="xanga-title text-lg mb-4 flex items-center gap-2">
-                  <FileText size={16} style={{ color: 'var(--accent-primary)' }} />
-                  About Me
+                <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                  <FileText size={14} style={{ color: 'var(--accent-primary)' }} />
+                  about me
                 </h3>
                 <Textarea
                   value={bio}
@@ -254,74 +253,66 @@ export default function ProfileModal({
                       setErrors((prev) => ({ ...prev, bio: undefined }));
                     }
                   }}
-                  placeholder="Tell the world about yourself... your interests, your dreams, your favorite song lyrics..."
+                  placeholder="tell the world about urself... ur interests, ur dreams, ur fav song lyrics..."
                   rows={4}
                   error={errors.bio}
                   charCount={{ current: bio.length, max: VALIDATION.bio.maxLength }}
-                  hint="Share a bit about yourself"
+                  hint="share a bit about urself"
                 />
               </div>
 
               {/* Current Mood */}
               <div className="xanga-box p-4">
-                <h3 className="xanga-title text-lg mb-4 flex items-center gap-2">
-                  <Heart size={16} style={{ color: 'var(--accent-primary)' }} />
-                  Current Mood
+                <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                  <Heart size={14} style={{ color: 'var(--accent-primary)' }} />
+                  current mood
                 </h3>
-                <select
+                <Select
                   value={currentMood}
                   onChange={(e) => setCurrentMood(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg transition cursor-pointer focus:outline-none focus:ring-2"
-                  style={{
-                    backgroundColor: 'var(--input-bg)',
-                    border: '2px solid var(--input-border)',
-                    color: 'var(--text-body)',
-                  }}
+                  placeholder="no mood set"
+                  options={MOODS.map((m) => ({
+                    value: `${m.emoji} ${m.label}`,
+                    label: `${m.emoji} ${m.label}`,
+                  }))}
                   aria-label="Select your current mood"
-                >
-                  <option value="">No mood set</option>
-                  {MOODS.map((m) => (
-                    <option key={m.label} value={`${m.emoji} ${m.label}`}>
-                      {m.emoji} {m.label}
-                    </option>
-                  ))}
-                </select>
+                />
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                  Shows on your sidebar - update anytime!
+                  shows on ur sidebar - update anytime!
                 </p>
               </div>
 
               {/* Currently Listening */}
               <div className="xanga-box p-4">
-                <h3 className="xanga-title text-lg mb-4 flex items-center gap-2">
-                  <Music size={16} style={{ color: 'var(--accent-secondary)' }} />
-                  Currently Listening To
+                <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                  <Music size={14} style={{ color: 'var(--accent-secondary)' }} />
+                  currently listening 2
                 </h3>
                 <input
                   type="text"
                   value={currentMusic}
                   onChange={(e) => setCurrentMusic(e.target.value)}
-                  className="w-full px-4 py-2 rounded-lg transition focus:outline-none focus:ring-2"
+                  className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none"
                   style={{
-                    backgroundColor: 'var(--input-bg)',
-                    border: '2px solid var(--input-border)',
+                    backgroundColor: 'var(--input-bg, var(--card-bg))',
+                    borderColor: 'var(--input-border, var(--border-primary))',
                     color: 'var(--text-body)',
                   }}
-                  placeholder="Artist - Song name"
+                  placeholder="artist - song name"
                   maxLength={200}
                 />
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                  What's on your playlist right now?
+                  what's on ur playlist rn?
                 </p>
               </div>
 
               {/* Theme Picker */}
               <div className="xanga-box p-4">
-                <h3 className="xanga-title text-lg mb-4 flex items-center gap-2">
-                  <Palette size={16} style={{ color: 'var(--accent-primary)' }} />
-                  Theme
+                <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                  <Palette size={14} style={{ color: 'var(--accent-primary)' }} />
+                  theme
                 </h3>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
                   {THEMES.map((theme) => (
                     <button
                       key={theme.id}
@@ -330,27 +321,32 @@ export default function ProfileModal({
                         setSelectedTheme(theme.id);
                         applyTheme(theme.id);
                       }}
-                      className="p-3 rounded-lg text-left transition-all"
+                      className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
                       style={{
                         backgroundColor: selectedTheme === theme.id
                           ? 'color-mix(in srgb, var(--accent-primary) 15%, var(--card-bg))'
                           : 'var(--card-bg)',
-                        border: selectedTheme === theme.id
-                          ? '2px solid var(--accent-primary)'
-                          : '2px solid var(--border-primary)',
+                        borderColor: selectedTheme === theme.id
+                          ? 'var(--accent-primary)'
+                          : 'var(--border-primary)',
                         transform: selectedTheme === theme.id ? 'scale(1.02)' : 'scale(1)',
                       }}
                     >
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-1.5 mb-1">
                         {theme.previewColors.map((color, i) => (
                           <div
                             key={i}
-                            className="w-4 h-4 rounded-full"
+                            className="w-3 h-3 sm:w-4 sm:h-4 rounded-full"
                             style={{ backgroundColor: color, border: '1px solid var(--border-primary)' }}
                           />
                         ))}
                       </div>
-                      <p className="text-xs font-bold" style={{ color: 'var(--text-body)' }}>{theme.name}</p>
+                      <p
+                        className="text-xs font-bold"
+                        style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
+                      >
+                        {theme.name}
+                      </p>
                       <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{theme.description}</p>
                     </button>
                   ))}
@@ -359,19 +355,19 @@ export default function ProfileModal({
 
               {/* Preview Section */}
               <div className="xanga-box p-4">
-                <h3 className="xanga-title text-lg mb-3">Preview</h3>
-                <div className="flex items-start gap-4">
+                <h3 className="xanga-title text-base sm:text-lg mb-3">~ preview ~</h3>
+                <div className="flex items-start gap-3 sm:gap-4">
                   <Avatar src={avatarUrl} alt="Preview" size="lg" fallbackSeed={fallbackSeed} />
                   <div className="flex-1 min-w-0">
-                    <h4 className="xanga-title text-xl truncate">
-                      {displayName || '✨ New User ✨'}
+                    <h4 className="xanga-title text-lg sm:text-xl truncate">
+                      {displayName || '✨ new user ✨'}
                     </h4>
-                    <p className="text-xs mt-2 italic line-clamp-2" style={{ color: 'var(--text-muted)' }}>
-                      {bio || 'No bio yet...'}
+                    <p className="text-xs mt-1 italic line-clamp-2" style={{ color: 'var(--text-muted)' }}>
+                      {bio || 'no bio yet...'}
                     </p>
                     {currentMood && (
                       <p className="text-xs mt-1" style={{ color: 'var(--accent-primary)' }}>
-                        Mood: {currentMood}
+                        mood: {currentMood}
                       </p>
                     )}
                     {currentMusic && (
@@ -383,32 +379,42 @@ export default function ProfileModal({
                 </div>
               </div>
             </form>
+            </fieldset>
           </div>
 
           {/* Footer */}
           <div
-            className="p-4 border-t-2 border-dotted flex justify-end gap-3"
+            className="p-3 sm:p-4 border-t-2 border-dotted flex justify-end gap-2"
             style={{
               background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
               borderColor: 'var(--border-primary)',
             }}
           >
             {!isInitialSetup && (
-              <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>
-                Cancel
-              </Button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted"
+                style={{
+                  backgroundColor: 'var(--card-bg)',
+                  color: 'var(--text-body)',
+                  borderColor: 'var(--border-primary)',
+                  fontFamily: 'var(--title-font)',
+                }}
+              >
+                cancel
+              </button>
             )}
-            <Button
+            <button
               type="button"
-              variant="primary"
-              loading={saving}
               disabled={saving}
               onClick={handleSubmit}
-              className="flex items-center gap-2"
+              className="xanga-button flex items-center gap-2 text-sm"
             >
-              <Save size={16} />
-              {isInitialSetup ? "Let's Go!" : 'Save Changes'}
-            </Button>
+              <Save size={14} />
+              {saving ? 'saving...' : isInitialSetup ? "~ let's go! ~" : '~ save changes ~'}
+            </button>
           </div>
         </motion.div>
       </motion.div>

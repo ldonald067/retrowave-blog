@@ -104,16 +104,16 @@ export default function AvatarPicker({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Back button */}
       {onCancel && (
         <button
           type="button"
           onClick={onCancel}
-          className="flex items-center gap-1 text-sm text-gray-600 hover:text-pink-600 transition"
+          className="xanga-link flex items-center gap-1 text-xs"
         >
-          <ChevronLeft size={16} />
-          Back
+          <ChevronLeft size={14} />
+          ~ go back ~
         </button>
       )}
 
@@ -125,7 +125,8 @@ export default function AvatarPicker({
           animate={{ scale: 1, opacity: 1 }}
           src={currentSelection}
           alt="Selected avatar"
-          className="w-24 h-24 rounded-full border-4 border-pink-300 bg-white"
+          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4"
+          style={{ borderColor: 'var(--accent-primary)', backgroundColor: 'var(--card-bg)' }}
         />
         <div className="flex flex-col gap-2">
           <button
@@ -134,40 +135,52 @@ export default function AvatarPicker({
             className="xanga-button text-xs flex items-center gap-1"
           >
             <Shuffle size={12} />
-            Randomize
+            randomize!
           </button>
           <button
             type="button"
             onClick={() => onSelect(currentSelection)}
-            className="xanga-button text-xs flex items-center gap-1 bg-gradient-to-r from-pink-200 to-purple-200"
+            className="xanga-button text-xs flex items-center gap-1"
           >
             <Check size={12} />
-            Use This
+            ~ use this ~
           </button>
         </div>
       </div>
 
       {/* Category Filter */}
       <div>
-        <p className="text-xs font-semibold text-gray-700 mb-2">Category:</p>
-        <div className="flex flex-wrap gap-1 mb-3">
+        <p
+          className="text-xs font-bold mb-1"
+          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+        >
+          category:
+        </p>
+        <div className="flex flex-wrap gap-1 mb-2">
           {STYLE_CATEGORIES.map((cat) => (
             <button
               key={cat.id}
               type="button"
               onClick={() => {
                 setSelectedCategory(cat.id);
-                // Auto-select first style in category
                 const firstInCategory = cat.id === 'all'
                   ? AVATAR_STYLES[0]
                   : AVATAR_STYLES.find(s => s.category === cat.id);
                 if (firstInCategory) setSelectedStyle(firstInCategory.id);
               }}
-              className={`px-2 py-1 text-xs rounded-full border transition ${
-                selectedCategory === cat.id
-                  ? 'bg-purple-200 border-purple-400 text-purple-800 font-semibold'
-                  : 'bg-white border-gray-300 text-gray-600 hover:border-purple-300'
-              }`}
+              className="px-2 py-1 text-xs rounded-lg border-2 border-dotted transition font-bold"
+              style={{
+                backgroundColor: selectedCategory === cat.id
+                  ? 'color-mix(in srgb, var(--accent-primary) 20%, var(--card-bg))'
+                  : 'var(--card-bg)',
+                borderColor: selectedCategory === cat.id
+                  ? 'var(--accent-primary)'
+                  : 'var(--border-primary)',
+                color: selectedCategory === cat.id
+                  ? 'var(--accent-primary)'
+                  : 'var(--text-body)',
+                fontFamily: 'var(--title-font)',
+              }}
             >
               {cat.name}
             </button>
@@ -177,18 +190,31 @@ export default function AvatarPicker({
 
       {/* Style Selector */}
       <div>
-        <p className="text-xs font-semibold text-gray-700 mb-2">Choose a style:</p>
+        <p
+          className="text-xs font-bold mb-1"
+          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+        >
+          choose a style:
+        </p>
         <div className="flex flex-wrap gap-1">
           {filteredStyles.map((style) => (
             <button
               key={style.id}
               type="button"
               onClick={() => setSelectedStyle(style.id)}
-              className={`px-2 py-1 text-xs rounded-full border transition ${
-                selectedStyle === style.id
-                  ? 'bg-pink-200 border-pink-400 text-pink-800 font-semibold'
-                  : 'bg-white border-gray-300 text-gray-600 hover:border-pink-300'
-              }`}
+              className="px-2 py-1 text-xs rounded-lg border-2 border-dotted transition"
+              style={{
+                backgroundColor: selectedStyle === style.id
+                  ? 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))'
+                  : 'var(--card-bg)',
+                borderColor: selectedStyle === style.id
+                  ? 'var(--accent-secondary)'
+                  : 'var(--border-primary)',
+                color: selectedStyle === style.id
+                  ? 'var(--accent-secondary)'
+                  : 'var(--text-body)',
+                fontFamily: 'var(--title-font)',
+              }}
             >
               {style.name}
             </button>
@@ -196,10 +222,15 @@ export default function AvatarPicker({
         </div>
       </div>
 
-      {/* Avatar Grid */}
+      {/* Avatar Grid — responsive: 4 cols on mobile, 5 on larger */}
       <div>
-        <p className="text-xs font-semibold text-gray-700 mb-2">Pick your avatar:</p>
-        <div className="grid grid-cols-5 gap-2 max-h-40 overflow-y-auto p-1">
+        <p
+          className="text-xs font-bold mb-1"
+          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+        >
+          pick ur avatar:
+        </p>
+        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-40 overflow-y-auto p-1">
           {AVATAR_SEEDS.slice(0, 20).map((seed) => {
             const url = generateAvatarUrl(selectedStyle, seed);
             const selected = selectedSeed === seed;
@@ -210,15 +241,24 @@ export default function AvatarPicker({
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSelectedSeed(seed)}
-                className={`relative p-1 rounded-full transition ${
-                  selected
-                    ? 'ring-2 ring-pink-400 ring-offset-2'
-                    : 'hover:ring-2 hover:ring-pink-200'
-                }`}
+                className="relative p-1 rounded-full transition"
+                style={{
+                  outline: selected ? '2px solid var(--accent-primary)' : undefined,
+                  outlineOffset: '2px',
+                }}
               >
-                <img src={url} alt={seed} className="w-10 h-10 rounded-full bg-white" />
+                <img
+                  src={url}
+                  alt={seed}
+                  loading="lazy"
+                  className="w-10 h-10 rounded-full"
+                  style={{ backgroundColor: 'var(--card-bg)' }}
+                />
                 {selected && (
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-pink-500 rounded-full flex items-center justify-center">
+                  <div
+                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
+                    style={{ backgroundColor: 'var(--accent-primary)' }}
+                  >
                     <Check size={10} className="text-white" />
                   </div>
                 )}
@@ -228,19 +268,29 @@ export default function AvatarPicker({
         </div>
       </div>
 
-      {/* Custom seed input for personalization */}
+      {/* Custom seed input */}
       <div>
-        <p className="text-xs font-semibold text-gray-700 mb-1">Or type a custom word:</p>
+        <p
+          className="text-xs font-bold mb-1"
+          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+        >
+          or type a custom word:
+        </p>
         <input
           type="text"
           value={selectedSeed}
           onChange={(e) => setSelectedSeed(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
           placeholder="your-custom-seed"
           maxLength={20}
-          className="w-full px-3 py-2 text-sm border-2 border-pink-200 rounded-lg focus:outline-none focus:border-pink-400"
+          className="w-full px-3 py-2 text-sm border-2 border-dotted rounded-lg focus:outline-none"
+          style={{
+            backgroundColor: 'var(--card-bg)',
+            borderColor: 'var(--border-primary)',
+            color: 'var(--text-body)',
+          }}
         />
-        <p className="text-xs text-gray-400 mt-1">
-          Same word = same avatar. Make it unique to you!
+        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+          same word = same avatar. make it unique 2 u!
         </p>
       </div>
     </div>

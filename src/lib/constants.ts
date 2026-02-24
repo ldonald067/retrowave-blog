@@ -9,19 +9,21 @@ export const CURRENT_YEAR = new Date().getFullYear();
 export const MIN_BIRTH_YEAR = 1900;
 export const MAX_AGE = 100;
 
-// Validation Rules
+// Validation Rules — derived from PROFILE_LIMITS in validation.ts (single source of truth)
+import { PROFILE_LIMITS } from './validation';
+
 export const VALIDATION = {
   displayName: {
-    maxLength: 50,
+    maxLength: PROFILE_LIMITS.display_name.max,
     minLength: 1,
   },
   bio: {
-    maxLength: 500,
+    maxLength: PROFILE_LIMITS.bio.max,
   },
   email: {
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   },
-} as const;
+};
 
 // Error Messages
 export const ERROR_MESSAGES = {
@@ -63,17 +65,6 @@ export const UI = {
   toast: {
     duration: 3000, // milliseconds
   },
-  animation: {
-    swipeThreshold: 50, // pixels
-    slideDistance: 300, // pixels
-  },
-} as const;
-
-// Routes (if needed later)
-export const ROUTES = {
-  home: '/',
-  profile: '/profile',
-  post: '/post',
 } as const;
 
 // Mood options for posts - Xanga/LiveJournal style!

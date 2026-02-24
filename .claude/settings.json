@@ -1,0 +1,23 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hook": "npx prettier --write $CLAUDE_FILE_PATH",
+        "description": "Auto-format edited files with Prettier"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hook": "node -e \"const f = process.env.CLAUDE_FILE_PATH || ''; if (f.includes('.env')) { console.log('BLOCK: Do not edit .env files - they contain API keys'); process.exit(2); }\"",
+        "description": "Block edits to .env files (contain Supabase API keys)"
+      },
+      {
+        "matcher": "Edit|Write",
+        "hook": "node -e \"const f = process.env.CLAUDE_FILE_PATH || ''; if (f.match(/package-lock\\.json|pnpm-lock\\.yaml|yarn\\.lock/)) { console.log('BLOCK: Do not edit lock files directly'); process.exit(2); }\"",
+        "description": "Block direct edits to lock files"
+      }
+    ]
+  }
+}

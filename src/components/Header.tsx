@@ -1,7 +1,10 @@
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { PenLine, Home, User, Star, LogIn } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
+
+const STATUS_KEY = 'xanga-status';
 
 interface HeaderProps {
   onNewPost: () => void;
@@ -20,6 +23,34 @@ export default function Header({
   onAuthClick,
   onProfileClick,
 }: HeaderProps) {
+  const [status, setStatus] = useState(() => localStorage.getItem(STATUS_KEY) || '');
+  const [editingStatus, setEditingStatus] = useState(false);
+  const [draftStatus, setDraftStatus] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingStatus && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editingStatus]);
+
+  const startEditing = () => {
+    if (!user) return;
+    setDraftStatus(status);
+    setEditingStatus(true);
+  };
+
+  const saveStatus = () => {
+    const trimmed = draftStatus.trim();
+    setStatus(trimmed);
+    localStorage.setItem(STATUS_KEY, trimmed);
+    setEditingStatus(false);
+  };
+
+  const cancelEdit = () => {
+    setEditingStatus(false);
+  };
+
   return (
     <motion.header
       initial={{ y: -50, opacity: 0 }}
@@ -30,6 +61,13 @@ export default function Header({
         borderColor: 'var(--border-primary)',
       }}
     >
+      {/* Marquee Banner */}
+      <div className="marquee-banner" role="marquee" aria-live="off">
+        <div className="marquee-banner-inner" style={{ color: 'var(--text-subtitle)', fontSize: '10px' }}>
+          ~ welcome to my xanga ~ ✨ ~ thanks 4 stopping by ~ ♥ ~ have a gr8 day ~ ☆ ~ xoxo ~ ✨ ~
+        </div>
+      </div>
+
       {/* Top banner - very Xanga */}
       <div
         className="py-2 px-4"
@@ -74,18 +112,62 @@ export default function Header({
         </div>
       </div>
 
+      {/* AIM-style Status */}
+      {user && (
+        <div
+          className="py-1 px-4 border-b"
+          style={{
+            borderColor: 'color-mix(in srgb, var(--border-primary) 50%, transparent)',
+            background: 'color-mix(in srgb, var(--header-gradient-via) 30%, transparent)',
+          }}
+        >
+          <div className="max-w-7xl mx-auto flex items-center gap-2">
+            <span style={{ fontSize: '11px' }}>📟</span>
+            <span className="aim-status font-bold" style={{ color: 'var(--text-muted)', fontStyle: 'normal' }}>status:</span>
+            {editingStatus ? (
+              <input
+                ref={inputRef}
+                className="aim-status-edit"
+                value={draftStatus}
+                onChange={(e) => setDraftStatus(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveStatus();
+                  if (e.key === 'Escape') cancelEdit();
+                }}
+                onBlur={saveStatus}
+                maxLength={100}
+                placeholder="what's on ur mind..."
+              />
+            ) : (
+              <button
+                onClick={startEditing}
+                className="aim-status truncate max-w-[200px] sm:max-w-[400px]"
+                title="Click to edit your status"
+                aria-label="Edit your status"
+              >
+                {status ? `~ ${status} ~` : '~ set your status ~'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Main header */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
+      <div className="max-w-7xl mx-auto px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between">
           {/* Site title */}
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex-1">
-            <h1 className="xanga-title text-3xl mb-1">✨ My Journal ✨</h1>
+            <h1 className="xanga-title text-2xl sm:text-3xl mb-1">✨ My Journal ✨</h1>
             <p className="xanga-subtitle">~ where my thoughts come alive ~</p>
           </motion.div>
 
           {/* Navigation */}
-          <nav className="flex items-center gap-2">
-            <button className="xanga-button flex items-center gap-1">
+          <nav className="flex items-center gap-1 sm:gap-2">
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="xanga-button flex items-center gap-1"
+              aria-label="Scroll to top"
+            >
               <Home size={14} />
               <span className="hidden sm:inline">Home</span>
             </button>

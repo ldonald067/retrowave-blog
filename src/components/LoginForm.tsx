@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
-import { Input, Button, Card } from './ui';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -52,71 +50,93 @@ export default function LoginForm() {
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Input
-          type="email"
-          label="Email Address"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          icon={<Mail size={20} />}
-          required
-          autoFocus
-        />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            className="block text-xs font-bold mb-1"
+            style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+          >
+            ur email address:
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            autoFocus
+            className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              borderColor: 'var(--border-primary)',
+              color: 'var(--text-body)',
+            }}
+          />
+        </div>
 
         {mode === 'password' && (
-          <Input
-            type="password"
-            label="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
-            icon={<Lock size={20} />}
-            required
-          />
+          <div>
+            <label
+              className="block text-xs font-bold mb-1"
+              style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+            >
+              ur password:
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="shhh it's a secret..."
+              required
+              className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition"
+              style={{
+                backgroundColor: 'var(--card-bg)',
+                borderColor: 'var(--border-primary)',
+                color: 'var(--text-body)',
+              }}
+            />
+          </div>
         )}
 
         {mode === 'password' ? (
-          <Card variant="info">
-            <p className="text-sm">
-              🔑 Sign in with your email and password.
+          <div className="xanga-box p-3">
+            <p className="text-xs" style={{ color: 'var(--text-body)' }}>
+              🔑 sign in with ur email & password
             </p>
             <button
               type="button"
               onClick={() => setMode('magic')}
-              className="text-xs text-blue-600 mt-1 hover:underline"
+              className="xanga-link text-xs mt-1"
             >
-              Use magic link instead
+              ~ or use a magic link ~
             </button>
-          </Card>
+          </div>
         ) : (
-          <Card variant="info">
-            <p className="text-sm mb-2">
-              <strong>How it works:</strong>
-            </p>
-            <p className="text-xs opacity-90">
-              We'll email you a magic link. Click it and you'll be automatically signed in.
+          <div className="xanga-box p-3">
+            <p className="text-xs mb-1" style={{ color: 'var(--text-body)' }}>
+              💌 we'll email u a magic link - just click it 2 sign in!
             </p>
             <button
               type="button"
               onClick={() => setMode('password')}
-              className="text-xs text-blue-600 mt-1 hover:underline"
+              className="xanga-link text-xs mt-1"
             >
-              Use password instead
+              ~ or use a password ~
             </button>
-          </Card>
+          </div>
         )}
 
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          size="lg"
-          fullWidth
           disabled={isSubmitting}
-          loading={isSubmitting}
+          className="xanga-button w-full py-2.5 text-sm"
         >
-          {mode === 'password' ? 'Sign In' : 'Send Magic Link'}
-        </Button>
+          {isSubmitting
+            ? 'sending...'
+            : mode === 'password'
+              ? '~ sign in ~'
+              : '~ send magic link ~'}
+        </button>
       </form>
     </motion.div>
   );

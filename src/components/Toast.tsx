@@ -1,6 +1,5 @@
 import { useEffect, type ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, AlertCircle, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 import type { ToastType } from '../hooks/useToast';
 
 interface ToastProps {
@@ -8,9 +7,10 @@ interface ToastProps {
   type?: ToastType;
   onClose: () => void;
   duration?: number;
+  index?: number;
 }
 
-export default function Toast({ message, type = 'success', onClose, duration = 3000 }: ToastProps) {
+export default function Toast({ message, type = 'success', onClose, duration = 3000, index = 0 }: ToastProps) {
   useEffect(() => {
     if (duration > 0) {
       const timer = setTimeout(() => {
@@ -22,43 +22,51 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
   }, [duration, onClose]);
 
   const icons: Record<ToastType, ReactNode> = {
-    success: <CheckCircle size={20} />,
-    error: <XCircle size={20} />,
-    info: <AlertCircle size={20} />,
-  };
-
-  const colors: Record<ToastType, string> = {
-    success: 'from-green-500 to-emerald-500',
-    error: 'from-red-500 to-rose-500',
-    info: 'from-[#00ffff] to-[#ff00ff]',
+    success: <span>✅</span>,
+    error: <span>❌</span>,
+    info: <span>✨</span>,
   };
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0, y: -50, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -50, scale: 0.9 }}
-        className="fixed top-4 right-4 z-[100] max-w-md"
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: -50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -50, scale: 0.9 }}
+      className="fixed right-4 left-4 sm:left-auto z-[100] max-w-md"
+      style={{ top: `${1 + index * 4.5}rem` }}
+    >
+      <div
+        role="alert"
+        aria-live={type === 'error' ? 'assertive' : 'polite'}
+        className="xanga-box flex items-center justify-between gap-3 px-4 py-3"
+        style={{
+          borderColor:
+            type === 'error'
+              ? 'var(--accent-secondary)'
+              : type === 'success'
+                ? 'var(--accent-primary)'
+                : 'var(--border-primary)',
+        }}
       >
-        <div
-          role="alert"
-          aria-live={type === 'error' ? 'assertive' : 'polite'}
-          className={`flex items-center justify-between gap-3 px-4 py-3 bg-gradient-to-r ${colors[type]} rounded-lg shadow-[0_0_20px_rgba(255,0,255,0.5)] backdrop-blur-sm`}
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-white">{icons[type]}</span>
-            <p className="text-white font-medium">{message}</p>
-          </div>
-          <button
-            onClick={onClose}
-            aria-label="Close notification"
-            className="text-white hover:bg-white/20 rounded p-1 transition-colors"
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-base flex-shrink-0">{icons[type]}</span>
+          <p
+            className="text-sm font-bold truncate"
+            style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
           >
-            <X size={18} />
-          </button>
+            {message}
+          </p>
         </div>
-      </motion.div>
-    </AnimatePresence>
+        <button
+          onClick={onClose}
+          aria-label="Close notification"
+          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded transition-colors hover:opacity-70 flex-shrink-0"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          ✕
+        </button>
+      </div>
+    </motion.div>
   );
 }

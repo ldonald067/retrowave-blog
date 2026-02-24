@@ -119,7 +119,9 @@ const ADULT_URL_KEYWORDS = [
   'fetish',
   'bdsm',
   'milf',
-  'teen', // Often used in adult context
+  // L11 FIX: Removed 'teen' and 'gay' — extremely high false-positive rate
+  // for legitimate content (e.g., "teenager", "gay rights", "teen vogue").
+  // These terms in URLs are caught by the domain blocklist when actually adult.
   'fuck',
   'pussy',
   'cock',
@@ -133,8 +135,6 @@ const ADULT_URL_KEYWORDS = [
   'cumshot',
   'gangbang',
   'threesome',
-  'lesbian',
-  'gay', // In adult context URLs
   'orgasm',
   'masturbat',
   'dildo',
@@ -286,39 +286,77 @@ export function quickContentCheck(text: string): ModerationResult {
 }
 
 /**
- * Full moderation check using Supabase Edge Function
- * This calls an AI API to analyze content for context
+ * Full moderation check using Supabase Edge Function.
+ * Requires the caller to supply a function that resolves the user's JWT
+ * so the edge function can authenticate the request.
+ *
+ * C4 FIX: Now accepts embedded_links and forwards them to the edge function
+ * for server-side URL validation. Previously URL checking was client-only
+ * and could be bypassed by calling the REST API directly.
+ *
+ * @param title - Post title
+ * @param content - Post body
+ * @param embeddedLinks - Array of link preview objects (optional)
+ * @param supabaseUrl - VITE_SUPABASE_URL
+ * @param getAuthToken - async fn returning the user's JWT, or null
  */
 export async function moderateContent(
   title: string,
   content: string,
-  supabaseUrl: string
+  embeddedLinks: Array<{ url: string }> | null | undefined,
+  supabaseUrl: string,
+  getAuthToken: () => Promise<string | null>,
 ): Promise<ModerationResult> {
-  // First, do a quick local check
+  // First, do a quick local check (text patterns + client-side URL check)
   const quickCheck = quickContentCheck(`${title} ${content}`);
   if (!quickCheck.allowed) {
     return quickCheck;
   }
 
-  // For warning-level content or longer posts, use AI moderation
-  const needsAIReview = quickCheck.severity === 'warning' || content.length > 500;
-
-  if (!needsAIReview) {
-    return { allowed: true, severity: 'clean' };
+  // Also check embedded link URLs locally for immediate feedback
+  if (embeddedLinks) {
+    for (const link of embeddedLinks) {
+      if (link.url) {
+        const urlResult = checkUrls(link.url);
+        if (!urlResult.allowed) return urlResult;
+      }
+    }
   }
 
+  // M5 FIX: Always send to AI moderation regardless of content length.
+  // The previous 500-char threshold allowed short harmful content that
+  // evaded regex patterns to skip AI review entirely. OpenAI's moderation
+  // endpoint is free, so there's no cost concern.
+
   try {
-    // Call Supabase Edge Function for AI moderation
+    const token = await getAuthToken();
+    if (!token) {
+      // No authenticated user — skip AI moderation, local check already passed
+      console.warn('No auth token available for moderation; skipping AI check');
+      return { allowed: true, severity: 'clean' };
+    }
+
     const response = await fetch(`${supabaseUrl}/functions/v1/moderate-content`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ title, content }),
+      // C4 FIX: Pass embedded_links for server-side URL validation
+      body: JSON.stringify({
+        title,
+        content,
+        embedded_links: embeddedLinks ?? undefined,
+      }),
     });
 
     if (!response.ok) {
-      // If moderation service is down, fall back to allowing with local check
+      // L3 DESIGN NOTE: Intentional fail-open. If the moderation service is
+      // unavailable, we allow the post through because the local regex check
+      // already passed. This prevents the moderation service from becoming a
+      // single point of failure that blocks all posts. The trade-off is that
+      // subtle harmful content may slip through during outages, but blocking
+      // all posting is worse for UX. See also: edge function index.ts.
       console.warn('Moderation service unavailable, using local check only');
       return { allowed: true, severity: 'clean' };
     }
@@ -326,24 +364,13 @@ export async function moderateContent(
     const result = await response.json();
     return result as ModerationResult;
   } catch (error) {
-    // Network error - fall back to local check
+    // L3 DESIGN NOTE: Same fail-open reasoning as above — network errors,
+    // timeouts, etc. don't block post creation. Local checks still apply.
     console.warn('Moderation check failed:', error);
     return { allowed: true, severity: 'clean' };
   }
 }
 
-/**
- * Sanitize content by removing potentially harmful HTML/scripts
- * (Additional layer of protection)
- */
-export function sanitizeContent(text: string): string {
-  return text
-    // Remove script tags
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove onclick and other event handlers
-    .replace(/\bon\w+\s*=\s*["'][^"']*["']/gi, '')
-    // Remove javascript: URLs
-    .replace(/javascript:/gi, '')
-    // Remove data: URLs that could be harmful
-    .replace(/data:text\/html/gi, '');
-}
+// F5 FIX: sanitizeContent() was dead code — never called anywhere.
+// The render-time sanitization via rehype-sanitize + DOMPurify is the
+// correct approach and is already wired into PostCard.tsx. Removed.

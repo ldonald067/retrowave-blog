@@ -17,35 +17,49 @@ export default function Input({
   const generatedId = useId();
   const inputId = externalId || generatedId;
 
-  const baseStyles =
-    'w-full px-4 py-3 bg-white border rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition shadow-sm';
-  const errorStyles = error
-    ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-    : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200';
-  const iconPadding = icon ? 'pl-12' : '';
+  const iconPadding = icon ? 'pl-10' : '';
 
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 mb-2">
+        <label
+          htmlFor={inputId}
+          className="block text-xs font-bold mb-1"
+          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+        >
           {label}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">{icon}</div>
+          <div
+            className="absolute left-3 top-1/2 -translate-y-1/2"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            {icon}
+          </div>
         )}
         <input
           id={inputId}
-          className={`${baseStyles} ${errorStyles} ${iconPadding} ${className}`}
+          className={`w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition focus:outline-none ${iconPadding} ${className}`}
+          style={{
+            backgroundColor: 'var(--input-bg, var(--card-bg))',
+            borderColor: error ? 'var(--accent-secondary)' : 'var(--input-border, var(--border-primary))',
+            color: 'var(--text-body)',
+          }}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${inputId}-error` : undefined}
           {...props}
         />
       </div>
       {error && (
-        <p id={`${inputId}-error`} className="mt-2 text-sm text-red-600" role="alert">
-          {error}
+        <p
+          id={`${inputId}-error`}
+          className="mt-1 text-xs font-bold"
+          style={{ color: 'var(--accent-secondary)' }}
+          role="alert"
+        >
+          ❌ {error}
         </p>
       )}
     </div>
