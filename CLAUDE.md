@@ -82,6 +82,16 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 
 | ID | Status | Owner | Item | Context | Notes | Added By |
 |----|--------|-------|------|---------|-------|----------|
+| Q6 | open | frontend | Verify `BLOG_OWNER_EMAIL` value is correct | Session 9 added `retrowave.blog.app@gmail.com` in `constants.ts` — used in PostCard report link, terms.html, privacy.html | backend: confirm or change the email before shipping | backend |
+| Q7 | open | frontend | Replace SVG placeholder icons with real PNG app icons | `public/icon-192.svg`, `icon-512.svg`, `apple-touch-icon.svg` are pink-heart SVG placeholders — App Store requires real PNG assets | backend: created SVGs as scaffolding; PNGs needed for `manifest.json` and iOS submission | backend |
+| Q8 | open | frontend | Review `terms.html` and `privacy.html` content for accuracy | Static pages in `public/` — generic legal text written by AI, not lawyer-reviewed | backend: created as App Store requirement (Apple Guideline 5.1.1); user should review before launch | backend |
+| Q9 | open | frontend | Test Capacitor iOS build on macOS with Xcode | `capacitor.config.ts` + `ios/` directory scaffolded but never built | backend: ran `npx cap add ios` only; needs `npm run build && npx cap sync && npx cap open ios` on a Mac | backend |
+| Q10 | open | frontend | Audit: `useReactions` no longer exports `loading` — verify no consumers relied on it | Removed `loading` state from `useReactions.ts` return (dead code — optimistic updates made it unnecessary) | backend: grep confirmed zero imports of `loading` from useReactions before removal | backend |
+| Q11 | open | frontend | Audit: `excerpt` field removed from `Post`, `CreatePostInput`, and `database.ts` types | `excerpt` was dead — never populated by RPC, never rendered in UI | backend: if any new code references `post.excerpt`, it will get a TS error (intentional) | backend |
+| Q12 | open | frontend | Audit: `viewMode` prop removed from `PostCard` interface | Was always passed as `"list"` and never used inside the component | backend: removed from PostCardProps and App.tsx usage | backend |
+| Q13 | open | frontend | Audit: deleted `src/types/supabase.ts` — `SupabaseConfig` and `DatabaseError` types gone | Zero imports found; re-export from `types/index.ts` also removed | backend: if either type is needed, recreate in `types/supabase.ts` | backend |
+| Q14 | open | frontend | Verify iOS safe-area padding renders correctly on iPhone with notch | Added `modal-footer-safe` class (PostModal + ProfileModal footers) and `safe-area-bottom` utility in `index.css` using `env(safe-area-inset-bottom)` | backend: needs physical iPhone or Xcode simulator to confirm padding | backend |
+| Q15 | open | frontend | Verify iOS Safari input zoom prevention works | Added `font-size: 16px !important` to inputs/textareas/selects at `@media (max-width: 480px)` in `index.css` | backend: iOS Safari zooms viewport when focused input has font-size < 16px; this override should prevent it | backend |
 
 **Queue Protocol:**
 
