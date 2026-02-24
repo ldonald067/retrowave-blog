@@ -18,15 +18,15 @@ export interface Post {
   created_at: string;
   updated_at: string;
 
-  // From get_posts_with_reactions RPC view
-  // L8 FIX: Removed deprecated display_name/avatar_url aliases —
-  // only profile_display_name/profile_avatar_url are used.
+  // From get_posts_with_reactions RPC
   profile_display_name?: string | null;
   profile_avatar_url?: string | null;
-  like_count?: number | null;
-  user_has_liked?: boolean | null;
 
-  // Emoji reactions (populated client-side or from view)
+  // M2: true when feed returns truncated content (> 500 chars).
+  // PostModal uses this to fetch full content for view/edit modes.
+  content_truncated?: boolean;
+
+  // Emoji reactions (from RPC or optimistic update)
   reactions?: Record<string, number>;
   user_reactions?: string[];
 }

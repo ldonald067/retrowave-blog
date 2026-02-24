@@ -180,6 +180,7 @@ function App() {
     loadMoreError,
     refetch,
     applyOptimisticReaction,
+    fetchPost,
   } = usePosts();
   const { toasts, hideToast, success, error: showError } = useToast();
   // T4: Pass optimistic update handler to useReactions
@@ -506,6 +507,7 @@ function App() {
             mode={modalMode}
             onSave={handleSavePost}
             onClose={() => setShowModal(false)}
+            fetchFullPost={fetchPost}
           />
         </Suspense>
       )}

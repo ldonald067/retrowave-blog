@@ -156,40 +156,7 @@ export interface Database {
           },
         ];
       };
-      post_likes: {
-        Row: {
-          id: string;
-          post_id: string;
-          user_id: string;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          post_id: string;
-          user_id: string;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          post_id?: string;
-          user_id?: string;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'post_likes_post_id_fkey';
-            columns: ['post_id'];
-            referencedRelation: 'posts';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'post_likes_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'users';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
+      // M1: post_likes table retired — likes merged into post_reactions.
     };
     // H3 FIX: posts_with_details view removed — no migration ever created it.
     // It was a ghost type from a prior architecture superseded by the
@@ -227,8 +194,34 @@ export interface Database {
           updated_at: string;
           profile_display_name: string | null;
           profile_avatar_url: string | null;
-          like_count: number;
-          user_has_liked: boolean;
+          content_truncated: boolean;
+          reactions: Record<string, number>;
+          user_reactions: string[];
+        }>;
+      };
+      // M2: Single-post RPC — returns full content for view/edit modes.
+      get_post_by_id: {
+        Args: {
+          p_post_id: string;
+          p_user_id: string | null;
+        };
+        Returns: Array<{
+          id: string;
+          user_id: string;
+          title: string;
+          content: string;
+          author: string;
+          excerpt: string;
+          mood: string | null;
+          music: string | null;
+          embedded_links: Json | null;
+          has_media: boolean;
+          is_private: boolean;
+          created_at: string;
+          updated_at: string;
+          profile_display_name: string | null;
+          profile_avatar_url: string | null;
+          content_truncated: boolean;
           reactions: Record<string, number>;
           user_reactions: string[];
         }>;

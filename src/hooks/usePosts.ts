@@ -44,6 +44,8 @@ export interface UsePostsReturn {
     userId: string,
     wasActive: boolean,
   ) => void;
+  /** M2: Fetch a single post with full content (for view/edit modes). */
+  fetchPost: (postId: string) => Promise<Post | null>;
 }
 
 export function usePosts(): UsePostsReturn {
@@ -256,15 +258,14 @@ export function usePosts(): UsePostsReturn {
         if (postData) {
           postsCache.invalidateAll();
           // F1 FIX: The direct .insert().select() response lacks the joined
-          // fields that get_posts_with_reactions returns (profile info, reactions,
-          // likes). Fill in defaults so PostCard renders correctly until the next
+          // fields that get_posts_with_reactions returns (profile info, reactions).
+          // Fill in defaults so PostCard renders correctly until the next
           // full refetch pulls the RPC-enriched data.
           const enrichedPost: Post = {
             ...postData,
             reactions: {},
             user_reactions: [],
-            like_count: 0,
-            user_has_liked: false,
+            content_truncated: false,
             profile_display_name: null,
             profile_avatar_url: null,
           };
@@ -322,8 +323,13 @@ export function usePosts(): UsePostsReturn {
 
         if (postData) {
           postsCache.invalidateAll();
+          // After editing, the local post has full content — not truncated
           setPosts((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, ...postData } : p)),
+            prev.map((p) =>
+              p.id === id
+                ? { ...p, ...postData, content_truncated: false }
+                : p,
+            ),
           );
         }
         return { data: postData, error: null };
@@ -362,6 +368,40 @@ export function usePosts(): UsePostsReturn {
     [],
   );
 
+  // ── M2: fetchPost (single post with full content) ──────────────────────
+  const fetchPost = useCallback(
+    async (postId: string): Promise<Post | null> => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const userId = session?.user?.id ?? null;
+
+        const { data, error: rpcError } = await withRetry(async () =>
+          supabase.rpc('get_post_by_id', {
+            p_post_id: postId,
+            p_user_id: userId,
+          }),
+        );
+
+        if (rpcError) throw rpcError;
+
+        const rows = (data as Post[]) ?? [];
+        if (rows.length === 0) return null;
+
+        const post = rows[0]!;
+        return {
+          ...post,
+          reactions: (post.reactions as Record<string, number>) ?? {},
+          user_reactions: (post.user_reactions as string[]) ?? [],
+        };
+      } catch {
+        return null;
+      }
+    },
+    [],
+  );
+
   return {
     posts,
     loading,
@@ -375,5 +415,6 @@ export function usePosts(): UsePostsReturn {
     loadMore,
     refetch,
     applyOptimisticReaction,
+    fetchPost,
   };
 }

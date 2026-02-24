@@ -41,7 +41,7 @@ This file is the shared interface between **two independent Claude agents** — 
 |------|------------------|-----------------|-------|
 | Post field limits | `src/lib/validation.ts` `POST_LIMITS` | `20260223000001_post_constraints.sql` CHECK constraints | **Must match exactly** (verified 2026-02-24) |
 | Profile field limits | `src/lib/validation.ts` `PROFILE_LIMITS` | `20260224000004_add_data_constraints.sql` CHECK constraints | **Must match exactly** (verified 2026-02-24) |
-| RPC params/return | `src/types/database.ts` `Functions` | `20260223000002_get_posts_rpc.sql` | Frontend types must mirror SQL return shape |
+| RPC params/return | `src/types/database.ts` `Functions` | `20260224000009_retire_likes_excerpt_feed.sql` | Frontend types must mirror SQL return shape. Feed returns truncated content (500 chars); `get_post_by_id` returns full content. |
 | `ModerationResult` | `src/lib/moderation.ts` (severity required) | `supabase/functions/moderate-content/index.ts` (severity required) | Both require `severity`. Types duplicated (Deno can't share with Vite). |
 | Profile fields | `src/types/profile.ts` | `profiles` table columns | Adding a profile field requires both a migration AND a type update |
 | Reaction emoji set | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS` | `20260224000004_add_data_constraints.sql` CHECK constraint | Canonical set: `['❤️', '🔥', '😂', '😢', '✨', '👀']`. **Must match exactly** |
@@ -290,7 +290,9 @@ Posts use **cursor-based pagination** via the `get_posts_with_reactions` RPC fun
 - Next page: `p_cursor = posts[posts.length - 1].created_at`
 - Max page size capped at 100 in the SQL function
 
-The `usePosts` hook exposes: `loadMore()`, `loadingMore`, `hasMore`.
+The `usePosts` hook exposes: `loadMore()`, `loadingMore`, `hasMore`, `fetchPost()`.
+
+**M2 Excerpt-only feed**: The feed RPC returns `LEFT(content, 500)` instead of full content, plus a `content_truncated` boolean. PostCard still truncates to 300 chars client-side for display. When a user opens a post in view or edit mode, `PostModal` calls `fetchPost(id)` → `get_post_by_id` RPC to get the full content. If the fetch fails in edit mode, it falls back to the truncated content to prevent data loss.
 
 ### Optimistic Updates (Reactions)
 
@@ -349,23 +351,37 @@ moderateContent(title, content, embeddedLinks, supabaseUrl, async () => {
 
 ### RPC Function: `get_posts_with_reactions`
 
-Single SQL query that replaces the old N+1 waterfall (posts query + reactions query per post). Returns:
+Feed RPC — returns paginated posts with reactions pre-aggregated. Returns:
 
-- All post fields
+- Post fields (content **truncated to 500 chars** via `LEFT(p.content, 500)`)
+- `content_truncated` (boolean — `true` when original content exceeds 500 chars)
 - `profile_display_name`, `profile_avatar_url` (from joined profiles)
-- `like_count` (aggregate from post_likes)
-- `user_has_liked` (boolean, requires p_user_id)
 - `reactions` (jsonb object like `{"heart": 3, "fire": 1}`)
-- `user_reactions` (jsonb array like `["heart"]`, requires p_user_id)
+- `user_reactions` (jsonb array like `["heart"]`, requires authenticated caller)
+
+**M1**: `like_count`/`user_has_liked` removed — `post_likes` table retired in migration 009.
 
 Calling convention:
 ```typescript
 supabase.rpc('get_posts_with_reactions', {
   p_cursor: cursor,   // timestamptz | null
   p_limit: 20,        // integer (max 100)
-  p_user_id: userId,  // uuid | null
+  p_user_id: userId,  // uuid | null (IGNORED — uses auth.uid() internally)
 })
 ```
+
+### RPC Function: `get_post_by_id`
+
+Single-post RPC — returns **full content** for view/edit modes. Same return shape as `get_posts_with_reactions` (reuses `get_posts_result` composite type), but with `content_truncated = false`.
+
+```typescript
+supabase.rpc('get_post_by_id', {
+  p_post_id: postId,  // uuid
+  p_user_id: userId,  // uuid | null (IGNORED — uses auth.uid() internally)
+})
+```
+
+Returns a single-element array (or empty array if post not found / not accessible).
 
 ### RPC Function: `set_age_verification`
 
@@ -431,6 +447,7 @@ Run in order by filename. Key migrations:
 | `20260224000006_protect_is_admin.sql` | **L6 fix**: `BEFORE UPDATE` trigger prevents `is_admin` self-elevation via API |
 | `20260224000007_protect_coppa_fields.sql` | **C2 fix**: `BEFORE UPDATE` trigger prevents self-setting `age_verified`/`tos_accepted`/`birth_year`; `set_age_verification` SECURITY DEFINER RPC for legitimate updates |
 | `20260224000008_schema_hardening.sql` | **H1+H2+H4+L1+L3 fix**: NULL email fallback in `handle_new_user`, `avatar_url` constraint, drop `tos_accepted_at`, `search_path` on `protect_is_admin`, username min length |
+| `20260224000009_retire_likes_excerpt_feed.sql` | **M1+M2**: Drop `post_likes` table + likes subqueries from RPC. Feed returns `LEFT(content, 500)` + `content_truncated`. New `get_post_by_id` RPC for full content. |
 
 ## Development Notes
 
@@ -584,9 +601,10 @@ Comprehensive audit completed 2026-02-23. **All 30 findings resolved** (C1-C4, H
 | `20260224000006_protect_is_admin.sql` | L6: Trigger prevents self-elevation |
 | `20260224000007_protect_coppa_fields.sql` | Backend scan C2: COPPA field trigger + `set_age_verification` RPC |
 | `20260224000008_schema_hardening.sql` | Backend scan H1+H2+H4+L1+L3: NULL email, avatar_url, tos_accepted_at, search_path, username min |
+| `20260224000009_retire_likes_excerpt_feed.sql` | M1+M2: Drop `post_likes`, excerpt-only feed, `get_post_by_id` RPC |
 | `moderate-content/index.ts` | C4+H6+H7+M6: Server-side blocklists, 100KB limit, 5s timeout, 405; Backend scan M4: keyword sync |
 
-Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M2 (URL scheme validation), M5 (removed 500-char AI threshold), M7 (anonymous sign-ins for dev), L1 (generic error messages), L2 (429 non-retryable), L5 (cache max size), L7 (getSession not getUser), L8 (dead code removal), L10 (jsonb_typeof), L11 (false-positive URL keywords). Frontend: F1 (optimistic defaults), F2 (reaction debounce), F3 (profile validation), F4 (iPhone touch cooldown), F5 (removed dead sanitizer). L3 documented as intentional fail-open design. Backend scan: C1 (AI moderation wired up), H3 (ghost view removed), H4 (dead column dropped).
+Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M2 (URL scheme validation), M5 (removed 500-char AI threshold), M7 (anonymous sign-ins for dev), L1 (generic error messages), L2 (429 non-retryable), L5 (cache max size), L7 (getSession not getUser), L8 (dead code removal), L10 (jsonb_typeof), L11 (false-positive URL keywords). Frontend: F1 (optimistic defaults), F2 (reaction debounce), F3 (profile validation), F4 (iPhone touch cooldown), F5 (removed dead sanitizer). L3 documented as intentional fail-open design. Backend scan: C1 (AI moderation wired up), H3 (ghost view removed), H4 (dead column dropped). M1: `post_likes` table retired (dead code), M2: excerpt-only feed + `get_post_by_id` RPC.
 
 ## Known Tech Debt
 
@@ -605,4 +623,4 @@ Resolved Q1-Q5. Made `ModerationResult.severity` required in frontend (Q3). Queu
 
 ### Frontend (bold-wozniak) — 2026-02-24
 
-Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue). Session 4: CLAUDE.md quality audit (87→93). Session 5: Comprehensive UX audit — 9 fixes: PostModal unsaved changes guard + maxLength, ProfileModal theme/emoji revert on cancel, sidebar default expanded, separate loadMore error state, end-of-list indicator, ConfirmDialog loading state, useAuth profileError surfacing, delete loading state. Session 6: CLAUDE.md audit (91→96). Session 7: Backend hardening — 9 fixes across 2 migrations + 6 code files: C1 (wire up AI moderation in post save flow), C2 (COPPA field trigger protection + `set_age_verification` RPC), H1 (handle_new_user NULL email fallback), H2 (avatar_url constraint), H3 (remove ghost view type), H4 (drop dead tos_accepted_at), L1 (search_path on protect_is_admin), L3 (username min length), M4 (sync server keyword lists).
+Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue). Session 4: CLAUDE.md quality audit (87→93). Session 5: Comprehensive UX audit — 9 fixes: PostModal unsaved changes guard + maxLength, ProfileModal theme/emoji revert on cancel, sidebar default expanded, separate loadMore error state, end-of-list indicator, ConfirmDialog loading state, useAuth profileError surfacing, delete loading state. Session 6: CLAUDE.md audit (91→96). Session 7: Backend hardening — 9 fixes across 2 migrations + 6 code files: C1 (wire up AI moderation in post save flow), C2 (COPPA field trigger protection + `set_age_verification` RPC), H1 (handle_new_user NULL email fallback), H2 (avatar_url constraint), H3 (remove ghost view type), H4 (drop dead tos_accepted_at), L1 (search_path on protect_is_admin), L3 (username min length), M4 (sync server keyword lists). Session 8: M1+M2 deferred refactors — M1: retired `post_likes` table (dead code, no UI ever rendered likes), removed `like_count`/`user_has_liked` from RPC + types. M2: excerpt-only feed (`LEFT(content, 500)` + `content_truncated` bool), new `get_post_by_id` RPC for full content, `fetchPost()` in usePosts, PostModal fetches full content on-demand for view/edit modes with loading state + fallback to truncated content on error.

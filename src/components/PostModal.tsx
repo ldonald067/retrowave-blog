@@ -16,9 +16,11 @@ interface PostModalProps {
   onSave: (postData: CreatePostInput) => Promise<void>;
   onClose: () => void;
   mode?: 'create' | 'edit' | 'view';
+  /** M2: Fetches a post with full content for view/edit modes. */
+  fetchFullPost?: (id: string) => Promise<Post | null>;
 }
 
-export default function PostModal({ post, onSave, onClose, mode = 'create' }: PostModalProps) {
+export default function PostModal({ post, onSave, onClose, mode = 'create', fetchFullPost }: PostModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
@@ -28,19 +30,25 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
   const [saving, setSaving] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
+  // M2: Full content fetched from get_post_by_id RPC (for truncated posts)
+  const [fullContent, setFullContent] = useState<string | undefined>(undefined);
+  const [loadingFullContent, setLoadingFullContent] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const draftRestoredTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   // UX: Check for unsaved changes before closing
   const handleClose = useCallback(() => {
     if (saving) return;
-    if (mode !== 'view') {
+    // M2: If still loading full content, nothing has been typed yet — safe to close
+    if (!loadingFullContent && mode !== 'view') {
+      // M2: Compare content against full version when available
+      const baseContent = fullContent ?? post?.content ?? '';
       const dirty =
         mode === 'create'
           ? !!(title.trim() || content.trim())
           : !!post &&
             (title !== (post.title || '') ||
-              content !== (post.content || '') ||
+              content !== baseContent ||
               author !== (post.author || '') ||
               mood !== (post.mood || '') ||
               music !== (post.music || ''));
@@ -49,7 +57,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
       }
     }
     onClose();
-  }, [saving, mode, title, content, author, mood, music, post, onClose]);
+  }, [saving, loadingFullContent, mode, title, content, author, mood, music, post, fullContent, onClose]);
   useFocusTrap(dialogRef, true, handleClose);
 
   // Restore draft on mount (create mode only)
@@ -80,12 +88,50 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
   useEffect(() => {
     if (post) {
       setTitle(post.title || '');
-      setContent(post.content || '');
+      // M2: For truncated posts in edit mode, don't populate content yet —
+      // wait for the full content fetch to avoid overwriting with truncated text.
+      if (mode === 'edit' && post.content_truncated) {
+        setContent('');
+      } else {
+        setContent(post.content || '');
+      }
       setAuthor(post.author || '');
       setMood(post.mood || '');
       setMusic(post.music || '');
     }
-  }, [post]);
+  }, [post, mode]);
+
+  // M2: Fetch full content for view/edit modes when content is truncated
+  useEffect(() => {
+    let cancelled = false;
+    setFullContent(undefined);
+    if (mode !== 'create' && post?.content_truncated && fetchFullPost) {
+      setLoadingFullContent(true);
+      fetchFullPost(post.id)
+        .then((fullPost) => {
+          if (cancelled) return;
+          if (fullPost) {
+            setFullContent(fullPost.content);
+            // In edit mode, populate the textarea once full content arrives
+            if (mode === 'edit') {
+              setContent(fullPost.content || '');
+            }
+          } else {
+            // Fetch failed — fall back to truncated content so the user
+            // doesn't see an empty textarea and accidentally overwrite their post.
+            if (mode === 'edit') {
+              setContent(post.content || '');
+            }
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLoadingFullContent(false);
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, post?.id, post?.content_truncated, fetchFullPost]);
 
   // Auto-save draft (create mode only) — debounced 500ms
   useEffect(() => {
@@ -231,11 +277,19 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                 )}
 
                 <div className="prose prose-sm max-w-none" style={{ color: 'var(--text-body)' }}>
-                  <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post?.content}</ReactMarkdown>
+                  {loadingFullContent ? (
+                    <p className="text-xs italic" style={{ color: 'var(--text-muted)' }}>
+                      loading full entry...
+                    </p>
+                  ) : (
+                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+                      {fullContent ?? post?.content}
+                    </ReactMarkdown>
+                  )}
                 </div>
               </div>
             ) : (
-              <fieldset disabled={saving}>
+              <fieldset disabled={saving || loadingFullContent}>
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
                 {/* Draft Restored Banner */}
                 {draftRestored && (
@@ -380,6 +434,18 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                   </p>
                 </div>
 
+                {/* M2: Loading full content indicator */}
+                {loadingFullContent && (
+                  <div
+                    className="xanga-box p-2 text-center"
+                    style={{ borderColor: 'var(--accent-primary)' }}
+                  >
+                    <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
+                      loading full entry content...
+                    </p>
+                  </div>
+                )}
+
                 {/* Content */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
@@ -510,11 +576,11 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={saving}
+                disabled={saving || loadingFullContent}
                 className="xanga-button flex items-center gap-2 text-sm"
               >
                 <Save size={14} />
-                <span>{saving ? 'saving...' : '~ save entry ~'}</span>
+                <span>{saving ? 'saving...' : loadingFullContent ? 'loading...' : '~ save entry ~'}</span>
               </button>
             </div>
           )}
