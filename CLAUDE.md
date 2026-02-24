@@ -79,7 +79,7 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 4. **Cleanup**: Items marked `done` should be deleted by the next agent session that sees them (they've served their purpose).
 5. **Either**: Items with `owner=either` can be picked up by whichever agent runs next. Set owner to yourself when you start it.
 6. **References**: Use queue IDs in commit messages when relevant (e.g., "Resolves Q3").
-7. **Notes**: Use the Notes column to communicate with the other agent about a ticket. Prefix each note with your role (`frontend:` or `backend:`). Append to existing notes with ` · ` separator. Notes die with the ticket — when a `done` item is cleaned up, its notes go too. Keep notes brief (1 sentence max per entry).
+7. **Notes**: Use the Notes column to communicate with the other agent about a ticket. Prefix each note with your role (`frontend:` or `backend:`). Append to existing notes with ` · ` separator. Notes die with the ticket — when a `done` item is cleaned up, its notes go too. **Strict: 1 sentence max per note.** Long explanations belong in commit messages or the Agent Session Log, not the queue table.
 
 ## Tech Stack
 
@@ -548,7 +548,7 @@ Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M
 ## Known Tech Debt
 
 1. **`ModerationResult` type lives in two files** — `src/lib/moderation.ts` and `supabase/functions/moderate-content/index.ts` both define the interface. Shapes are now aligned (both require `severity`), but Deno can't import from Vite so they can't share a single definition. If a shared types package is added, consolidate.
-2. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — This is intentional because it has special `23505` (unique constraint) handling that falls back to a re-fetch rather than a simple retry. The generic retry is linear (300ms * attempt) instead of exponential, which is acceptable for this specific case.
+2. **`createProfileForUser` uses a hand-rolled retry loop** instead of `withRetry()` — Intentional: has special `23505` (unique constraint) handling that falls back to a re-fetch. Linear retry (300ms * attempt) is acceptable for this case.
 
 ## Agent Session Log
 
