@@ -202,35 +202,52 @@ export default function ProfileModal({
                   profile pic
                 </h3>
 
-                {showAvatarPicker ? (
-                  <AvatarPicker
-                    currentUrl={avatarUrl}
-                    userId={userId}
-                    onSelect={handleAvatarSelect}
-                    onCancel={() => setShowAvatarPicker(false)}
-                  />
-                ) : (
-                  <div className="flex flex-col items-center gap-3">
-                    <Avatar
-                      src={avatarUrl}
-                      alt="Your avatar"
-                      size="xl"
-                      fallbackSeed={fallbackSeed}
-                      editable
-                      onClick={() => setShowAvatarPicker(true)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowAvatarPicker(true)}
-                      className="xanga-button text-xs"
+                <AnimatePresence mode="wait">
+                  {showAvatarPicker ? (
+                    <motion.div
+                      key="picker"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      ~ choose avatar ~
-                    </button>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      click 2 pick from our avatar collection
-                    </p>
-                  </div>
-                )}
+                      <AvatarPicker
+                        currentUrl={avatarUrl}
+                        userId={userId}
+                        onSelect={handleAvatarSelect}
+                        onCancel={() => setShowAvatarPicker(false)}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="preview"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex flex-col items-center gap-3"
+                    >
+                      <Avatar
+                        src={avatarUrl}
+                        alt="Your avatar"
+                        size="xl"
+                        fallbackSeed={fallbackSeed}
+                        editable
+                        onClick={() => setShowAvatarPicker(true)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAvatarPicker(true)}
+                        className="xanga-button text-xs"
+                      >
+                        ~ choose avatar ~
+                      </button>
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        click 2 pick from our avatar collection
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Display Name */}

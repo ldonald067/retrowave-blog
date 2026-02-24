@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PenLine, Home, User, Star, LogIn } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
@@ -126,31 +126,47 @@ export default function Header({
           <div className="max-w-7xl mx-auto flex items-center gap-2">
             <span style={{ fontSize: '11px' }}>📟</span>
             <span className="aim-status font-bold" style={{ color: 'var(--text-muted)', fontStyle: 'normal' }}>status:</span>
-            {editingStatus ? (
-              <input
-                ref={inputRef}
-                className="aim-status-edit"
-                value={draftStatus}
-                onChange={(e) => setDraftStatus(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') saveStatus();
-                  if (e.key === 'Escape') cancelEdit();
-                }}
-                onBlur={saveStatus}
-                maxLength={100}
-                placeholder="what's on ur mind..."
-                aria-label="Set your status message"
-              />
-            ) : (
-              <button
-                onClick={startEditing}
-                className="aim-status truncate max-w-[200px] sm:max-w-[400px]"
-                title="Click to edit your status"
-                aria-label="Edit your status"
-              >
-                {status ? `~ ${status} ~` : '~ set your status ~'}
-              </button>
-            )}
+            <AnimatePresence mode="wait">
+              {editingStatus ? (
+                <motion.div
+                  key="input"
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 'auto' }}
+                  exit={{ opacity: 0, width: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex-1 min-w-0"
+                >
+                  <input
+                    ref={inputRef}
+                    className="aim-status-edit"
+                    value={draftStatus}
+                    onChange={(e) => setDraftStatus(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') saveStatus();
+                      if (e.key === 'Escape') cancelEdit();
+                    }}
+                    onBlur={saveStatus}
+                    maxLength={100}
+                    placeholder="what's on ur mind..."
+                    aria-label="Set your status message"
+                  />
+                </motion.div>
+              ) : (
+                <motion.button
+                  key="display"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
+                  onClick={startEditing}
+                  className="aim-status truncate max-w-[200px] sm:max-w-[400px]"
+                  title="Click to edit your status"
+                  aria-label="Edit your status"
+                >
+                  {status ? `~ ${status} ~` : '~ set your status ~'}
+                </motion.button>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       )}

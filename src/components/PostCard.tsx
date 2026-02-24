@@ -76,19 +76,37 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
             <div className="flex gap-1">
               <button
                 onClick={() => onEdit(post)}
-                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded transition text-xs flex items-center justify-center"
+                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
                 title="Edit post"
                 aria-label="Edit post"
-                style={{ color: 'var(--link-color)' }}
+                style={{
+                  color: 'var(--link-color)',
+                  backgroundColor: 'color-mix(in srgb, var(--link-color) 0%, transparent)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--link-color) 15%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
               >
                 <span className="text-sm">✏️</span>
               </button>
               <button
                 onClick={() => onDelete(post)}
-                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded transition text-xs flex items-center justify-center"
+                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
                 title="Delete post"
                 aria-label="Delete post"
-                style={{ color: 'var(--accent-secondary)' }}
+                style={{
+                  color: 'var(--accent-secondary)',
+                  backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 0%, transparent)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent-secondary) 15%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
               >
                 <span className="text-sm">🗑️</span>
               </button>

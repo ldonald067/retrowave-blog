@@ -340,16 +340,22 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
               <fieldset disabled={saving || loadingFullContent}>
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
                 {/* Draft Restored Banner */}
-                {draftRestored && (
-                  <div
-                    className="xanga-box p-2 text-center"
-                    style={{ borderColor: 'var(--accent-primary)' }}
-                  >
-                    <p className="text-xs" style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}>
-                      ✨ draft restored from last time!
-                    </p>
-                  </div>
-                )}
+                <AnimatePresence>
+                  {draftRestored && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="xanga-box p-2 text-center"
+                      style={{ borderColor: 'var(--accent-primary)' }}
+                    >
+                      <p className="text-xs" style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}>
+                        ✨ draft restored from last time!
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {/* Moderation Error Alert */}
                 {moderationError && (
@@ -448,8 +454,16 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                     </button>
                   </div>
 
+                  <AnimatePresence mode="wait">
                   {showPreview ? (
-                    <div className="xanga-box p-0 min-h-[200px] sm:min-h-[250px] overflow-hidden">
+                    <motion.div
+                      key="preview"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="xanga-box p-0 min-h-[200px] sm:min-h-[250px] overflow-hidden"
+                    >
                       <div
                         className="p-3 border-b-2 border-dotted"
                         style={{
@@ -504,20 +518,29 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                           </span>
                         )}
                       </div>
-                    </div>
+                    </motion.div>
                   ) : (
-                    <Textarea
-                      id="post-content"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      className="h-[200px] sm:h-[250px]"
-                      placeholder="dear diary... 2day i..."
-                      required
-                      maxLength={50000}
-                      charCount={{ current: content.length, max: 50000 }}
-                      hint="use **bold**, *italic*, or [links](url) 4 formatting"
-                    />
+                    <motion.div
+                      key="editor"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Textarea
+                        id="post-content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        className="h-[200px] sm:h-[250px]"
+                        placeholder="dear diary... 2day i..."
+                        required
+                        maxLength={50000}
+                        charCount={{ current: content.length, max: 50000 }}
+                        hint="use **bold**, *italic*, or [links](url) 4 formatting"
+                      />
+                    </motion.div>
                   )}
+                  </AnimatePresence>
                 </div>
               </form>
               </fieldset>

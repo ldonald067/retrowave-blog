@@ -89,7 +89,20 @@ export default function ConfirmDialog({
                 boxShadow: '0 2px 8px color-mix(in srgb, var(--accent-secondary) 40%, transparent)',
               }}
             >
-              {loading ? '~ working... ~' : confirmLabel}
+              {loading ? (
+                <span className="flex items-center gap-1.5">
+                  <motion.span
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                    style={{ display: 'inline-block' }}
+                  >
+                    ✦
+                  </motion.span>
+                  ~ working... ~
+                </span>
+              ) : (
+                confirmLabel
+              )}
             </button>
           </div>
         </motion.div>
