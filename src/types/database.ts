@@ -154,6 +154,40 @@ export interface Database {
         ];
       };
       // M1: post_likes table retired — likes merged into post_reactions.
+      user_blocks: {
+        Row: {
+          id: string;
+          blocker_id: string;
+          blocked_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          blocker_id: string;
+          blocked_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          blocker_id?: string;
+          blocked_id?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_blocks_blocker_id_fkey';
+            columns: ['blocker_id'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'user_blocks_blocked_id_fkey';
+            columns: ['blocked_id'];
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     // H3 FIX: posts_with_details view removed — no migration ever created it.
     // It was a ghost type from a prior architecture superseded by the
@@ -220,6 +254,13 @@ export interface Database {
           reactions: Record<string, number>;
           user_reactions: string[];
         }>;
+      };
+      // Apple Guideline 1.2: Toggle block/unblock for a user.
+      toggle_user_block: {
+        Args: {
+          p_target_user_id: string;
+        };
+        Returns: { is_blocked: boolean };
       };
     };
     Enums: Record<string, never>;

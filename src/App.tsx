@@ -5,6 +5,7 @@ import { useAuth } from './hooks/useAuth';
 import { usePosts } from './hooks/usePosts';
 import { useToast } from './hooks/useToast';
 import { useReactions } from './hooks/useReactions';
+import { useBlocks } from './hooks/useBlocks';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import CursorSparkle from './components/CursorSparkle';
@@ -53,6 +54,7 @@ function PostList({
   onDelete,
   onView,
   onReaction,
+  onBlock,
   currentUserId,
   onLoadMore,
   loadingMore,
@@ -64,6 +66,7 @@ function PostList({
   onDelete: (post: Post) => void;
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
+  onBlock?: (userId: string) => void;
   currentUserId?: string;
   onLoadMore: () => void;
   loadingMore: boolean;
@@ -120,6 +123,7 @@ function PostList({
                   onDelete={onDelete}
                   onView={onView}
                   onReaction={onReaction}
+                  onBlock={onBlock}
                   currentUserId={currentUserId}
                 />
               </div>
@@ -190,6 +194,11 @@ function App() {
   const { toggleReaction } = useReactions({
     onOptimisticUpdate: applyOptimisticReaction,
   });
+
+  const { toggleBlock } = useBlocks();
+  // State for block confirmation dialog
+  const [userToBlock, setUserToBlock] = useState<string | null>(null);
+  const [blockLoading, setBlockLoading] = useState(false);
 
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>('create');
@@ -357,6 +366,25 @@ function App() {
       // Note: useReactions already rolled back the optimistic update on error
     }
   }, [user, toggleReaction, showError]);
+
+  // Apple Guideline 1.2: Block user — shows confirm dialog, then blocks + refetches feed
+  const handleBlock = useCallback((userId: string) => {
+    setUserToBlock(userId);
+  }, []);
+
+  const confirmBlockUser = useCallback(async () => {
+    if (!userToBlock) return;
+    setBlockLoading(true);
+    const { is_blocked, error: blockError } = await toggleBlock(userToBlock);
+    setBlockLoading(false);
+    if (blockError) {
+      showError(`~ couldnt block that user :( ${blockError} ~`);
+    } else {
+      success(is_blocked ? SUCCESS_MESSAGES.block.blocked : SUCCESS_MESSAGES.block.unblocked);
+      void refetch(); // Refresh feed to hide blocked user's posts
+    }
+    setUserToBlock(null);
+  }, [userToBlock, toggleBlock, showError, success, refetch]);
 
   const handleOnboardingComplete = () => {
     try { localStorage.setItem('hasCompletedOnboarding', 'true'); } catch { /* private browsing */ }
@@ -534,6 +562,7 @@ function App() {
                 onDelete={handleDeletePost}
                 onView={handleViewPost}
                 onReaction={handleReaction}
+                onBlock={handleBlock}
                 currentUserId={user?.id}
                 onLoadMore={loadMore}
                 loadingMore={loadingMore}
@@ -587,6 +616,18 @@ function App() {
           loading={deleteLoading}
           onConfirm={confirmDeletePost}
           onCancel={() => setPostToDelete(null)}
+        />
+      )}
+
+      {/* Block Confirmation Dialog */}
+      {userToBlock && (
+        <ConfirmDialog
+          title="~ block user? ~"
+          message="r u sure u want 2 block this user? u wont see their posts anymore. u can unblock from ur profile."
+          confirmLabel="~ yes, block ~"
+          loading={blockLoading}
+          onConfirm={confirmBlockUser}
+          onCancel={() => setUserToBlock(null)}
         />
       )}
 

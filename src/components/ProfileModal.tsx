@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, User, FileText, Image, Palette, Heart, Music, Sparkles } from 'lucide-react';
+import { X, Save, User, FileText, Image, Palette, Heart, Music, Sparkles, ShieldOff } from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji } from './ui';
 import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
@@ -11,6 +11,7 @@ import {
   type EmojiStyleId,
 } from '../lib/emojiStyles';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useBlocks } from '../hooks/useBlocks';
 import type { Profile } from '../types/profile';
 
 // Header (~70px) + Footer (~70px) + padding = ~180px of non-scrollable modal chrome
@@ -45,10 +46,13 @@ export default function ProfileModal({
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
+  const [blockedUsers, setBlockedUsers] = useState<Array<{ blocked_id: string; created_at: string }>>([]);
+  const [blockedLoading, setBlockedLoading] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   // UX: Capture initial theme/emoji to revert on cancel (preview-without-commit)
   const originalThemeRef = useRef<string>(profile?.theme || DEFAULT_THEME);
   const originalEmojiStyleRef = useRef<EmojiStyleId>(getEmojiStyle());
+  const { toggleBlock, fetchBlockedUsers } = useBlocks();
 
   const handleCancel = useCallback(() => {
     // Revert previewed theme and emoji style changes
@@ -77,6 +81,16 @@ export default function ProfileModal({
       setSelectedTheme(profile.theme || DEFAULT_THEME);
     }
   }, [profile]);
+
+  // Fetch blocked users list when modal opens
+  useEffect(() => {
+    if (!userId) return;
+    setBlockedLoading(true);
+    void fetchBlockedUsers().then(({ data }) => {
+      setBlockedUsers(data);
+      setBlockedLoading(false);
+    });
+  }, [userId, fetchBlockedUsers]);
 
   const validate = (): boolean => {
     const newErrors: { displayName?: string; bio?: string } = {};
@@ -431,6 +445,52 @@ export default function ProfileModal({
                   ))}
                 </div>
               </div>
+
+              {/* Blocked Users Section */}
+              {!isInitialSetup && blockedUsers.length > 0 && (
+                <div className="xanga-box p-4">
+                  <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                    <ShieldOff size={14} style={{ color: 'var(--accent-secondary)' }} />
+                    blocked users
+                  </h3>
+                  {blockedLoading ? (
+                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>loading...</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {blockedUsers.map((block) => (
+                        <div
+                          key={block.blocked_id}
+                          className="flex items-center justify-between p-2 rounded"
+                          style={{ backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))' }}
+                        >
+                          <span className="text-xs truncate" style={{ color: 'var(--text-body)' }}>
+                            {block.blocked_id.substring(0, 8)}...
+                          </span>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              const { error } = await toggleBlock(block.blocked_id);
+                              if (error) {
+                                onError?.(error);
+                              } else {
+                                setBlockedUsers((prev) => prev.filter((b) => b.blocked_id !== block.blocked_id));
+                                onSuccess?.(SUCCESS_MESSAGES.block.unblocked);
+                              }
+                            }}
+                            className="text-[10px] px-2 py-1 rounded transition hover:opacity-80"
+                            style={{
+                              backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))',
+                              color: 'var(--accent-secondary)',
+                            }}
+                          >
+                            unblock
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Preview Section */}
               <div className="xanga-box p-4">

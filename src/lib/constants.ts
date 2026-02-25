@@ -60,6 +60,10 @@ export const SUCCESS_MESSAGES = {
     updated: '~ entry updated! looking good ✨ ~',
     deleted: '~ entry deleted 💨 ~',
   },
+  block: {
+    blocked: '~ blocked that user ~',
+    unblocked: '~ unblocked that user ~',
+  },
 } as const;
 
 // UI.toast.duration removed — useToast.ts owns DEFAULT_DURATIONS (per-type)

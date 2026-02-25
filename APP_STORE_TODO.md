@@ -53,28 +53,9 @@ These are all manual steps that require a Mac, money, or Apple's website. Claude
 
 ### Code Changes Needed (Claude can do these)
 
-- [ ] **Add user blocking** (Apple Guideline 1.2) — UGC apps must let users block other users. Currently missing entirely. Needs:
-  - New `user_blocks` table in Supabase (migration)
-  - RLS policy: authenticated users can insert/delete their own blocks
-  - `get_posts_with_reactions` RPC updated to exclude posts from blocked users
-  - "Block user" button in PostCard UI (next to report link)
-  - This is the **biggest missing feature** for App Store approval
+- [x] **Add user blocking** (Apple Guideline 1.2) — ✅ Done in Session 18. `user_blocks` table, `toggle_user_block` RPC, feed RPCs filter blocked users, PostCard block button, ProfileModal unblock list.
 
-- [ ] **Add deep link URL scheme to Info.plist** — magic link auth redirects won't work on iOS without this. The code in `capacitor.ts` listens for `appUrlOpen` but Info.plist doesn't declare the URL scheme. Add to `ios/App/App/Info.plist` before the closing `</dict>`:
-  ```xml
-  <key>CFBundleURLTypes</key>
-  <array>
-    <dict>
-      <key>CFBundleURLName</key>
-      <string>com.retrowave.journal</string>
-      <key>CFBundleURLSchemes</key>
-      <array>
-        <string>myjournal</string>
-      </array>
-    </dict>
-  </array>
-  ```
-  Then configure your Supabase project's redirect URL to `myjournal://` in the Supabase dashboard under Auth → URL Configuration.
+- [x] **Add deep link URL scheme to Info.plist** — ✅ Done in Session 18. Added `CFBundleURLTypes` with scheme `com.retrowave.journal`. Still need to configure Supabase redirect URL to `com.retrowave.journal://` in dashboard under Auth → URL Configuration.
 
 ### Manual Steps
 
@@ -102,25 +83,11 @@ These are all manual steps that require a Mac, money, or Apple's website. Claude
 
 These are small bugs found during the audit. Takes ~30 minutes total.
 
-- [ ] **Fix Header.tsx localStorage crash** — line 26 reads `localStorage.getItem()` without try/catch. Will crash the Header component in Safari private browsing mode.
-  ```typescript
-  // Change line 26 from:
-  const [status, setStatus] = useState(() => localStorage.getItem(STATUS_KEY) || '');
-  // To:
-  const [status, setStatus] = useState(() => {
-    try { return localStorage.getItem(STATUS_KEY) || ''; } catch { return ''; }
-  });
-  ```
+- [x] **Fix Header.tsx localStorage crash** — ✅ Done in Session 18. Added try/catch on both read (line 26) and write (line 46).
 
-- [ ] **Fix emojiStyles.ts setEmojiStyle missing try/catch** — line 82 calls `localStorage.setItem()` without error handling (every other localStorage write in the app has try/catch).
-  ```typescript
-  // Change line 82 from:
-  localStorage.setItem(STORAGE_KEY, style);
-  // To:
-  try { localStorage.setItem(STORAGE_KEY, style); } catch { /* private browsing */ }
-  ```
+- [x] **Fix emojiStyles.ts setEmojiStyle missing try/catch** — ✅ Done in Session 18. Wrapped `localStorage.setItem()` in try/catch.
 
-- [ ] **Guard focus restore in useFocusTrap** — `previousActiveElement.focus()` can throw if the element was removed from the DOM while the modal was open. Add a null check.
+- [x] **Guard focus restore in useFocusTrap** — ✅ Already had proper guards (line 81 checks null + typeof). No fix needed.
 
 ---
 
@@ -157,7 +124,9 @@ These were verified during the audit and are App Store ready:
 | No hardcoded secrets | ✅ | OpenAI key in Supabase secrets only |
 | Error boundaries | ✅ | `ErrorBoundary.tsx` wraps entire app |
 | Offline detection | ✅ | `useOnlineStatus` hook + offline banner |
-| localStorage safety | ✅ (mostly) | try/catch on all writes except Header.tsx |
+| localStorage safety | ✅ | try/catch on all reads and writes (Header.tsx + emojiStyles.ts fixed in Session 18) |
+| User blocking (Apple 1.2) | ✅ | `user_blocks` table, `toggle_user_block` RPC, feed filter, PostCard block button, ProfileModal unblock list |
+| Deep link URL scheme | ✅ | `CFBundleURLTypes` in Info.plist with scheme `com.retrowave.journal` |
 | Code splitting | ✅ | 5 lazy-loaded modal components |
 | Capacitor plugins (7) | ✅ | Deep links, status bar, keyboard, haptics, share, browser, splash |
 | No debug console.log | ✅ | Only console.warn/error in error handlers |
@@ -169,16 +138,17 @@ These were verified during the audit and are App Store ready:
 
 ## Estimated Timeline
 
-| Phase | Time | What |
-|-------|------|------|
-| Code fixes (Section 3) | 30 min | localStorage, focus trap |
-| User blocking feature (Section 2) | 2-4 hours | Migration + RPC + UI |
-| Deep link URL scheme (Section 2) | 15 min | Info.plist + Supabase config |
-| Apple Developer enrollment | 1-2 days | Account approval |
-| First Xcode build + fixes | 1-2 hours | On a Mac |
-| Screenshots + description | 1 hour | Xcode Simulator |
-| Legal review | 1-3 days | Lawyer or self-review |
-| Edge function deployment | 15 min | CLI commands |
-| App Store submission | 30 min | Upload + metadata |
-| Apple review | 1-3 days | Waiting period |
-| **Total** | **~1-2 weeks** | Most time is waiting on Apple |
+| Phase | Time | What | Status |
+|-------|------|------|--------|
+| ~~Code fixes (Section 3)~~ | ~~30 min~~ | ~~localStorage, focus trap~~ | ✅ Done |
+| ~~User blocking (Section 2)~~ | ~~2-4 hours~~ | ~~Migration + RPC + UI~~ | ✅ Done |
+| ~~Deep link URL scheme (Section 2)~~ | ~~15 min~~ | ~~Info.plist~~ | ✅ Done |
+| Supabase redirect URL config | 5 min | Set `com.retrowave.journal://` in Supabase Auth settings | Pending |
+| Apple Developer enrollment | 1-2 days | Account approval | Pending |
+| First Xcode build + fixes | 1-2 hours | On a Mac | Pending |
+| Screenshots + description | 1 hour | Xcode Simulator | Pending |
+| Legal review | 1-3 days | Lawyer or self-review | Pending |
+| Edge function deployment | 15 min | CLI commands | Pending |
+| App Store submission | 30 min | Upload + metadata | Pending |
+| Apple review | 1-3 days | Waiting period | Pending |
+| **Total** | **~1 week** | Code is done — remaining is setup + waiting | |

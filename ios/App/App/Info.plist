@@ -48,5 +48,17 @@
 	<!-- App Store: Declare no non-exempt encryption (HTTPS only, exempt under BIS) -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<!-- Deep link URL scheme for magic link auth redirects -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.retrowave.journal</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.retrowave.journal</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -18,6 +18,7 @@
 | **Moderation** | 3-layer: local regex → OpenAI API edge function → fail-open | `moderation.ts`, `supabase/functions/` |
 | **Feed** | Cursor-based pagination (20/page), excerpt-only (500 chars), full content on-demand | `usePosts.ts`, `get_posts_with_reactions` RPC |
 | **Reactions** | Optimistic UI with debounce guards (400ms cooldown, in-flight set) | `useReactions.ts`, `post_reactions` table |
+| **Blocking** | User blocking (Apple 1.2), feed filtering, toggle RPC | `useBlocks.ts`, `user_blocks` table |
 
 **Not built (by design):** comments, analytics, RSS, visitor counters, likes, custom reactions, cron jobs. See Product Philosophy below.
 
@@ -50,6 +51,7 @@ This file is the shared interface between **two independent Claude agents** — 
 | Moderation | `App.tsx` calls `moderateContent()` before save; `PostModal.tsx` calls `quickContentCheck()` for instant local feedback | `supabase/functions/moderate-content/` (Deno + OpenAI API) |
 | COPPA | `App.tsx` calls `set_age_verification` RPC | `protect_coppa_fields` trigger + `set_age_verification` SECURITY DEFINER function |
 | Themes | `src/lib/themes.ts` defines CSS vars, UI applies them | `profiles.theme` column stores user's chosen theme |
+| Blocking | `useBlocks.ts` toggle + list, `PostCard.tsx` block button, `ProfileModal.tsx` unblock list | `user_blocks` table, `toggle_user_block` RPC, feed RPCs filter blocked users |
 
 ### Shared Data Shapes (must stay in sync)
 
@@ -62,6 +64,7 @@ This file is the shared interface between **two independent Claude agents** — 
 | Profile fields | `src/types/profile.ts` | `profiles` table columns | Adding a profile field requires both a migration AND a type update |
 | Reaction emoji set | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS` | `20260224000004_add_data_constraints.sql` CHECK constraint | Canonical set: `['❤️', '🔥', '😂', '😢', '✨', '👀']`. **Must match exactly** |
 | Moderation blocklists | `src/lib/moderation.ts` `BLOCKED_DOMAINS` + `ADULT_URL_KEYWORDS` | `supabase/functions/moderate-content/index.ts` (same lists) | **Synced 2026-02-24**: Both `BLOCKED_DOMAINS` and `ADULT_URL_KEYWORDS` now identical. **Changes must sync both files** |
+| Block RPC | `src/types/database.ts` `toggle_user_block` | `20260225000001_user_blocks.sql` | Returns `{ is_blocked: boolean }`. Feed RPCs filter blocked users via `NOT EXISTS` subquery. |
 
 ### Environment Variables
 
@@ -198,6 +201,7 @@ src/
     useAuth.ts          # Authentication, profile CRUD, session management
     usePosts.ts         # Post feed with pagination, caching, CRUD, optimistic reactions
     useReactions.ts     # Emoji reaction toggle with optimistic updates + rollback
+    useBlocks.ts        # User blocking toggle + fetch blocked users list (Apple Guideline 1.2)
     useYouTubeInfo.ts   # YouTube URL parsing + title fetch (shared by PostCard, Sidebar, PostModal)
     useOnlineStatus.ts  # Browser online/offline status hook
     useToast.ts         # Toast notification state (max 3, type-based durations)
@@ -546,6 +550,7 @@ Run in order by filename. Key migrations:
 | `20260224000008_schema_hardening.sql` | NULL email fallback, `avatar_url` constraint, `search_path`, username min length |
 | `20260224000009_retire_likes_excerpt_feed.sql` | Drop `post_likes` table. Feed returns `LEFT(content, 500)` + `content_truncated`. New `get_post_by_id` RPC. |
 | `20260224000010_fix_coppa_trust.sql` | Replaces `handle_new_user()` to derive `age_verified` from `birth_year` arithmetic (never trusts client) |
+| `20260225000001_user_blocks.sql` | Apple Guideline 1.2: `user_blocks` table + RLS + `toggle_user_block` RPC + feed RPCs updated to exclude blocked users |
 
 ## Development Notes
 
@@ -773,7 +778,7 @@ All 30 audit findings resolved (2026-02-23/24). Security: `auth.uid()` in RPCs, 
 
 ## Agent Session Log
 
-18 sessions across 2 worktrees (2026-02-23 to 2026-02-24). Key milestones:
+19 sessions across 2 worktrees (2026-02-23 to 2026-02-25). Key milestones:
 
 | Session | Worktree | Focus | Key Changes |
 |---------|----------|-------|-------------|
@@ -789,3 +794,4 @@ All 30 audit findings resolved (2026-02-23/24). Security: `auth.uid()` in RPCs, 
 | FE 14-15 | bold-wozniak | Animations | Spring physics everywhere, Toast swipe-to-dismiss + progress bar, reaction count pulse, error shake, EmptyState cascade |
 | FE 16 | bold-wozniak | Full-stack audit | Deleted 4 dead files (−486 lines), synced BLOCKED_DOMAINS, extracted MOOD_SELECT_OPTIONS, export hygiene (9 types), fixed `motion` import |
 | FE 17 | bold-wozniak | CLAUDE.md 100 | Full-stack summary, compressed session log, cleaned stale queue items, profile limits table fix |
+| FE 18 | bold-wozniak | App Store prep | User blocking (Apple 1.2): `user_blocks` table, `toggle_user_block` RPC, feed filter, `useBlocks` hook, PostCard block button, ProfileModal unblock list. Deep link URL scheme in Info.plist. localStorage try/catch fixes (Header.tsx, emojiStyles.ts). |

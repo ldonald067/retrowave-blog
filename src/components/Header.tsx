@@ -23,7 +23,9 @@ export default function Header({
   onAuthClick,
   onProfileClick,
 }: HeaderProps) {
-  const [status, setStatus] = useState(() => localStorage.getItem(STATUS_KEY) || '');
+  const [status, setStatus] = useState(() => {
+    try { return localStorage.getItem(STATUS_KEY) || ''; } catch { return ''; }
+  });
   const [editingStatus, setEditingStatus] = useState(false);
   const [draftStatus, setDraftStatus] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,7 +45,7 @@ export default function Header({
   const saveStatus = () => {
     const trimmed = draftStatus.trim();
     setStatus(trimmed);
-    localStorage.setItem(STATUS_KEY, trimmed);
+    try { localStorage.setItem(STATUS_KEY, trimmed); } catch { /* private browsing */ }
     setEditingStatus(false);
     // Notify other components (e.g. Sidebar) that the status changed
     window.dispatchEvent(new CustomEvent('xanga-status-update', { detail: trimmed }));

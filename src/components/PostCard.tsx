@@ -23,10 +23,11 @@ interface PostCardProps {
   onDelete: (post: Post) => void;
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
+  onBlock?: (userId: string) => void;
   currentUserId?: string;
 }
 
-const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReaction, currentUserId }: PostCardProps) {
+const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReaction, onBlock, currentUserId }: PostCardProps) {
   const isOwner = currentUserId === post.user_id;
   const ytInfo = useYouTubeInfo(post.music);
 
@@ -181,16 +182,26 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
       >
         <div className="flex items-center gap-3">
           {post.author && <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</span>}
-          {/* Apple Guideline 1.2: UGC apps must provide a reporting mechanism */}
+          {/* Apple Guideline 1.2: UGC apps must provide reporting + blocking */}
           {!isOwner && currentUserId && (
-            <a
-              href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
-              className="text-[10px] transition hover:underline"
-              style={{ color: 'var(--text-muted)', opacity: 0.6 }}
-              aria-label="Report this post"
-            >
-              report
-            </a>
+            <>
+              <a
+                href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
+                className="text-[10px] transition hover:underline"
+                style={{ color: 'var(--text-muted)', opacity: 0.6 }}
+                aria-label="Report this post"
+              >
+                report
+              </a>
+              <button
+                onClick={() => onBlock?.(post.user_id)}
+                className="text-[10px] transition hover:underline"
+                style={{ color: 'var(--text-muted)', opacity: 0.6 }}
+                aria-label="Block this user"
+              >
+                block
+              </button>
+            </>
           )}
         </div>
         <button
