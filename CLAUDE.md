@@ -93,29 +93,19 @@ This file is the shared interface between **two independent Claude agents** — 
 4. **Changing validation limits** → update `validation.ts` (`POST_LIMITS` or `PROFILE_LIMITS`) AND the corresponding SQL migration. `constants.ts` auto-imports from `PROFILE_LIMITS` — do NOT update it manually.
 5. **`is_admin` is trigger-protected** → `20260224000006_protect_is_admin.sql` silently preserves `is_admin` on any API UPDATE. `supabase.from('profiles').update({ is_admin: true })` will **silently fail**. Admin features require a `SECURITY DEFINER` SQL function that bypasses the trigger.
 6. **COPPA fields are trigger-protected** → `20260224000007_protect_coppa_fields.sql` silently preserves `age_verified`, `tos_accepted`, and `birth_year` on any API UPDATE. The **only** legitimate way to set these is via `supabase.rpc('set_age_verification', { p_birth_year, p_tos_accepted })`. Direct `updateProfile({ age_verified: true })` will silently fail.
-7. **Always update the Cross-Agent Queue** (see below) when your work creates action items for the other agent.
+7. **Pre-launch items** are tracked in the Pre-Launch Checklist below — these require human action (macOS, Apple Developer account).
 
-### Cross-Agent Queue
+### Pre-Launch Checklist (Human Action Required)
 
-Structured handoff between frontend and backend agents. **Every agent session must check this queue on start and update it before ending.**
+These items require macOS, Xcode, or manual review — they cannot be completed by an agent.
 
-| ID | Status | Owner | Item | Context | Notes | Added By |
-|----|--------|-------|------|---------|-------|----------|
-| Q6 | open | frontend | Verify `BLOG_OWNER_EMAIL` value is correct | Session 9 added `retrowave.blog.app@gmail.com` in `constants.ts` — used in PostCard report link, terms.html, privacy.html | backend: confirm or change the email before shipping | backend |
-| Q8 | open | frontend | Review `terms.html` and `privacy.html` content for accuracy | Static pages in `public/` — generic legal text written by AI, not lawyer-reviewed | backend: created as App Store requirement (Apple Guideline 5.1.1); user should review before launch | backend |
-| Q9 | open | frontend | Test Capacitor iOS build on macOS with Xcode | `capacitor.config.ts` + `ios/` directory scaffolded but never built | backend: ran `npx cap add ios` only; needs `npm run build && npx cap sync && npx cap open ios` on a Mac | backend |
-| Q14 | open | frontend | Verify iOS safe-area padding renders correctly on iPhone with notch | Added `modal-footer-safe` class (PostModal + ProfileModal footers) and `safe-area-bottom` utility in `index.css` using `env(safe-area-inset-bottom)` | backend: needs physical iPhone or Xcode simulator to confirm padding | backend |
-| Q15 | open | frontend | Verify iOS Safari input zoom prevention works | Added `font-size: 16px !important` to inputs/textareas/selects at `@media (max-width: 480px)` in `index.css` | backend: iOS Safari zooms viewport when focused input has font-size < 16px; this override should prevent it | backend |
-
-**Queue Protocol:**
-
-1. **On session start**: Read the queue. Pick up any `open` items assigned to you → set to `in-progress`.
-2. **During work**: If your changes create work for the other agent, add a row with `status=open` and `owner=` the other agent. Use the next available `Q` number.
-3. **On completion**: Set finished items to `done`.
-4. **Cleanup**: Items marked `done` should be deleted by the next agent session that sees them (they've served their purpose).
-5. **Either**: Items with `owner=either` can be picked up by whichever agent runs next. Set owner to yourself when you start it.
-6. **References**: Use queue IDs in commit messages when relevant (e.g., "Resolves Q3").
-7. **Notes**: Use the Notes column to communicate with the other agent about a ticket. Prefix each note with your role (`frontend:` or `backend:`). Append to existing notes with ` · ` separator. Notes die with the ticket — when a `done` item is cleaned up, its notes go too. **Strict: 1 sentence max per note.** Long explanations belong in commit messages or the Agent Session Log, not the queue table.
+| Item | What's Needed | Context |
+|------|--------------|---------|
+| Verify `BLOG_OWNER_EMAIL` | Confirm `retrowave.blog.app@gmail.com` is correct | Used in PostCard report link, terms.html, privacy.html |
+| Review `terms.html` and `privacy.html` | Read for accuracy — AI-generated, not lawyer-reviewed | Apple Guideline 5.1.1 requires these |
+| Test Capacitor iOS build | Run `npm run build && npx cap sync && npx cap open ios` on a Mac | `ios/` directory scaffolded but never built |
+| Verify iOS safe-area padding | Test on iPhone with notch (or Xcode simulator) | `modal-footer-safe` class uses `env(safe-area-inset-bottom)` |
+| Verify iOS input zoom prevention | Test on iOS Safari | `font-size: 16px !important` on inputs at mobile breakpoint |
 
 ## Tech Stack
 
@@ -625,7 +615,6 @@ In Xcode: select a real device or simulator → Product → Archive → Distribu
 4. **App description** — write a brief description for the App Store listing
 5. **Signing** — in Xcode, select your team under Signing & Capabilities. Xcode handles provisioning profiles automatically.
 6. **Review `terms.html` and `privacy.html`** — AI-generated content, not lawyer-reviewed. Verify accuracy before submission.
-7. ~~**Replace SVG icons**~~ — **Done.** All icons now generated as PNGs from `assets/appicon.png` via `node scripts/generate-icons.mjs`.
 
 ### Apple Review Gotchas
 
