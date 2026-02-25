@@ -1,13 +1,14 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Youtube, ExternalLink, Share2 } from 'lucide-react';
+import { Share2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { BLOG_OWNER_EMAIL } from '../lib/constants';
-import { openUrl, sharePost } from '../lib/capacitor';
+import { sharePost } from '../lib/capacitor';
 import ReactionBar from './ui/ReactionBar';
+import YouTubeCard from './ui/YouTubeCard';
 import type { Post } from '../types/post';
 
 /** Truncate post content for feed preview — pure function, no re-creation per render. */
@@ -144,49 +145,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🎵 Currently listening to:</span>
             </div>
             {ytInfo ? (
-              <a
-                href={ytInfo.watchUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  void openUrl(ytInfo.watchUrl);
-                }}
-                className="flex items-center gap-3 p-2 rounded transition hover:opacity-80"
-                style={{
-                  backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))',
-                }}
-              >
-                <img
-                  src={ytInfo.thumbnailUrl}
-                  alt={ytInfo.title || 'YouTube thumbnail'}
-                  loading="lazy"
-                  className="w-20 h-14 object-cover rounded flex-shrink-0"
-                  style={{ border: '1px solid var(--border-primary)' }}
-                />
-                <div className="flex-1 min-w-0">
-                  {ytInfo.title ? (
-                    <p
-                      className="text-sm font-medium line-clamp-2 mb-1"
-                      style={{ color: 'var(--text-body)' }}
-                      title={ytInfo.title}
-                    >
-                      {ytInfo.title}
-                    </p>
-                  ) : (
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      Loading title...
-                    </p>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <Youtube size={12} style={{ color: '#ff0000' }} />
-                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                      YouTube
-                    </span>
-                    <ExternalLink size={8} style={{ color: 'var(--text-muted)' }} />
-                  </div>
-                </div>
-              </a>
+              <YouTubeCard ytInfo={ytInfo} />
             ) : (
               <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
             )}

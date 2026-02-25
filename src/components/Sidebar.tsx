@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Music, Calendar, Settings, BookOpen, Youtube, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, Music, Calendar, Settings, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
-import { Avatar } from './ui';
+import { Avatar, YouTubeCard } from './ui';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
-import { openUrl } from '../lib/capacitor';
 
 interface SidebarProps {
   user: SupabaseUser | null;
@@ -132,53 +131,9 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
                 <span className="font-bold text-xs" style={{ color: 'var(--text-body)' }}>Listening to:</span>
               </div>
               {ytInfo ? (
-                <a
-                  href={ytInfo.watchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    void openUrl(ytInfo.watchUrl);
-                  }}
-                  className="block p-1.5 rounded transition hover:opacity-80 ml-1"
-                  style={{
-                    backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))',
-                  }}
-                >
-                  <div className="flex items-start gap-2">
-                    <img
-                      src={ytInfo.thumbnailUrl}
-                      alt={ytInfo.title || 'YouTube'}
-                      className="w-14 h-10 object-cover rounded flex-shrink-0"
-                      style={{ border: '1px solid var(--border-primary)' }}
-                    />
-                    <div className="flex-1 min-w-0 overflow-hidden">
-                      {ytInfo.title ? (
-                        <p
-                          className="text-[10px] leading-tight line-clamp-2 font-medium"
-                          style={{ color: 'var(--text-body)' }}
-                          title={ytInfo.title}
-                        >
-                          {ytInfo.title}
-                        </p>
-                      ) : (
-                        <div className="flex items-center gap-1">
-                          <Youtube size={10} style={{ color: '#ff0000' }} />
-                          <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                            Loading...
-                          </span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1 mt-0.5">
-                        <Youtube size={8} style={{ color: '#ff0000' }} />
-                        <span className="text-[8px]" style={{ color: 'var(--text-muted)' }}>
-                          YouTube
-                        </span>
-                        <ExternalLink size={6} style={{ color: 'var(--text-muted)' }} />
-                      </div>
-                    </div>
-                  </div>
-                </a>
+                <div className="ml-1">
+                  <YouTubeCard ytInfo={ytInfo} size="sm" />
+                </div>
               ) : (
                 <div className="ml-6 text-xs italic" style={{ color: 'var(--text-muted)' }}>{userData.music}</div>
               )}

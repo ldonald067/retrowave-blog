@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Youtube } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
-import { Input, Textarea, Select } from './ui';
+import { Input, Textarea, Select, YouTubeCard } from './ui';
 import ConfirmDialog from './ConfirmDialog';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import { parseYouTubeUrl } from '../utils/parseYouTube';
+import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import type { Post, CreatePostInput } from '../types/post';
 import { MOODS } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
@@ -197,8 +197,8 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
 
   const isViewMode = mode === 'view';
 
-  // Fix 9: YouTube card in view mode
-  const viewModeYtInfo = isViewMode && post?.music ? parseYouTubeUrl(post.music) : null;
+  // YouTube info for view mode — hook called unconditionally, returns null when not applicable
+  const viewModeYtInfo = useYouTubeInfo(isViewMode ? post?.music : null);
 
   // Fix 6: Map MOODS to Select options format
   const moodOptions = MOODS.map((m) => ({
@@ -287,28 +287,9 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                   >
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🎵 currently listening 2: </span>
                     {viewModeYtInfo ? (
-                      <a
-                        href={viewModeYtInfo.watchUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 mt-2 p-2 rounded transition hover:opacity-80"
-                        style={{ backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))' }}
-                      >
-                        <img
-                          src={viewModeYtInfo.thumbnailUrl}
-                          alt="YouTube thumbnail"
-                          loading="lazy"
-                          className="w-20 h-14 object-cover rounded flex-shrink-0"
-                          style={{ border: '1px solid var(--border-primary)' }}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs truncate" style={{ color: 'var(--text-body)' }}>{post.music}</p>
-                          <div className="flex items-center gap-1 mt-1">
-                            <Youtube size={12} style={{ color: '#ff0000' }} />
-                            <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>YouTube</span>
-                          </div>
-                        </div>
-                      </a>
+                      <div className="mt-2">
+                        <YouTubeCard ytInfo={viewModeYtInfo} />
+                      </div>
                     ) : (
                       <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
                     )}
