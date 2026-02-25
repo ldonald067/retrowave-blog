@@ -297,10 +297,14 @@ Bundle ID `com.retrowave.journal`, version 1.0, iOS 15.0 target, encryption decl
 
 ### Custom Slash Commands
 
+All 4 commands share `.claude/learnings.md` — an append-only knowledge base they read before starting and write to after completing work. This enables cross-session learning.
+
 | Command | File | Purpose |
 |---------|------|---------|
-| `/fullstack` | `.claude/commands/fullstack.md` | Fullstack integration audit — verifies RPC types, RLS policies, shared data contracts, and frontend-backend wiring |
-| `/mobile` | `.claude/commands/mobile.md` | iOS/Capacitor audit — checks Apple App Store compliance, native UX patterns, accessibility, and dark theme contrast |
+| `/fullstack` | `.claude/commands/fullstack.md` | Fullstack integration audit — RPC types, RLS policies, shared data contracts, frontend-backend wiring |
+| `/mobile` | `.claude/commands/mobile.md` | iPhone responsiveness (screen sizes, viewport units, modal heights) + iOS/Capacitor + App Store compliance |
+| `/frontend` | `.claude/commands/frontend.md` | Frontend design with Xanga aesthetic, theme variable system, component patterns, responsive requirements |
+| `/feature` | `.claude/commands/feature.md` | Feature development with Supabase patterns, auth guard, error handling, migration pipeline |
 
 ## Pre-Launch Work Queue
 

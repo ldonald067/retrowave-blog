@@ -1,64 +1,202 @@
 ---
 name: mobile
-description: Audit iOS/Capacitor integration for Apple App Store compliance and native UX quality
+description: Audit iPhone responsiveness, iOS/Capacitor integration, and Apple App Store compliance
 ---
 
 # Mobile Agent
 
-Audit and improve iOS/Capacitor integration for the Retrowave Blog app. Focus on Apple App Store compliance and native UX quality.
+Audit and improve the Retrowave Blog app for iPhone responsiveness and iOS native
+quality. Covers three concerns: responsive layout across iPhone sizes, Capacitor
+native integration, and App Store compliance.
 
-Read `CLAUDE.md` first — it documents all implemented patterns, what's done, and what's still pending.
+Read `CLAUDE.md` first for architecture and conventions.
+Read `.claude/learnings.md` for accumulated mobile knowledge and known false positives.
 
-## Audit Areas
+---
 
-### 1. Apple App Store Guidelines
+## Phase 1: iPhone Responsiveness Audit
 
-Check compliance with key guidelines:
+### Screen Size Matrix
 
-- **1.2 (User Generated Content)**: Verify ALL of: reporting mechanism (mailto link in PostCard), content moderation (3-layer: regex + OpenAI + fail-open), age gate (COPPA 13+), and bidirectional user blocking (`user_blocks` table + `is_blocked_pair()`)
-- **4.2 (Minimum Functionality)**: App must NOT be a "thin wrapper". Verify native features: haptics (`hapticImpact()`), share sheet, deep links, status bar control, swipe gestures, cursor sparkles
-- **5.1.1 (Data Collection)**: Verify account deletion RPC (`delete_user_account`) is wired to Delete Account button in ProfileModal. Verify data export RPC (`export_user_data`) is wired to Export Data button
-- **5.1.2 (Data Use and Sharing)**: Check `public/privacy.html` and `public/terms.html` exist. Note: these are AI-generated and not lawyer-reviewed — flag as reminder
+Test layouts against these device dimensions (logical pixels):
 
-### 2. iOS UX Patterns
+| Device | Width | Height | Key Concern |
+|--------|-------|--------|-------------|
+| iPhone SE (3rd gen) | 375 | 667 | Smallest active iPhone. Modal scroll area is tight. |
+| iPhone 14 / 15 | 390 | 844 | Most common. Baseline target. |
+| iPhone 14 Plus / 15 Plus | 428 | 926 | Large phone. Check grid layouts don't over-stretch. |
+| iPhone 15 Pro Max | 430 | 932 | Largest. Check max-width containers. |
 
-Verify these patterns are implemented correctly:
+For each device, verify:
+- Modal scroll area is usable (see Modal Height Calculations below)
+- Grid layouts (`grid-cols-2`, `sm:grid-cols-2`) don't create cramped cells
+- Touch targets meet 44px minimum (`min-h-[44px]`, `min-w-[44px]`)
+- Text remains readable (no truncation that hides meaning)
+- No horizontal overflow or unexpected scrolling
 
-| Pattern | Where | Implementation Details |
-|---------|-------|----------------------|
-| Safe area insets (top) | Header.tsx | `paddingTop: 'max(0.5rem, env(safe-area-inset-top))'` — covers Dynamic Island |
-| Safe area insets (bottom) | Modals, footers | `.modal-footer-safe` and `.safe-area-bottom` CSS classes |
-| Swipe-to-dismiss | PostModal, ProfileModal | `drag="x"` + `dragConstraints={{ left: 0, right: 0 }}` + `dragElastic={{ left: 0, right: 0.5 }}` + `onDragEnd` with `info.offset.x > 80` threshold |
-| Keyboard dismiss | Scrollable modal content | `onTouchMove={() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); }}` |
-| Haptic feedback | Block, delete, post, update | `hapticImpact()` from `src/lib/capacitor.ts` (ImpactStyle.Light) |
-| Touch targets | All interactive elements | Minimum 44px (`min-h-[44px]`) |
-| Input zoom fix | Text inputs on mobile | `font-size: 16px !important` at mobile breakpoint in `index.css` |
+### Viewport Units
 
-**Known gotcha**: Swipe-to-dismiss must check guards before closing — PostModal checks `!saving`, ProfileModal checks `!isInitialSetup && !saving`. Don't allow swipe during save operations.
+Current state: The app uses `vh` for modal heights (`90vh`, `95vh`).
 
-**Known gotcha**: `MODAL_CHROME_HEIGHT` is 140 in PostModal and 180 in ProfileModal. On iPhone SE (667px screen), this may leave too little scroll area. This is a known pending item.
+| Unit | Behavior | Support |
+|------|----------|---------|
+| `vh` | Fixed to initial viewport (includes URL bar on iOS Safari) | Universal |
+| `dvh` | Dynamic — changes as URL bar collapses/expands | ~95% (2026) |
+| `svh` | Smallest possible viewport (URL bar fully expanded) | ~95% (2026) |
 
-### 3. Capacitor Configuration
+**Current approach is safe**: `90vh` is conservative enough that the URL bar
+difference doesn't cause issues. Switching to `dvh` would add ~45px on iPhone 14
+when URL bar collapses but is unnecessary unless modal space proves insufficient.
+
+If viewport changes are ever needed, the safe migration pattern is:
+```css
+max-height: min(90vh, 90dvh); /* dvh where supported, vh fallback */
+```
+
+**Rule**: Never use `100vh` or `100dvh` for full-screen layouts — always leave room
+for browser chrome. The app correctly uses `95vh` on mobile, `90vh` on desktop
+(`max-h-[95vh] sm:max-h-[90vh]`).
+
+### Modal Height Calculations
+
+Modals use `MODAL_CHROME_HEIGHT` to compute scrollable content area:
+
+```
+scrollableHeight = viewportHeight * multiplier - MODAL_CHROME_HEIGHT
+```
+
+Mobile uses 95vh (`max-h-[95vh]`), desktop uses 90vh (`sm:max-h-[90vh]`).
+
+| Modal | Chrome Height | SE (667px, 95vh) | iPhone 14 (844px, 95vh) | Pro Max (932px, 95vh) |
+|-------|--------------|------------------|------------------------|-----------------------|
+| PostModal | 140px | **493px** | 662px | 745px |
+| ProfileModal | 180px | **453px** | 622px | 705px |
+
+**iPhone SE concern**: ProfileModal's 453px must hold: avatar (~200px), display name
+(~80px), bio (~120px), mood (~70px), music (~70px), theme picker (~200px), emoji
+picker (~150px), blocked users (variable), account actions (~120px). Total ~1010px
+in 453px. Scrolling works but requires significant scrolling.
+
+**If adjustments are needed**:
+1. Reduce `MODAL_CHROME_HEIGHT` by compressing header/footer padding at mobile
+2. Collapse optional sections (hide preview by default on small screens)
+3. Use accordion sections to reduce visible content
+
+### Responsive Breakpoints
+
+| Breakpoint | Mechanism | What Changes |
+|------------|-----------|-------------|
+| 480px | `@media (max-width: 480px)` in `index.css` | Font sizes shrink, input zoom fix, custom cursor disabled |
+| 640px | Tailwind `sm:` | Padding increases (`p-2` → `p-4`), button labels shown (`hidden sm:inline`), grid adds columns |
+| 1024px | Tailwind `lg:` | Sidebar: collapsible accordion → fixed sidebar |
+
+**Layout behavior below each breakpoint**:
+- Below `lg:`: Sidebar collapses to summary bar, main content goes full-width
+- Below `sm:`: Padding shrinks, button labels hidden (icon-only), grids collapse
+  to fewer columns
+- Below 480px: Custom CSS for fonts, cursors, input zoom prevention
+
+### Grid Layout Verification
+
+Check these specific grid layouts at 375px and 390px:
+
+| Component | Layout | Behavior |
+|-----------|--------|----------|
+| PostModal | `grid grid-cols-1 sm:grid-cols-2 gap-3` | 1 col on mobile, 2 on sm+ (author + mood fields) |
+| ProfileModal themes | `grid grid-cols-2 gap-2 sm:gap-3` | Always 2 cols (tight at 375px — ~180px per cell) |
+| ProfileModal emoji | `grid grid-cols-2 sm:grid-cols-3 gap-2` | 2 cols mobile, 3 on sm+ |
+| AvatarPicker | `grid grid-cols-4 sm:grid-cols-5` | 4 cols mobile, 5 on sm+ |
+
+### Virtualized List Performance
+
+The feed uses `@tanstack/react-virtual`:
+- `estimateSize: 280px` per post (approximate, measured after render)
+- `overscan: 3` items beyond visible area
+- Container: `maxHeight: calc(100vh - 200px)` (200px = Header height)
+
+**Mobile concerns**:
+- Touch scrolling momentum via `-webkit-overflow-scrolling: touch` (global)
+- `estimateSize` is approximate — virtualizer measures actual heights after render
+- The 200px Header height is a magic number. If Header layout changes, this breaks.
+- On slow iPhones, avoid layout thrash in PostCard during scroll (all styles use
+  CSS variables, no JS-computed layouts)
+
+### Portrait-Only Orientation
+
+`ios/App/App/Info.plist` locks to portrait:
+```xml
+<key>UISupportedInterfaceOrientations</key>
+<array><string>UIInterfaceOrientationPortrait</string></array>
+```
+
+Verify no landscape-specific CSS exists that would be unreachable.
+
+### Touch Interaction Patterns
+
+| Pattern | Implementation | Where |
+|---------|---------------|-------|
+| Swipe-to-dismiss | `drag="x"` + `dragElastic={{ left: 0, right: 0.5 }}` + `offset.x > 80` | PostModal, ProfileModal |
+| Keyboard dismiss | `onTouchMove` → `document.activeElement.blur()` | Modal scroll areas |
+| Haptic feedback | `hapticImpact()` (ImpactStyle.Light) | Block, delete, post, update |
+| Tap feedback | `whileTap={{ scale: 0.95-0.98 }}` | Buttons via Framer Motion |
+| Long press | Not implemented | N/A |
+| Pull to refresh | Not implemented | Would need virtualizer integration |
+
+**Known gotcha**: Swipe-to-dismiss checks guards before closing — PostModal checks
+`!saving`, ProfileModal checks `!isInitialSetup && !saving`. Never allow swipe
+during save operations.
+
+---
+
+## Phase 2: Apple App Store Compliance
+
+### App Store Guidelines
+
+- **1.2 (UGC)**: Verify ALL of: reporting mechanism (mailto in PostCard), content
+  moderation (3-layer: regex + OpenAI + fail-open), age gate (COPPA 13+),
+  bidirectional user blocking (`user_blocks` + `is_blocked_pair()`)
+- **4.2 (Minimum Functionality)**: NOT a thin wrapper — verify native features:
+  haptics, share sheet, deep links, status bar, swipe gestures, cursor sparkles
+- **5.1.1 (Data Collection)**: Account deletion (`delete_user_account` RPC → Delete
+  Account button in ProfileModal). Data export (`export_user_data` RPC → Export
+  Data button in ProfileModal)
+- **5.1.2 (Data Use)**: Check `public/privacy.html` and `public/terms.html` exist.
+  Note: AI-generated, not lawyer-reviewed — flag as reminder.
+
+### iOS UX Patterns
+
+| Pattern | Where | Implementation |
+|---------|-------|---------------|
+| Safe area (top) | Header.tsx | `paddingTop: 'max(0.5rem, env(safe-area-inset-top))'` for Dynamic Island |
+| Safe area (bottom) | Modal footers | `.modal-footer-safe` class: `padding-bottom: calc(0.75rem + env(safe-area-inset-bottom))` |
+| Swipe-to-dismiss | PostModal, ProfileModal | `drag="x"` with `dragConstraints`, `dragElastic`, `onDragEnd` |
+| Keyboard dismiss | Modal scroll areas | `onTouchMove` → `blur()` handler |
+| Haptic feedback | Block, delete, post, update | `hapticImpact()` from `capacitor.ts` |
+| Touch targets | All interactive elements | 44px minimum (`min-h-[44px]`) |
+| Input zoom fix | Inputs on mobile | `font-size: 16px !important` at 480px breakpoint |
+
+### Capacitor Configuration
 
 Review `capacitor.config.ts` for:
-- `Keyboard.resize: 'body'` (prevents modal push-up on keyboard open)
-- `SplashScreen.launchAutoHide: false` (hidden manually in `initCapacitor()`)
+- `Keyboard.resize: 'body'` (prevents modal push-up)
+- `SplashScreen.launchAutoHide: false` (manual hide in `initCapacitor()`)
 - `server.allowNavigation` includes `*.supabase.co`
-- Platform guards in `src/lib/capacitor.ts` — ALL Capacitor calls gated by `Capacitor.isNativePlatform()`, no-ops on web
+- All Capacitor calls in `capacitor.ts` guarded by `Capacitor.isNativePlatform()`
 
-**Known gotcha**: `capacitor.ts` uses dynamic imports (`await import(...)`) for Capacitor plugins. Don't flag missing top-level imports — they're intentionally lazy-loaded.
+**Known gotcha**: `capacitor.ts` uses dynamic `await import(...)` for plugins.
+Don't flag missing top-level imports — they're intentionally lazy-loaded.
 
-### 4. Accessibility
+### Accessibility
 
-- Reduced motion: `<MotionConfig reducedMotion="user">` in App.tsx + CSS `prefers-reduced-motion` + per-component `useReducedMotion()`
-- `aria-label` on all icon-only buttons (Home, Profile, New Entry, Block, Report)
-- `aria-pressed` on reaction buttons in ReactionBar
+- Reduced motion: `<MotionConfig reducedMotion="user">` + CSS `prefers-reduced-motion`
+  + per-component `useReducedMotion()`
+- `aria-label` on all icon-only buttons
+- `aria-pressed` on reaction toggle buttons
 - Focus traps in modals via `useFocusTrap` hook
-- iOS smoothing: `-webkit-font-smoothing: antialiased`, `-webkit-tap-highlight-color: transparent`
 
-### 5. Dark Theme Contrast (WCAG AA)
+### Dark Theme Contrast (WCAG AA)
 
-For each dark theme in `src/lib/themes.ts`, verify `--text-muted` meets 4.5:1 contrast ratio against `--bg-primary`:
+Verify `--text-muted` meets 4.5:1 ratio against `--bg-primary` for dark themes:
 
 | Theme | `--text-muted` | `--bg-primary` | Status |
 |-------|---------------|----------------|--------|
@@ -66,36 +204,58 @@ For each dark theme in `src/lib/themes.ts`, verify `--text-muted` meets 4.5:1 co
 | scene-kid | `#00bb00` | `#001a00` | Fixed (was `#00ff0080` — alpha!) |
 | grunge | `#a09078` | `#1a1510` | Fixed (was `#6a5a48`) |
 
-**Known gotcha**: Never use alpha-channel colors for text (`#rrggbbaa`) — they fail contrast checks unpredictably against varying backgrounds. Use solid colors only.
+**Rule**: Never use alpha-channel colors for text. Use solid hex only.
 
-### 6. Image Error Fallbacks
+### Image Error Fallbacks
 
-Verify graceful degradation when CDN/network fails:
-- **Avatar**: Primary image → DiceBear CDN (`api.dicebear.com/7.x/bottts/svg`) → User icon placeholder (lucide-react `User` icon)
-- **YouTubeCard**: Thumbnail → YouTube icon placeholder (lucide-react `Youtube` icon in styled div)
+- **Avatar**: Primary → DiceBear CDN → User icon placeholder (triple-fallback chain)
+- **YouTubeCard**: Thumbnail → YouTube icon placeholder div
 
-Both use `onError` + `useState` to track failure states. Avatar has a triple-fallback chain (two `onError` transitions).
+Both use `onError` + `useState` to track failure states.
 
-### 7. Build Verification
+---
+
+## Phase 3: Build Verification
 
 ```bash
-npm run build          # Web build must succeed — NEVER use npm run dev
+npm run build          # NEVER use npm run dev — crashes the environment
+npx tsc --noEmit       # Zero type errors
 # npx cap sync         # Only on macOS with Xcode
 ```
 
-## Output Format
+---
 
-Present findings grouped by severity:
+## Cross-Domain Checks
+
+Before completing your audit:
+- Check if responsive findings affect `/frontend` domain (theme rendering at
+  different sizes, grid layouts with theme-specific content)
+- Check if Capacitor integration changes need `/fullstack` verification (new RPC
+  calls from native contexts)
+- Check if any new patterns should be shared with `/feature` (e.g., new modal
+  height calculation methodology)
+
+## Learning Contribution
+
+After completing your audit, append NEW findings to `.claude/learnings.md` under
+the appropriate section. Use the format:
+```
+- [YYYY-MM-DD /mobile] One-line finding description
+```
+
+Only add genuinely new findings. Don't repeat what's already documented.
+
+## Output Format
 
 **CRITICAL** (App Store rejection risk):
 - ...
 
-**HIGH** (Poor UX on iOS):
+**HIGH** (Poor UX on specific iPhone sizes):
 - ...
 
 **MEDIUM** (Polish):
 - ...
 
-Reference the known gotchas above to avoid repeating false alarms.
+Reference `.claude/learnings.md` false positives to avoid repeating dismissed findings.
 
 $ARGUMENTS
