@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { AnimatePresence, MotionConfig } from 'framer-motion';
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAuth } from './hooks/useAuth';
 import { usePosts } from './hooks/usePosts';
@@ -20,6 +20,7 @@ import type { Post, CreatePostInput } from './types/post';
 import { useEmojiStyle, getEmojiAttribution } from './lib/emojiStyles';
 import { moderateContent } from './lib/moderation';
 import { toUserMessage } from './lib/errors';
+import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen } from './lib/capacitor';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -272,7 +273,7 @@ function App() {
     if (error) {
       showError(`~ couldnt delete that :( ${error} ~`);
     } else {
-      success('~ entry deleted 💨 ~');
+      success(SUCCESS_MESSAGES.post.deleted);
     }
     setPostToDelete(null);
   }, [postToDelete, deletePost, showError, success]);
@@ -304,14 +305,14 @@ function App() {
         showError(`~ couldnt update that :( ${error} ~`);
         return;
       }
-      success('~ entry updated! looking good ✨ ~');
+      success(SUCCESS_MESSAGES.post.updated);
     } else {
       const { error } = await createPost(postData);
       if (error) {
         showError(`~ couldnt post that :( ${error} ~`);
         return;
       }
-      success('✨ ur entry is live!! 💕');
+      success(SUCCESS_MESSAGES.post.created);
 
       // Also update profile mood/music if provided in the post
       if (postData.mood || postData.music) {
@@ -329,7 +330,7 @@ function App() {
     if (error) {
       showError(`~ couldnt sign out :( ${error} ~`);
     } else {
-      success('~ goodbye 👋 come back soon! ~');
+      success(SUCCESS_MESSAGES.auth.signedOut);
       setShowAuthModal(true);
     }
   };

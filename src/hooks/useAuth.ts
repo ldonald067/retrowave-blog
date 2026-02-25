@@ -7,6 +7,7 @@ import {
   validateProfileInput,
   hasValidationErrors,
 } from '../lib/validation';
+import { MIN_AGE } from '../lib/constants';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 
@@ -154,7 +155,7 @@ export function useAuth(): UseAuthReturn {
           ? Number(metadata['birth_year'])
           : null;
         const ageVerified =
-          birthYear !== null && new Date().getFullYear() - birthYear >= 13;
+          birthYear !== null && new Date().getFullYear() - birthYear >= MIN_AGE;
 
         const profileData = {
           id: userId,

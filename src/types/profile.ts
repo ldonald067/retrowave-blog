@@ -17,21 +17,5 @@ export interface Profile {
   updated_at: string;
 }
 
-export interface UpdateProfileInput {
-  display_name?: string;
-  bio?: string;
-  avatar_url?: string;
-  theme?: string;
-  current_mood?: string;
-  current_music?: string;
-}
-
-export interface SignupData {
-  email: string;
-  birth_year: number;
-  tos_accepted: boolean;
-  display_name?: string;
-}
-
-// L8 FIX: Removed unused UserStats interface — nothing imports it.
-// If a stats feature is added later, re-create it here.
+// L8 FIX: Removed unused UserStats, UpdateProfileInput, SignupData interfaces
+// — nothing imports them. If needed later, re-create here.

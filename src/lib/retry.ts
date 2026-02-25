@@ -10,7 +10,7 @@
 
 import { POSTGREST_CODES } from './errors';
 
-export interface RetryOptions {
+interface RetryOptions {
   maxAttempts?: number; // default 3
   baseDelayMs?: number; // default 300
   maxDelayMs?: number; // default 5000

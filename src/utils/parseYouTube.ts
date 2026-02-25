@@ -58,13 +58,6 @@ export function parseYouTubeUrl(text: string): YouTubeInfo | null {
 }
 
 /**
- * Check if text contains a YouTube URL
- */
-export function hasYouTubeUrl(text: string): boolean {
-  return extractYouTubeId(text) !== null;
-}
-
-/**
  * Fetch YouTube video title using oEmbed API (no API key required).
  * T4: Results are cached in-memory for 60 minutes to avoid repeated fetches.
  */

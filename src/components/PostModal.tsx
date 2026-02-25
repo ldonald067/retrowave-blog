@@ -8,7 +8,7 @@ import ConfirmDialog from './ConfirmDialog';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import type { Post, CreatePostInput } from '../types/post';
-import { MOODS } from '../lib/constants';
+import { MOOD_SELECT_OPTIONS } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
 
 // Header (~60px) + Footer (~80px) = ~140px of non-scrollable modal chrome
@@ -200,11 +200,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
   // YouTube info for view mode — hook called unconditionally, returns null when not applicable
   const viewModeYtInfo = useYouTubeInfo(isViewMode ? post?.music : null);
 
-  // Fix 6: Map MOODS to Select options format
-  const moodOptions = MOODS.map((m) => ({
-    value: `${m.emoji} ${m.label}`,
-    label: `${m.emoji} ${m.label}`,
-  }));
+  // Mood options pre-computed in constants.ts (DRY — shared with ProfileModal)
 
   return (
     <AnimatePresence>
@@ -385,7 +381,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                     value={mood}
                     onChange={(e) => setMood(e.target.value)}
                     placeholder="select a mood..."
-                    options={moodOptions}
+                    options={MOOD_SELECT_OPTIONS}
                     aria-label="Select your current mood"
                   />
                 </div>

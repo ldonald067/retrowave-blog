@@ -23,7 +23,7 @@ export const POST_LIMITS = {
   music: { max: 200 },
 } as const;
 
-export interface PostValidationErrors {
+interface PostValidationErrors {
   title?: string;
   content?: string;
   author?: string;
@@ -119,19 +119,16 @@ export function hasValidationErrors(
   return Object.keys(errors).length > 0;
 }
 
-// ── Profile field limits ────────────────────────────────────────────────────
-// F3 FIX: No DB CHECK constraints exist yet for profiles, but these prevent
-// absurdly long values from hitting the database. If DB constraints are added
-// later (via a new migration), keep these in sync.
+// ── Profile field limits (must match migration 20260224000004 + 20260224000008) ──
 export const PROFILE_LIMITS = {
   display_name: { max: 50 },
   bio: { max: 500 },
   current_mood: { max: 100 },
   current_music: { max: 200 },
-  username: { max: 50 },
+  username: { min: 1, max: 50 },
 } as const;
 
-export interface ProfileValidationErrors {
+interface ProfileValidationErrors {
   display_name?: string;
   bio?: string;
   current_mood?: string;
@@ -173,7 +170,9 @@ export function validateProfileInput(
   }
 
   if ('username' in input && typeof input.username === 'string') {
-    if (input.username.length > PROFILE_LIMITS.username.max) {
+    if (input.username.length < PROFILE_LIMITS.username.min) {
+      errors.username = 'Username is required';
+    } else if (input.username.length > PROFILE_LIMITS.username.max) {
       errors.username = `Username must be ${PROFILE_LIMITS.username.max} characters or fewer`;
     }
   }

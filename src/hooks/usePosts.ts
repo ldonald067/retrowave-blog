@@ -19,7 +19,7 @@ function cacheKey(
   return `${userId ?? 'anon'}:${cursor ?? 'initial'}`;
 }
 
-export interface UsePostsReturn {
+interface UsePostsReturn {
   posts: Post[];
   loading: boolean;
   loadingMore: boolean;

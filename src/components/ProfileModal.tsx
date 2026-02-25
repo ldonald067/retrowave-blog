@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, User, FileText, Image, Palette, Heart, Music, Sparkles } from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji } from './ui';
-import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOODS } from '../lib/constants';
+import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
 import {
   EMOJI_STYLES,
@@ -306,10 +306,7 @@ export default function ProfileModal({
                   value={currentMood}
                   onChange={(e) => setCurrentMood(e.target.value)}
                   placeholder="no mood set"
-                  options={MOODS.map((m) => ({
-                    value: `${m.emoji} ${m.label}`,
-                    label: `${m.emoji} ${m.label}`,
-                  }))}
+                  options={MOOD_SELECT_OPTIONS}
                   aria-label="Select your current mood"
                 />
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>

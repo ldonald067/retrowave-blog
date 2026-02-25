@@ -9,8 +9,7 @@ export const BLOG_OWNER_EMAIL = 'retrowave.blog.app@gmail.com';
 // Age Verification
 export const MIN_AGE = 13; // COPPA compliance
 export const CURRENT_YEAR = new Date().getFullYear();
-export const MIN_BIRTH_YEAR = 1900;
-export const MAX_AGE = 100;
+// MIN_BIRTH_YEAR and MAX_AGE removed — unused by any consumer
 
 // Validation Rules — derived from PROFILE_LIMITS in validation.ts (single source of truth)
 import { PROFILE_LIMITS } from './validation';
@@ -63,12 +62,7 @@ export const SUCCESS_MESSAGES = {
   },
 } as const;
 
-// UI Constants
-export const UI = {
-  toast: {
-    duration: 3000, // milliseconds
-  },
-} as const;
+// UI.toast.duration removed — useToast.ts owns DEFAULT_DURATIONS (per-type)
 
 // Mood options for posts - Xanga/LiveJournal style!
 export const MOODS = [
@@ -139,4 +133,8 @@ export const MOODS = [
   { emoji: '👽', label: 'alien' },
 ] as const;
 
-export type Mood = (typeof MOODS)[number];
+// Pre-computed Select options from MOODS — used by PostModal + ProfileModal
+export const MOOD_SELECT_OPTIONS = MOODS.map((m) => ({
+  value: `${m.emoji} ${m.label}`,
+  label: `${m.emoji} ${m.label}`,
+}));

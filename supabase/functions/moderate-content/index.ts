@@ -54,11 +54,13 @@ const BLOCKED_DOMAINS = [
   // Hentai/animated
   'hentai', 'nhentai', 'hanime', 'rule34', 'e621', 'gelbooru', 'danbooru',
   // Image sharing adult
+  'imgur.com/a/', // Imgur albums can contain NSFW
   'redgifs',
+  'gfycat', // Often used for NSFW
   // Escort/hookup
   'backpage', 'skipthegames', 'bedpage', 'escortdirectory',
   // Gore/shock
-  'liveleak', 'bestgore', 'rotten', 'theync', 'kaotic',
+  'liveleak', 'bestgore', 'rotten', 'theync', 'documenting', 'kaotic',
   // Piracy
   'thepiratebay', 'kickass', '1337x', 'rarbg',
 ];

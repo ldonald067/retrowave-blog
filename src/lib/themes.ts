@@ -2,7 +2,7 @@
 // Each theme provides CSS custom property values applied via data-theme on <html>
 import { setStatusBarForTheme } from './capacitor';
 
-export interface ThemeDefinition {
+interface ThemeDefinition {
   id: string;
   name: string;
   description: string;
@@ -21,7 +21,7 @@ const THEME_IDS = [
   'pastel-goth',
 ] as const;
 
-export type ThemeId = (typeof THEME_IDS)[number];
+type ThemeId = (typeof THEME_IDS)[number];
 
 export const THEMES: ThemeDefinition[] = [
   {

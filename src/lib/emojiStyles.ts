@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react';
 
 export type EmojiStyleId = 'native' | 'fluent' | 'twemoji' | 'openmoji' | 'blob';
 
-export interface EmojiStyle {
+interface EmojiStyle {
   id: EmojiStyleId;
   name: string;
   description: string;
@@ -120,7 +120,7 @@ export function useEmojiStyle(): EmojiStyleId {
  * Converts a Unicode emoji string to a dash-separated hex codepoint string.
  * e.g., '🔥' → '1f525', '❤️' → '2764-fe0f'
  */
-export function emojiToCodepoint(emoji: string): string {
+function emojiToCodepoint(emoji: string): string {
   const codepoints: string[] = [];
   for (const char of emoji) {
     const cp = char.codePointAt(0);

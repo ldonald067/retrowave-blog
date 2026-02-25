@@ -40,12 +40,12 @@ This file is the shared interface between **two independent Claude agents** — 
 | Type | Frontend Location | Backend Location | Notes |
 |------|------------------|-----------------|-------|
 | Post field limits | `src/lib/validation.ts` `POST_LIMITS` | `20260223000001_post_constraints.sql` CHECK constraints | **Must match exactly** (verified 2026-02-24) |
-| Profile field limits | `src/lib/validation.ts` `PROFILE_LIMITS` | `20260224000004_add_data_constraints.sql` CHECK constraints | **Must match exactly** (verified 2026-02-24) |
+| Profile field limits | `src/lib/validation.ts` `PROFILE_LIMITS` | `20260224000004_add_data_constraints.sql` + `20260224000008_schema_hardening.sql` CHECK constraints | **Must match exactly** (synced 2026-02-24 — username min:1 added to frontend) |
 | RPC params/return | `src/types/database.ts` `Functions` | `20260224000009_retire_likes_excerpt_feed.sql` | Frontend types must mirror SQL return shape. Feed returns truncated content (500 chars); `get_post_by_id` returns full content. |
 | `ModerationResult` | `src/lib/moderation.ts` (severity required) | `supabase/functions/moderate-content/index.ts` (severity required) | Both require `severity`. Types duplicated (Deno can't share with Vite). |
 | Profile fields | `src/types/profile.ts` | `profiles` table columns | Adding a profile field requires both a migration AND a type update |
 | Reaction emoji set | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS` | `20260224000004_add_data_constraints.sql` CHECK constraint | Canonical set: `['❤️', '🔥', '😂', '😢', '✨', '👀']`. **Must match exactly** |
-| Moderation blocklists | `src/lib/moderation.ts` `BLOCKED_DOMAINS` + `ADULT_URL_KEYWORDS` | `supabase/functions/moderate-content/index.ts` (same lists) | M4 FIX: Both now have identical keyword lists. `BLOCKED_DOMAINS` identical; `ADULT_URL_KEYWORDS` synced (30 keywords). **Changes must sync both files** |
+| Moderation blocklists | `src/lib/moderation.ts` `BLOCKED_DOMAINS` + `ADULT_URL_KEYWORDS` | `supabase/functions/moderate-content/index.ts` (same lists) | **Synced 2026-02-24**: Both `BLOCKED_DOMAINS` and `ADULT_URL_KEYWORDS` now identical. **Changes must sync both files** |
 
 ### Environment Variables
 
@@ -181,13 +181,13 @@ src/
     CursorSparkle.tsx   # Mouse trail sparkle effect (respects reduced-motion)
     ConfirmDialog.tsx   # Styled confirm dialog for delete actions (loading state, focus trap)
     PostSkeleton.tsx    # Pulsing placeholder cards + SidebarSkeleton for initial feed load
-    LinkPreview.css     # Styles for embedded link previews
-    ui/                 # Reusable primitives (Input, Button, Card, Textarea, Avatar, AvatarPicker, Select, ReactionBar, StyledEmoji)
+    ui/                 # Reusable primitives (Input, Button, Card, Textarea, Avatar, AvatarPicker, Select, ReactionBar, StyledEmoji, YouTubeCard)
   hooks/
     useAuth.ts          # Authentication, profile CRUD, session management
     usePosts.ts         # Post feed with pagination, caching, CRUD, optimistic reactions
     useReactions.ts     # Emoji reaction toggle with optimistic updates + rollback
-    useYouTubeInfo.ts   # YouTube URL parsing + title fetch (shared by PostCard + Sidebar)
+    useYouTubeInfo.ts   # YouTube URL parsing + title fetch (shared by PostCard, Sidebar, PostModal)
+    useOnlineStatus.ts  # Browser online/offline status hook
     useToast.ts         # Toast notification state (max 3, type-based durations)
     useFocusTrap.ts     # Keyboard focus trap for modals
     __tests__/          # Hook tests (useAuth, useToast)
@@ -201,15 +201,13 @@ src/
     themes.ts           # 8 theme definitions, CSS variable application
     capacitor.ts        # Capacitor plugin wrappers (deep links, status bar, haptics, share, browser, splash)
     emojiStyles.ts      # 5 emoji styles (native + 4 CDN sets), reactive store, codepoint conversion
-    constants.ts        # App-wide constants (BLOG_OWNER_EMAIL, age limits, validation rules, mood emojis)
-    linkPreview.ts      # YouTube/Vimeo/Spotify oEmbed fetching + link type detection
-    __tests__/          # Lib tests (constants, linkPreview)
+    constants.ts        # App-wide constants (BLOG_OWNER_EMAIL, age limits, validation rules, mood emojis, MOOD_SELECT_OPTIONS)
+    __tests__/          # Lib tests (constants)
   types/
-    index.ts            # Barrel re-exports from post, link-preview
     post.ts             # Post, CreatePostInput, UpdatePostInput
-    profile.ts          # Profile, UpdateProfileInput, SignupData
+    profile.ts          # Profile
     database.ts         # Supabase generated types + RPC function types
-    link-preview.ts     # LinkPreview, LinkType
+    link-preview.ts     # LinkPreview
   test/
     setup.ts            # Vitest setup file
   utils/
@@ -828,3 +826,10 @@ Sessions 1-4: Touch targets (44px), React.memo/useCallback, custom cursors, pixe
   Session 15: Toast 10/10 + subliminal micro-polish across 8 files:
   - **Toast**: Spring physics entrance, horizontal exit, swipe-to-dismiss via drag, progress bar countdown, type-specific 4px left accent strip, icon pop bounce, close button 90° rotation on hover
   - **Micro-polish**: Reaction count pulse (scale 1.4→1 on change), Input/Textarea error shake-in (AnimatePresence), PostCard spring entrance (scale 0.98→1), ConfirmDialog motion.buttons (whileTap/whileHover), EmptyState cascading reveal (staggered delays), button press depth (shadow→0), input label focus-within color shift (CSS :has())
+  Session 16: Full-stack deduplication & divergence audit (20 files, 4 deleted):
+  - **Dead code deleted**: `LinkPreview.css` (195 lines, zero class usage), `linkPreview.ts` (entire oEmbed module, zero consumers), `linkPreview.test.ts` (only tested dead module), `types/index.ts` (barrel re-export, zero imports)
+  - **Dead types removed**: `LinkType`, `VimeoOEmbedResponse`, `SpotifyMetadata` from link-preview.ts; `UpdateProfileInput`, `SignupData` from profile.ts; `MIN_BIRTH_YEAR`, `MAX_AGE`, `UI` constant, `Mood` type from constants.ts; `hasYouTubeUrl` function from parseYouTube.ts
+  - **Cross-agent sync fixes**: BLOCKED_DOMAINS drift (3 entries missing from backend: `imgur.com/a/`, `gfycat`, `documenting`); `PROFILE_LIMITS.username` missing `min: 1` (migration 008 added it); `useAuth.ts` hardcoded `13` → uses `MIN_AGE` constant
+  - **DRY**: Extracted `MOOD_SELECT_OPTIONS` from duplicated `MOODS.map()` in PostModal + ProfileModal; App.tsx inline success strings → `SUCCESS_MESSAGES` constants
+  - **Export hygiene**: Removed unnecessary `export` from 8 internal-only types/functions across 6 files (UsePostsReturn, ThemeDefinition, ThemeId, RetryOptions, EmojiStyle, emojiToCodepoint, checkUrls, PostValidationErrors, ProfileValidationErrors)
+  - **Bug fix**: `motion` not imported in App.tsx (pre-existing — `AnimatePresence`/`MotionConfig` imported but not `motion` for offline banner)

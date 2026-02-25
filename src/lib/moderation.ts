@@ -224,7 +224,7 @@ function isBlockedUrl(url: string): { blocked: boolean; reason?: string } {
 /**
  * Check all URLs in text for blocked content
  */
-export function checkUrls(text: string): ModerationResult {
+function checkUrls(text: string): ModerationResult {
   const urls = extractUrls(text);
 
   for (const url of urls) {
