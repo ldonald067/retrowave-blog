@@ -5,6 +5,22 @@
 - **NEVER open the dev server preview** (Vite `npm run dev`). It crashes the environment. Use `npm run build` to verify changes compile correctly.
 - **ALWAYS commit and push before ending a session.** Use `/commit-push-pr` or at minimum `git add . && git commit && git push`. Worktrees reset and uncommitted work is lost forever.
 
+## Full-Stack Summary
+
+**Retrowave Blog** is a Xanga/MySpace-era nostalgia journal app. Users sign up via magic link email, write Markdown blog posts, and react with emoji. The aesthetic is aggressively 2005: Comic Sans, dotted borders, marquee banners, AIM status messages, cursor sparkles, and 88x31 pixel badges.
+
+| Layer | What | Where |
+|-------|------|-------|
+| **Web app** | React 19 SPA, 8 retro themes, lazy-loaded modals, virtualized feed | `src/` |
+| **iOS app** | Capacitor 8 wrapper (haptics, share, deep links, status bar) | `ios/`, `capacitor.config.ts` |
+| **Database** | Supabase PostgreSQL — posts, profiles, reactions (no comments, no likes) | `supabase/migrations/` |
+| **Auth** | Magic link OTP via Supabase GoTrue, COPPA age gate (13+), trigger-protected fields | `useAuth.ts`, migrations 005-010 |
+| **Moderation** | 3-layer: local regex → OpenAI API edge function → fail-open | `moderation.ts`, `supabase/functions/` |
+| **Feed** | Cursor-based pagination (20/page), excerpt-only (500 chars), full content on-demand | `usePosts.ts`, `get_posts_with_reactions` RPC |
+| **Reactions** | Optimistic UI with debounce guards (400ms cooldown, in-flight set) | `useReactions.ts`, `post_reactions` table |
+
+**Not built (by design):** comments, analytics, RSS, visitor counters, likes, custom reactions, cron jobs. See Product Philosophy below.
+
 ## Product Philosophy
 
 **Solo operator, low budget, zero moderation overhead.** This blog is run by one person with limited money and no tech background. Every feature decision must pass this filter:
@@ -85,10 +101,6 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 | Q6 | open | frontend | Verify `BLOG_OWNER_EMAIL` value is correct | Session 9 added `retrowave.blog.app@gmail.com` in `constants.ts` — used in PostCard report link, terms.html, privacy.html | backend: confirm or change the email before shipping | backend |
 | Q8 | open | frontend | Review `terms.html` and `privacy.html` content for accuracy | Static pages in `public/` — generic legal text written by AI, not lawyer-reviewed | backend: created as App Store requirement (Apple Guideline 5.1.1); user should review before launch | backend |
 | Q9 | open | frontend | Test Capacitor iOS build on macOS with Xcode | `capacitor.config.ts` + `ios/` directory scaffolded but never built | backend: ran `npx cap add ios` only; needs `npm run build && npx cap sync && npx cap open ios` on a Mac | backend |
-| Q10 | open | frontend | Audit: `useReactions` no longer exports `loading` — verify no consumers relied on it | Removed `loading` state from `useReactions.ts` return (dead code — optimistic updates made it unnecessary) | backend: grep confirmed zero imports of `loading` from useReactions before removal | backend |
-| Q11 | open | frontend | Audit: `excerpt` field removed from `Post`, `CreatePostInput`, and `database.ts` types | `excerpt` was dead — never populated by RPC, never rendered in UI | backend: if any new code references `post.excerpt`, it will get a TS error (intentional) | backend |
-| Q12 | open | frontend | Audit: `viewMode` prop removed from `PostCard` interface | Was always passed as `"list"` and never used inside the component | backend: removed from PostCardProps and App.tsx usage | backend |
-| Q13 | open | frontend | Audit: deleted `src/types/supabase.ts` — `SupabaseConfig` and `DatabaseError` types gone | Zero imports found; re-export from `types/index.ts` also removed | backend: if either type is needed, recreate in `types/supabase.ts` | backend |
 | Q14 | open | frontend | Verify iOS safe-area padding renders correctly on iPhone with notch | Added `modal-footer-safe` class (PostModal + ProfileModal footers) and `safe-area-bottom` utility in `index.css` using `env(safe-area-inset-bottom)` | backend: needs physical iPhone or Xcode simulator to confirm padding | backend |
 | Q15 | open | frontend | Verify iOS Safari input zoom prevention works | Added `font-size: 16px !important` to inputs/textareas/selects at `@media (max-width: 480px)` in `index.css` | backend: iOS Safari zooms viewport when focused input has font-size < 16px; this override should prevent it | backend |
 
@@ -292,15 +304,15 @@ const { data, error } = await withRetry(() =>
 
 **Keep `POST_LIMITS` in `validation.ts` in sync with the SQL migration constraints.** Both must agree.
 
-`PROFILE_LIMITS` in `validation.ts` is the **single source of truth** for profile field limits. `VALIDATION` in `constants.ts` imports from `PROFILE_LIMITS` (not duplicated). DB CHECK constraints in `20260224000004_add_data_constraints.sql` must match:
+`PROFILE_LIMITS` in `validation.ts` is the **single source of truth** for profile field limits. `VALIDATION` in `constants.ts` imports from `PROFILE_LIMITS` (not duplicated). DB CHECK constraints in `20260224000004_add_data_constraints.sql` + `20260224000008_schema_hardening.sql` must match:
 
-| Field | Max |
-|-------|-----|
-| display_name | 50 |
-| bio | 500 |
-| current_mood | 100 |
-| current_music | 200 |
-| username | 50 |
+| Field | Min | Max |
+|-------|-----|-----|
+| display_name | - | 50 |
+| bio | - | 500 |
+| current_mood | - | 100 |
+| current_music | - | 200 |
+| username | 1 | 50 |
 
 `useAuth.updateProfile()` calls `validateProfileInput()` before sending to Supabase.
 
@@ -751,13 +763,7 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 
 ## Backend Review Summary
 
-Comprehensive audit completed 2026-02-23. **All 30 findings resolved** across security, hardening, performance, and code quality. Key areas addressed:
-
-- **Security**: `auth.uid()` override in RPCs (prevents user_id spoofing), RPC limit clamping, COPPA field trigger protection, `is_admin` self-elevation prevention, SECURITY DEFINER `set_age_verification` RPC
-- **Data integrity**: CHECK constraints on posts + profiles + reactions, `ON CONFLICT DO NOTHING` in profile trigger, `handle_new_user()` derives `age_verified` from `birth_year` arithmetic
-- **Performance**: Indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id`; excerpt-only feed (`LEFT(content, 500)`) + `get_post_by_id` for full content; `post_likes` table retired
-- **Edge function**: Server-side blocklists, 100KB body limit, 5s timeout, keyword sync with client
-- **Code quality**: Generic error messages (no schema leaks), 429 non-retryable, cache max size eviction, dead code removal, PromiseLike → async wrappers
+All 30 audit findings resolved (2026-02-23/24). Security: `auth.uid()` in RPCs, COPPA/is_admin trigger protection, RPC limit clamping. Data: CHECK constraints on all tables, `handle_new_user()` derives age from birth_year. Performance: 4 indexes, excerpt-only feed, `post_likes` retired. Edge function: server-side blocklists, 100KB limit, 5s timeout. See migrations 001-010 and Architecture Patterns for details.
 
 ## Known Tech Debt
 
@@ -767,69 +773,19 @@ Comprehensive audit completed 2026-02-23. **All 30 findings resolved** across se
 
 ## Agent Session Log
 
-### Frontend (bold-brattain) — 2026-02-23
+18 sessions across 2 worktrees (2026-02-23 to 2026-02-24). Key milestones:
 
-Xanga-style UI overhaul, accessibility, mobile polish, interaction improvements. Added Q1-Q5 to the Cross-Agent Queue for backend review (all resolved).
-
-### Backend (bold-wozniak) — 2026-02-24
-
-Resolved Q1-Q5. Made `ModerationResult.severity` required in frontend (Q3). Queue cleared.
-
-### Frontend (bold-wozniak) — 2026-02-24
-
-Sessions 1-4: Touch targets (44px), React.memo/useCallback, custom cursors, pixel badges, emoji style system (5 styles, CDN), Product Philosophy, CLAUDE.md audit (87→93).
-  Sessions 5-6: UX audit (9 fixes: draft auto-save, unsaved changes guard, sidebar default expanded, loadMore error state, end-of-list indicator, ConfirmDialog loading, profileError surfacing). CLAUDE.md audit (91→96).
-  Sessions 7-8: Backend hardening (COPPA trigger protection, `set_age_verification` RPC, handle_new_user null safety, avatar_url constraint, is_admin protection, keyword sync). Retired `post_likes` table + excerpt-only feed + `get_post_by_id` RPC.
-  Session 9: Comprehensive 7-batch audit:
-  - **Security**: COPPA bypass fix (migration 010 derives `age_verified` from `birth_year`), localStorage try/catch, console.error sanitized
-  - **iOS/App Store**: viewport-fit, safe-area CSS, input zoom fix, TOS + privacy pages, PWA manifest, report link (Apple 1.2), Capacitor setup
-  - **Performance**: `postsRef` pattern for stable `handleReaction`, hoisted `truncateContent`
-  - **Dead code**: 14 categories removed (excerpt, supabase.ts, helper types, unused functions/exports)
-  - **Bug fix**: ProfileModal X button → `handleCancel` for theme/emoji revert
-  - **Queue**: Added Q6-Q15 for frontend agent review
-  Session 10: 15 UX/style fixes + 7 Capacitor plugins:
-  - **CSS**: Focus-visible rings (WCAG 2.4.7), :root fallbacks for modal/input vars, explicit transition properties, dark theme shadow glow colors
-  - **Components**: PostModal refactored to use Input/Textarea/Select primitives (DRY), YouTube card in view mode, reaction bar two-row layout, Select dropdown arrow, ConfirmDialog themed button text, AuthModal retro animation, onboarding slide accuracy, compact mobile header, ambiguous copy fix
-  - **Modal overlays**: 50%→60% opacity for dark theme visibility
-  - **Capacitor plugins**: @capacitor/app, status-bar, keyboard, haptics, share, browser, splash-screen (installed, not yet wired up)
-  Session 11: Capacitor plugin integration — all 7 plugins wired up:
-  - **New file**: `src/lib/capacitor.ts` — centralized Capacitor integration (platform guards, all plugin wrappers)
-  - **Deep links**: `App.addListener('appUrlOpen')` in main.tsx for magic link auth redirects
-  - **Status bar**: `setStatusBarForTheme()` called from `applyTheme()` — dark themes get light text, light themes get dark text
-  - **Keyboard**: `resize: 'body'` in capacitor.config.ts plugin config (prevents modal push on iOS)
-  - **Haptics**: Light impact on reaction toggle in `useReactions.ts`
-  - **Share**: Share2 icon button in PostCard footer, shares title + content snippet
-  - **Browser**: YouTube links in PostCard use `openUrl()` → SFSafariViewController on iOS, window.open on web
-  - **Splash screen**: `hideSplashScreen()` after auth resolves in App.tsx, `launchAutoHide: false` in config
-  Session 12: Custom app icon + comprehensive audit (8 fixes):
-  - **App icons**: User's custom PNG → iOS app icon (1024×1024), splash (2732×2732 ×3), favicon (32×32), PWA icons (192, 512, 180). `scripts/generate-icons.mjs` + sharp.
-  - **Manifest/HTML**: SVG icon refs → PNG, `background_color` → `#1a0a2e`, metadata branding "Retrowave Blog" → "My Journal"
-  - **Bug fix**: IntersectionObserver used viewport root instead of scroll container — infinite scroll could silently break
-  - **Bug fix**: `applyTheme` used `cssText` which destroyed all root inline styles — replaced with `setProperty()` loop
-  - **Bug fix**: Sidebar AIM status read localStorage directly — never updated when Header changed it. Added CustomEvent sync.
-  - **UX**: PostModal `window.confirm` → styled `ConfirmDialog` for unsaved changes (consistent Xanga aesthetic)
-  - **DRY**: Extracted `useYouTubeInfo` hook from identical 25-line blocks in PostCard + Sidebar
-  - **A11y**: AuthModal tabs: `aria-pressed` → correct `role="tab"` + `aria-selected` + `role="tabpanel"`
-  - **Consistency**: ProfileModal "Currently Listening" raw `<input>` → `Input` primitive
-  - **Cleanup**: Removed SVG placeholder icons, scaffold leftovers (vite.svg, react.svg). Resolves Q7.
-  Session 13: 13 gap fixes for 10/10 audit across a11y, perf, and UX:
-  - **A11y**: ConfirmDialog `aria-labelledby`/`aria-describedby` + Escape via `useFocusTrap`; OnboardingFlow `role="progressbar"` + `aria-live`; AvatarPicker `aria-pressed` + descriptive alts + `<label htmlFor>`; Header status `aria-label`
-  - **Perf**: ReactionBar `useEmojiStyle()` lifted to bar level (6→1 subscriptions); `confirmDeletePost` wrapped in `useCallback`; `rootMargin` bottom-only; `scrollbar-thin` class → `scrollbarWidth: 'thin'` inline
-  - **UX**: PostSkeleton reaction pills 4→6; new `SidebarSkeleton` export; CursorSparkle `pointer: fine` guard; loading state includes SidebarSkeleton + PostSkeleton
-  Session 14: Microinteraction audit + 6 animation fixes:
-  - PostModal draft banner AnimatePresence + preview/edit crossfade (0.15s)
-  - LoadingSpinner rewritten with `useReducedMotion()` from framer-motion
-  - ProfileModal avatar picker toggle AnimatePresence slide-in
-  - ConfirmDialog spinning ✦ star loading indicator
-  - PostCard edit/delete hover:scale-110 + background tint on hover
-  - Header status edit/display AnimatePresence crossfade (width + opacity)
-  Session 15: Toast 10/10 + subliminal micro-polish across 8 files:
-  - **Toast**: Spring physics entrance, horizontal exit, swipe-to-dismiss via drag, progress bar countdown, type-specific 4px left accent strip, icon pop bounce, close button 90° rotation on hover
-  - **Micro-polish**: Reaction count pulse (scale 1.4→1 on change), Input/Textarea error shake-in (AnimatePresence), PostCard spring entrance (scale 0.98→1), ConfirmDialog motion.buttons (whileTap/whileHover), EmptyState cascading reveal (staggered delays), button press depth (shadow→0), input label focus-within color shift (CSS :has())
-  Session 16: Full-stack deduplication & divergence audit (20 files, 4 deleted):
-  - **Dead code deleted**: `LinkPreview.css` (195 lines, zero class usage), `linkPreview.ts` (entire oEmbed module, zero consumers), `linkPreview.test.ts` (only tested dead module), `types/index.ts` (barrel re-export, zero imports)
-  - **Dead types removed**: `LinkType`, `VimeoOEmbedResponse`, `SpotifyMetadata` from link-preview.ts; `UpdateProfileInput`, `SignupData` from profile.ts; `MIN_BIRTH_YEAR`, `MAX_AGE`, `UI` constant, `Mood` type from constants.ts; `hasYouTubeUrl` function from parseYouTube.ts
-  - **Cross-agent sync fixes**: BLOCKED_DOMAINS drift (3 entries missing from backend: `imgur.com/a/`, `gfycat`, `documenting`); `PROFILE_LIMITS.username` missing `min: 1` (migration 008 added it); `useAuth.ts` hardcoded `13` → uses `MIN_AGE` constant
-  - **DRY**: Extracted `MOOD_SELECT_OPTIONS` from duplicated `MOODS.map()` in PostModal + ProfileModal; App.tsx inline success strings → `SUCCESS_MESSAGES` constants
-  - **Export hygiene**: Removed unnecessary `export` from 8 internal-only types/functions across 6 files (UsePostsReturn, ThemeDefinition, ThemeId, RetryOptions, EmojiStyle, emojiToCodepoint, checkUrls, PostValidationErrors, ProfileValidationErrors)
-  - **Bug fix**: `motion` not imported in App.tsx (pre-existing — `AnimatePresence`/`MotionConfig` imported but not `motion` for offline banner)
+| Session | Worktree | Focus | Key Changes |
+|---------|----------|-------|-------------|
+| FE 1 | bold-brattain | Xanga UI overhaul | Dotted borders, Comic Sans, marquee, AIM status, sparkle trail, pixel badges. Added Q1-Q5 |
+| BE 1 | bold-wozniak | Backend fixes | Resolved Q1-Q5. `ModerationResult.severity` required (Q3) |
+| FE 2-4 | bold-wozniak | Polish + emoji | Touch targets (44px), React.memo/useCallback, custom cursors, emoji style system (5 CDN sets) |
+| FE 5-6 | bold-wozniak | UX audit | Draft auto-save, unsaved changes guard, loadMore error state, ConfirmDialog loading, profileError toast |
+| FE 7-8 | bold-wozniak | Backend hardening | COPPA trigger protection, `set_age_verification` RPC, `is_admin` protection, retired `post_likes`, excerpt-only feed |
+| FE 9 | bold-wozniak | Security + iOS | COPPA bypass fix (migration 010), safe-area CSS, TOS/privacy pages, PWA manifest, report link (Apple 1.2) |
+| FE 10-11 | bold-wozniak | Capacitor | 7 plugins installed + wired: deep links, status bar, keyboard, haptics, share, browser, splash screen |
+| FE 12 | bold-wozniak | App icon + bugs | Custom PNG icon pipeline (`generate-icons.mjs`), IntersectionObserver fix, `applyTheme` cssText→setProperty, `useYouTubeInfo` DRY extraction |
+| FE 13 | bold-wozniak | A11y + perf | ARIA roles (progressbar, tab, aria-pressed), emoji subscription optimization (6→1), CursorSparkle pointer guard |
+| FE 14-15 | bold-wozniak | Animations | Spring physics everywhere, Toast swipe-to-dismiss + progress bar, reaction count pulse, error shake, EmptyState cascade |
+| FE 16 | bold-wozniak | Full-stack audit | Deleted 4 dead files (−486 lines), synced BLOCKED_DOMAINS, extracted MOOD_SELECT_OPTIONS, export hygiene (9 types), fixed `motion` import |
+| FE 17 | bold-wozniak | CLAUDE.md 100 | Full-stack summary, compressed session log, cleaned stale queue items, profile limits table fix |
