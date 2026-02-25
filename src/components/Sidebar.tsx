@@ -5,6 +5,7 @@ import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 import { Avatar } from './ui';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
+import { openUrl } from '../lib/capacitor';
 
 interface SidebarProps {
   user: SupabaseUser | null;
@@ -135,6 +136,10 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
                   href={ytInfo.watchUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void openUrl(ytInfo.watchUrl);
+                  }}
                   className="block p-1.5 rounded transition hover:opacity-80 ml-1"
                   style={{
                     backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))',

@@ -70,7 +70,8 @@ const ADULT_URL_KEYWORDS = [
   'porn', 'xxx', 'sex', 'nude', 'naked', 'nsfw', 'adult', 'escort',
   'camgirl', 'onlyfan', 'hentai', 'erotic', 'fetish', 'bdsm', 'milf',
   // L11: 'teen' and 'gay' intentionally excluded (false-positive risk)
-  'fuck', 'pussy', 'cock', 'dick', 'boob', 'tits', 'ass', 'anal',
+  // 'ass' removed — matches 'class', 'massachusetts', 'bass', etc.
+  'fuck', 'pussy', 'cock', 'dick', 'boob', 'tits', 'anal',
   'blowjob', 'creampie', 'cumshot', 'gangbang', 'threesome', 'orgasm',
   'masturbat', 'dildo', 'vibrator', 'stripper', 'hooker', 'whore', 'slut',
 ];

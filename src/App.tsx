@@ -19,8 +19,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 import type { Post, CreatePostInput } from './types/post';
 import { useEmojiStyle, getEmojiAttribution } from './lib/emojiStyles';
 import { moderateContent } from './lib/moderation';
+import { toUserMessage } from './lib/errors';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen } from './lib/capacitor';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
@@ -201,6 +203,7 @@ function App() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   // Subscribe to emoji style changes for footer attribution
   const emojiStyle = useEmojiStyle();
+  const isOnline = useOnlineStatus();
 
   // UX: Show toast when profile creation/fetch fails silently
   const profileErrorShownRef = useRef(false);
@@ -426,7 +429,7 @@ function App() {
               p_tos_accepted: tosAccepted,
             });
             if (error) {
-              showError(`~ couldnt verify :( ${(error as { message?: string }).message || error} ~`);
+              showError(`~ couldnt verify :( ${toUserMessage(error)} ~`);
             } else {
               // Refresh profile to pick up the new COPPA values
               await refetchProfile();
@@ -494,6 +497,24 @@ function App() {
         onAuthClick={() => setShowAuthModal(true)}
         onProfileClick={handleProfileClick}
       />
+
+      {/* Offline banner */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="text-center text-xs py-2 font-bold overflow-hidden"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--bg-primary))',
+              color: 'var(--accent-secondary)',
+            }}
+          >
+            📡 ~ ur offline rn ~ posts will load when u reconnect ✨
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Xanga-style sidebar layout */}
       <div className="max-w-7xl mx-auto px-4 py-6">

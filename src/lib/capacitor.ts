@@ -27,16 +27,20 @@ const isNative = Capacitor.isNativePlatform();
 export function initCapacitor(): void {
   if (!isNative) return;
 
-  // Deep links: Supabase magic link redirects arrive here on iOS.
-  // The URL contains auth tokens in the hash fragment — setting
-  // window.location.hash lets the Supabase SDK pick them up via
-  // onAuthStateChange.
-  CapApp.addListener('appUrlOpen', ({ url }) => {
-    const hashIndex = url.indexOf('#');
-    if (hashIndex >= 0) {
-      window.location.hash = url.substring(hashIndex);
-    }
-  });
+  try {
+    // Deep links: Supabase magic link redirects arrive here on iOS.
+    // The URL contains auth tokens in the hash fragment — setting
+    // window.location.hash lets the Supabase SDK pick them up via
+    // onAuthStateChange.
+    CapApp.addListener('appUrlOpen', ({ url }) => {
+      const hashIndex = url.indexOf('#');
+      if (hashIndex >= 0) {
+        window.location.hash = url.substring(hashIndex);
+      }
+    });
+  } catch {
+    // Plugin may not be available — app still works without deep links
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -46,7 +50,11 @@ export function initCapacitor(): void {
 /** Hide the native splash screen. Call after auth session resolves. */
 export async function hideSplashScreen(): Promise<void> {
   if (!isNative) return;
-  await SplashScreen.hide({ fadeOutDuration: 300 });
+  try {
+    await SplashScreen.hide({ fadeOutDuration: 300 });
+  } catch {
+    // Swallow — splash may already be hidden or unavailable on simulator
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -68,9 +76,13 @@ const DARK_THEMES = new Set([
  */
 export async function setStatusBarForTheme(themeId: string): Promise<void> {
   if (!isNative) return;
-  const isDark = DARK_THEMES.has(themeId);
-  // Style.Dark = light text on dark bg, Style.Light = dark text on light bg
-  await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
+  try {
+    const isDark = DARK_THEMES.has(themeId);
+    // Style.Dark = light text on dark bg, Style.Light = dark text on light bg
+    await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
+  } catch {
+    // Swallow — status bar API may not be available
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -116,9 +128,14 @@ export async function sharePost(
  * Falls back to `window.open` on web.
  */
 export async function openUrl(url: string): Promise<void> {
-  if (isNative) {
-    await Browser.open({ url, presentationStyle: 'popover' });
-  } else {
+  try {
+    if (isNative) {
+      await Browser.open({ url, presentationStyle: 'popover' });
+    } else {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  } catch {
+    // Fallback: let the browser handle it directly
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 }

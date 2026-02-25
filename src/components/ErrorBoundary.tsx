@@ -47,7 +47,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <h1 className="xanga-title text-3xl">Oops! 😵</h1>
           <p className="xanga-subtitle">Something went wrong rendering this page.</p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            {this.state.error?.message || 'An unexpected error occurred.'}
+            Something went wrong. Try refreshing the page.
           </p>
           <div className="flex gap-3 justify-center pt-2">
             <button

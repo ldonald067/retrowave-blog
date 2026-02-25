@@ -128,7 +128,7 @@ const ADULT_URL_KEYWORDS = [
   'dick',
   'boob',
   'tits',
-  'ass',
+  // 'ass' removed — matches 'class', 'massachusetts', 'bass', etc.
   'anal',
   'blowjob',
   'creampie',

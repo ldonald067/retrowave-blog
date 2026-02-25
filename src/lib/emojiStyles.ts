@@ -57,9 +57,13 @@ export const EMOJI_STYLES: EmojiStyle[] = [
 const STORAGE_KEY = 'emoji-style';
 
 function loadStyle(): EmojiStyleId {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored && EMOJI_STYLES.some((s) => s.id === stored)) {
-    return stored as EmojiStyleId;
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored && EMOJI_STYLES.some((s) => s.id === stored)) {
+      return stored as EmojiStyleId;
+    }
+  } catch {
+    // localStorage unavailable (iOS private browsing, restricted context)
   }
   return 'native';
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import StyledEmoji from './StyledEmoji';
 import { useEmojiStyle } from '../../lib/emojiStyles';
@@ -30,6 +30,15 @@ export default function ReactionBar({
   const [floatingEmojis, setFloatingEmojis] = useState<FloatingEmoji[]>([]);
   // Subscribe once at the bar level instead of per-emoji (6→1 subscriptions)
   const emojiStyle = useEmojiStyle();
+  // Track active timers so we can clean them up on unmount
+  const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+
+  useEffect(() => {
+    return () => {
+      // Clear all pending float timers on unmount
+      timersRef.current.forEach((t) => clearTimeout(t));
+    };
+  }, []);
 
   const handleToggle = useCallback(
     (emoji: string) => {
@@ -42,9 +51,11 @@ export default function ReactionBar({
       setFloatingEmojis((prev) => [...prev, { id, emoji, offsetX }]);
 
       // Clean up after animation
-      setTimeout(() => {
+      const timer = setTimeout(() => {
+        timersRef.current.delete(timer);
         setFloatingEmojis((prev) => prev.filter((e) => e.id !== id));
       }, 850);
+      timersRef.current.add(timer);
     },
     [onToggle, disabled],
   );

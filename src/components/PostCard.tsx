@@ -200,8 +200,8 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
           </ReactMarkdown>
         </div>
 
-        {/* Read more link if truncated */}
-        {post.content && post.content.length > 300 && (
+        {/* Read more link — prefer server truncation flag over length guess */}
+        {(post.content_truncated || (post.content && post.content.length > 300)) && (
           <button
             onClick={() => onView(post)}
             className="xanga-link text-xs"
@@ -237,7 +237,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
         <button
           onClick={() => {
             const snippet = post.content ? post.content.substring(0, 140) : '';
-            void sharePost(post.title, `${post.title}\n\n${snippet}${snippet.length < (post.content?.length ?? 0) ? '...' : ''}`);
+            void sharePost(post.title, `${snippet}${snippet.length < (post.content?.length ?? 0) ? '...' : ''}`);
           }}
           className="p-1.5 rounded transition hover:opacity-70"
           title="Share post"
