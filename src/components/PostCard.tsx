@@ -32,9 +32,15 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
   // Xanga-style blog post card
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: 20, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -20, scale: 0.98 }}
+      transition={{
+        type: 'spring',
+        stiffness: 300,
+        damping: 25,
+        mass: 0.8,
+      }}
       className="xanga-box p-0 overflow-hidden"
     >
       {/* Post header with title and date - colorful banner */}

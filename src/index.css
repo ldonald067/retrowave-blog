@@ -312,8 +312,8 @@ body {
 }
 
 .xanga-button:active {
-  transform: translateY(1px);
-  box-shadow: 1px 1px 0px var(--shadow-color);
+  transform: translateY(2px);
+  box-shadow: 0 0 0 transparent;
 }
 
 /* Mood icons spacing */
@@ -387,6 +387,13 @@ select:focus-visible {
   border-color: var(--input-focus, var(--accent-primary)) !important;
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--input-focus, var(--accent-primary)) 30%, transparent);
   outline: none;
+}
+
+/* ===== Input Label Focus Shift ===== */
+/* Subtly shift label color when its input is focused */
+.w-full:has(input:focus, textarea:focus, select:focus) > label {
+  color: var(--input-focus, var(--accent-primary)) !important;
+  transition: color 0.2s ease;
 }
 
 /* ===== Cursor Sparkle Trail ===== */

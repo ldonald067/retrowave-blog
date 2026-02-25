@@ -61,10 +61,11 @@ export default function ConfirmDialog({
           </p>
 
           <div className="flex gap-3 justify-end">
-            <button
+            <motion.button
               type="button"
               onClick={onCancel}
               disabled={loading}
+              whileTap={{ scale: 0.95 }}
               className="px-4 py-2.5 rounded-lg transition text-xs font-bold border-2 border-dotted hover:opacity-80"
               style={{
                 backgroundColor: 'var(--card-bg)',
@@ -75,11 +76,13 @@ export default function ConfirmDialog({
               }}
             >
               {cancelLabel}
-            </button>
-            <button
+            </motion.button>
+            <motion.button
               type="button"
               onClick={onConfirm}
               disabled={loading}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
               className="px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110"
               style={{
                 background: 'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, #000))',
@@ -103,7 +106,7 @@ export default function ConfirmDialog({
               ) : (
                 confirmLabel
               )}
-            </button>
+            </motion.button>
           </div>
         </motion.div>
       </motion.div>

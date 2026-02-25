@@ -1,4 +1,5 @@
 import { InputHTMLAttributes, ReactNode, useId } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -52,16 +53,22 @@ export default function Input({
           {...props}
         />
       </div>
-      {error && (
-        <p
-          id={`${inputId}-error`}
-          className="mt-1 text-xs font-bold"
-          style={{ color: 'var(--accent-secondary)' }}
-          role="alert"
-        >
-          ❌ {error}
-        </p>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.p
+            id={`${inputId}-error`}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: [0, -3, 3, -2, 1, 0] }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.35 }}
+            className="mt-1 text-xs font-bold"
+            style={{ color: 'var(--accent-secondary)' }}
+            role="alert"
+          >
+            ❌ {error}
+          </motion.p>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { TextareaHTMLAttributes, useId } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
@@ -47,16 +48,22 @@ export default function Textarea({
       />
       <div className="mt-1 flex justify-between items-start">
         <div className="flex-1">
-          {error && (
-            <p
-              id={`${textareaId}-error`}
-              className="text-xs font-bold"
-              style={{ color: 'var(--accent-secondary)' }}
-              role="alert"
-            >
-              ❌ {error}
-            </p>
-          )}
+          <AnimatePresence>
+            {error && (
+              <motion.p
+                id={`${textareaId}-error`}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: [0, -3, 3, -2, 1, 0] }}
+                exit={{ opacity: 0, x: -8 }}
+                transition={{ duration: 0.35 }}
+                className="text-xs font-bold"
+                style={{ color: 'var(--accent-secondary)' }}
+                role="alert"
+              >
+                ❌ {error}
+              </motion.p>
+            )}
+          </AnimatePresence>
           {hint && !error && (
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {hint}
