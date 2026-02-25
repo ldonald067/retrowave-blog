@@ -83,7 +83,6 @@ Structured handoff between frontend and backend agents. **Every agent session mu
 | ID | Status | Owner | Item | Context | Notes | Added By |
 |----|--------|-------|------|---------|-------|----------|
 | Q6 | open | frontend | Verify `BLOG_OWNER_EMAIL` value is correct | Session 9 added `retrowave.blog.app@gmail.com` in `constants.ts` — used in PostCard report link, terms.html, privacy.html | backend: confirm or change the email before shipping | backend |
-| Q7 | done | frontend | Replace SVG placeholder icons with real PNG app icons | `public/icon-192.svg`, `icon-512.svg`, `apple-touch-icon.svg` are pink-heart SVG placeholders — App Store requires real PNG assets | frontend: replaced with user's custom PNG via `scripts/generate-icons.mjs` + sharp. SVGs deleted. | backend |
 | Q8 | open | frontend | Review `terms.html` and `privacy.html` content for accuracy | Static pages in `public/` — generic legal text written by AI, not lawyer-reviewed | backend: created as App Store requirement (Apple Guideline 5.1.1); user should review before launch | backend |
 | Q9 | open | frontend | Test Capacitor iOS build on macOS with Xcode | `capacitor.config.ts` + `ios/` directory scaffolded but never built | backend: ran `npx cap add ios` only; needs `npm run build && npx cap sync && npx cap open ios` on a Mac | backend |
 | Q10 | open | frontend | Audit: `useReactions` no longer exports `loading` — verify no consumers relied on it | Removed `loading` state from `useReactions.ts` return (dead code — optimistic updates made it unnecessary) | backend: grep confirmed zero imports of `loading` from useReactions before removal | backend |
@@ -175,13 +174,13 @@ src/
     AuthModal.tsx       # Login/signup tabs
     OnboardingFlow.tsx  # Multi-step signup wizard
     EmptyState.tsx      # Lined paper journal empty state
-    Toast.tsx           # Notification toast with stacking
+    Toast.tsx           # Toast with spring physics, progress bar, swipe-to-dismiss, type accent
     LoadingSpinner.tsx  # Themed spinner
     ErrorMessage.tsx    # Themed error display with retry
     ErrorBoundary.tsx   # Class component — catches render errors, fallback UI
     CursorSparkle.tsx   # Mouse trail sparkle effect (respects reduced-motion)
     ConfirmDialog.tsx   # Styled confirm dialog for delete actions (loading state, focus trap)
-    PostSkeleton.tsx    # Pulsing placeholder cards for initial feed load
+    PostSkeleton.tsx    # Pulsing placeholder cards + SidebarSkeleton for initial feed load
     LinkPreview.css     # Styles for embedded link previews
     ui/                 # Reusable primitives (Input, Button, Card, Textarea, Avatar, AvatarPicker, Select, ReactionBar, StyledEmoji)
   hooks/
@@ -578,11 +577,11 @@ The entire UI is styled to evoke 2005-era Xanga blogs. All components use CSS cu
 | Feature | Implementation | Notes |
 |---------|---------------|-------|
 | Custom cursors | `index.css` — ✦ default cursor, ♡ for interactive elements | SVG data URIs, disabled on touch devices via `@media (max-width: 480px)` |
-| Cursor sparkle trail | `CursorSparkle.tsx` — DOM-based sparkle spans on mousemove | Throttled to 50ms, max 20 sparkles, CSS animation cleanup |
-| Marquee banner | `Header.tsx` — CSS `@keyframes marquee-scroll` | Continuous right-to-left scroll, dotted borders |
-| AIM-style status | `Header.tsx` + `Sidebar.tsx` — `localStorage` key `xanga-status` | Click to edit inline, Enter to save, Escape to cancel |
+| Cursor sparkle trail | `CursorSparkle.tsx` — DOM-based sparkle spans on mousemove | Throttled to 50ms, max 20 sparkles, guarded by `pointer: fine` (no touch devices) |
+| Marquee banner | `Header.tsx` — CSS `@keyframes marquee-scroll` | Continuous right-to-left scroll, dotted borders, AnimatePresence on status edit/display |
+| AIM-style status | `Header.tsx` + `Sidebar.tsx` — `localStorage` key `xanga-status` | Click to edit inline, AnimatePresence crossfade, CustomEvent sync between components |
 | Emoji float-up | `ReactionBar.tsx` — CSS `.emoji-float-up` | Spawns floating emoji on reaction toggle, 800ms animation |
-| Lined paper empty state | `EmptyState.tsx` — CSS `repeating-linear-gradient` | Typing cursor animation, journal page aesthetic |
+| Lined paper empty state | `EmptyState.tsx` — CSS `repeating-linear-gradient` | Cascading reveal (staggered delays), decorative divider scaleX animation |
 | 88x31 pixel badges | `App.tsx` footer + `index.css` `.pixel-badge` | 5 themed CSS-only badges (love/xanga/web2/nostalgia/800x600), zero backend |
 
 ### Emoji Style System
@@ -619,9 +618,10 @@ Title font varies by theme — **not always Comic Sans**. Applied via `var(--tit
 - **Typography**: `var(--title-font)` on `.xanga-title` and form labels (see theme font table above)
 - **Borders**: Dotted borders via `border-2 border-dotted` with `var(--border-primary)`
 - **Cards**: `.xanga-box` class for themed card containers
-- **Buttons**: `.xanga-button` class for all primary actions
+- **Buttons**: `.xanga-button` class for all primary actions. Active state drops shadow to 0 for physical press depth. `whileTap={{ scale: 0.98 }}` on `Button` primitive.
 - **Links**: `.xanga-link` class for era-appropriate underlined links
 - **Auth backgrounds**: `.xanga-auth-bg` class for full-screen auth/onboarding views
+- **Input focus**: Labels shift to accent color via CSS `:has(input:focus)` — no JS. Focus-visible rings via `box-shadow` (WCAG 2.4.7).
 - **iPhone responsive**: `@media (max-width: 480px)` in `index.css` for smaller text/padding
 
 ### UI Primitive Components
@@ -646,10 +646,14 @@ All modals and overlays use `max-h-[95vh]` on mobile (vs `90vh` on desktop). Key
 
 | Feature | Implementation |
 |---------|---------------|
-| `prefers-reduced-motion` | CSS media query disables all animations; CursorSparkle early-returns; `<MotionConfig reducedMotion="user">` wraps app |
+| `prefers-reduced-motion` | CSS media query disables all animations; CursorSparkle checks `pointer: fine` + early-returns; LoadingSpinner uses `useReducedMotion()` from framer-motion; `<MotionConfig reducedMotion="user">` wraps app |
 | Focus traps | `src/hooks/useFocusTrap.ts` — Tab/Shift+Tab wrapping in modals, focus restore on close, optional `onEscape` callback (consolidates all Escape key handlers) |
-| ARIA attributes | Marquee: `role="marquee" aria-live="off"`. Sidebar: `role="complementary"`. Status: `aria-label`. Edit/delete: `aria-label` |
+| ARIA attributes | Marquee: `role="marquee" aria-live="off"`. Sidebar: `role="complementary"`. Status: `aria-label="Set your status message"`. Edit/delete: `aria-label`. ConfirmDialog: `aria-labelledby` + `aria-describedby` (not generic `aria-label`) |
 | PostCard title semantics | `<h2>` wraps a `<button>` with `aria-label="View post: {title}"` |
+| OnboardingFlow | Step indicator: `role="progressbar"` + `aria-valuenow/min/max`. Slide content: `aria-live="polite" aria-atomic="true"` |
+| AvatarPicker | Grid buttons: `aria-pressed={selected}` + descriptive `aria-label`. Custom seed: `<label htmlFor>` + input `id` association |
+| AuthModal tabs | `role="tab"` + `aria-selected` + `role="tabpanel"` + `aria-controls`/`aria-labelledby` (not `aria-pressed`) |
+| Focus-visible rings | `input/textarea/select:focus-visible` gets themed box-shadow ring (WCAG 2.4.7) |
 
 Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `OnboardingFlow`, `ConfirmDialog`.
 
@@ -659,12 +663,19 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 |---------|---------------|
 | Draft auto-save | `PostModal.tsx` — debounced 500ms save to `localStorage` key `post-draft` (create mode only), restored on reopen, cleared on save |
 | Marquee pause on hover | CSS-only: `.marquee-banner:hover .marquee-banner-inner { animation-play-state: paused }` |
-| Unsaved changes guard | `PostModal.tsx` — warns on close (X/Escape/backdrop/cancel) via native `window.confirm()` if form has unsaved changes |
+| Unsaved changes guard | `PostModal.tsx` — warns on close (X/Escape/backdrop/cancel) via styled `ConfirmDialog` if form has unsaved changes |
 | Theme/emoji revert | `ProfileModal.tsx` — canceling reverts theme and emoji style to pre-edit values |
-| Delete confirmation | `ConfirmDialog.tsx` — styled Xanga modal with loading state, uses focus trap |
-| Skeleton loaders | `PostSkeleton.tsx` — 3 pulsing placeholder cards for initial feed load, matches PostCard layout |
+| Delete confirmation | `ConfirmDialog.tsx` — styled Xanga modal with loading state (spinning ✦), uses focus trap, motion.button press feedback |
+| Skeleton loaders | `PostSkeleton.tsx` — pulsing placeholder cards + `SidebarSkeleton` for initial feed load, matches actual layout |
+| Toast polish | Spring entrance (stiffness 400), horizontal exit, swipe-to-dismiss via drag, progress bar countdown, type-specific 4px left accent strip, icon pop bounce, close button rotates 90° on hover |
 | Toast stacking | `index` prop offsets toasts vertically, max 3 visible via `useToast.ts` |
 | Toast timing by type | Success: 3s, Info: 4s, Error: 6s — configurable via `useToast.ts` `DEFAULT_DURATIONS` |
+| Reaction count pulse | `ReactionBar.tsx` — count briefly scales (1.4→1) when value changes via `key={count}` spring animation |
+| Error shake animation | `Input.tsx` + `Textarea.tsx` — validation errors shake-in with `x: [-3, 3, -2, 1, 0]` keyframes via AnimatePresence |
+| PostCard spring entrance | `PostCard.tsx` — spring physics (stiffness 300, damping 25) with subtle scale (0.98→1) on mount |
+| EmptyState cascade | `EmptyState.tsx` — staggered reveal (0.1→0.7s delays), decorative divider scales from center (scaleX: 0→1) |
+| Button press depth | `index.css` — `.xanga-button:active` drops shadow to 0 for physical press feel |
+| Input label focus shift | `index.css` — `:has(input:focus)` shifts label color to accent via CSS, no JS |
 | Collapsible sidebar | Mobile: compact bar (avatar + name + chevron), click to expand. Default **expanded** for new users. State persisted to `localStorage` key `sidebar-collapsed` |
 | End-of-list indicator | Feed shows "~ that's all 4 now! ~" when all posts loaded (no silent cutoff) |
 | Pagination error handling | `loadMore` failures show inline error with retry link, not full-page error |
@@ -672,25 +683,13 @@ Focus trap is integrated in: `PostModal`, `ProfileModal`, `AuthModal`, `Onboardi
 
 ## Backend Review Summary
 
-Comprehensive audit completed 2026-02-23. **All 30 findings resolved** (C1-C4, H1-H7, M1-M8, L1-L11, F1-F5). Key fixes by migration:
+Comprehensive audit completed 2026-02-23. **All 30 findings resolved** across security, hardening, performance, and code quality. Key areas addressed:
 
-| Migration | Fixes |
-|-----------|-------|
-| `001_create_posts.sql` | H1: Reconstructed missing initial migration |
-| `002_create_profiles_and_likes.sql` | H1: Reconstructed missing profiles + likes migration |
-| `005_fix_missing_profiles.sql` | H2: Backfill defaults `false` not `true`; L9: `ON CONFLICT DO NOTHING` |
-| `20260224000001_fix_handle_new_user.sql` | C1: Combined trigger versions |
-| `20260224000002_fix_rpc_security.sql` | C2+C3: `auth.uid()` override + limit clamping |
-| `20260224000003_add_performance_indexes.sql` | M8: 4 performance indexes |
-| `20260224000004_add_data_constraints.sql` | H5+M3: Reaction + profile CHECK constraints |
-| `20260224000005_fix_coppa_backfill.sql` | H2: Corrects previously-backfilled users |
-| `20260224000006_protect_is_admin.sql` | L6: Trigger prevents self-elevation |
-| `20260224000007_protect_coppa_fields.sql` | Backend scan C2: COPPA field trigger + `set_age_verification` RPC |
-| `20260224000008_schema_hardening.sql` | Backend scan H1+H2+H4+L1+L3: NULL email, avatar_url, tos_accepted_at, search_path, username min |
-| `20260224000009_retire_likes_excerpt_feed.sql` | M1+M2: Drop `post_likes`, excerpt-only feed, `get_post_by_id` RPC |
-| `moderate-content/index.ts` | C4+H6+H7+M6: Server-side blocklists, 100KB limit, 5s timeout, 405; Backend scan M4: keyword sync |
-
-Key code fixes: H3 (user_id defense-in-depth), M1 (`'field' in input` guards), M2 (URL scheme validation), M5 (removed 500-char AI threshold), M7 (anonymous sign-ins for dev), L1 (generic error messages), L2 (429 non-retryable), L5 (cache max size), L7 (getSession not getUser), L8 (dead code removal), L10 (jsonb_typeof), L11 (false-positive URL keywords). Frontend: F1 (optimistic defaults), F2 (reaction debounce), F3 (profile validation), F4 (iPhone touch cooldown), F5 (removed dead sanitizer). L3 documented as intentional fail-open design. Backend scan: C1 (AI moderation wired up), H3 (ghost view removed), H4 (dead column dropped). M1: `post_likes` table retired (dead code), M2: excerpt-only feed + `get_post_by_id` RPC.
+- **Security**: `auth.uid()` override in RPCs (prevents user_id spoofing), RPC limit clamping, COPPA field trigger protection, `is_admin` self-elevation prevention, SECURITY DEFINER `set_age_verification` RPC
+- **Data integrity**: CHECK constraints on posts + profiles + reactions, `ON CONFLICT DO NOTHING` in profile trigger, `handle_new_user()` derives `age_verified` from `birth_year` arithmetic
+- **Performance**: Indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id`; excerpt-only feed (`LEFT(content, 500)`) + `get_post_by_id` for full content; `post_likes` table retired
+- **Edge function**: Server-side blocklists, 100KB body limit, 5s timeout, keyword sync with client
+- **Code quality**: Generic error messages (no schema leaks), 429 non-retryable, cache max size eviction, dead code removal, PromiseLike → async wrappers
 
 ## Known Tech Debt
 
@@ -742,3 +741,17 @@ Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga
   - **A11y**: AuthModal tabs: `aria-pressed` → correct `role="tab"` + `aria-selected` + `role="tabpanel"`
   - **Consistency**: ProfileModal "Currently Listening" raw `<input>` → `Input` primitive
   - **Cleanup**: Removed SVG placeholder icons, scaffold leftovers (vite.svg, react.svg). Resolves Q7.
+  Session 13: 13 gap fixes for 10/10 audit across a11y, perf, and UX:
+  - **A11y**: ConfirmDialog `aria-labelledby`/`aria-describedby` + Escape via `useFocusTrap`; OnboardingFlow `role="progressbar"` + `aria-live`; AvatarPicker `aria-pressed` + descriptive alts + `<label htmlFor>`; Header status `aria-label`
+  - **Perf**: ReactionBar `useEmojiStyle()` lifted to bar level (6→1 subscriptions); `confirmDeletePost` wrapped in `useCallback`; `rootMargin` bottom-only; `scrollbar-thin` class → `scrollbarWidth: 'thin'` inline
+  - **UX**: PostSkeleton reaction pills 4→6; new `SidebarSkeleton` export; CursorSparkle `pointer: fine` guard; loading state includes SidebarSkeleton + PostSkeleton
+  Session 14: Microinteraction audit + 6 animation fixes:
+  - PostModal draft banner AnimatePresence + preview/edit crossfade (0.15s)
+  - LoadingSpinner rewritten with `useReducedMotion()` from framer-motion
+  - ProfileModal avatar picker toggle AnimatePresence slide-in
+  - ConfirmDialog spinning ✦ star loading indicator
+  - PostCard edit/delete hover:scale-110 + background tint on hover
+  - Header status edit/display AnimatePresence crossfade (width + opacity)
+  Session 15: Toast 10/10 + subliminal micro-polish across 8 files:
+  - **Toast**: Spring physics entrance, horizontal exit, swipe-to-dismiss via drag, progress bar countdown, type-specific 4px left accent strip, icon pop bounce, close button 90° rotation on hover
+  - **Micro-polish**: Reaction count pulse (scale 1.4→1 on change), Input/Textarea error shake-in (AnimatePresence), PostCard spring entrance (scale 0.98→1), ConfirmDialog motion.buttons (whileTap/whileHover), EmptyState cascading reveal (staggered delays), button press depth (shadow→0), input label focus-within color shift (CSS :has())
