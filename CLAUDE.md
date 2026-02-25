@@ -458,7 +458,59 @@ Themes are defined in `src/lib/themes.ts` (8 themes). Each theme sets 40+ CSS cu
 | `--title-font` | Theme-specific title font family |
 | `--header-gradient-from/via/to` | Header gradient stops |
 
-Theme is persisted in `profiles.theme` (database column), not localStorage. Applied on login via `applyTheme()` from `themes.ts`.
+Additional variable groups (not all listed — see `index.css` `:root` for full set):
+
+| Variable Group | Examples | Purpose |
+|----------------|----------|---------|
+| Input/Modal | `--input-bg`, `--input-border`, `--input-focus`, `--modal-bg`, `--modal-border` | Form and dialog theming |
+| Links | `--link-color`, `--link-hover` | Hyperlink colors |
+| Prose/Markdown | `--code-bg`, `--code-border`, `--code-text`, `--blockquote-bg`, `--strong-color`, `--em-color` | Markdown rendered content |
+| Scrollbar | `--scrollbar-track`, `--scrollbar-thumb-from`, `--scrollbar-thumb-to` | Custom scrollbar gradient |
+| Decorative | `--shadow-color`, `--border-accent`, `--selection-bg`, `--selection-text`, `--footer-bg` | Shadows, selections, footer |
+
+Theme is persisted in `profiles.theme` (database column), not localStorage. Applied on login via `applyTheme()` from `themes.ts`. Uses `setProperty()` loop (not `cssText`, which would destroy other inline styles).
+
+### Animation Conventions (Framer Motion)
+
+All animations use framer-motion. Key patterns used throughout the codebase:
+
+**Spring physics** — preferred over duration-based for natural feel:
+```typescript
+// Standard entrance (PostCard, EmptyState, modals)
+transition={{ type: 'spring', stiffness: 300, damping: 25, mass: 0.8 }}
+
+// Snappy feedback (Toast, reaction count, icon pop)
+transition={{ type: 'spring', stiffness: 400-500, damping: 15-28 }}
+```
+
+**Drag interactions** — Toast swipe-to-dismiss pattern:
+```typescript
+drag="x"
+dragConstraints={{ left: 0, right: 0 }}
+dragElastic={{ left: 0.05, right: 0.4 }}
+onDragEnd={(_e, info) => {
+  if (info.offset.x > 80 || info.velocity.x > 300) { /* dismiss */ }
+  else { /* snap back with animate() */ }
+}}
+```
+
+**Reduced motion** — three layers of support:
+1. CSS: `@media (prefers-reduced-motion: reduce)` disables all keyframe animations
+2. React: `<MotionConfig reducedMotion="user">` wraps entire app in `App.tsx`
+3. Per-component: `useReducedMotion()` from framer-motion (used in `LoadingSpinner`)
+4. Touch guard: `CursorSparkle` checks `pointer: fine` before mounting
+
+**State transition crossfade** — `<AnimatePresence mode="wait">` with keyed `motion.div`:
+```typescript
+<AnimatePresence mode="wait">
+  <motion.div key={activeState}
+    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+  />
+</AnimatePresence>
+```
+Used in: PostModal preview/edit, ProfileModal avatar picker, Header status, AuthModal tabs.
+
+**Press feedback** — all interactive motion elements use `whileTap={{ scale: 0.95-0.98 }}`.
 
 ## Database Migrations
 
@@ -466,24 +518,24 @@ Run in order by filename. Key migrations:
 
 | Migration | Purpose |
 |-----------|---------|
-| `001_create_posts.sql` | **H1 fix**: `posts` table + RLS policies + `update_updated_at_column()` trigger |
-| `002_create_profiles_and_likes.sql` | **H1 fix**: `profiles` + `post_likes` tables + RLS policies |
+| `001_create_posts.sql` | `posts` table + RLS policies + `update_updated_at_column()` trigger |
+| `002_create_profiles_and_likes.sql` | `profiles` + `post_likes` tables + RLS policies |
 | `003_post_reactions_and_theme.sql` | Reactions table, theme support |
 | `004_profile_mood_music.sql` | Mood/music fields on profiles |
-| `005_fix_missing_profiles.sql` | DB trigger auto-creates profiles on signup (**H2+L9 fix**: backfill defaults to `false`, `ON CONFLICT DO NOTHING`) |
+| `005_fix_missing_profiles.sql` | DB trigger auto-creates profiles on signup (backfill defaults `false`, `ON CONFLICT DO NOTHING`) |
 | `20260125000000_add_age_validation.sql` | Age verification fields |
-| `20260223000001_post_constraints.sql` | CHECK constraints on posts (sync with `validation.ts`) (**L10 fix**: `jsonb_typeof`) |
+| `20260223000001_post_constraints.sql` | CHECK constraints on posts (sync with `validation.ts`, `jsonb_typeof` guard) |
 | `20260223000002_get_posts_rpc.sql` | `get_posts_with_reactions` RPC function |
-| `20260224000001_fix_handle_new_user.sql` | **C1 fix**: Combines username + age fields in `handle_new_user()` trigger |
-| `20260224000002_fix_rpc_security.sql` | **C2+C3 fix**: `auth.uid()` override + `GREATEST(1, LEAST(p_limit, 100))` |
-| `20260224000003_add_performance_indexes.sql` | **M8 fix**: Indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id`, `post_likes.post_id` |
-| `20260224000004_add_data_constraints.sql` | **H5+M3 fix**: `reaction_type` CHECK + profile field length constraints |
-| `20260224000005_fix_coppa_backfill.sql` | **H2 fix**: Corrects previously-backfilled users |
-| `20260224000006_protect_is_admin.sql` | **L6 fix**: `BEFORE UPDATE` trigger prevents `is_admin` self-elevation via API |
-| `20260224000007_protect_coppa_fields.sql` | **C2 fix**: `BEFORE UPDATE` trigger prevents self-setting `age_verified`/`tos_accepted`/`birth_year`; `set_age_verification` SECURITY DEFINER RPC for legitimate updates |
-| `20260224000008_schema_hardening.sql` | **H1+H2+H4+L1+L3 fix**: NULL email fallback in `handle_new_user`, `avatar_url` constraint, drop `tos_accepted_at`, `search_path` on `protect_is_admin`, username min length |
-| `20260224000009_retire_likes_excerpt_feed.sql` | **M1+M2**: Drop `post_likes` table + likes subqueries from RPC. Feed returns `LEFT(content, 500)` + `content_truncated`. New `get_post_by_id` RPC for full content. |
-| `20260224000010_fix_coppa_trust.sql` | **COPPA fix**: Replaces `handle_new_user()` to derive `age_verified` from `birth_year` arithmetic instead of trusting client metadata |
+| `20260224000001_fix_handle_new_user.sql` | Combines username + age fields in `handle_new_user()` trigger |
+| `20260224000002_fix_rpc_security.sql` | `auth.uid()` override + `GREATEST(1, LEAST(p_limit, 100))` |
+| `20260224000003_add_performance_indexes.sql` | Indexes on `posts.created_at DESC`, `posts.user_id`, `post_reactions.post_id` |
+| `20260224000004_add_data_constraints.sql` | `reaction_type` CHECK + profile field length constraints |
+| `20260224000005_fix_coppa_backfill.sql` | Corrects previously-backfilled users |
+| `20260224000006_protect_is_admin.sql` | `BEFORE UPDATE` trigger prevents `is_admin` self-elevation via API |
+| `20260224000007_protect_coppa_fields.sql` | `BEFORE UPDATE` trigger prevents self-setting COPPA fields; `set_age_verification` SECURITY DEFINER RPC |
+| `20260224000008_schema_hardening.sql` | NULL email fallback, `avatar_url` constraint, `search_path`, username min length |
+| `20260224000009_retire_likes_excerpt_feed.sql` | Drop `post_likes` table. Feed returns `LEFT(content, 500)` + `content_truncated`. New `get_post_by_id` RPC. |
+| `20260224000010_fix_coppa_trust.sql` | Replaces `handle_new_user()` to derive `age_verified` from `birth_year` arithmetic (never trusts client) |
 
 ## Development Notes
 
@@ -500,6 +552,22 @@ All mutation hooks follow the pattern `Promise<{ data?: T | null; error: string 
 ### Type Registration for RPC
 
 Custom RPC functions must be registered in `src/types/database.ts` under `Database.public.Functions` for type safety. See `get_posts_with_reactions` for the pattern.
+
+### localStorage Gotcha (Private Browsing)
+
+All `localStorage` access is wrapped in try/catch. Safari private browsing and some mobile browsers throw on `localStorage.setItem()`. Pattern used in `App.tsx`, `Sidebar.tsx`, `emojiStyles.ts`:
+
+```typescript
+try { localStorage.setItem(key, value); } catch { /* private browsing — silently skip */ }
+```
+
+### Capacitor Platform Guards
+
+All Capacitor plugin calls in `src/lib/capacitor.ts` are guarded by `Capacitor.isNativePlatform()`. Functions are no-ops on web (graceful degradation). Key patterns:
+
+- **Deep links**: `App.addListener('appUrlOpen')` in `main.tsx` extracts auth token from URL hash for magic link redirects on iOS
+- **Status bar**: `setStatusBarForTheme()` sets light/dark text based on theme — called from `applyTheme()` in `themes.ts`
+- **Haptics**: `triggerHaptic('light')` on reaction toggle — 1-line wrapper around `Haptics.impact()`
 
 ## iOS App Store Submission
 
@@ -641,6 +709,8 @@ All modals and overlays use `max-h-[95vh]` on mobile (vs `90vh` on desktop). Key
 - Sidebar: collapsible on mobile (`< lg`), compact summary bar with avatar + name + toggle
 - Toast: `left-4 right-4` on mobile (full width), stacked vertically via index
 - Touch targets: all interactive elements meet 44px minimum (Button sm/md/lg, Input, ReactionBar, PostCard edit/delete, Toast close, AuthModal tabs, AvatarPicker pills/grid/input)
+- Safe area insets: `modal-footer-safe` class adds `env(safe-area-inset-bottom)` padding to PostModal + ProfileModal footers (iPhone notch/home indicator). `safe-area-bottom` utility for general use.
+- Input zoom prevention: `font-size: 16px !important` on inputs/textareas/selects at `@media (max-width: 480px)` — iOS Safari zooms viewport when focused input has font-size < 16px
 
 ### Accessibility
 
@@ -709,7 +779,10 @@ Resolved Q1-Q5. Made `ModerationResult.severity` required in frontend (Q3). Queu
 
 ### Frontend (bold-wozniak) — 2026-02-24
 
-Session 1: Touch targets (44px), React.memo, useCallback, lazy thumbnails, Xanga voice, custom cursors, emoji icons in PostCard. Session 2: Visitor counter → pixel badges, Product Philosophy section. Session 3: Emoji style system (5 styles, CDN-powered, localStorage). Skipped JoyPixels (license issue). Session 4: CLAUDE.md quality audit (87→93). Session 5: Comprehensive UX audit — 9 fixes: PostModal unsaved changes guard + maxLength, ProfileModal theme/emoji revert on cancel, sidebar default expanded, separate loadMore error state, end-of-list indicator, ConfirmDialog loading state, useAuth profileError surfacing, delete loading state. Session 6: CLAUDE.md audit (91→96). Session 7: Backend hardening — 9 fixes across 2 migrations + 6 code files: C1 (wire up AI moderation in post save flow), C2 (COPPA field trigger protection + `set_age_verification` RPC), H1 (handle_new_user NULL email fallback), H2 (avatar_url constraint), H3 (remove ghost view type), H4 (drop dead tos_accepted_at), L1 (search_path on protect_is_admin), L3 (username min length), M4 (sync server keyword lists). Session 8: M1+M2 deferred refactors — M1: retired `post_likes` table (dead code, no UI ever rendered likes), removed `like_count`/`user_has_liked` from RPC + types. M2: excerpt-only feed (`LEFT(content, 500)` + `content_truncated` bool), new `get_post_by_id` RPC for full content, `fetchPost()` in usePosts, PostModal fetches full content on-demand for view/edit modes with loading state + fallback to truncated content on error. Session 9: Comprehensive 7-batch audit:
+Sessions 1-4: Touch targets (44px), React.memo/useCallback, custom cursors, pixel badges, emoji style system (5 styles, CDN), Product Philosophy, CLAUDE.md audit (87→93).
+  Sessions 5-6: UX audit (9 fixes: draft auto-save, unsaved changes guard, sidebar default expanded, loadMore error state, end-of-list indicator, ConfirmDialog loading, profileError surfacing). CLAUDE.md audit (91→96).
+  Sessions 7-8: Backend hardening (COPPA trigger protection, `set_age_verification` RPC, handle_new_user null safety, avatar_url constraint, is_admin protection, keyword sync). Retired `post_likes` table + excerpt-only feed + `get_post_by_id` RPC.
+  Session 9: Comprehensive 7-batch audit:
   - **Security**: COPPA bypass fix (migration 010 derives `age_verified` from `birth_year`), localStorage try/catch, console.error sanitized
   - **iOS/App Store**: viewport-fit, safe-area CSS, input zoom fix, TOS + privacy pages, PWA manifest, report link (Apple 1.2), Capacitor setup
   - **Performance**: `postsRef` pattern for stable `handleReaction`, hoisted `truncateContent`
