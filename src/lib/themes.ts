@@ -1,7 +1,8 @@
 // Theme definitions for the retrowave blog
 // Each theme provides CSS custom property values applied via data-theme on <html>
+import { setStatusBarForTheme } from './capacitor';
 
-export interface ThemeDefinition {
+interface ThemeDefinition {
   id: string;
   name: string;
   description: string;
@@ -9,7 +10,7 @@ export interface ThemeDefinition {
   variables: Record<string, string>;
 }
 
-export const THEME_IDS = [
+const THEME_IDS = [
   'classic-xanga',
   'emo-dark',
   'scene-kid',
@@ -20,7 +21,7 @@ export const THEME_IDS = [
   'pastel-goth',
 ] as const;
 
-export type ThemeId = (typeof THEME_IDS)[number];
+type ThemeId = (typeof THEME_IDS)[number];
 
 export const THEMES: ThemeDefinition[] = [
   {
@@ -86,11 +87,11 @@ export const THEMES: ThemeDefinition[] = [
       '--bg-gradient-to': '#0a0a14',
       '--border-primary': '#8b0000',
       '--border-accent': '#dc143c',
-      '--shadow-color': '#000000',
+      '--shadow-color': '#dc143c20',
       '--text-title': '#dc143c',
       '--text-subtitle': '#8b008b',
       '--text-body': '#d0d0d0',
-      '--text-muted': '#606060',
+      '--text-muted': '#858585',
       '--accent-primary': '#dc143c',
       '--accent-secondary': '#8b008b',
       '--button-gradient-from': '#8b0000',
@@ -140,7 +141,7 @@ export const THEMES: ThemeDefinition[] = [
       '--text-title': '#00ff00',
       '--text-subtitle': '#ff00ff',
       '--text-body': '#ffffff',
-      '--text-muted': '#00ff0080',
+      '--text-muted': '#00bb00',
       '--accent-primary': '#00ff00',
       '--accent-secondary': '#ff00ff',
       '--button-gradient-from': '#00cc00',
@@ -186,7 +187,7 @@ export const THEMES: ThemeDefinition[] = [
       '--bg-gradient-to': '#001144',
       '--border-primary': '#0066cc',
       '--border-accent': '#3399ff',
-      '--shadow-color': '#000066',
+      '--shadow-color': '#3399ff30',
       '--text-title': '#3399ff',
       '--text-subtitle': '#66ccff',
       '--text-body': '#ffffff',
@@ -246,7 +247,7 @@ export const THEMES: ThemeDefinition[] = [
       '--button-gradient-from': '#c0c0c0',
       '--button-gradient-to': '#e0e0e0',
       '--button-text': '#0f0f1a',
-      '--title-font': "'Trebuchet MS', 'Orbitron', sans-serif",
+      '--title-font': "'Trebuchet MS', sans-serif",
       '--header-gradient-from': '#1a1a2e',
       '--header-gradient-via': '#2a2a4e',
       '--header-gradient-to': '#1a2a3e',
@@ -336,11 +337,11 @@ export const THEMES: ThemeDefinition[] = [
       '--bg-gradient-to': '#1e1a16',
       '--border-primary': '#4a4238',
       '--border-accent': '#8b7355',
-      '--shadow-color': '#000000',
+      '--shadow-color': '#8b735530',
       '--text-title': '#c9a86c',
       '--text-subtitle': '#8b7355',
       '--text-body': '#b8a888',
-      '--text-muted': '#6a5a48',
+      '--text-muted': '#a09078',
       '--accent-primary': '#8b7355',
       '--accent-secondary': '#c9a86c',
       '--button-gradient-from': '#4a4238',
@@ -427,7 +428,7 @@ export const THEMES: ThemeDefinition[] = [
 
 export const DEFAULT_THEME: ThemeId = 'classic-xanga';
 
-export function getTheme(id: string): ThemeDefinition {
+function getTheme(id: string): ThemeDefinition {
   return THEMES.find((t) => t.id === id) ?? THEMES[0]!;
 }
 
@@ -435,7 +436,13 @@ export function applyTheme(themeId: string): void {
   const theme = getTheme(themeId);
   const root = document.documentElement;
   root.setAttribute('data-theme', theme.id);
+
+  // Set each CSS custom property individually to avoid destroying
+  // any other inline styles on the root element.
   for (const [key, value] of Object.entries(theme.variables)) {
     root.style.setProperty(key, value);
   }
+
+  // Update iOS status bar text color to match theme brightness
+  void setStatusBarForTheme(theme.id);
 }

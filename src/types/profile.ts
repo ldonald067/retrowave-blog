@@ -9,7 +9,6 @@ export interface Profile {
   birth_year: number | null;
   age_verified: boolean;
   tos_accepted: boolean;
-  tos_accepted_at: string | null;
   theme: string | null;
   current_mood: string | null;
   current_music: string | null;
@@ -18,27 +17,5 @@ export interface Profile {
   updated_at: string;
 }
 
-export interface UpdateProfileInput {
-  display_name?: string;
-  bio?: string;
-  avatar_url?: string;
-  theme?: string;
-  current_mood?: string;
-  current_music?: string;
-}
-
-export interface SignupData {
-  email: string;
-  birth_year: number;
-  tos_accepted: boolean;
-  display_name?: string;
-}
-
-export interface UserStats {
-  id: string;
-  display_name: string | null;
-  avatar_url: string | null;
-  public_post_count: number;
-  total_post_count: number;
-  total_likes_received: number;
-}
+// L8 FIX: Removed unused UserStats, UpdateProfileInput, SignupData interfaces
+// — nothing imports them. If needed later, re-create here.

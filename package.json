@@ -1,7 +1,7 @@
 {
   "name": "retrowave-blog",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,20 +13,27 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,css,json}\""
   },
   "dependencies": {
+    "@capacitor/app": "^8.0.1",
+    "@capacitor/browser": "^8.0.1",
+    "@capacitor/core": "^8.1.0",
+    "@capacitor/haptics": "^8.0.1",
+    "@capacitor/ios": "^8.1.0",
+    "@capacitor/keyboard": "^8.0.1",
+    "@capacitor/share": "^8.0.1",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.1",
     "@supabase/supabase-js": "^2.91.0",
     "@tanstack/react-virtual": "^3.13.18",
-    "@types/dompurify": "^3.0.5",
     "date-fns": "^4.1.0",
-    "dompurify": "^3.3.1",
     "framer-motion": "^12.29.0",
     "lucide-react": "^0.562.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
-    "react-syntax-highlighter": "^16.1.0",
     "rehype-sanitize": "^6.0.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.1.0",
     "@eslint/js": "^9.39.1",
     "@tailwindcss/vite": "^4.1.18",
     "@testing-library/jest-dom": "^6.9.1",
@@ -35,7 +42,6 @@
     "@types/node": "^25.0.10",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
-    "@types/react-syntax-highlighter": "^15.5.13",
     "@vitejs/plugin-react": "^5.1.1",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
@@ -44,6 +50,7 @@
     "globals": "^16.5.0",
     "jsdom": "^27.4.0",
     "prettier": "^3.8.1",
+    "sharp": "^0.34.5",
     "typescript": "^5.9.3",
     "vite": "^7.2.4",
     "vitest": "^4.0.18"

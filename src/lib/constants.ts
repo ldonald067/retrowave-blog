@@ -3,78 +3,70 @@
  * Centralized configuration for the app
  */
 
+// Contact — used for report links and privacy page
+export const BLOG_OWNER_EMAIL = 'retrowave.blog.app@gmail.com';
+
 // Age Verification
 export const MIN_AGE = 13; // COPPA compliance
 export const CURRENT_YEAR = new Date().getFullYear();
-export const MIN_BIRTH_YEAR = 1900;
-export const MAX_AGE = 100;
+// MIN_BIRTH_YEAR and MAX_AGE removed — unused by any consumer
 
-// Validation Rules
+// Validation Rules — derived from PROFILE_LIMITS in validation.ts (single source of truth)
+import { PROFILE_LIMITS } from './validation';
+
 export const VALIDATION = {
   displayName: {
-    maxLength: 50,
+    maxLength: PROFILE_LIMITS.display_name.max,
     minLength: 1,
   },
   bio: {
-    maxLength: 500,
+    maxLength: PROFILE_LIMITS.bio.max,
   },
   email: {
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   },
-} as const;
+};
 
-// Error Messages
+// Error Messages — Xanga voice! not corporate speak
 export const ERROR_MESSAGES = {
   auth: {
-    emailRequired: 'Please enter your email',
-    emailInvalid: 'Please enter a valid email address',
-    ageVerificationRequired: 'Please select your birth year',
-    tosRequired: 'You must accept the Terms of Service to continue',
-    underage: `You must be at least ${MIN_AGE} years old to use this service`,
+    emailRequired: '~ pls enter ur email ~',
+    emailInvalid: '~ hmm that email doesnt look right :( ~',
+    ageVerificationRequired: '~ pls select ur birth year ~',
+    tosRequired: '~ u gotta accept the TOS 2 continue ~',
+    underage: `~ sorry, u gotta b at least ${MIN_AGE} 2 use this :( ~`,
   },
   profile: {
-    displayNameTooLong: `Display name must be ${VALIDATION.displayName.maxLength} characters or less`,
-    bioTooLong: `Bio must be ${VALIDATION.bio.maxLength} characters or less`,
+    displayNameTooLong: `~ ur display name is 2 long! ${VALIDATION.displayName.maxLength} chars max ~`,
+    bioTooLong: `~ ur bio is 2 long! ${VALIDATION.bio.maxLength} chars max ~`,
   },
   generic: {
-    somethingWrong: 'Something went wrong. Please try again.',
-    networkError: 'Network error. Please check your connection.',
+    somethingWrong: '~ uh oh! something glitched :( try again? ~',
+    networkError: '💔 ur connection is acting weird... try again soon?',
   },
 } as const;
 
-// Success Messages
+// Success Messages — keep it fun & personal
 export const SUCCESS_MESSAGES = {
   auth: {
-    magicLinkSent: 'Check your email for the magic link!',
-    signedOut: 'You have been signed out successfully',
+    magicLinkSent: '✨ check ur email!! theres a magic link waiting 4 u ✨',
+    signedOut: '~ goodbye 👋 come back soon! ~',
   },
   profile: {
-    updated: 'Profile updated successfully',
+    updated: '✨ ur profile is looking gr8! ✨',
   },
   post: {
-    created: 'Post created successfully',
-    updated: 'Post updated successfully',
-    deleted: 'Post deleted successfully',
+    created: '✨ ur entry is live!! 💕',
+    updated: '~ entry updated! looking good ✨ ~',
+    deleted: '~ entry deleted 💨 ~',
+  },
+  block: {
+    blocked: '~ blocked that user ~',
+    unblocked: '~ unblocked that user ~',
   },
 } as const;
 
-// UI Constants
-export const UI = {
-  toast: {
-    duration: 3000, // milliseconds
-  },
-  animation: {
-    swipeThreshold: 50, // pixels
-    slideDistance: 300, // pixels
-  },
-} as const;
-
-// Routes (if needed later)
-export const ROUTES = {
-  home: '/',
-  profile: '/profile',
-  post: '/post',
-} as const;
+// UI.toast.duration removed — useToast.ts owns DEFAULT_DURATIONS (per-type)
 
 // Mood options for posts - Xanga/LiveJournal style!
 export const MOODS = [
@@ -145,4 +137,8 @@ export const MOODS = [
   { emoji: '👽', label: 'alien' },
 ] as const;
 
-export type Mood = (typeof MOODS)[number];
+// Pre-computed Select options from MOODS — used by PostModal + ProfileModal
+export const MOOD_SELECT_OPTIONS = MOODS.map((m) => ({
+  value: `${m.emoji} ${m.label}`,
+  label: `${m.emoji} ${m.label}`,
+}));

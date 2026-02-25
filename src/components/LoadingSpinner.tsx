@@ -1,19 +1,35 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 export default function LoadingSpinner() {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex flex-col items-center justify-center min-h-screen gap-3">
       <motion.div
         animate={{
-          rotate: 360,
+          rotate: prefersReducedMotion ? 0 : 360,
         }}
         transition={{
           duration: 1,
-          repeat: Infinity,
+          repeat: prefersReducedMotion ? 0 : Infinity,
           ease: 'linear',
         }}
-        className="w-16 h-16 border-4 border-[#ff00ff] border-t-[#00ffff] rounded-full"
+        className="w-12 h-12 border-4 rounded-full"
+        style={{
+          borderColor: 'var(--border-primary)',
+          borderTopColor: 'var(--accent-primary)',
+        }}
       />
+      <p
+        className="text-xs"
+        style={{
+          color: 'var(--text-muted)',
+          fontFamily: 'var(--title-font)',
+          animation: prefersReducedMotion ? 'none' : undefined,
+        }}
+      >
+        ~ loading... ~
+      </p>
     </div>
   );
 }

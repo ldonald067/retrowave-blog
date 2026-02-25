@@ -9,10 +9,7 @@ import type {
   SpotifyMetadata,
   DetectedUrl,
 } from '../types/link-preview';
-import { extractYouTubeId, parseYouTubeUrl, hasYouTubeUrl } from '../utils/parseYouTube';
-
-// Re-export YouTube utilities for consumers of this module
-export { extractYouTubeId, parseYouTubeUrl, hasYouTubeUrl };
+import { extractYouTubeId } from '../utils/parseYouTube';
 
 // Extract Vimeo video ID
 export function extractVimeoId(url: string): string | null {

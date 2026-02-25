@@ -1,12 +1,21 @@
-import { useState, useEffect } from 'react';
+import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Edit, Trash2, Clock, Youtube, ExternalLink } from 'lucide-react';
+import { Share2, Ban, Flag } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
-import { parseYouTubeUrl, fetchYouTubeTitle, type YouTubeInfo } from '../utils/parseYouTube';
+import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
+import { BLOG_OWNER_EMAIL } from '../lib/constants';
+import { sharePost } from '../lib/capacitor';
 import ReactionBar from './ui/ReactionBar';
+import YouTubeCard from './ui/YouTubeCard';
 import type { Post } from '../types/post';
+
+/** Truncate post content for feed preview — pure function, no re-creation per render. */
+function truncateContent(content: string, maxLength = 300): string {
+  if (!content) return '';
+  return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+}
 
 interface PostCardProps {
   post: Post;
@@ -14,49 +23,26 @@ interface PostCardProps {
   onDelete: (post: Post) => void;
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
-  viewMode?: string;
+  onBlock?: (userId: string) => void;
   currentUserId?: string;
 }
 
-export default function PostCard({ post, onEdit, onDelete, onView, onReaction, currentUserId }: PostCardProps) {
+const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReaction, onBlock, currentUserId }: PostCardProps) {
   const isOwner = currentUserId === post.user_id;
-  const [ytInfo, setYtInfo] = useState<(YouTubeInfo & { title?: string }) | null>(null);
-
-  // Fetch YouTube title when post.music changes
-  useEffect(() => {
-    if (!post.music) {
-      setYtInfo(null);
-      return;
-    }
-
-    const info = parseYouTubeUrl(post.music);
-    if (!info) {
-      setYtInfo(null);
-      return;
-    }
-
-    // Set initial info without title
-    setYtInfo(info);
-
-    // Fetch title asynchronously
-    fetchYouTubeTitle(info.videoId).then((title) => {
-      if (title) {
-        setYtInfo((prev) => (prev ? { ...prev, title } : null));
-      }
-    });
-  }, [post.music]);
-
-  const truncateContent = (content: string, maxLength = 300): string => {
-    if (!content) return '';
-    return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
-  };
+  const ytInfo = useYouTubeInfo(post.music);
 
   // Xanga-style blog post card
   return (
     <motion.article
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      initial={{ opacity: 0, y: 20, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -20, scale: 0.98 }}
+      transition={{
+        type: 'spring',
+        stiffness: 300,
+        damping: 25,
+        mass: 0.8,
+      }}
       className="xanga-box p-0 overflow-hidden"
     >
       {/* Post header with title and date - colorful banner */}
@@ -69,21 +55,25 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
       >
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h2
-              className="xanga-title text-2xl mb-1 cursor-pointer transition"
-              onClick={() => onView(post)}
-            >
-              {post.title}
+            <h2 className="xanga-title text-2xl mb-1">
+              <button
+                onClick={() => onView(post)}
+                className="text-left cursor-pointer transition hover:opacity-80"
+                style={{ color: 'inherit', textShadow: 'inherit' }}
+                aria-label={`View post: ${post.title}`}
+              >
+                {post.title}
+              </button>
             </h2>
             <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
               <span className="flex items-center gap-1">
-                <Calendar size={12} style={{ color: 'var(--accent-primary)' }} />
+                <span style={{ color: 'var(--accent-primary)' }}>📅</span>
                 {formatDate(post.created_at, 'MMM dd, yyyy')} @{' '}
                 {formatDate(post.created_at, 'h:mm a')}
               </span>
               <span>•</span>
               <span className="flex items-center gap-1">
-                <Clock size={12} style={{ color: 'var(--accent-secondary)' }} />
+                <span style={{ color: 'var(--accent-secondary)' }}>⏰</span>
                 {formatRelativeDate(post.created_at)}
               </span>
             </div>
@@ -94,18 +84,39 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
             <div className="flex gap-1">
               <button
                 onClick={() => onEdit(post)}
-                className="p-1.5 rounded transition text-xs"
-                title="Edit"
-                style={{ color: 'var(--link-color)' }}
+                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
+                title="Edit post"
+                aria-label="Edit post"
+                style={{
+                  color: 'var(--link-color)',
+                  backgroundColor: 'color-mix(in srgb, var(--link-color) 0%, transparent)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--link-color) 15%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
               >
-                <Edit size={14} />
+                <span className="text-sm">✏️</span>
               </button>
               <button
                 onClick={() => onDelete(post)}
-                className="p-1.5 text-red-400 hover:bg-red-100 rounded transition text-xs"
-                title="Delete"
+                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
+                title="Delete post"
+                aria-label="Delete post"
+                style={{
+                  color: 'var(--accent-secondary)',
+                  backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 0%, transparent)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent-secondary) 15%, transparent)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
               >
-                <Trash2 size={14} />
+                <span className="text-sm">🗑️</span>
               </button>
             </div>
           )}
@@ -135,44 +146,7 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
               <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🎵 Currently listening to:</span>
             </div>
             {ytInfo ? (
-              <a
-                href={ytInfo.watchUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-2 rounded transition hover:opacity-80"
-                style={{
-                  backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))',
-                }}
-              >
-                <img
-                  src={ytInfo.thumbnailUrl}
-                  alt={ytInfo.title || 'YouTube thumbnail'}
-                  className="w-20 h-14 object-cover rounded flex-shrink-0"
-                  style={{ border: '1px solid var(--border-primary)' }}
-                />
-                <div className="flex-1 min-w-0">
-                  {ytInfo.title ? (
-                    <p
-                      className="text-sm font-medium line-clamp-2 mb-1"
-                      style={{ color: 'var(--text-body)' }}
-                      title={ytInfo.title}
-                    >
-                      {ytInfo.title}
-                    </p>
-                  ) : (
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      Loading title...
-                    </p>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <Youtube size={12} style={{ color: '#ff0000' }} />
-                    <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                      YouTube
-                    </span>
-                    <ExternalLink size={8} style={{ color: 'var(--text-muted)' }} />
-                  </div>
-                </div>
-              </a>
+              <YouTubeCard ytInfo={ytInfo} />
             ) : (
               <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
             )}
@@ -186,21 +160,20 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
           </ReactMarkdown>
         </div>
 
-        {/* Read more link if truncated */}
-        {post.content && post.content.length > 300 && (
+        {/* Read more link — prefer server truncation flag over length guess */}
+        {(post.content_truncated || (post.content && post.content.length > 300)) && (
           <button
             onClick={() => onView(post)}
-            className="text-xs underline transition"
-            style={{ color: 'var(--link-color)' }}
+            className="xanga-link text-xs"
           >
-            Read more →
+            ~ read more ~
           </button>
         )}
       </div>
 
-      {/* Post footer - reactions */}
+      {/* Post footer - author row */}
       <div
-        className="px-4 py-2 border-t flex items-center justify-between text-xs"
+        className="px-4 pt-2 pb-1 border-t flex items-center justify-between text-xs"
         style={{
           backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
           borderColor: 'var(--border-primary)',
@@ -209,8 +182,51 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
       >
         <div className="flex items-center gap-3">
           {post.author && <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</span>}
+          {/* Apple Guideline 1.2: UGC apps must provide reporting + blocking */}
+          {!isOwner && currentUserId && (
+            <>
+              <a
+                href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80"
+                style={{ color: 'var(--text-muted)' }}
+                aria-label="Report this post"
+              >
+                <Flag size={12} />
+                report
+              </a>
+              <button
+                onClick={() => onBlock?.(post.user_id)}
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] min-w-[44px] justify-center"
+                style={{ color: 'var(--text-muted)' }}
+                aria-label="Block this user"
+              >
+                <Ban size={12} />
+                block
+              </button>
+            </>
+          )}
         </div>
+        <button
+          onClick={() => {
+            const snippet = post.content ? post.content.substring(0, 140) : '';
+            void sharePost(post.title, `${snippet}${snippet.length < (post.content?.length ?? 0) ? '...' : ''}`);
+          }}
+          className="p-1.5 rounded transition hover:opacity-70"
+          title="Share post"
+          aria-label="Share post"
+          style={{ color: 'var(--text-muted)' }}
+        >
+          <Share2 size={14} />
+        </button>
+      </div>
 
+      {/* Post footer - reactions row */}
+      <div
+        className="px-4 pb-2 pt-1"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
+        }}
+      >
         <ReactionBar
           reactions={post.reactions ?? {}}
           userReactions={post.user_reactions ?? []}
@@ -228,4 +244,6 @@ export default function PostCard({ post, onEdit, onDelete, onView, onReaction, c
       />
     </motion.article>
   );
-}
+});
+
+export default PostCard;

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 
 interface ErrorMessageProps {
   error: string;
@@ -21,28 +21,43 @@ export default function ErrorMessage({ error, onRetry }: ErrorMessageProps) {
           duration: 0.5,
           repeat: 3,
         }}
+        className="text-5xl mb-4"
       >
-        <AlertCircle size={80} className="text-[#ff00ff] mb-6" />
+        😵‍💫
       </motion.div>
 
-      <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#ff00ff] to-[#00ffff] mb-4">
-        Oops! Something went wrong
-      </h2>
+      <div className="xanga-box p-6 max-w-md w-full mb-6">
+        <h2 className="xanga-title text-xl mb-3">
+          ~ oops! something went wrong ~
+        </h2>
 
-      <p className="text-gray-400 mb-2 max-w-md font-mono text-sm">Error:</p>
-      <p className="text-red-400 mb-8 max-w-md">{error}</p>
-
-      {onRetry && (
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onRetry}
-          className="flex items-center space-x-2 px-8 py-3 bg-gradient-to-r from-[#ff00ff] to-[#00ffff] text-white font-bold rounded-lg shadow-[0_0_15px_rgba(255,0,255,0.5)] hover:shadow-[0_0_25px_rgba(255,0,255,0.8)] transition-all"
+        <div
+          className="xanga-box p-3 mb-4 text-left"
+          style={{ borderColor: 'var(--accent-secondary)' }}
         >
-          <RefreshCw size={20} />
-          <span>Try Again</span>
-        </motion.button>
-      )}
+          <p
+            className="text-xs font-bold mb-1"
+            style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
+          >
+            error:
+          </p>
+          <p className="text-sm" style={{ color: 'var(--accent-secondary)' }}>
+            {error}
+          </p>
+        </div>
+
+        {onRetry && (
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={onRetry}
+            className="xanga-button w-full py-2.5 text-sm flex items-center justify-center gap-2"
+          >
+            <RefreshCw size={14} />
+            ~ try again ~
+          </motion.button>
+        )}
+      </div>
     </motion.div>
   );
 }

@@ -1,10 +1,8 @@
-// Link preview type definitions - reusable in React Native!
-
-export type LinkType = 'youtube' | 'vimeo' | 'twitter' | 'spotify' | 'generic';
+// Link preview type definitions
 
 export interface LinkPreview {
   url: string;
-  type: LinkType;
+  type: string;
   title?: string;
   description?: string;
   thumbnail?: string;
@@ -13,12 +11,13 @@ export interface LinkPreview {
   siteName?: string;
 }
 
+export type LinkType = 'youtube' | 'vimeo' | 'twitter' | 'spotify' | 'generic';
+
 export interface YouTubeOEmbedResponse {
   title: string;
   author_name: string;
   thumbnail_url: string;
   html: string;
-  provider_name: string;
 }
 
 export interface VimeoOEmbedResponse {
@@ -26,7 +25,6 @@ export interface VimeoOEmbedResponse {
   author_name: string;
   thumbnail_url: string;
   html: string;
-  provider_name: string;
 }
 
 export interface SpotifyMetadata {
@@ -39,3 +37,4 @@ export interface DetectedUrl {
   end: number;
   url: string;
 }
+

@@ -1,20 +1,29 @@
-import { useState, useEffect, useCallback, FormEvent } from 'react';
+import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, Sparkles, AlertTriangle } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
+import { Input, Textarea, Select, YouTubeCard } from './ui';
+import ConfirmDialog from './ConfirmDialog';
+import { useFocusTrap } from '../hooks/useFocusTrap';
+import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import type { Post, CreatePostInput } from '../types/post';
-import { MOODS } from '../lib/constants';
+import { MOOD_SELECT_OPTIONS } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
+
+// Header (~60px) + Footer (~80px) = ~140px of non-scrollable modal chrome
+const MODAL_CHROME_HEIGHT = 140;
 
 interface PostModalProps {
   post?: Post | null;
   onSave: (postData: CreatePostInput) => Promise<void>;
   onClose: () => void;
   mode?: 'create' | 'edit' | 'view';
+  /** M2: Fetches a post with full content for view/edit modes. */
+  fetchFullPost?: (id: string) => Promise<Post | null>;
 }
 
-export default function PostModal({ post, onSave, onClose, mode = 'create' }: PostModalProps) {
+export default function PostModal({ post, onSave, onClose, mode = 'create', fetchFullPost }: PostModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
@@ -23,31 +32,131 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
+  const [draftRestored, setDraftRestored] = useState(false);
+  // M2: Full content fetched from get_post_by_id RPC (for truncated posts)
+  const [fullContent, setFullContent] = useState<string | undefined>(undefined);
+  const [loadingFullContent, setLoadingFullContent] = useState(false);
+  const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const draftRestoredTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  // Check if the form has unsaved changes
+  const isDirty = useCallback(() => {
+    if (loadingFullContent || mode === 'view') return false;
+    const baseContent = fullContent ?? post?.content ?? '';
+    return mode === 'create'
+      ? !!(title.trim() || content.trim())
+      : !!post &&
+          (title !== (post.title || '') ||
+            content !== baseContent ||
+            author !== (post.author || '') ||
+            mood !== (post.mood || '') ||
+            music !== (post.music || ''));
+  }, [loadingFullContent, mode, title, content, author, mood, music, post, fullContent]);
+
+  // UX: Check for unsaved changes before closing — shows styled ConfirmDialog instead of window.confirm
+  const handleClose = useCallback(() => {
+    if (saving) return;
+    if (isDirty()) {
+      setShowUnsavedConfirm(true);
+      return;
+    }
+    onClose();
+  }, [saving, isDirty, onClose]);
+  useFocusTrap(dialogRef, true, handleClose);
+
+  // Restore draft on mount (create mode only)
+  useEffect(() => {
+    if (mode === 'create') {
+      try {
+        const raw = localStorage.getItem('post-draft');
+        if (raw) {
+          const draft = JSON.parse(raw) as Record<string, string>;
+          if (draft.title) setTitle(draft.title);
+          if (draft.content) setContent(draft.content);
+          if (draft.author) setAuthor(draft.author);
+          if (draft.mood) setMood(draft.mood);
+          if (draft.music) setMusic(draft.music);
+          setDraftRestored(true);
+          // Auto-dismiss the restored banner after 3s (cleaned up on unmount)
+          draftRestoredTimerRef.current = setTimeout(() => setDraftRestored(false), 3000);
+        }
+      } catch {
+        // Ignore malformed draft
+      }
+    }
+    return () => {
+      if (draftRestoredTimerRef.current) clearTimeout(draftRestoredTimerRef.current);
+    };
+  }, [mode]);
 
   useEffect(() => {
     if (post) {
       setTitle(post.title || '');
-      setContent(post.content || '');
+      // M2: For truncated posts in edit mode, don't populate content yet —
+      // wait for the full content fetch to avoid overwriting with truncated text.
+      if (mode === 'edit' && post.content_truncated) {
+        setContent('');
+      } else {
+        setContent(post.content || '');
+      }
       setAuthor(post.author || '');
       setMood(post.mood || '');
       setMusic(post.music || '');
     }
-  }, [post]);
+  }, [post, mode]);
 
-  // Handle escape key to close modal
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && !saving) {
-        onClose();
-      }
-    },
-    [onClose, saving]
-  );
-
+  // M2: Fetch full content for view/edit modes when content is truncated
   useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
+    let cancelled = false;
+    setFullContent(undefined);
+    if (mode !== 'create' && post?.content_truncated && fetchFullPost) {
+      setLoadingFullContent(true);
+      fetchFullPost(post.id)
+        .then((fullPost) => {
+          if (cancelled) return;
+          if (fullPost) {
+            setFullContent(fullPost.content);
+            // In edit mode, populate the textarea once full content arrives
+            if (mode === 'edit') {
+              setContent(fullPost.content || '');
+            }
+          } else {
+            // Fetch failed — fall back to truncated content so the user
+            // doesn't see an empty textarea and accidentally overwrite their post.
+            if (mode === 'edit') {
+              setContent(post.content || '');
+            }
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setLoadingFullContent(false);
+        });
+    }
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, post?.id, post?.content_truncated, fetchFullPost]);
+
+  // Auto-save draft (create mode only) — debounced 500ms
+  useEffect(() => {
+    if (mode !== 'create') return;
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    draftTimerRef.current = setTimeout(() => {
+      // Only save if there's meaningful content
+      if (title || content) {
+        try {
+          localStorage.setItem('post-draft', JSON.stringify({ title, content, author, mood, music }));
+        } catch {
+          // Private browsing or storage quota exceeded — draft lives in React state
+        }
+      }
+    }, 500);
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    };
+  }, [title, content, author, mood, music, mode]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -72,6 +181,15 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
 
     try {
       await onSave(postData);
+      // Clear draft on successful save
+      try {
+        localStorage.removeItem('post-draft');
+      } catch {
+        // Private browsing — ignore
+      }
+    } catch {
+      // Error already shown by App.tsx (toast). Keep modal open so user can
+      // revise. Draft is preserved since we only clear it on success above.
     } finally {
       setSaving(false);
     }
@@ -79,16 +197,22 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
 
   const isViewMode = mode === 'view';
 
+  // YouTube info for view mode — hook called unconditionally, returns null when not applicable
+  const viewModeYtInfo = useYouTubeInfo(isViewMode ? post?.music : null);
+
+  // Mood options pre-computed in constants.ts (DRY — shared with ProfileModal)
+
   return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-        onClick={onClose}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
+        onClick={handleClose}
       >
         <motion.div
+          ref={dialogRef}
           role="dialog"
           aria-modal="true"
           aria-label={
@@ -97,125 +221,159 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
           initial={{ scale: 0.95, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.95, y: 20 }}
-          className="rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden"
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={{ left: 0, right: 0.5 }}
+          dragSnapToOrigin
+          onDragEnd={(_, info) => {
+            if (info.offset.x > 80) {
+              handleClose();
+            }
+          }}
+          className="rounded-xl shadow-2xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
           style={{
             backgroundColor: 'var(--modal-bg)',
             border: '4px solid var(--modal-border)',
           }}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Header */}
           <div
-            className="p-4 border-b-2 border-dotted"
+            className="p-3 sm:p-4 border-b-2 border-dotted"
             style={{
               background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
               borderColor: 'var(--border-primary)',
             }}
           >
             <div className="flex items-center justify-between">
-              <h2 className="xanga-title text-2xl">
+              <h2 className="xanga-title text-xl sm:text-2xl">
                 {isViewMode ? (
                   <span className="flex items-center gap-2">
-                    <Sparkles size={20} style={{ color: 'var(--accent-primary)' }} />
-                    {post?.title}
+                    ✨ {post?.title}
                   </span>
                 ) : mode === 'edit' ? (
-                  '✏️ Edit Entry'
+                  '✏️ ~ edit entry ~'
                 ) : (
-                  '✨ New Entry'
+                  '✨ ~ new entry ~'
                 )}
               </h2>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 aria-label="Close modal"
                 className="p-2 rounded-full transition"
                 style={{ color: 'var(--text-muted)' }}
               >
-                <X size={20} />
+                <X size={18} />
               </button>
             </div>
           </div>
 
+          {/* Content — maxHeight = viewport minus header + footer chrome */}
           <div
-            className="overflow-y-auto max-h-[calc(90vh-140px)]"
-            style={{ backgroundColor: 'var(--modal-bg)' }}
+            className="overflow-y-auto"
+            style={{
+              maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)`,
+              backgroundColor: 'var(--modal-bg)',
+            }}
+            onTouchMove={() => {
+              if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+              }
+            }}
           >
             {isViewMode ? (
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {post?.mood && (
-                  <div
-                    className="mb-4 p-3 rounded-lg border"
-                    style={{
-                      backgroundColor: 'color-mix(in srgb, var(--accent-primary) 10%, var(--modal-bg))',
-                      borderColor: 'var(--border-primary)',
-                    }}
-                  >
-                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>Current Mood: </span>
-                    <span className="text-lg">{post.mood}</span>
+                  <div className="xanga-box p-3 mb-3">
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>current mood: </span>
+                    <span className="text-sm">{post.mood}</span>
                   </div>
                 )}
 
                 {post?.music && (
                   <div
-                    className="mb-4 p-3 rounded-lg border"
-                    style={{
-                      backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 10%, var(--modal-bg))',
-                      borderColor: 'var(--accent-secondary)',
-                    }}
+                    className="xanga-box p-3 mb-3"
+                    style={{ borderColor: 'var(--accent-secondary)' }}
                   >
-                    <span className="text-sm" style={{ color: 'var(--text-muted)' }}>🎵 Currently listening to: </span>
-                    <span className="text-sm italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🎵 currently listening 2: </span>
+                    {viewModeYtInfo ? (
+                      <div className="mt-2">
+                        <YouTubeCard ytInfo={viewModeYtInfo} />
+                      </div>
+                    ) : (
+                      <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
+                    )}
                   </div>
                 )}
 
                 {post?.author && (
-                  <p className="text-sm mb-4 font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</p>
+                  <p
+                    className="text-sm mb-4 font-bold"
+                    style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
+                  >
+                    ~ {post.author}
+                  </p>
                 )}
 
                 <div className="prose prose-sm max-w-none" style={{ color: 'var(--text-body)' }}>
-                  <ReactMarkdown rehypePlugins={[rehypeSanitize]}>{post?.content}</ReactMarkdown>
+                  {loadingFullContent ? (
+                    <p className="text-xs italic" style={{ color: 'var(--text-muted)' }}>
+                      loading full entry...
+                    </p>
+                  ) : (
+                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+                      {fullContent ?? post?.content}
+                    </ReactMarkdown>
+                  )}
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <fieldset disabled={saving || loadingFullContent}>
+              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+                {/* Draft Restored Banner */}
+                <AnimatePresence>
+                  {draftRestored && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="xanga-box p-2 text-center"
+                      style={{ borderColor: 'var(--accent-primary)' }}
+                    >
+                      <p className="text-xs" style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}>
+                        ✨ draft restored from last time!
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 {/* Moderation Error Alert */}
                 {moderationError && (
                   <div
-                    className="flex items-start gap-3 p-4 rounded-lg border-2"
-                    style={{
-                      backgroundColor: 'color-mix(in srgb, #ef4444 15%, var(--modal-bg))',
-                      borderColor: '#ef4444',
-                    }}
+                    className="xanga-box p-3"
+                    style={{ borderColor: 'var(--accent-secondary)' }}
                   >
-                    <AlertTriangle size={20} className="flex-shrink-0 text-red-500 mt-0.5" />
-                    <div>
-                      <p className="font-semibold text-red-600 text-sm">Content Not Allowed</p>
-                      <p className="text-xs text-red-500 mt-1">{moderationError}</p>
-                      <p className="text-xs text-red-400 mt-2">
-                        Please revise your post to comply with our community guidelines.
-                      </p>
-                    </div>
+                    <p
+                      className="text-xs font-bold mb-1"
+                      style={{ color: 'var(--accent-secondary)', fontFamily: 'var(--title-font)' }}
+                    >
+                      ❌ content not allowed
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--text-body)' }}>{moderationError}</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                      pls revise ur post 2 comply w/ our community guidelines
+                    </p>
                   </div>
                 )}
+
+                {/* Title */}
                 <div>
-                  <label
-                    htmlFor="post-title"
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: 'var(--text-body)' }}
-                  >
-                    Entry Title *
-                  </label>
-                  <input
-                    id="post-title"
-                    type="text"
+                  <Input
+                    label="entry title: *"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg transition focus:outline-none focus:ring-2"
-                    style={{
-                      backgroundColor: 'var(--input-bg)',
-                      border: '2px solid var(--input-border)',
-                      color: 'var(--text-body)',
-                    }}
-                    placeholder="What's on your mind today?"
+                    placeholder="what's on ur mind 2day?"
                     required
                     maxLength={200}
                     aria-required="true"
@@ -223,117 +381,79 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                   <p className="text-xs mt-1 text-right" style={{ color: 'var(--text-muted)' }}>{title.length}/200</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label
-                      htmlFor="post-author"
-                      className="block text-sm font-semibold mb-2"
-                      style={{ color: 'var(--text-body)' }}
-                    >
-                      Your Name
-                    </label>
-                    <input
-                      id="post-author"
-                      type="text"
-                      value={author}
-                      onChange={(e) => setAuthor(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg transition focus:outline-none focus:ring-2"
-                      style={{
-                        backgroundColor: 'var(--input-bg)',
-                        border: '2px solid var(--input-border)',
-                        color: 'var(--text-body)',
-                      }}
-                      placeholder="Anonymous"
-                      maxLength={50}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor="post-mood"
-                      className="block text-sm font-semibold mb-2"
-                      style={{ color: 'var(--text-body)' }}
-                    >
-                      Current Mood
-                    </label>
-                    <select
-                      id="post-mood"
-                      value={mood}
-                      onChange={(e) => setMood(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg transition cursor-pointer focus:outline-none focus:ring-2"
-                      style={{
-                        backgroundColor: 'var(--input-bg)',
-                        border: '2px solid var(--input-border)',
-                        color: 'var(--text-body)',
-                      }}
-                      aria-label="Select your current mood"
-                    >
-                      <option value="">Select a mood...</option>
-                      {MOODS.map((m) => (
-                        <option key={m.label} value={`${m.emoji} ${m.label}`}>
-                          {m.emoji} {m.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                {/* Author + Mood row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Input
+                    label="ur name:"
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                    placeholder="anonymous"
+                    maxLength={50}
+                  />
+                  <Select
+                    label="current mood:"
+                    value={mood}
+                    onChange={(e) => setMood(e.target.value)}
+                    placeholder="select a mood..."
+                    options={MOOD_SELECT_OPTIONS}
+                    aria-label="Select your current mood"
+                  />
                 </div>
 
+                {/* Music */}
                 <div>
-                  <label
-                    htmlFor="post-music"
-                    className="block text-sm font-semibold mb-2"
-                    style={{ color: 'var(--text-body)' }}
-                  >
-                    🎵 Currently Listening To
-                  </label>
-                  <input
-                    id="post-music"
-                    type="text"
+                  <Input
+                    label="🎵 currently listening 2:"
                     value={music}
                     onChange={(e) => setMusic(e.target.value)}
-                    className="w-full px-4 py-2 rounded-lg transition focus:outline-none focus:ring-2"
-                    style={{
-                      backgroundColor: 'var(--input-bg)',
-                      border: '2px solid var(--input-border)',
-                      color: 'var(--text-body)',
-                    }}
-                    placeholder="Song name, artist, or paste a YouTube link..."
+                    placeholder="song name, artist, or paste a youtube link..."
                     maxLength={200}
                   />
                   <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                    Tip: Paste a YouTube link to share the song!
+                    tip: paste a youtube link 2 share the song!
                   </p>
                 </div>
 
+                {/* M2: Loading full content indicator */}
+                {loadingFullContent && (
+                  <div
+                    className="xanga-box p-2 text-center"
+                    style={{ borderColor: 'var(--accent-primary)' }}
+                  >
+                    <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
+                      loading full entry content...
+                    </p>
+                  </div>
+                )}
+
+                {/* Content */}
                 <div>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-1">
                     <label
                       htmlFor="post-content"
-                      className="block text-sm font-semibold"
-                      style={{ color: 'var(--text-body)' }}
+                      className="block text-xs font-bold"
+                      style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
                     >
-                      Your Thoughts * (Markdown supported)
+                      ur thoughts: * (markdown supported)
                     </label>
                     <button
                       type="button"
                       onClick={() => setShowPreview(!showPreview)}
-                      className="text-xs px-3 py-1 rounded-full transition"
-                      style={{
-                        backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--modal-bg))',
-                        color: 'var(--accent-secondary)',
-                      }}
+                      className="xanga-link text-xs"
                     >
-                      {showPreview ? '✏️ Edit' : '👁️ Preview'}
+                      {showPreview ? '~ edit ~' : '~ preview ~'}
                     </button>
                   </div>
 
+                  <AnimatePresence mode="wait">
                   {showPreview ? (
-                    <div
-                      className="min-h-[250px] rounded-lg overflow-hidden"
-                      style={{
-                        backgroundColor: 'var(--card-bg)',
-                        border: '2px solid var(--input-border)',
-                      }}
+                    <motion.div
+                      key="preview"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                      className="xanga-box p-0 min-h-[200px] sm:min-h-[250px] overflow-hidden"
                     >
                       <div
                         className="p-3 border-b-2 border-dotted"
@@ -342,27 +462,24 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
                           borderColor: 'var(--border-primary)',
                         }}
                       >
-                        <h3 className="xanga-title text-xl">{title || 'Your Title Here'}</h3>
+                        <h3 className="xanga-title text-lg sm:text-xl">{title || 'ur title here'}</h3>
                       </div>
 
-                      <div className="p-4">
+                      <div className="p-3 sm:p-4">
                         {mood && (
-                          <div className="mb-3 pb-3 border-b" style={{ borderColor: 'var(--border-primary)' }}>
-                            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Current Mood: </span>
+                          <div className="mb-3 pb-3 border-b border-dotted" style={{ borderColor: 'var(--border-primary)' }}>
+                            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>current mood: </span>
                             <span className="text-sm">{mood}</span>
                           </div>
                         )}
 
                         {music && (
                           <div
-                            className="mb-3 pb-3 border-b p-2 rounded"
-                            style={{
-                              backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 10%, var(--card-bg))',
-                              borderColor: 'var(--accent-secondary)',
-                            }}
+                            className="xanga-box p-2 mb-3"
+                            style={{ borderColor: 'var(--accent-secondary)' }}
                           >
                             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                              🎵 Currently listening to:{' '}
+                              🎵 currently listening 2:{' '}
                             </span>
                             <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{music}</span>
                           </div>
@@ -370,48 +487,61 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
 
                         <div className="prose prose-sm max-w-none" style={{ color: 'var(--text-body)' }}>
                           <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-                            {content || '_Start typing to see your post preview..._'}
+                            {content || '_start typing 2 see ur post preview..._'}
                           </ReactMarkdown>
                         </div>
                       </div>
 
                       <div
-                        className="px-4 py-2 border-t text-xs"
+                        className="px-3 sm:px-4 py-2 border-t border-dotted text-xs"
                         style={{
                           backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
                           borderColor: 'var(--border-primary)',
                           color: 'var(--text-muted)',
                         }}
                       >
-                        {author && <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {author}</span>}
+                        {author && (
+                          <span
+                            className="font-bold"
+                            style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
+                          >
+                            ~ {author}
+                          </span>
+                        )}
                       </div>
-                    </div>
+                    </motion.div>
                   ) : (
-                    <textarea
-                      id="post-content"
-                      value={content}
-                      onChange={(e) => setContent(e.target.value)}
-                      className="w-full h-[250px] px-4 py-3 rounded-lg transition resize-none focus:outline-none focus:ring-2"
-                      style={{
-                        backgroundColor: 'var(--input-bg)',
-                        border: '2px solid var(--input-border)',
-                        color: 'var(--text-body)',
-                      }}
-                      placeholder="Dear diary... today I..."
-                      required
-                    />
+                    <motion.div
+                      key="editor"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <Textarea
+                        id="post-content"
+                        value={content}
+                        onChange={(e) => setContent(e.target.value)}
+                        className="h-[200px] sm:h-[250px]"
+                        placeholder="dear diary... 2day i..."
+                        required
+                        maxLength={50000}
+                        charCount={{ current: content.length, max: 50000 }}
+                        hint="use **bold**, *italic*, or [links](url) 4 formatting"
+                      />
+                    </motion.div>
                   )}
-                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                    Use **bold**, *italic*, or [links](url) for formatting
-                  </p>
+                  </AnimatePresence>
                 </div>
               </form>
+              </fieldset>
             )}
           </div>
 
+          {/* Footer */}
           {!isViewMode && (
             <div
-              className="p-4 border-t-2 border-dotted flex justify-end space-x-3"
+              className="p-3 sm:p-4 border-t-2 border-dotted flex justify-end gap-2 modal-footer-safe"
               style={{
                 background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
                 borderColor: 'var(--border-primary)',
@@ -419,27 +549,42 @@ export default function PostModal({ post, onSave, onClose, mode = 'create' }: Po
             >
               <button
                 type="button"
-                onClick={onClose}
-                className="px-6 py-2 rounded-full transition font-semibold text-sm"
+                onClick={handleClose}
+                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted"
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   color: 'var(--text-body)',
-                  border: '2px solid var(--border-primary)',
+                  borderColor: 'var(--border-primary)',
+                  fontFamily: 'var(--title-font)',
                 }}
               >
-                Cancel
+                cancel
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={saving}
-                className="xanga-button flex items-center gap-2"
+                disabled={saving || loadingFullContent}
+                className="xanga-button flex items-center gap-2 text-sm"
               >
-                <Save size={16} />
-                <span>{saving ? 'Saving...' : 'Save Entry'}</span>
+                <Save size={14} />
+                <span>{saving ? 'saving...' : loadingFullContent ? 'loading...' : '~ save entry ~'}</span>
               </button>
             </div>
           )}
         </motion.div>
+
+        {/* Styled unsaved-changes confirmation (replaces raw window.confirm) */}
+        {showUnsavedConfirm && (
+          <ConfirmDialog
+            title="~ unsaved changes ~"
+            message="u have unsaved changes! r u sure u want 2 leave?"
+            confirmLabel="~ yes, discard ~"
+            onConfirm={() => {
+              setShowUnsavedConfirm(false);
+              onClose();
+            }}
+            onCancel={() => setShowUnsavedConfirm(false)}
+          />
+        )}
       </motion.div>
     </AnimatePresence>
   );

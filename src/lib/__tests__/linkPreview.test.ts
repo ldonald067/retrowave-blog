@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
+import { extractYouTubeId } from '../../utils/parseYouTube';
 import {
-  extractYouTubeId,
   extractVimeoId,
   extractSpotifyId,
   detectUrlsInText,

@@ -72,7 +72,8 @@ describe('useAuth', () => {
       response = await result.current.signIn('bad@email');
     });
 
-    expect(response.error).toBe('Invalid email');
+    // toUserMessage() maps unknown errors to a generic message
+    expect(response.error).toBe('Something went wrong. Please try again.');
   });
 
   it('signUp passes birth year and TOS data', async () => {
@@ -89,7 +90,6 @@ describe('useAuth', () => {
         shouldCreateUser: true,
         data: {
           birth_year: 2000,
-          age_verified: true,
           tos_accepted: true,
         },
       },
