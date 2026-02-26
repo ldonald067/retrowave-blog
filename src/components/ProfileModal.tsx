@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save, User, FileText, Image, Palette, Heart, Music, Sparkles, ShieldOff } from 'lucide-react';
+import {
+  X, Save, User, FileText, Image, Palette, Heart, Music,
+  Sparkles, ShieldOff, Download, Trash2,
+} from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji } from './ui';
+import ConfirmDialog from './ConfirmDialog';
 import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
 import {
@@ -12,6 +16,9 @@ import {
 } from '../lib/emojiStyles';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useBlocks } from '../hooks/useBlocks';
+import { supabase } from '../lib/supabase';
+import { toUserMessage } from '../lib/errors';
+import { hapticImpact } from '../lib/capacitor';
 import type { Profile } from '../types/profile';
 
 // Header (~70px) + Footer (~70px) + padding = ~180px of non-scrollable modal chrome
@@ -48,6 +55,9 @@ export default function ProfileModal({
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
   const [blockedUsers, setBlockedUsers] = useState<Array<{ blocked_id: string; created_at: string }>>([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   // UX: Capture initial theme/emoji to revert on cancel (preview-without-commit)
   const originalThemeRef = useRef<string>(profile?.theme || DEFAULT_THEME);
@@ -147,6 +157,51 @@ export default function ProfileModal({
 
   const fallbackSeed = userId || 'guest';
 
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const { data, error } = await supabase.rpc('export_user_data');
+      if (error) throw error;
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `my-journal-data-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      onSuccess?.('~ ur data has been exported! ~');
+    } catch (err) {
+      onError?.(toUserMessage(err));
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleteAccountLoading(true);
+    try {
+      const { error } = await supabase.rpc('delete_user_account');
+      if (error) throw error;
+
+      await hapticImpact();
+
+      // Sign out after account deletion — triggers auth state change
+      await supabase.auth.signOut();
+
+      onSuccess?.('~ ur account has been deleted. farewell friend ~');
+      onClose();
+    } catch (err) {
+      onError?.(toUserMessage(err));
+    } finally {
+      setDeleteAccountLoading(false);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -164,6 +219,15 @@ export default function ProfileModal({
           initial={{ scale: 0.95, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.95, y: 20 }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={{ left: 0, right: 0.5 }}
+          dragSnapToOrigin
+          onDragEnd={(_, info) => {
+            if (info.offset.x > 80 && !isInitialSetup && !saving) {
+              handleCancel();
+            }
+          }}
           className="rounded-xl shadow-2xl max-w-lg w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
           style={{
             backgroundColor: 'var(--modal-bg)',
@@ -205,6 +269,11 @@ export default function ProfileModal({
             style={{
               maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)`,
               backgroundColor: 'var(--modal-bg)',
+            }}
+            onTouchMove={() => {
+              if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+              }
             }}
           >
             <fieldset disabled={saving}>
@@ -517,6 +586,60 @@ export default function ProfileModal({
                   </div>
                 </div>
               </div>
+
+              {/* Account Actions — only show for existing users, not initial setup */}
+              {!isInitialSetup && (
+                <div className="xanga-box p-4 space-y-3">
+                  <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                    <User size={14} style={{ color: 'var(--accent-primary)' }} />
+                    account
+                  </h3>
+
+                  {/* Export My Data */}
+                  <button
+                    type="button"
+                    onClick={handleExportData}
+                    disabled={exporting}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold border-2 border-dotted transition hover:opacity-80 min-h-[44px]"
+                    style={{
+                      backgroundColor: 'var(--card-bg)',
+                      color: 'var(--text-body)',
+                      borderColor: 'var(--border-primary)',
+                      fontFamily: 'var(--title-font)',
+                    }}
+                  >
+                    <Download size={14} />
+                    {exporting ? '~ exporting... ~' : '~ export my data ~'}
+                  </button>
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    download all ur posts, reactions & profile as a json file
+                  </p>
+
+                  {/* Delete Account — danger zone */}
+                  <div
+                    className="pt-3 mt-3 border-t-2 border-dotted"
+                    style={{ borderColor: 'var(--accent-secondary)' }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold border-2 transition hover:opacity-80 min-h-[44px]"
+                      style={{
+                        backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 10%, var(--card-bg))',
+                        color: 'var(--accent-secondary)',
+                        borderColor: 'var(--accent-secondary)',
+                        fontFamily: 'var(--title-font)',
+                      }}
+                    >
+                      <Trash2 size={14} />
+                      ~ delete account ~
+                    </button>
+                    <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                      this will permanently delete ur account & all ur data. this can't be undone!
+                    </p>
+                  </div>
+                </div>
+              )}
             </form>
             </fieldset>
           </div>
@@ -556,6 +679,18 @@ export default function ProfileModal({
             </button>
           </div>
         </motion.div>
+
+        {/* Delete Account Confirmation */}
+        {showDeleteConfirm && (
+          <ConfirmDialog
+            title="~ delete account? ~"
+            message="this will permanently delete ur account, all ur posts, reactions & data. this can NOT be undone. r u absolutely sure?"
+            confirmLabel="~ yes, delete everything ~"
+            loading={deleteAccountLoading}
+            onConfirm={handleDeleteAccount}
+            onCancel={() => setShowDeleteConfirm(false)}
+          />
+        )}
       </motion.div>
     </AnimatePresence>
   );

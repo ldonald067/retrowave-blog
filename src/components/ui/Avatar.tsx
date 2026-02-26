@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { User } from 'lucide-react';
 
 type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
 
@@ -30,10 +31,12 @@ export default function Avatar({
   editable = false,
 }: AvatarProps) {
   const [imgError, setImgError] = useState(false);
+  const [fallbackError, setFallbackError] = useState(false);
 
   // Reset error state when src changes
   useEffect(() => {
     setImgError(false);
+    setFallbackError(false);
   }, [src]);
 
   const fallbackUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${fallbackSeed}`;
@@ -47,18 +50,37 @@ export default function Avatar({
       className={`relative inline-block ${className}`}
       whileHover={onClick || editable ? { scale: 1.05 } : undefined}
     >
-      <img
-        src={imageSrc}
-        alt={alt}
-        loading="lazy"
-        className={`${baseClasses} ${interactiveClasses}`}
-        style={{
-          borderColor: 'var(--accent-primary)',
-          backgroundColor: 'var(--card-bg)',
-        }}
-        onClick={onClick}
-        onError={() => setImgError(true)}
-      />
+      {fallbackError ? (
+        <div
+          className={`${baseClasses} ${interactiveClasses} flex items-center justify-center`}
+          style={{
+            borderColor: 'var(--accent-primary)',
+            backgroundColor: 'var(--card-bg)',
+          }}
+          onClick={onClick}
+        >
+          <User size={16} style={{ color: 'var(--text-muted)' }} />
+        </div>
+      ) : (
+        <img
+          src={imageSrc}
+          alt={alt}
+          loading="lazy"
+          className={`${baseClasses} ${interactiveClasses}`}
+          style={{
+            borderColor: 'var(--accent-primary)',
+            backgroundColor: 'var(--card-bg)',
+          }}
+          onClick={onClick}
+          onError={() => {
+            if (imgError) {
+              setFallbackError(true);
+            } else {
+              setImgError(true);
+            }
+          }}
+        />
+      )}
       {editable && (
         <div
           className="absolute inset-0 rounded-full bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"

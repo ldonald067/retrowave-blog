@@ -124,6 +124,10 @@ body {
   background: var(--bg-primary);
   font-family: 'Verdana', 'Tahoma', sans-serif;
   color: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* Themed page background gradient */
@@ -429,6 +433,7 @@ select:focus-visible {
 .marquee-banner-inner {
   display: inline-block;
   animation: marquee-scroll 20s linear infinite;
+  will-change: transform;
 }
 
 @keyframes marquee-scroll {
@@ -607,6 +612,14 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
     animation: none !important;
     opacity: 1 !important;
   }
+}
+
+/* ===== iOS Momentum Scrolling ===== */
+.overflow-auto,
+.overflow-y-auto,
+.overflow-scroll,
+.overflow-y-scroll {
+  -webkit-overflow-scrolling: touch;
 }
 
 /* ===== Safe Area Insets (iPhone notch + home indicator) ===== */

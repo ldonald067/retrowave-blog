@@ -23,7 +23,7 @@ import { moderateContent } from './lib/moderation';
 import { toUserMessage } from './lib/errors';
 import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
-import { hideSplashScreen } from './lib/capacitor';
+import { hideSplashScreen, hapticImpact } from './lib/capacitor';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
@@ -282,6 +282,7 @@ function App() {
     if (error) {
       showError(`~ couldnt delete that :( ${error} ~`);
     } else {
+      void hapticImpact();
       success(SUCCESS_MESSAGES.post.deleted);
     }
     setPostToDelete(null);
@@ -314,6 +315,7 @@ function App() {
         showError(`~ couldnt update that :( ${error} ~`);
         return;
       }
+      void hapticImpact();
       success(SUCCESS_MESSAGES.post.updated);
     } else {
       const { error } = await createPost(postData);
@@ -321,6 +323,7 @@ function App() {
         showError(`~ couldnt post that :( ${error} ~`);
         return;
       }
+      void hapticImpact();
       success(SUCCESS_MESSAGES.post.created);
 
       // Also update profile mood/music if provided in the post
@@ -380,6 +383,7 @@ function App() {
     if (blockError) {
       showError(`~ couldnt block that user :( ${blockError} ~`);
     } else {
+      void hapticImpact();
       success(is_blocked ? SUCCESS_MESSAGES.block.blocked : SUCCESS_MESSAGES.block.unblocked);
       void refetch(); // Refresh feed to hide blocked user's posts
     }

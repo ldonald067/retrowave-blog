@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Share2 } from 'lucide-react';
+import { Share2, Ban, Flag } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
@@ -187,18 +187,20 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
             <>
               <a
                 href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
-                className="text-[10px] transition hover:underline"
-                style={{ color: 'var(--text-muted)', opacity: 0.6 }}
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80"
+                style={{ color: 'var(--text-muted)' }}
                 aria-label="Report this post"
               >
+                <Flag size={12} />
                 report
               </a>
               <button
                 onClick={() => onBlock?.(post.user_id)}
-                className="text-[10px] transition hover:underline"
-                style={{ color: 'var(--text-muted)', opacity: 0.6 }}
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] min-w-[44px] justify-center"
+                style={{ color: 'var(--text-muted)' }}
                 aria-label="Block this user"
               >
+                <Ban size={12} />
                 block
               </button>
             </>

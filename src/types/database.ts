@@ -262,6 +262,21 @@ export interface Database {
         };
         Returns: { is_blocked: boolean };
       };
+      // Apple Guideline 5.1.1: Delete the authenticated user's account and all data.
+      delete_user_account: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
+      // GDPR Article 15: Export all user data as a JSON blob.
+      export_user_data: {
+        Args: Record<string, never>;
+        Returns: {
+          profile: Database['public']['Tables']['profiles']['Row'];
+          posts: Array<Database['public']['Tables']['posts']['Row']>;
+          reactions: Array<Database['public']['Tables']['post_reactions']['Row']>;
+          blocks: Array<Database['public']['Tables']['user_blocks']['Row']>;
+        };
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

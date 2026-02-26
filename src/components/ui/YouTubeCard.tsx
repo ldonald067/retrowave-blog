@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Youtube, ExternalLink } from 'lucide-react';
 import { openUrl } from '../../lib/capacitor';
 import type { YouTubeInfoWithTitle } from '../../hooks/useYouTubeInfo';
@@ -44,6 +45,7 @@ const SIZES = {
  */
 export default function YouTubeCard({ ytInfo, size = 'md', useNativeOpen = true }: YouTubeCardProps) {
   const s = SIZES[size];
+  const [thumbError, setThumbError] = useState(false);
 
   return (
     <a
@@ -63,13 +65,26 @@ export default function YouTubeCard({ ytInfo, size = 'md', useNativeOpen = true 
         backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))',
       }}
     >
-      <img
-        src={ytInfo.thumbnailUrl}
-        alt={ytInfo.title || 'YouTube thumbnail'}
-        loading="lazy"
-        className={`${s.thumb} object-cover rounded flex-shrink-0`}
-        style={{ border: '1px solid var(--border-primary)' }}
-      />
+      {thumbError ? (
+        <div
+          className={`${s.thumb} rounded flex-shrink-0 flex items-center justify-center`}
+          style={{
+            border: '1px solid var(--border-primary)',
+            backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))',
+          }}
+        >
+          <Youtube size={s.ytIcon * 2} style={{ color: '#ff0000', opacity: 0.6 }} />
+        </div>
+      ) : (
+        <img
+          src={ytInfo.thumbnailUrl}
+          alt={ytInfo.title || 'YouTube thumbnail'}
+          loading="lazy"
+          className={`${s.thumb} object-cover rounded flex-shrink-0`}
+          style={{ border: '1px solid var(--border-primary)' }}
+          onError={() => setThumbError(true)}
+        />
+      )}
       <div className="flex-1 min-w-0">
         {ytInfo.title ? (
           <p

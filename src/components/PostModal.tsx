@@ -221,6 +221,15 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           initial={{ scale: 0.95, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.95, y: 20 }}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={{ left: 0, right: 0.5 }}
+          dragSnapToOrigin
+          onDragEnd={(_, info) => {
+            if (info.offset.x > 80) {
+              handleClose();
+            }
+          }}
           className="rounded-xl shadow-2xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
           style={{
             backgroundColor: 'var(--modal-bg)',
@@ -265,6 +274,11 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
             style={{
               maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)`,
               backgroundColor: 'var(--modal-bg)',
+            }}
+            onTouchMove={() => {
+              if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur();
+              }
             }}
           >
             {isViewMode ? (

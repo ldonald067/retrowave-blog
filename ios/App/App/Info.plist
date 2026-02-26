@@ -45,6 +45,13 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<!-- Privacy descriptions required for App Store review -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Share photos in your journal entries.</string>
+	<key>NSPhotoLibraryAddOnlyUsageDescription</key>
+	<string>Save photos from your journal.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos to add to your journal entries.</string>
 	<!-- App Store: Declare no non-exempt encryption (HTTPS only, exempt under BIS) -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
