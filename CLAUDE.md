@@ -18,6 +18,7 @@ npm run preview        # Preview production build
 npm run lint           # ESLint
 npm run test           # Vitest (run once)
 npm run test:watch     # Vitest (watch mode)
+npm run test -- src/hooks/__tests__/useAuth.test.ts  # Single file
 npm run format         # Prettier (singleQuote, printWidth: 100)
 npx tsc --noEmit       # Type check
 ```
@@ -40,8 +41,8 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 
 ```
 src/components/    # UI components (PostCard, Header, Sidebar, modals, ui/ primitives)
-src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useToast, useFocusTrap
-src/lib/           # supabase, errors, retry, validation, cache, moderation, themes, constants
+src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useToast, useFocusTrap, useOnlineStatus, useYouTubeInfo
+src/lib/           # supabase, auth-guard, errors, retry, validation, cache, moderation, themes, emojiStyles, capacitor, constants
 src/types/         # post, profile, database, link-preview
 src/utils/         # formatDate, parseYouTube
 supabase/          # 24 SQL migrations + moderate-content edge function

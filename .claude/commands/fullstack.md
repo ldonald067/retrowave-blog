@@ -51,12 +51,21 @@ Cross-check the contracts listed in CLAUDE.md:
 - Auth guards use `requireAuth()` from `src/lib/auth-guard.ts`
 - Retry logic wraps Supabase calls with `async () =>` (Supabase returns `PromiseLike`, not `Promise`)
 
-Check these specific integration points:
-- `ProfileModal.tsx` → `delete_user_account` RPC + `export_user_data` RPC
-- `usePosts.ts` → `get_posts_with_reactions` + `get_post_by_id` RPCs
-- `useBlocks.ts` → `toggle_user_block` RPC
-- `useAuth.ts` → `set_age_verification` RPC
-- `useReactions.ts` → `post_reactions` table (direct, not RPC)
+**Complete RPC ↔ Caller map** (verify ALL of these):
+
+| RPC | Caller | Access Pattern |
+|-----|--------|---------------|
+| `set_age_verification` | `App.tsx` | SECURITY DEFINER (trigger-protected fields) |
+| `get_posts_with_reactions` | `usePosts.ts` | Read-only, cursor pagination |
+| `get_post_by_id` | `usePosts.ts` | Read-only, full post content |
+| `toggle_user_block` | `useBlocks.ts` | Mutation, returns `is_blocked` |
+| `export_user_data` | `ProfileModal.tsx` | SECURITY DEFINER, returns jsonb |
+| `delete_user_account` | `ProfileModal.tsx` | SECURITY DEFINER, cascading delete |
+
+**Direct table access** (no RPC):
+- `useReactions.ts` → `post_reactions` (INSERT/DELETE with optimistic UI)
+- `useAuth.ts` → `profiles` (SELECT/UPDATE)
+- `usePosts.ts` → `posts` (INSERT/UPDATE/DELETE for mutations)
 
 ### 5. Trigger-Protected Fields
 Verify these fields can't be set directly via PostgREST:

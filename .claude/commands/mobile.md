@@ -177,14 +177,23 @@ during save operations.
 
 ### Capacitor Configuration
 
+**App identity**: `com.retrowave.journal` / "My Journal" / `webDir: 'dist'`
+
 Review `capacitor.config.ts` for:
 - `Keyboard.resize: 'body'` (prevents modal push-up)
 - `SplashScreen.launchAutoHide: false` (manual hide in `initCapacitor()`)
 - `server.allowNavigation` includes `*.supabase.co`
+- `ios.contentInset: 'automatic'` + `ios.preferredContentMode: 'mobile'`
 - All Capacitor calls in `capacitor.ts` guarded by `Capacitor.isNativePlatform()`
 
 **Known gotcha**: `capacitor.ts` uses dynamic `await import(...)` for plugins.
 Don't flag missing top-level imports — they're intentionally lazy-loaded.
+
+### Component Count Reference
+
+When auditing, expect 18 page-level components in `src/components/` and 10 UI
+primitives in `src/components/ui/`. If counts differ, new components were added
+and need mobile audit (touch targets, safe areas, responsive grids).
 
 ### Accessibility
 

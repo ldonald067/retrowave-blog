@@ -67,6 +67,21 @@ for derived colors. Supported in all target browsers. Prefer over hardcoded inte
 | Auth guard | `requireAuth()` from `auth-guard.ts` | All authenticated operations |
 | Retry | `withRetry(async () => supabase.from(...).select(...))` | Wrap PromiseLike |
 
+### Existing Components
+
+**Page-level** (18 in `src/components/`):
+`AgeVerification`, `AuthModal`, `ConfirmDialog`, `CursorSparkle`, `EmptyState`,
+`ErrorBoundary`, `ErrorMessage`, `Header`, `LoadingSpinner`, `LoginForm`,
+`OnboardingFlow`, `PostCard`, `PostModal`, `PostSkeleton`, `ProfileModal`,
+`Sidebar`, `SignUpForm`, `Toast`
+
+**UI Primitives** (10 in `src/components/ui/`):
+`Avatar`, `AvatarPicker`, `Button`, `Card`, `Input`, `ReactionBar`, `Select`,
+`StyledEmoji`, `Textarea`, `YouTubeCard` — re-exported via `ui/index.ts`
+
+`StyledEmoji` uses `emojiStyles.ts` for per-emoji gradient/glow rendering.
+`YouTubeCard` uses `useYouTubeInfo` hook for title fetching + `youtubeTitleCache`.
+
 ### Adding New UI Components
 
 1. Place in `src/components/` (or `src/components/ui/` for primitives)
