@@ -187,7 +187,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
             <>
               <a
                 href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
-                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80"
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px]"
                 style={{ color: 'var(--text-muted)' }}
                 aria-label="Report this post"
               >
@@ -211,7 +211,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
             const snippet = post.content ? post.content.substring(0, 140) : '';
             void sharePost(post.title, `${snippet}${snippet.length < (post.content?.length ?? 0) ? '...' : ''}`);
           }}
-          className="p-1.5 rounded transition hover:opacity-70"
+          className="p-1.5 rounded transition hover:opacity-70 min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="Share post"
           aria-label="Share post"
           style={{ color: 'var(--text-muted)' }}

@@ -16,8 +16,12 @@ interface SidebarProps {
 export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }: SidebarProps) {
   const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
   const [collapsed, setCollapsed] = useState(() => {
-    const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
-    return stored === null ? false : stored === 'true';
+    try {
+      const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+      return stored === null ? false : stored === 'true';
+    } catch {
+      return false;
+    }
   });
   // Reactive AIM status — syncs when Header dispatches 'xanga-status-update'
   const [aimStatus, setAimStatus] = useState(() => {
@@ -32,7 +36,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
   const handleToggleCollapsed = () => {
     setCollapsed((prev) => {
       const next = !prev;
-      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next)); } catch { /* private browsing */ }
       return next;
     });
   };
@@ -207,7 +211,9 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
       <div className="lg:hidden">
         <button
           onClick={handleToggleCollapsed}
-          className="xanga-box w-full p-3 flex items-center gap-3"
+          className="xanga-box w-full p-3 flex items-center gap-3 min-h-[44px]"
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <Avatar
             src={userData.avatar}

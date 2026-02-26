@@ -70,14 +70,12 @@ const AVATAR_SEEDS = [
 ];
 
 interface AvatarPickerProps {
-  currentUrl?: string | null;
   userId?: string;
   onSelect: (url: string) => void;
   onCancel?: () => void;
 }
 
 export default function AvatarPicker({
-  currentUrl: _currentUrl,
   userId,
   onSelect,
   onCancel,

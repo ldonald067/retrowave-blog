@@ -437,12 +437,6 @@ function App() {
       <Suspense fallback={<LoadingSpinner />}>
         <AuthModal
           isOpen={showAuthModal}
-          onClose={() => {
-            // Only allow closing if user is authenticated
-            if (user) {
-              setShowAuthModal(false);
-            }
-          }}
           defaultTab={authModalTab}
         />
       </Suspense>

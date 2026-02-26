@@ -260,7 +260,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
               <button
                 onClick={handleClose}
                 aria-label="Close modal"
-                className="p-2 rounded-full transition"
+                className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
                 style={{ color: 'var(--text-muted)' }}
               >
                 <X size={18} />
@@ -272,7 +272,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           <div
             className="overflow-y-auto"
             style={{
-              maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)`,
+              maxHeight: `calc(95vh - ${MODAL_CHROME_HEIGHT}px)`,
               backgroundColor: 'var(--modal-bg)',
             }}
             onTouchMove={() => {
@@ -550,7 +550,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
               <button
                 type="button"
                 onClick={handleClose}
-                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted"
+                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted min-h-[44px]"
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   color: 'var(--text-body)',

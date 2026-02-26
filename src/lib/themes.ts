@@ -391,7 +391,7 @@ export const THEMES: ThemeDefinition[] = [
       '--text-title': '#e0a0ff',
       '--text-subtitle': '#ff88b4',
       '--text-body': '#e0d0e8',
-      '--text-muted': '#9080a0',
+      '--text-muted': '#b0a0c0',
       '--accent-primary': '#b388dd',
       '--accent-secondary': '#ff88b4',
       '--button-gradient-from': '#9060c0',

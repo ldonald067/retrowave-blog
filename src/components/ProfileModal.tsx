@@ -250,7 +250,7 @@ export default function ProfileModal({
               {!isInitialSetup && (
                 <button
                   onClick={handleCancel}
-                  className="p-2 rounded-full transition"
+                  className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
                   style={{ color: 'var(--text-muted)' }}
                   aria-label="Close"
                 >
@@ -267,7 +267,7 @@ export default function ProfileModal({
           <div
             className="overflow-y-auto"
             style={{
-              maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)`,
+              maxHeight: `calc(95vh - ${MODAL_CHROME_HEIGHT}px)`,
               backgroundColor: 'var(--modal-bg)',
             }}
             onTouchMove={() => {
@@ -295,7 +295,6 @@ export default function ProfileModal({
                       transition={{ duration: 0.2 }}
                     >
                       <AvatarPicker
-                        currentUrl={avatarUrl}
                         userId={userId}
                         onSelect={handleAvatarSelect}
                         onCancel={() => setShowAvatarPicker(false)}
@@ -430,6 +429,7 @@ export default function ProfileModal({
                         setSelectedTheme(theme.id);
                         applyTheme(theme.id);
                       }}
+                      aria-pressed={selectedTheme === theme.id}
                       className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
                       style={{
                         backgroundColor: selectedTheme === theme.id
@@ -477,6 +477,7 @@ export default function ProfileModal({
                         setSelectedEmojiStyle(emojiStyle.id);
                         setEmojiStyle(emojiStyle.id);
                       }}
+                      aria-pressed={selectedEmojiStyle === emojiStyle.id}
                       className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
                       style={{
                         backgroundColor:
@@ -657,7 +658,7 @@ export default function ProfileModal({
                 type="button"
                 onClick={handleCancel}
                 disabled={saving}
-                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted"
+                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted min-h-[44px]"
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   color: 'var(--text-body)',
