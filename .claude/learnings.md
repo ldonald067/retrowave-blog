@@ -36,9 +36,9 @@ new findings after completing work.
 - [2026-02-26 /frontend-design] RESOLVED: Remaining touch target gaps fixed —
   ProfileModal unblock button, Sidebar profile edit button, AgeVerification
   birth year select. All now min-h-[44px].
-- [2026-02-26 /mobile] `sm:min-h-0` pattern removes 44px touch target at 640px+.
-  Used in Button.tsx, ReactionBar, AvatarPicker, PostCard edit/delete. iPad users
-  (810px portrait) get undersized targets.
+- [2026-02-26 /mobile] RESOLVED: `sm:min-h-0` → `lg:min-h-0` in Button, ReactionBar,
+  AvatarPicker, PostCard. iPads (810px) now keep 44px targets; only desktop (1024px+)
+  relaxes. Fixed in commit 5739ab3.
 
 ## Styling & Theming
 
@@ -66,9 +66,14 @@ new findings after completing work.
 - [2026-02-25 /fullstack] `ModerationResult` type is intentionally duplicated
   between `moderation.ts` and the Deno edge function. Deno can't import Vite
   types. This is an architectural constraint, not tech debt.
-- [2026-02-25 /feature] The `requireAuth()` pattern returns `{ user, error }`.
-  Always check BOTH: `if (authError || !user)`. The user can be null even when
-  error is null (race condition during sign-out).
+- [2026-02-25 /feature] The `requireAuth()` pattern returns a discriminated union:
+  `{ user: User; error: null } | { user: null; error: string }`. After checking
+  `if (auth.error)`, TypeScript doesn't narrow `auth.user` — use `auth.user!`
+  (safe because the union guarantees non-null when error is null).
+- [2026-02-26 /fullstack] `useReactions` in-flight guard (`inFlightRef`) only
+  prevents sequential duplicate requests, not concurrent ones. The `add(key)` call
+  is after `await requireAuth()`, so two simultaneous taps both pass the guard. The
+  400ms cooldown guard is the real protection against rapid taps.
 - [2026-02-25 /feature] SECURITY DEFINER functions with `SET search_path = public,
   pg_temp` need fully-qualified `auth.users` references (the `auth` schema isn't
   in the search path).
@@ -81,19 +86,21 @@ new findings after completing work.
 - [2026-02-26 /frontend-design] RESOLVED: LoginForm/SignUpForm refactored to use
   `<Input>` UI primitive. Dead props removed (AuthModal onClose, AvatarPicker
   currentUrl).
-- [2026-02-26 /mobile] `usePosts.ts` (421 lines, zero tests) is the most complex
-  hook: pagination, caching, optimistic reactions, CRUD. Repeats
-  `supabase.auth.getSession()` 5 times. No `withRetry()` on mutations.
+- [2026-02-26 /mobile] RESOLVED: `usePosts.ts` mutations now use `requireAuth()`
+  (3 inline getSession guards replaced). Commit 5739ab3.
 - [2026-02-26 /mobile] `useAuth.ts` `createProfileForUser` hand-rolls retry (80
   lines) instead of using `withRetry()`. Different behavior: no jitter, no
-  exponential backoff, no non-retryable error codes.
-- [2026-02-26 /mobile] MODAL_CHROME_HEIGHT (140 in PostModal, 180 in ProfileModal)
-  and swipe-dismiss threshold (80px) are magic numbers duplicated across modals.
-  Should be shared constants.
-- [2026-02-26 /mobile] 6 of 8 hooks have zero tests. Only useAuth (shallow) and
-  useToast have test files. usePosts is the critical gap.
-- [2026-02-26 /mobile] No hook uses `useOnlineStatus` — offline users get generic
-  errors after retry exhaustion instead of "you appear offline" messaging.
+  exponential backoff, no non-retryable error codes. (Confirmed false positive —
+  intentional 23505 handling.)
+- [2026-02-26 /mobile] RESOLVED: `SWIPE_DISMISS_THRESHOLD = 80` extracted to
+  `constants.ts`, shared by PostModal, ProfileModal, Toast. Commit 5739ab3.
+  MODAL_CHROME_HEIGHT (140 vs 180) intentionally differs per-modal.
+- [2026-02-26 /mobile] RESOLVED: All 8 hooks now have tests (64 total, 37 new).
+  Coverage: useOnlineStatus, useBlocks, useReactions, useFocusTrap, useYouTubeInfo,
+  usePosts. Commit a00fb7c.
+- [2026-02-26 /mobile] RESOLVED: `toUserMessage()` now appends "You appear to be
+  offline." for network-flavored errors when `navigator.onLine` is false.
+  Commit 5739ab3.
 
 ## False Positives (Do NOT Flag)
 
