@@ -52,13 +52,20 @@ ios/               # Capacitor iOS app
 ## Key Patterns
 
 - **Auth**: Magic link OTP + COPPA age gate (13+). Use `requireAuth()` from `auth-guard.ts`.
-- **Errors**: Never expose raw Supabase errors. Always use `toUserMessage()` from `errors.ts`.
+- **Errors**: Never expose raw Supabase errors. Always use `toUserMessage()` from `errors.ts`. Appends offline hint when `navigator.onLine` is false.
 - **Retry**: `withRetry()` with exponential backoff. Wrap Supabase calls with `async` (PromiseLike quirk).
+- **Constants**: Shared values in `constants.ts` — `SWIPE_DISMISS_THRESHOLD`, `MOOD_SELECT_OPTIONS`, `POST_LIMITS` re-exports.
 - **Validation**: `validation.ts` mirrors DB CHECK constraints — keep `POST_LIMITS`/`PROFILE_LIMITS` in sync with SQL.
 - **Feed**: Cursor-based pagination via `get_posts_with_reactions` RPC (20/page, excerpt-only 500 chars).
 - **Reactions**: Optimistic UI with in-flight guard + 400ms cooldown. Emoji set: `['❤️','🔥','😂','😢','✨','👀']`.
 - **Themes**: 8 retro themes via CSS custom properties (`var(--accent-primary)`, etc.). Stored in `profiles.theme`.
 - **Styling**: `.xanga-box`, `.xanga-button`, `.xanga-link`, `.xanga-title`. All components use CSS vars. Touch targets ≥ 44px.
+
+## Testing
+
+64 tests across 10 files (Vitest + @testing-library/react + jsdom). All 8 hooks have tests.
+
+Mock pattern: `vi.mock('../../lib/supabase', () => ({ supabase: { ... } }))` — all mock variables inside factory (hoisting). Use `mockReturnThis()` for Supabase chainable builders, `as never` for type coercion on mock returns.
 
 ## Gotchas
 
@@ -66,6 +73,7 @@ ios/               # Capacitor iOS app
 - COPPA fields are trigger-protected — only `set_age_verification` RPC can set them.
 - `noUncheckedIndexedAccess` enabled — array indexing returns `T | undefined`.
 - Supabase query builders return `PromiseLike` not `Promise` — always wrap with `async` in `withRetry()`.
+- `requireAuth()` returns discriminated union but TypeScript can't narrow through `if (auth.error)` — use `auth.user!` after the guard (safe, union guarantees non-null).
 - Path aliases: `@/*` catch-all, plus `@components/*`, `@hooks/*`, `@utils/*`, `@lib/*`.
 - All `localStorage` access wrapped in try/catch (Safari private browsing throws).
 - `devSignUp` uses anonymous auth, gated behind `import.meta.env.DEV`.
