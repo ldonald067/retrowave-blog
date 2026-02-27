@@ -33,9 +33,9 @@ new findings after completing work.
 - [2026-02-26 /frontend-design] RESOLVED: Sidebar localStorage crash, PostModal
   scroll mismatch, ~15 touch target violations, Pastel Goth contrast — all fixed
   in commit 593b275.
-- [2026-02-26 /mobile] Remaining touch target gaps: ProfileModal unblock button
-  (py-1, ~24px), Sidebar profile edit button (p-1.5, ~27px), AgeVerification
-  raw select (py-2.5, ~40px). Low-traffic elements, not blocking.
+- [2026-02-26 /frontend-design] RESOLVED: Remaining touch target gaps fixed —
+  ProfileModal unblock button, Sidebar profile edit button, AgeVerification
+  birth year select. All now min-h-[44px].
 - [2026-02-26 /mobile] `sm:min-h-0` pattern removes 44px touch target at 640px+.
   Used in Button.tsx, ReactionBar, AvatarPicker, PostCard edit/delete. iPad users
   (810px portrait) get undersized targets.
