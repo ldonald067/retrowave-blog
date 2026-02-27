@@ -66,6 +66,6 @@ ios/               # Capacitor iOS app
 - COPPA fields are trigger-protected — only `set_age_verification` RPC can set them.
 - `noUncheckedIndexedAccess` enabled — array indexing returns `T | undefined`.
 - Supabase query builders return `PromiseLike` not `Promise` — always wrap with `async` in `withRetry()`.
-- Path aliases: `@/`, `@/components`, `@/hooks`, `@/utils`, `@/lib`.
+- Path aliases: `@/*` catch-all, plus `@components/*`, `@hooks/*`, `@utils/*`, `@lib/*`.
 - All `localStorage` access wrapped in try/catch (Safari private browsing throws).
 - `devSignUp` uses anonymous auth, gated behind `import.meta.env.DEV`.

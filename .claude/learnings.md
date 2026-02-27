@@ -30,19 +30,15 @@ new findings after completing work.
   (more space needed), 90% on desktop (more breathing room). This is intentional.
 - [2026-02-25 /mobile] Input `font-size: 16px !important` at mobile breakpoint
   prevents iOS Safari auto-zoom. NEVER set input font below 16px on mobile.
-- [2026-02-26 /mobile] Sidebar.tsx has two unguarded `localStorage` calls (lines
-  19, 35) — will crash on Safari Private Browsing. All other components are guarded.
-- [2026-02-26 /mobile] PostModal inner scroll area uses `calc(90vh - 140px)` but
-  outer container is `max-h-[95vh]` on mobile. 5vh gap (~44px on iPhone 14) clips
-  content at the bottom of the scroll area.
-- [2026-02-26 /mobile] ~15 interactive elements across 8 components lack
-  `min-h-[44px]`: Header nav/settings buttons, PostCard report/share, modal close
-  buttons, ConfirmDialog buttons, LoginForm mode toggles, OnboardingFlow skip link.
+- [2026-02-26 /frontend-design] RESOLVED: Sidebar localStorage crash, PostModal
+  scroll mismatch, ~15 touch target violations, Pastel Goth contrast — all fixed
+  in commit 593b275.
+- [2026-02-26 /mobile] Remaining touch target gaps: ProfileModal unblock button
+  (py-1, ~24px), Sidebar profile edit button (p-1.5, ~27px), AgeVerification
+  raw select (py-2.5, ~40px). Low-traffic elements, not blocking.
 - [2026-02-26 /mobile] `sm:min-h-0` pattern removes 44px touch target at 640px+.
   Used in Button.tsx, ReactionBar, AvatarPicker, PostCard edit/delete. iPad users
   (810px portrait) get undersized targets.
-- [2026-02-26 /mobile] Pastel Goth theme `--text-muted` (#9080a0 on #241830) fails
-  WCAG AA at ~3.9:1 contrast ratio. Needs fixing like the emo-dark/scene-kid fixes.
 
 ## Styling & Theming
 
@@ -58,13 +54,9 @@ new findings after completing work.
   `initial`, creating invisible text or transparent backgrounds.
 - [2026-02-25 /frontend] Dark theme `--text-muted` minimum contrast values (WCAG
   AA 4.5:1 against `--bg-primary`): emo-dark `#858585`, scene-kid `#00bb00`,
-  grunge `#a09078`. These are the verified-passing values.
-- [2026-02-26 /mobile] Pastel Goth `--text-muted` (#9080a0 on #241830) fails WCAG
-  AA (~3.9:1). Needs same fix applied to emo-dark/scene-kid/grunge.
-- [2026-02-26 /mobile] `.xanga-button` CSS class does NOT enforce min-h-[44px].
-  Components must add it themselves. Inconsistently applied across codebase.
-- [2026-02-26 /mobile] Select.tsx UI primitive missing `min-h-[44px]` — Input.tsx
-  has it but Select doesn't. Should match.
+  grunge `#a09078`, pastel-goth `#b0a0c0`. These are the verified-passing values.
+- [2026-02-26 /frontend-design] RESOLVED: `.xanga-button` now enforces
+  `min-height: 44px` in CSS. Select.tsx now has `min-h-[44px]`.
 
 ## Architecture & Integration
 
@@ -86,9 +78,9 @@ new findings after completing work.
 
 ## Code Debt
 
-- [2026-02-26 /mobile] LoginForm.tsx and SignUpForm.tsx use raw `<input>` elements
-  with manual inline styles instead of the `<Input>` UI primitive. Missing
-  `min-h-[44px]`, `--input-bg`/`--input-border` vars, and aria-invalid support.
+- [2026-02-26 /frontend-design] RESOLVED: LoginForm/SignUpForm refactored to use
+  `<Input>` UI primitive. Dead props removed (AuthModal onClose, AvatarPicker
+  currentUrl).
 - [2026-02-26 /mobile] `usePosts.ts` (421 lines, zero tests) is the most complex
   hook: pagination, caching, optimistic reactions, CRUD. Repeats
   `supabase.auth.getSession()` 5 times. No `withRetry()` on mutations.
@@ -102,10 +94,6 @@ new findings after completing work.
   useToast have test files. usePosts is the critical gap.
 - [2026-02-26 /mobile] No hook uses `useOnlineStatus` — offline users get generic
   errors after retry exhaustion instead of "you appear offline" messaging.
-- [2026-02-26 /mobile] AuthModal accepts `onClose` prop but aliases it to `_onClose`
-  and never calls it. Dead prop — modal has no dismiss mechanism.
-- [2026-02-26 /mobile] AvatarPicker accepts `currentUrl` prop as `_currentUrl`,
-  never used. Dead prop.
 
 ## False Positives (Do NOT Flag)
 
