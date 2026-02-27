@@ -21,6 +21,7 @@ import type { Post, CreatePostInput } from './types/post';
 import { useEmojiStyle, getEmojiAttribution } from './lib/emojiStyles';
 import { moderateContent } from './lib/moderation';
 import { toUserMessage } from './lib/errors';
+import { withRetry } from './lib/retry';
 import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
@@ -451,10 +452,12 @@ function App() {
           onVerified={async (birthYear: number, tosAccepted: boolean) => {
             // C2 FIX: Use RPC to set COPPA fields. Direct updateProfile()
             // is now blocked by the protect_coppa_fields trigger.
-            const { error } = await supabase.rpc('set_age_verification', {
-              p_birth_year: birthYear,
-              p_tos_accepted: tosAccepted,
-            });
+            const { error } = await withRetry(async () =>
+              supabase.rpc('set_age_verification', {
+                p_birth_year: birthYear,
+                p_tos_accepted: tosAccepted,
+              }),
+            );
             if (error) {
               showError(`~ couldnt verify :( ${toUserMessage(error)} ~`);
             } else {

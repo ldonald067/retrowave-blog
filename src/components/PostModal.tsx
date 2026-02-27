@@ -8,7 +8,7 @@ import ConfirmDialog from './ConfirmDialog';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import type { Post, CreatePostInput } from '../types/post';
-import { MOOD_SELECT_OPTIONS } from '../lib/constants';
+import { MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
 
 // Header (~60px) + Footer (~80px) = ~140px of non-scrollable modal chrome
@@ -226,7 +226,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           dragElastic={{ left: 0, right: 0.5 }}
           dragSnapToOrigin
           onDragEnd={(_, info) => {
-            if (info.offset.x > 80) {
+            if (info.offset.x > SWIPE_DISMISS_THRESHOLD) {
               handleClose();
             }
           }}

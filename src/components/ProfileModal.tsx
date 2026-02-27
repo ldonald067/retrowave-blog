@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji } from './ui';
 import ConfirmDialog from './ConfirmDialog';
-import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS } from '../lib/constants';
+import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
 import {
   EMOJI_STYLES,
@@ -18,6 +18,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useBlocks } from '../hooks/useBlocks';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
+import { withRetry } from '../lib/retry';
 import { hapticImpact } from '../lib/capacitor';
 import type { Profile } from '../types/profile';
 
@@ -160,7 +161,9 @@ export default function ProfileModal({
   const handleExportData = async () => {
     setExporting(true);
     try {
-      const { data, error } = await supabase.rpc('export_user_data');
+      const { data, error } = await withRetry(async () =>
+        supabase.rpc('export_user_data'),
+      );
       if (error) throw error;
 
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -184,7 +187,9 @@ export default function ProfileModal({
   const handleDeleteAccount = async () => {
     setDeleteAccountLoading(true);
     try {
-      const { error } = await supabase.rpc('delete_user_account');
+      const { error } = await withRetry(async () =>
+        supabase.rpc('delete_user_account'),
+      );
       if (error) throw error;
 
       await hapticImpact();
@@ -224,7 +229,7 @@ export default function ProfileModal({
           dragElastic={{ left: 0, right: 0.5 }}
           dragSnapToOrigin
           onDragEnd={(_, info) => {
-            if (info.offset.x > 80 && !isInitialSetup && !saving) {
+            if (info.offset.x > SWIPE_DISMISS_THRESHOLD && !isInitialSetup && !saving) {
               handleCancel();
             }
           }}

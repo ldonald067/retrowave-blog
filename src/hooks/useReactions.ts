@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
+import { requireAuth } from '../lib/auth-guard';
 import { hapticImpact } from '../lib/capacitor';
 
 interface UseReactionsOptions {
@@ -60,13 +61,10 @@ export function useReactions(
 
       const wasActive = currentUserReactions.includes(emoji);
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.user) {
-        return { error: 'You must be logged in to react' };
-      }
-      const user = session.user;
+      const auth = await requireAuth();
+      if (auth.error) return { error: auth.error };
+      // Safe assertion: discriminated union guarantees user is non-null when error is null
+      const user = auth.user!;
 
       // Mark in-flight and record timestamp before any work
       inFlightRef.current.add(key);

@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import type { ToastType } from '../hooks/useToast';
+import { SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 
 interface ToastProps {
   message: string;
@@ -67,7 +68,7 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={{ left: 0.05, right: 0.4 }}
       onDragEnd={(_e, info) => {
-        if (info.offset.x > 80 || info.velocity.x > 300) {
+        if (info.offset.x > SWIPE_DISMISS_THRESHOLD || info.velocity.x > 300) {
           // Fling out and dismiss
           void animate(x, 400, { type: 'spring', stiffness: 300, damping: 30 });
           setTimeout(onClose, 200);

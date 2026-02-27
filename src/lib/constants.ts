@@ -3,6 +3,9 @@
  * Centralized configuration for the app
  */
 
+// Modal — swipe-to-dismiss pixel threshold (shared by PostModal, ProfileModal, Toast)
+export const SWIPE_DISMISS_THRESHOLD = 80;
+
 // Contact — used for report links and privacy page
 export const BLOG_OWNER_EMAIL = 'retrowave.blog.app@gmail.com';
 
