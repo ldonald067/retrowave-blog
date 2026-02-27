@@ -547,7 +547,7 @@ export default function ProfileModal({
                                 onSuccess?.(SUCCESS_MESSAGES.block.unblocked);
                               }
                             }}
-                            className="text-[10px] px-2 py-1 rounded transition hover:opacity-80"
+                            className="text-[10px] px-2 py-1 min-h-[44px] flex items-center rounded transition hover:opacity-80"
                             style={{
                               backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))',
                               color: 'var(--accent-secondary)',

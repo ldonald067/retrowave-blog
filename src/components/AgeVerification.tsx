@@ -99,7 +99,7 @@ export default function AgeVerification({ onVerified, requireTOS = true, loading
                 <select
                   value={birthYear}
                   onChange={(e) => setBirthYear(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition appearance-none cursor-pointer"
+                  className="w-full px-3 py-2.5 min-h-[44px] rounded-lg text-sm border-2 border-dotted transition appearance-none cursor-pointer"
                   style={{
                     backgroundColor: 'var(--card-bg)',
                     borderColor: 'var(--border-primary)',

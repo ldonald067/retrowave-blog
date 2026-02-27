@@ -81,7 +81,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
             {user && onEditProfile && (
               <button
                 onClick={onEditProfile}
-                className="absolute -bottom-1 -right-1 p-1.5 border-2 rounded-full shadow-md transition"
+                className="absolute -bottom-1 -right-1 min-h-[44px] min-w-[44px] flex items-center justify-center border-2 rounded-full shadow-md transition"
                 title="Edit Profile"
                 aria-label="Edit Profile"
                 style={{
