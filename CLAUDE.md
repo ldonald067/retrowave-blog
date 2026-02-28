@@ -68,6 +68,10 @@ APP_STORE_TODO.md  # iOS App Store submission checklist
 
 Mock pattern: `vi.mock('../../lib/supabase', () => ({ supabase: { ... } }))` — all mock variables inside factory (hoisting). Use `mockReturnThis()` for Supabase chainable builders, `as never` for type coercion on mock returns. Mock `withRetry` as pass-through: `vi.mock('../../lib/retry', () => ({ withRetry: vi.fn((fn: () => Promise<unknown>) => fn()) }))`. Mock `requireAuth` per-test with `vi.mocked(requireAuth).mockResolvedValueOnce(...)`.
 
+## Workflow
+
+Always commit and push after completing each change. Run `npx tsc --noEmit && npm run build && npm run test` before committing.
+
 ## Gotchas
 
 - `is_admin` is trigger-protected — API updates silently fail. Need SECURITY DEFINER function.
