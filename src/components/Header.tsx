@@ -96,11 +96,11 @@ export default function Header({
           <div className="flex items-center gap-3" style={{ color: 'var(--text-muted)' }}>
             {user ? (
               <>
-                <button onClick={onAuthClick} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }}>
+                <button onClick={onAuthClick} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Open settings">
                   Settings
                 </button>
                 <span>•</span>
-                <button onClick={onSignOut} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }}>
+                <button onClick={onSignOut} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Sign out of your account">
                   Logout
                 </button>
               </>

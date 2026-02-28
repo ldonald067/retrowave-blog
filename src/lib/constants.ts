@@ -69,6 +69,10 @@ export const SUCCESS_MESSAGES = {
   },
 } as const;
 
+// Feed — content truncation thresholds
+export const FEED_EXCERPT_MAX = 300; // characters before "read more" appears
+export const SHARE_SNIPPET_MAX = 140; // characters included in share sheet preview
+
 // UI.toast.duration removed — useToast.ts owns DEFAULT_DURATIONS (per-type)
 
 // Mood options for posts - Xanga/LiveJournal style!

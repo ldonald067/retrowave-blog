@@ -547,6 +547,15 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
   cursor: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><text y='16' font-size='16'>♡</text></svg>") 8 8, pointer;
 }
 
+/* ===== Icon Button Hover — replaces inline onMouseEnter/Leave JS ===== */
+.icon-btn-hover {
+  background-color: transparent;
+}
+
+.icon-btn-hover:hover {
+  background-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+
 /* ===== iPhone Responsive ===== */
 @media (max-width: 480px) {
   .marquee-banner {
