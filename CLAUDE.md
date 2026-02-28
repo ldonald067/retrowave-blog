@@ -47,6 +47,7 @@ src/types/         # post, profile, database, link-preview
 src/utils/         # formatDate, parseYouTube
 supabase/          # 24 SQL migrations + moderate-content edge function
 ios/               # Capacitor iOS app
+APP_STORE_TODO.md  # iOS App Store submission checklist
 ```
 
 ## Key Patterns
@@ -65,7 +66,7 @@ ios/               # Capacitor iOS app
 
 64 tests across 10 files (Vitest + @testing-library/react + jsdom). All 8 hooks have tests.
 
-Mock pattern: `vi.mock('../../lib/supabase', () => ({ supabase: { ... } }))` — all mock variables inside factory (hoisting). Use `mockReturnThis()` for Supabase chainable builders, `as never` for type coercion on mock returns.
+Mock pattern: `vi.mock('../../lib/supabase', () => ({ supabase: { ... } }))` — all mock variables inside factory (hoisting). Use `mockReturnThis()` for Supabase chainable builders, `as never` for type coercion on mock returns. Mock `withRetry` as pass-through: `vi.mock('../../lib/retry', () => ({ withRetry: vi.fn((fn: () => Promise<unknown>) => fn()) }))`. Mock `requireAuth` per-test with `vi.mocked(requireAuth).mockResolvedValueOnce(...)`.
 
 ## Gotchas
 
