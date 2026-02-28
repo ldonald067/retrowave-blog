@@ -66,7 +66,7 @@ export default function ConfirmDialog({
               onClick={onCancel}
               disabled={loading}
               whileTap={{ scale: 0.95 }}
-              className="px-4 py-2.5 rounded-lg transition text-xs font-bold border-2 border-dotted hover:opacity-80"
+              className="px-4 py-2.5 rounded-lg transition text-xs font-bold border-2 border-dotted hover:opacity-80 min-h-[44px]"
               style={{
                 backgroundColor: 'var(--card-bg)',
                 color: 'var(--text-muted)',
@@ -83,7 +83,7 @@ export default function ConfirmDialog({
               disabled={loading}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
-              className="px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110"
+              className="px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110 min-h-[44px]"
               style={{
                 background: 'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, #000))',
                 color: 'var(--button-text, #ffffff)',

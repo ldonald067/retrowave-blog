@@ -73,7 +73,7 @@ export default function YouTubeCard({ ytInfo, size = 'md', useNativeOpen = true 
             backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))',
           }}
         >
-          <Youtube size={s.ytIcon * 2} style={{ color: '#ff0000', opacity: 0.6 }} />
+          <Youtube size={s.ytIcon * 2} style={{ color: 'var(--accent-primary)', opacity: 0.6 }} />
         </div>
       ) : (
         <img
@@ -100,7 +100,7 @@ export default function YouTubeCard({ ytInfo, size = 'md', useNativeOpen = true 
           </p>
         )}
         <div className="flex items-center gap-1 mt-0.5">
-          <Youtube size={s.ytIcon} style={{ color: '#ff0000' }} />
+          <Youtube size={s.ytIcon} style={{ color: 'var(--accent-primary)' }} />
           <span className={s.badge} style={{ color: 'var(--text-muted)' }}>
             YouTube
           </span>

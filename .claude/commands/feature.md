@@ -67,6 +67,39 @@ const { data, error } = await supabase.rpc('function_name', { param: value });
 if (error) throw error;
 ```
 
+### Existing RPCs
+
+| RPC | Called From | Purpose |
+|-----|-----------|---------|
+| `set_age_verification` | `App.tsx` | COPPA age gate (trigger-protected) |
+| `get_posts_with_reactions` | `usePosts.ts` | Feed pagination with reaction counts |
+| `get_post_by_id` | `usePosts.ts` | Single post fetch (full content) |
+| `toggle_user_block` | `useBlocks.ts` | Block/unblock user |
+| `export_user_data` | `ProfileModal.tsx` | GDPR data export |
+| `delete_user_account` | `ProfileModal.tsx` | Account deletion |
+
+### Database Tables
+
+| Table | Hook/Component | Access Pattern |
+|-------|---------------|----------------|
+| `profiles` | `useAuth.ts` | Direct `.from()` queries |
+| `posts` | `usePosts.ts` | Direct `.from()` for mutations, RPC for reads |
+| `post_reactions` | `useReactions.ts` | Direct `.from()` (no RPC) |
+| `user_blocks` | `useBlocks.ts` | Via `toggle_user_block` RPC |
+
+### Hook API Quick Reference
+
+| Hook | Key Returns | When to Use |
+|------|------------|-------------|
+| `useAuth` | `user`, `profile`, `signIn`, `signOut`, `updateProfile` | Auth state, profile CRUD |
+| `usePosts` | `posts`, `createPost`, `updatePost`, `deletePost`, `loadMore` | Feed operations |
+| `useReactions` | `toggleReaction` | Emoji reactions (optimistic UI) |
+| `useBlocks` | `toggleBlock`, `fetchBlockedUsers` | User blocking |
+| `useToast` | `showToast`, `dismissToast` | Feedback messages |
+| `useFocusTrap` | (void) | Modal keyboard accessibility |
+| `useOnlineStatus` | `boolean` | Network connectivity |
+| `useYouTubeInfo` | `YouTubeInfoWithTitle \| null` | YouTube URL metadata |
+
 ---
 
 ## Adding Backend Functionality

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
+import { requireAuth } from '../lib/auth-guard';
 import { postsCache } from '../lib/cache';
 import {
   validatePostInput,
@@ -236,15 +237,10 @@ export function usePosts(): UsePostsReturn {
       }
 
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.user)
-          return {
-            data: null,
-            error: 'You must be logged in to create a post',
-          };
-        const user = session.user;
+        const auth = await requireAuth();
+        if (auth.error) return { data: null, error: auth.error };
+        // Safe assertion: discriminated union guarantees user is non-null when error is null
+        const user = auth.user!;
 
         const { data, error } = await supabase
           .from('posts')
@@ -286,15 +282,10 @@ export function usePosts(): UsePostsReturn {
       updates: Partial<CreatePostInput>,
     ): Promise<{ data: Post | null; error: string | null }> => {
       // T3: Defensive ownership check
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.user)
-        return {
-          data: null,
-          error: 'You must be logged in to edit a post',
-        };
-      const user = session.user;
+      const auth = await requireAuth();
+      if (auth.error) return { data: null, error: auth.error };
+      // Safe assertion: discriminated union guarantees user is non-null when error is null
+      const user = auth.user!;
 
       // T3: Validate updates
       const errors = validatePostInput(updates);
@@ -344,12 +335,10 @@ export function usePosts(): UsePostsReturn {
   const deletePost = useCallback(
     async (id: string): Promise<{ error: string | null }> => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (!session?.user)
-          return { error: 'You must be logged in to delete a post' };
-        const user = session.user;
+        const auth = await requireAuth();
+        if (auth.error) return { error: auth.error };
+        // Safe assertion: discriminated union guarantees user is non-null when error is null
+        const user = auth.user!;
 
         // H3 FIX: Include user_id as defense-in-depth (same as updatePost).
         const { error } = await supabase

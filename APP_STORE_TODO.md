@@ -132,7 +132,7 @@ These were verified during the audit and are App Store ready:
 | No debug console.log | ✅ | Only console.warn/error in error handlers |
 | TypeScript strict | ✅ | No `any` types, no @ts-ignore |
 | Build passes | ✅ | `npm run build` clean, 6.84s |
-| Tests pass | ✅ | 27/27 Vitest tests |
+| Tests pass | ✅ | 64/64 Vitest tests (10 files) |
 
 ---
 

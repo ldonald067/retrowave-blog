@@ -5,14 +5,14 @@ import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
-import { BLOG_OWNER_EMAIL } from '../lib/constants';
+import { BLOG_OWNER_EMAIL, FEED_EXCERPT_MAX, SHARE_SNIPPET_MAX } from '../lib/constants';
 import { sharePost } from '../lib/capacitor';
 import ReactionBar from './ui/ReactionBar';
 import YouTubeCard from './ui/YouTubeCard';
 import type { Post } from '../types/post';
 
 /** Truncate post content for feed preview — pure function, no re-creation per render. */
-function truncateContent(content: string, maxLength = 300): string {
+function truncateContent(content: string, maxLength = FEED_EXCERPT_MAX): string {
   if (!content) return '';
   return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
 }
@@ -84,37 +84,19 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
             <div className="flex gap-1">
               <button
                 onClick={() => onEdit(post)}
-                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
+                className="icon-btn-hover p-2.5 lg:p-1.5 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
                 title="Edit post"
                 aria-label="Edit post"
-                style={{
-                  color: 'var(--link-color)',
-                  backgroundColor: 'color-mix(in srgb, var(--link-color) 0%, transparent)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--link-color) 15%, transparent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
+                style={{ color: 'var(--link-color)' }}
               >
                 <span className="text-sm">✏️</span>
               </button>
               <button
                 onClick={() => onDelete(post)}
-                className="p-2.5 sm:p-1.5 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
+                className="icon-btn-hover p-2.5 lg:p-1.5 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
                 title="Delete post"
                 aria-label="Delete post"
-                style={{
-                  color: 'var(--accent-secondary)',
-                  backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 0%, transparent)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--accent-secondary) 15%, transparent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
+                style={{ color: 'var(--accent-secondary)' }}
               >
                 <span className="text-sm">🗑️</span>
               </button>
@@ -161,7 +143,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
         </div>
 
         {/* Read more link — prefer server truncation flag over length guess */}
-        {(post.content_truncated || (post.content && post.content.length > 300)) && (
+        {(post.content_truncated || (post.content && post.content.length > FEED_EXCERPT_MAX)) && (
           <button
             onClick={() => onView(post)}
             className="xanga-link text-xs"
@@ -187,7 +169,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
             <>
               <a
                 href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
-                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80"
+                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px]"
                 style={{ color: 'var(--text-muted)' }}
                 aria-label="Report this post"
               >
@@ -208,10 +190,10 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
         </div>
         <button
           onClick={() => {
-            const snippet = post.content ? post.content.substring(0, 140) : '';
+            const snippet = post.content ? post.content.substring(0, SHARE_SNIPPET_MAX) : '';
             void sharePost(post.title, `${snippet}${snippet.length < (post.content?.length ?? 0) ? '...' : ''}`);
           }}
-          className="p-1.5 rounded transition hover:opacity-70"
+          className="p-1.5 rounded transition hover:opacity-70 min-h-[44px] min-w-[44px] flex items-center justify-center"
           title="Share post"
           aria-label="Share post"
           style={{ color: 'var(--text-muted)' }}
