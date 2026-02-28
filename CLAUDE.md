@@ -72,6 +72,15 @@ Mock pattern: `vi.mock('../../lib/supabase', () => ({ supabase: { ... } }))` —
 
 Always commit and push after completing each change. Run `npx tsc --noEmit && npm run build && npm run test` before committing.
 
+## Skills Reference
+
+| Skill | When to use |
+|-------|-------------|
+| `/frontend` | UI work: audits, new components, theming, CSS, copy, tech debt, design fixes |
+| `/feature` | New functionality: adding features, Supabase RPCs, hooks, backend wiring |
+| `/fullstack` | Integration checks: RPC type alignment, RLS policies, shared data contracts |
+| `/mobile` | iPhone/iOS: responsive layout, Capacitor, App Store compliance, touch targets |
+
 ## Gotchas
 
 - `is_admin` is trigger-protected — API updates silently fail. Need SECURITY DEFINER function.
