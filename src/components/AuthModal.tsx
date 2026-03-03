@@ -6,11 +6,10 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface AuthModalProps {
   isOpen: boolean;
-  onClose: () => void;
   defaultTab?: 'login' | 'signup';
 }
 
-export default function AuthModal({ isOpen, onClose: _onClose, defaultTab = 'login' }: AuthModalProps) {
+export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>(defaultTab);
   const dialogRef = useRef<HTMLDivElement>(null);
   useFocusTrap(dialogRef, isOpen);

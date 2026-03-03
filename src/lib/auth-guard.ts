@@ -9,10 +9,9 @@
 import { supabase } from './supabase';
 import type { User } from '@supabase/supabase-js';
 
-interface AuthResult {
-  user: User | null;
-  error: string | null;
-}
+type AuthResult =
+  | { user: User; error: null }
+  | { user: null; error: string };
 
 export async function requireAuth(): Promise<AuthResult> {
   const { data: { session } } = await supabase.auth.getSession();

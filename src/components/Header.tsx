@@ -81,7 +81,7 @@ export default function Header({
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between text-xs">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {user && profile ? (
               <span style={{ color: 'var(--text-muted)' }}>
                 <Star size={12} className="inline" style={{ color: 'var(--accent-primary)' }} /> Welcome back,{' '}
@@ -96,18 +96,18 @@ export default function Header({
           <div className="flex items-center gap-3" style={{ color: 'var(--text-muted)' }}>
             {user ? (
               <>
-                <button onClick={onAuthClick} className="transition" style={{ color: 'inherit' }}>
+                <button onClick={onAuthClick} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Open settings">
                   Settings
                 </button>
                 <span>•</span>
-                <button onClick={onSignOut} className="transition" style={{ color: 'inherit' }}>
+                <button onClick={onSignOut} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Sign out of your account">
                   Logout
                 </button>
               </>
             ) : (
               <button
                 onClick={onAuthClick}
-                className="transition font-semibold"
+                className="transition font-semibold min-h-[44px] flex items-center"
                 style={{ color: 'inherit' }}
               >
                 Sign In / Sign Up
@@ -162,7 +162,7 @@ export default function Header({
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   onClick={startEditing}
-                  className="aim-status truncate max-w-[200px] sm:max-w-[400px]"
+                  className="aim-status truncate max-w-[200px] sm:max-w-[400px] min-h-[44px] flex items-center"
                   title="Click to edit your status"
                   aria-label="Edit your status"
                 >
@@ -196,7 +196,7 @@ export default function Header({
 
             {user ? (
               <>
-                <button onClick={onProfileClick} className="xanga-button flex items-center gap-1">
+                <button onClick={onProfileClick} className="xanga-button flex items-center gap-1" aria-label="Edit profile">
                   <User size={14} />
                   <span className="hidden sm:inline">Profile</span>
                 </button>
@@ -206,6 +206,7 @@ export default function Header({
                   whileTap={{ scale: 0.95 }}
                   onClick={onNewPost}
                   className="xanga-button flex items-center gap-1"
+                  aria-label="Create new entry"
                 >
                   <PenLine size={14} />
                   <span className="hidden sm:inline">New Entry</span>

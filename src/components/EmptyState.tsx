@@ -10,7 +10,7 @@ export default function EmptyState({ onCreatePost }: EmptyStateProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-      className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4"
+      className="flex flex-col items-center justify-center min-h-[40vh] sm:min-h-[60vh] text-center px-4"
     >
       {/* Journal page */}
       <motion.div

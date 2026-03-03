@@ -1,60 +1,125 @@
 ---
 name: frontend
-description: Frontend design and implementation following Retrowave Blog's Xanga aesthetic, theme system, and component patterns
+description: Design, build, and audit Retrowave Blog UI — Xanga aesthetic, theme system, component patterns, and 2005 web nostalgia
 ---
 
 # Frontend Agent
 
-Implement or review frontend features for the Retrowave Blog app. This command
-supplements the global `frontend-design` skill with project-specific patterns.
+Design, build, and audit UI for the Retrowave Blog app.
 
 Read `CLAUDE.md` first for full architecture and conventions.
 Read `.claude/learnings.md` for accumulated frontend knowledge and known gotchas.
 
 ---
 
-## Project-Specific Design System
+## Design Identity
 
-### Xanga Aesthetic Rules
+This is a **2005 Xanga/LiveJournal nostalgia blog**. Every design decision should
+feel like a teenager's personal blog from the mid-2000s:
 
-This is NOT a modern SaaS app. It's aggressively 2005. Follow these rules:
+- **Maximalist, not minimalist** — gradients, dotted borders, sparkles, tildes
+- **Personal, not corporate** — Comic Sans, emoji, abbreviated internet slang
+- **Fun, not functional** — cursor sparkles, animated reactions, spring physics
+- **Themed, not branded** — 8 wildly different color palettes, user's choice
 
-1. **Typography**: Use `var(--title-font)` for headings. Default is Comic Sans MS.
-   Every theme has its own title font — never hardcode a font family.
-2. **Borders**: `border-2 border-dotted` with `var(--border-primary)`. Not solid,
-   not thin. Dotted. Always.
-3. **Decoration**: Tildes around action labels (`~ save entry ~`, `~ edit profile ~`).
-   Sparkle emoji in headings (`✨ My Journal ✨`). Use "u" instead of "you", "2"
-   instead of "to", "ur" instead of "your" in user-facing copy. NOT in code
-   comments, aria-labels, or technical text.
-4. **Cards**: `.xanga-box` class for all card-like containers.
-5. **Buttons**: `.xanga-button` for primary actions. Custom styled with gradients.
-6. **Links**: `.xanga-link` for inline text links.
-7. **Headers**: Gradient background using `var(--header-gradient-from/via/to)`.
+**Anti-patterns** (things that break the aesthetic):
+- Clean sans-serif typography (Helvetica, Inter, system-ui)
+- Flat design with subtle borders
+- Monochrome or muted color palettes
+- Professional button styles (rounded rectangles, subtle shadows)
+- Corporate copy ("Submit", "Continue", "Get Started")
 
-### Theme Variable System
+---
+
+## Copy Writing Rules
+
+All user-facing text follows internet slang conventions circa 2005:
+
+| Instead of | Write | Where |
+|-----------|-------|-------|
+| "you" | "u" | Button labels, headings, descriptions |
+| "your" | "ur" | Button labels, headings, descriptions |
+| "to" | "2" | Button labels, headings, descriptions |
+| "are" | "r" | Headings only (sparingly) |
+
+**Decoration patterns**:
+- Action labels wrapped in tildes: `~ save entry ~`, `~ edit profile ~`
+- Sparkle emoji in section headings: `✨ My Journal ✨`
+- Star separators between sections: `★`
+
+**Where NOT to use slang**: `aria-label`, `aria-description`, `alt` text, error
+messages from `toUserMessage()`, code comments, TypeScript identifiers.
+
+---
+
+## CSS Class System
+
+| Class | Purpose | Key Styles |
+|-------|---------|-----------|
+| `.xanga-box` | Card containers | `var(--card-bg)`, 2px solid border, 10px radius |
+| `.xanga-button` | Primary actions | Gradient background, 2px border, 15px radius |
+| `.xanga-link` | Inline links | `var(--link-color)`, underline, 11px font |
+| `.xanga-title` | Section headings | `var(--title-font)`, text-shadow |
+| `.icon-btn-hover` | Icon buttons | Transparent bg, `currentColor` 15% on hover |
+
+**Button states**: `.xanga-button:hover` swaps gradient to accent colors,
+`:active` drops shadow and pushes down 2px. All buttons get heart cursor
+(`♡`) via global CSS.
+
+---
+
+## Theme Variable System
 
 Every visual property MUST use CSS custom properties. Hard-coded colors break theme
 switching. The full variable list is in `index.css` `:root`.
 
-**Critical variables**:
-- Backgrounds: `--bg-primary`, `--bg-secondary`, `--card-bg`, `--modal-bg`
-- Text: `--text-title`, `--text-body`, `--text-muted`, `--text-subtitle`
-- Accents: `--accent-primary`, `--accent-secondary`
-- Borders: `--border-primary`, `--border-accent`
-- Font: `--title-font`
-- Header gradients: `--header-gradient-from`, `--header-gradient-via`, `--header-gradient-to`
+### Theme Palette Reference
 
-**When adding a new CSS variable**:
-1. Add default value in `:root` block in `src/index.css`
-2. Add to ALL 8 theme definitions in `src/lib/themes.ts`
-3. Missing variables silently fall back to `initial` — creates invisible text or
-   transparent backgrounds. Test all themes.
+| Theme | Vibe | Title Font | Accent |
+|-------|------|-----------|--------|
+| `classic-xanga` | Pink & purple pastels | Comic Sans MS | `#ff1493` deep pink |
+| `emo-dark` | Black + red + tears | 'Segoe Script' | `#dc143c` crimson |
+| `scene-kid` | Neon green terminal | 'Courier New' | `#00ff00` lime |
+| `myspace-blue` | Classic MySpace | 'Trebuchet MS' | `#1e90ff` dodger blue |
+| `y2k-cyber` | Purple/cyan cyberpunk | 'Orbitron' | `#00ffff` cyan |
+| `cottage-core` | Warm earth tones | 'Georgia' | `#8b4513` saddle brown |
+| `grunge` | Dark brown/amber | 'Impact' | `#cd853f` peru |
+| `pastel-goth` | Black + pastel accents | 'Segoe Script' | `#dda0dd` plum |
 
-**`color-mix()` pattern**: Use `color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))`
-for derived colors. Supported in all target browsers. Prefer over hardcoded intermediates.
+### Variable Categories
 
-### Component Patterns
+**Backgrounds**: `--bg-primary`, `--bg-secondary`, `--card-bg`, `--modal-bg`,
+`--footer-bg`, `--code-bg`, `--blockquote-bg`
+
+**Text**: `--text-title`, `--text-body`, `--text-muted`, `--text-subtitle`,
+`--code-text`, `--strong-color`, `--em-color`
+
+**Accents**: `--accent-primary`, `--accent-secondary`, `--link-color`, `--link-hover`
+
+**Borders**: `--border-primary`, `--border-accent`, `--code-border`, `--blockquote-border`
+
+**Gradients**: `--header-gradient-from/via/to`, `--button-gradient-from/to`,
+`--bg-gradient-from/via/to`
+
+**Font**: `--title-font` (body font is system stack, not themed)
+
+### Adding a New CSS Variable
+
+1. Add default in `:root` block in `src/index.css`
+2. Add to ALL 8 theme definitions in `src/lib/themes.ts` (30+ vars each)
+3. Test every theme — missing vars silently fall back to `initial` (invisible)
+
+### Derived Colors
+
+Use `color-mix()` for hover states and subtle backgrounds:
+```css
+background: color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg));
+```
+Never use alpha-channel hex (`#rrggbbaa`) for text — fails WCAG unpredictably.
+
+---
+
+## Component Patterns
 
 | Pattern | How | Example |
 |---------|-----|---------|
@@ -66,6 +131,18 @@ for derived colors. Supported in all target browsers. Prefer over hardcoded inte
 | Error display | `toUserMessage(err)` from `errors.ts` | NEVER raw `error.message` |
 | Auth guard | `requireAuth()` from `auth-guard.ts` | All authenticated operations |
 | Retry | `withRetry(async () => supabase.from(...).select(...))` | Wrap PromiseLike |
+
+### Existing Components
+
+**Page-level** (18 in `src/components/`):
+`AgeVerification`, `AuthModal`, `ConfirmDialog`, `CursorSparkle`, `EmptyState`,
+`ErrorBoundary`, `ErrorMessage`, `Header`, `LoadingSpinner`, `LoginForm`,
+`OnboardingFlow`, `PostCard`, `PostModal`, `PostSkeleton`, `ProfileModal`,
+`Sidebar`, `SignUpForm`, `Toast`
+
+**UI Primitives** (10 in `src/components/ui/`):
+`Avatar`, `AvatarPicker`, `Button`, `Card`, `Input`, `ReactionBar`, `Select`,
+`StyledEmoji`, `Textarea`, `YouTubeCard` — re-exported via `ui/index.ts`
 
 ### Adding New UI Components
 
@@ -82,15 +159,21 @@ for derived colors. Supported in all target browsers. Prefer over hardcoded inte
    - `MODAL_CHROME_HEIGHT` constant for scroll area calculation
    - `useFocusTrap` for keyboard accessibility
 
-### Responsive Requirements
+---
 
-Every UI change must work at these widths:
-- **375px** — iPhone SE (smallest target)
-- **390px** — iPhone 14 (most common)
-- **430px** — iPhone 15 Pro Max (largest)
-- **1024px+** — Desktop with fixed sidebar
+## Responsive Requirements
 
-Use these Tailwind responsive patterns:
+| Width | Device | Key Adjustments |
+|-------|--------|----------------|
+| 375px | iPhone SE | Smallest. 1-col grids, icon-only buttons, compact padding |
+| 390px | iPhone 14 | Baseline. Same as SE but slightly more breathing room |
+| 640px+ | Tablet/Desktop | `sm:` breakpoint. 2-col grids, visible button labels, larger padding |
+| 1024px+ | Desktop | `lg:` breakpoint. Fixed sidebar instead of collapsible |
+
+Touch targets: **44px minimum** on all interactive elements (`min-h-[44px]`).
+Input font: **16px minimum** on mobile (prevents iOS Safari auto-zoom).
+
+Tailwind responsive patterns:
 ```
 p-2 sm:p-4              # Padding scales up
 text-base sm:text-lg     # Font scales up
@@ -109,15 +192,18 @@ npm run build          # Production build succeeds — NEVER use npm run dev
 npm run test           # All tests pass
 ```
 
-Then verify manually:
-- [ ] All colors use theme variables (no hardcoded hex)
+Then verify:
+- [ ] All colors use CSS variables (no hardcoded hex)
+- [ ] New CSS variables added to all 8 themes in `themes.ts`
+- [ ] Copy uses Xanga slang (tildes, "u"/"ur"/"2") in user-facing text
+- [ ] Slang NOT in aria-labels or error messages
 - [ ] Touch targets >= 44px on all interactive elements
 - [ ] `toUserMessage()` wraps all error displays
 - [ ] New modals have swipe-to-dismiss + keyboard dismiss + focus trap
+- [ ] Spring animations (no duration-based transitions)
 - [ ] Works at 375px width (check grid layouts, text truncation)
-- [ ] Test with at least 2 different themes (light + dark)
+- [ ] Test with 2+ themes (at least 1 light + 1 dark)
 - [ ] `localStorage` access wrapped in try/catch
-- [ ] Framer Motion animations use spring physics (not duration-based)
 
 ---
 

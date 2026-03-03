@@ -58,7 +58,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 border-2 border-dotted rounded-lg text-sm transition"
+              className="px-4 py-2 border-2 border-dotted rounded-lg text-sm transition min-h-[44px]"
               style={{
                 borderColor: 'var(--border-primary)',
                 color: 'var(--accent-primary)',

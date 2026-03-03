@@ -38,7 +38,7 @@ export default function Select({
       <div className="relative">
         <select
           id={selectId}
-          className={`w-full px-3 py-2.5 pr-8 rounded-lg text-sm border-2 border-dotted transition cursor-pointer focus:outline-none appearance-none ${className}`}
+          className={`w-full px-3 py-2.5 pr-8 rounded-lg text-sm border-2 border-dotted transition cursor-pointer focus:outline-none appearance-none min-h-[44px] ${className}`}
           style={{
             backgroundColor: 'var(--input-bg, var(--card-bg))',
             borderColor: error

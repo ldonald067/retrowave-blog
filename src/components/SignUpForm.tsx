@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Zap } from 'lucide-react';
 import AgeVerification from './AgeVerification';
+import { Input } from './ui';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 
@@ -130,28 +131,15 @@ export default function SignUpForm() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
       <form onSubmit={handleEmailSubmit} className="space-y-4">
-        <div>
-          <label
-            className="block text-xs font-bold mb-1"
-            style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-          >
-            ur email address:
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-            autoFocus
-            className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition"
-            style={{
-              backgroundColor: 'var(--card-bg)',
-              borderColor: 'var(--border-primary)',
-              color: 'var(--text-body)',
-            }}
-          />
-        </div>
+        <Input
+          label="ur email address:"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          required
+          autoFocus
+        />
 
         <div className="xanga-box p-3">
           <p className="text-xs" style={{ color: 'var(--text-body)' }}>

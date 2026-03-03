@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji } from './ui';
 import ConfirmDialog from './ConfirmDialog';
-import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS } from '../lib/constants';
+import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
 import {
   EMOJI_STYLES,
@@ -18,6 +18,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useBlocks } from '../hooks/useBlocks';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
+import { withRetry } from '../lib/retry';
 import { hapticImpact } from '../lib/capacitor';
 import type { Profile } from '../types/profile';
 
@@ -160,7 +161,9 @@ export default function ProfileModal({
   const handleExportData = async () => {
     setExporting(true);
     try {
-      const { data, error } = await supabase.rpc('export_user_data');
+      const { data, error } = await withRetry(async () =>
+        supabase.rpc('export_user_data'),
+      );
       if (error) throw error;
 
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -184,7 +187,9 @@ export default function ProfileModal({
   const handleDeleteAccount = async () => {
     setDeleteAccountLoading(true);
     try {
-      const { error } = await supabase.rpc('delete_user_account');
+      const { error } = await withRetry(async () =>
+        supabase.rpc('delete_user_account'),
+      );
       if (error) throw error;
 
       await hapticImpact();
@@ -224,7 +229,7 @@ export default function ProfileModal({
           dragElastic={{ left: 0, right: 0.5 }}
           dragSnapToOrigin
           onDragEnd={(_, info) => {
-            if (info.offset.x > 80 && !isInitialSetup && !saving) {
+            if (info.offset.x > SWIPE_DISMISS_THRESHOLD && !isInitialSetup && !saving) {
               handleCancel();
             }
           }}
@@ -250,7 +255,7 @@ export default function ProfileModal({
               {!isInitialSetup && (
                 <button
                   onClick={handleCancel}
-                  className="p-2 rounded-full transition"
+                  className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
                   style={{ color: 'var(--text-muted)' }}
                   aria-label="Close"
                 >
@@ -267,7 +272,7 @@ export default function ProfileModal({
           <div
             className="overflow-y-auto"
             style={{
-              maxHeight: `calc(90vh - ${MODAL_CHROME_HEIGHT}px)`,
+              maxHeight: `calc(95vh - ${MODAL_CHROME_HEIGHT}px)`,
               backgroundColor: 'var(--modal-bg)',
             }}
             onTouchMove={() => {
@@ -295,7 +300,6 @@ export default function ProfileModal({
                       transition={{ duration: 0.2 }}
                     >
                       <AvatarPicker
-                        currentUrl={avatarUrl}
                         userId={userId}
                         onSelect={handleAvatarSelect}
                         onCancel={() => setShowAvatarPicker(false)}
@@ -430,6 +434,7 @@ export default function ProfileModal({
                         setSelectedTheme(theme.id);
                         applyTheme(theme.id);
                       }}
+                      aria-pressed={selectedTheme === theme.id}
                       className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
                       style={{
                         backgroundColor: selectedTheme === theme.id
@@ -477,6 +482,7 @@ export default function ProfileModal({
                         setSelectedEmojiStyle(emojiStyle.id);
                         setEmojiStyle(emojiStyle.id);
                       }}
+                      aria-pressed={selectedEmojiStyle === emojiStyle.id}
                       className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
                       style={{
                         backgroundColor:
@@ -546,7 +552,7 @@ export default function ProfileModal({
                                 onSuccess?.(SUCCESS_MESSAGES.block.unblocked);
                               }
                             }}
-                            className="text-[10px] px-2 py-1 rounded transition hover:opacity-80"
+                            className="text-[10px] px-2 py-1 min-h-[44px] flex items-center rounded transition hover:opacity-80"
                             style={{
                               backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))',
                               color: 'var(--accent-secondary)',
@@ -657,7 +663,7 @@ export default function ProfileModal({
                 type="button"
                 onClick={handleCancel}
                 disabled={saving}
-                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted"
+                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted min-h-[44px]"
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   color: 'var(--text-body)',

@@ -60,16 +60,32 @@ function classifyMessage(msg: string): string {
 export function toUserMessage(err: unknown): string {
   if (!err) return FALLBACK;
 
-  if (typeof err === 'string') return classifyMessage(err);
+  let message: string;
 
-  if (err instanceof Error) return classifyMessage(err.message);
-
-  const supaErr = err as SupabaseError;
-  if (supaErr.code) {
-    const mapped = POSTGREST_CODES[supaErr.code];
-    if (mapped) return mapped;
+  if (typeof err === 'string') {
+    message = classifyMessage(err);
+  } else if (err instanceof Error) {
+    message = classifyMessage(err.message);
+  } else {
+    const supaErr = err as SupabaseError;
+    if (supaErr.code) {
+      const mapped = POSTGREST_CODES[supaErr.code];
+      message = mapped ?? (supaErr.message ? classifyMessage(supaErr.message) : FALLBACK);
+    } else if (supaErr.message) {
+      message = classifyMessage(supaErr.message);
+    } else {
+      message = FALLBACK;
+    }
   }
-  if (supaErr.message) return classifyMessage(supaErr.message);
 
-  return FALLBACK;
+  // Append offline hint for network-flavored errors
+  if (
+    typeof navigator !== 'undefined' &&
+    !navigator.onLine &&
+    /network|connection|reach|server/i.test(message)
+  ) {
+    message += ' You appear to be offline.';
+  }
+
+  return message;
 }

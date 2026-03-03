@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Input } from './ui';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 
@@ -51,51 +52,25 @@ export default function LoginForm() {
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label
-            className="block text-xs font-bold mb-1"
-            style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-          >
-            ur email address:
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            required
-            autoFocus
-            className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition"
-            style={{
-              backgroundColor: 'var(--card-bg)',
-              borderColor: 'var(--border-primary)',
-              color: 'var(--text-body)',
-            }}
-          />
-        </div>
+        <Input
+          label="ur email address:"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          required
+          autoFocus
+        />
 
         {mode === 'password' && (
-          <div>
-            <label
-              className="block text-xs font-bold mb-1"
-              style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-            >
-              ur password:
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="shhh it's a secret..."
-              required
-              className="w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition"
-              style={{
-                backgroundColor: 'var(--card-bg)',
-                borderColor: 'var(--border-primary)',
-                color: 'var(--text-body)',
-              }}
-            />
-          </div>
+          <Input
+            label="ur password:"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="shhh it's a secret..."
+            required
+          />
         )}
 
         {mode === 'password' ? (
@@ -106,7 +81,7 @@ export default function LoginForm() {
             <button
               type="button"
               onClick={() => setMode('magic')}
-              className="xanga-link text-xs mt-1"
+              className="xanga-link text-xs mt-1 min-h-[44px] flex items-center"
             >
               ~ or use a magic link ~
             </button>
@@ -119,7 +94,7 @@ export default function LoginForm() {
             <button
               type="button"
               onClick={() => setMode('password')}
-              className="xanga-link text-xs mt-1"
+              className="xanga-link text-xs mt-1 min-h-[44px] flex items-center"
             >
               ~ or use a password ~
             </button>
