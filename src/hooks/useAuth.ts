@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
+import { requireAuth } from '../lib/auth-guard';
 import {
   validateProfileInput,
   hasValidationErrors,
@@ -148,7 +149,10 @@ export function useAuth(): UseAuthReturn {
           data: { session },
         } = await supabase.auth.getSession();
         const authUser = session?.user ?? null;
-        const emailLocalPart = authUser?.email?.split('@')[0] || 'user';
+        // Strip non-alphanumeric chars from email local part to satisfy
+        // the username format constraint (alphanumeric + underscores + hyphens).
+        const emailLocalPart = (authUser?.email?.split('@')[0] || 'user')
+          .replace(/[^a-zA-Z0-9_-]/g, '_');
         const randomId = Math.random().toString(36).substring(2, 8);
         const defaultUsername = authUser?.email
           ? emailLocalPart
@@ -309,9 +313,9 @@ export function useAuth(): UseAuthReturn {
     updates: Partial<Profile>,
   ): Promise<{ error: string | null }> => {
     try {
-      if (!user) {
-        return { error: 'You must be logged in to update your profile' };
-      }
+      const auth = await requireAuth();
+      if (auth.error) return { error: auth.error };
+      const currentUser = auth.user!;
 
       // F3 FIX: Validate string field lengths before sending to DB.
       // Prevents oversized values from hitting the server and gives
@@ -325,11 +329,11 @@ export function useAuth(): UseAuthReturn {
       }
 
       const { error } = await withRetry(async () =>
-        supabase.from('profiles').update(updates).eq('id', user.id),
+        supabase.from('profiles').update(updates).eq('id', currentUser.id),
       );
 
       if (error) throw error;
-      await fetchProfile(user.id);
+      await fetchProfile(currentUser.id);
       return { error: null };
     } catch (err) {
       return { error: toUserMessage(err) };

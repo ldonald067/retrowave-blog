@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Zap } from 'lucide-react';
 import AgeVerification from './AgeVerification';
 import { Input } from './ui';
+import Toast from './Toast';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
+import { PASSWORD_MIN_LENGTH } from '../lib/validation';
 
 // Check if we're in development mode
 const isDev = import.meta.env.DEV;
@@ -17,7 +19,7 @@ export default function SignUpForm() {
   const [savedBirthYear, setSavedBirthYear] = useState<number>(2000);
   const [savedTosAccepted, setSavedTosAccepted] = useState<boolean>(true);
   const { signUpWithPassword, devSignUp } = useAuth();
-  const { showToast } = useToast();
+  const { toasts, showToast, hideToast } = useToast();
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,8 +31,12 @@ export default function SignUpForm() {
       showToast('Please enter a valid email address', 'error');
       return;
     }
-    if (!password || password.length < 6) {
-      showToast('Password must be at least 6 characters', 'error');
+    if (!password || password.length < PASSWORD_MIN_LENGTH) {
+      showToast(`Password must be at least ${PASSWORD_MIN_LENGTH} characters`, 'error');
+      return;
+    }
+    if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+      showToast('Password must contain both letters and numbers', 'error');
       return;
     }
     setStep('age');
@@ -91,10 +97,28 @@ export default function SignUpForm() {
     setStep('email');
   };
 
+  // Render toast notifications — this component uses its own useToast() state
+  // because it renders inside AuthModal's early return where App-level toasts
+  // aren't mounted. Each return path includes this toast layer.
+  const toastLayer = (
+    <AnimatePresence>
+      {toasts.map((toast, index) => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => hideToast(toast.id)}
+          duration={toast.duration}
+          index={index}
+        />
+      ))}
+    </AnimatePresence>
+  );
+
   // Success screen (fallback — password sign-up usually auto-logs in)
   if (step === 'success') {
     return (
-      <motion.div
+      <>{toastLayer}<motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full text-center"
@@ -130,16 +154,16 @@ export default function SignUpForm() {
           <ArrowLeft size={12} />
           ~ use a different email ~
         </button>
-      </motion.div>
+      </motion.div></>
     );
   }
 
   if (step === 'age') {
-    return <AgeVerification onVerified={handleAgeVerified} requireTOS={true} loading={isSubmitting} />;
+    return <>{toastLayer}<AgeVerification onVerified={handleAgeVerified} requireTOS={true} loading={isSubmitting} /></>;
   }
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+    <>{toastLayer}<motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
       <form onSubmit={handleEmailSubmit} className="space-y-4">
         <Input
           label="ur email address:"
@@ -156,13 +180,13 @@ export default function SignUpForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="at least 6 characters..."
+          placeholder="at least 8 characters, letters + numbers..."
           required
         />
 
         <div className="xanga-box p-3">
           <p className="text-xs" style={{ color: 'var(--text-body)' }}>
-            🔑 pick a password 2 create ur account - u can sign in with it later!
+            🔑 pick a password with letters & numbers 2 create ur account!
           </p>
         </div>
 
@@ -174,6 +198,6 @@ export default function SignUpForm() {
           {isSubmitting ? 'sending...' : '~ continue ~'}
         </button>
       </form>
-    </motion.div>
+    </motion.div></>
   );
 }

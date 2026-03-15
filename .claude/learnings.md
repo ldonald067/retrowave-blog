@@ -163,6 +163,27 @@ new findings after completing work.
   params they actually use (cursor/limit and post_id respectively). Updated in SQL,
   `database.ts` types, and `usePosts.ts` call sites. Same migration.
 
+- [2026-03-15 /feature] RESOLVED: `useBlocks.ts` now uses `requireAuth()` before
+  `toggleBlock` and `fetchBlockedUsers`. Previously relied on server-side RLS only,
+  producing raw Supabase error messages instead of friendly "You must be logged in."
+- [2026-03-15 /feature] RESOLVED: `useReactions.ts` insert/delete now wrapped in
+  `withRetry()`. Previously the only direct Supabase table access without retry.
+- [2026-03-15 /feature] RESOLVED: `usePosts.ts` mutations (create/update/delete)
+  now wrapped in `withRetry()`. Previously only reads used retry.
+- [2026-03-15 /feature] RESOLVED: `usePosts.ts` `fetchPost` catch block now logs
+  error via `console.error(toUserMessage(err))` instead of silently swallowing.
+- [2026-03-15 /feature] RESOLVED: `useAuth.ts` `updateProfile` now uses
+  `requireAuth()` instead of manual `if (!user)` check. Consistent with all other hooks.
+- [2026-03-15 /feature] Username format constraint: `^[a-zA-Z0-9_-]+$` enforced at
+  DB level (CHECK constraint) + client (validation.ts). Default username from email
+  local parts sanitized with `regexp_replace` in DB trigger and `.replace()` in useAuth.
+- [2026-03-15 /feature] Profile fields (username, display_name, bio) now run through
+  `quickContentCheck()` from moderation.ts — reuses existing BLOCKED_PATTERNS regex.
+  Mood/music fields are NOT moderated (personal expression, low abuse risk).
+- [2026-03-15 /feature] Password policy bumped to 8-char minimum + letters_digits
+  requirement. Enforced in config.toml (server) and SignUpForm.tsx (client).
+  `PASSWORD_MIN_LENGTH` constant exported from validation.ts for single source of truth.
+
 ## False Positives (Do NOT Flag)
 
 These have been investigated and confirmed as non-issues:

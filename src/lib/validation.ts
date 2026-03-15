@@ -13,6 +13,7 @@
 
 import type { CreatePostInput } from '../types/post';
 import type { Json } from '../types/database';
+import { quickContentCheck } from './moderation';
 
 // ── Field length limits (must match migration 20260223000001) ──────────────
 export const POST_LIMITS = {
@@ -128,6 +129,12 @@ export const PROFILE_LIMITS = {
   username: { min: 1, max: 50 },
 } as const;
 
+// Username must be alphanumeric, underscores, or hyphens only
+const USERNAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
+
+// Password minimum length (must match supabase config.toml minimum_password_length)
+export const PASSWORD_MIN_LENGTH = 8;
+
 interface ProfileValidationErrors {
   display_name?: string;
   bio?: string;
@@ -148,12 +155,22 @@ export function validateProfileInput(
   if ('display_name' in input && typeof input.display_name === 'string') {
     if (input.display_name.length > PROFILE_LIMITS.display_name.max) {
       errors.display_name = `Display name must be ${PROFILE_LIMITS.display_name.max} characters or fewer`;
+    } else if (input.display_name.length > 0) {
+      const mod = quickContentCheck(input.display_name);
+      if (!mod.allowed) {
+        errors.display_name = 'Display name contains inappropriate content';
+      }
     }
   }
 
   if ('bio' in input && typeof input.bio === 'string') {
     if (input.bio.length > PROFILE_LIMITS.bio.max) {
       errors.bio = `Bio must be ${PROFILE_LIMITS.bio.max} characters or fewer`;
+    } else if (input.bio.length > 0) {
+      const mod = quickContentCheck(input.bio);
+      if (!mod.allowed) {
+        errors.bio = 'Bio contains inappropriate content';
+      }
     }
   }
 
@@ -174,6 +191,13 @@ export function validateProfileInput(
       errors.username = 'Username is required';
     } else if (input.username.length > PROFILE_LIMITS.username.max) {
       errors.username = `Username must be ${PROFILE_LIMITS.username.max} characters or fewer`;
+    } else if (!USERNAME_PATTERN.test(input.username)) {
+      errors.username = 'Username can only contain letters, numbers, underscores, and hyphens';
+    } else {
+      const mod = quickContentCheck(input.username);
+      if (!mod.allowed) {
+        errors.username = 'Username contains inappropriate content';
+      }
     }
   }
 

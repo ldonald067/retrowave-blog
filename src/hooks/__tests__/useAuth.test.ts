@@ -116,6 +116,6 @@ describe('useAuth', () => {
       response = await result.current.updateProfile({ display_name: 'Test' });
     });
 
-    expect(response.error).toBe('You must be logged in to update your profile');
+    expect(response.error).toBe('You must be logged in to do that.');
   });
 });

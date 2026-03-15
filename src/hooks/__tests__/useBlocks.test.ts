@@ -17,12 +17,21 @@ vi.mock('../../lib/retry', () => ({
   withRetry: vi.fn((fn: () => Promise<unknown>) => fn()),
 }));
 
+// Mock requireAuth — default: logged in
+vi.mock('../../lib/auth-guard', () => ({
+  requireAuth: vi.fn(),
+}));
+
 import { useBlocks } from '../useBlocks';
 import { supabase } from '../../lib/supabase';
+import { requireAuth } from '../../lib/auth-guard';
+
+const mockUser = { id: 'current-user-id', email: 'test@test.com' };
 
 describe('useBlocks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(requireAuth).mockResolvedValue({ user: mockUser, error: null } as never);
   });
 
   // ── toggleBlock ─────────────────────────────────────────────────────────
@@ -81,6 +90,21 @@ describe('useBlocks', () => {
     expect(response.error).toBe('Something went wrong. Please try again.');
   });
 
+  it('toggleBlock returns auth error when not logged in', async () => {
+    vi.mocked(requireAuth).mockResolvedValueOnce({ user: null, error: 'You must be logged in.' } as never);
+
+    const { result } = renderHook(() => useBlocks());
+
+    let response: { is_blocked: boolean; error: string | null } = { is_blocked: false, error: null };
+    await act(async () => {
+      response = await result.current.toggleBlock('user-123');
+    });
+
+    expect(response.is_blocked).toBe(false);
+    expect(response.error).toBe('You must be logged in.');
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
   // ── fetchBlockedUsers ──────────────────────────────────────────────────
 
   it('fetchBlockedUsers returns data from supabase query', async () => {
@@ -104,6 +128,21 @@ describe('useBlocks', () => {
     expect(response.data).toHaveLength(2);
     expect(response.data[0]).toMatchObject({ blocked_id: 'user-a' });
     expect(response.error).toBeNull();
+  });
+
+  it('fetchBlockedUsers returns auth error when not logged in', async () => {
+    vi.mocked(requireAuth).mockResolvedValueOnce({ user: null, error: 'You must be logged in.' } as never);
+
+    const { result } = renderHook(() => useBlocks());
+
+    let response: { data: unknown[]; error: string | null } = { data: [], error: null };
+    await act(async () => {
+      response = await result.current.fetchBlockedUsers();
+    });
+
+    expect(response.data).toHaveLength(0);
+    expect(response.error).toBe('You must be logged in.');
+    expect(supabase.from).not.toHaveBeenCalled();
   });
 
   it('fetchBlockedUsers returns error on query failure', async () => {

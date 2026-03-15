@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from './ui';
+import Toast from './Toast';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 
@@ -10,7 +11,7 @@ export default function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<'password' | 'magic'>('password');
   const { signIn, signInWithPassword } = useAuth();
-  const { showToast } = useToast();
+  const { toasts, showToast, hideToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +51,19 @@ export default function LoginForm() {
   };
 
   return (
+    <>
+    <AnimatePresence>
+      {toasts.map((toast, index) => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => hideToast(toast.id)}
+          duration={toast.duration}
+          index={index}
+        />
+      ))}
+    </AnimatePresence>
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
@@ -114,5 +128,6 @@ export default function LoginForm() {
         </button>
       </form>
     </motion.div>
+    </>
   );
 }

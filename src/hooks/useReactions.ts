@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
+import { withRetry } from '../lib/retry';
 import { requireAuth } from '../lib/auth-guard';
 import { hapticImpact } from '../lib/capacitor';
 
@@ -78,19 +79,23 @@ export function useReactions(
 
       try {
         if (wasActive) {
-          const { error } = await supabase
-            .from('post_reactions')
-            .delete()
-            .eq('post_id', postId)
-            .eq('user_id', user.id)
-            .eq('reaction_type', emoji);
+          const { error } = await withRetry(async () =>
+            supabase
+              .from('post_reactions')
+              .delete()
+              .eq('post_id', postId)
+              .eq('user_id', user.id)
+              .eq('reaction_type', emoji),
+          );
           if (error) throw error;
         } else {
-          const { error } = await supabase.from('post_reactions').insert({
-            post_id: postId,
-            user_id: user.id,
-            reaction_type: emoji,
-          });
+          const { error } = await withRetry(async () =>
+            supabase.from('post_reactions').insert({
+              post_id: postId,
+              user_id: user.id,
+              reaction_type: emoji,
+            }),
+          );
           if (error) throw error;
         }
 

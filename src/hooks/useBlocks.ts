@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
+import { requireAuth } from '../lib/auth-guard';
 
 interface BlockedUser {
   blocked_id: string;
@@ -19,6 +20,9 @@ export function useBlocks(): UseBlocksReturn {
   const toggleBlock = useCallback(
     async (targetUserId: string): Promise<{ is_blocked: boolean; error: string | null }> => {
       try {
+        const auth = await requireAuth();
+        if (auth.error) return { is_blocked: false, error: auth.error };
+
         const { data, error } = await withRetry(async () =>
           supabase.rpc('toggle_user_block', { p_target_user_id: targetUserId }),
         );
@@ -34,6 +38,9 @@ export function useBlocks(): UseBlocksReturn {
 
   const fetchBlockedUsers = useCallback(async (): Promise<{ data: BlockedUser[]; error: string | null }> => {
     try {
+      const auth = await requireAuth();
+      if (auth.error) return { data: [], error: auth.error };
+
       const { data, error } = await withRetry(async () =>
         supabase
           .from('user_blocks')

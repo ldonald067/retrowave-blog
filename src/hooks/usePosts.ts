@@ -241,11 +241,13 @@ export function usePosts(): UsePostsReturn {
         // Safe assertion: discriminated union guarantees user is non-null when error is null
         const user = auth.user!;
 
-        const { data, error } = await supabase
-          .from('posts')
-          .insert([{ ...post, user_id: user.id }])
-          .select()
-          .single();
+        const { data, error } = await withRetry(async () =>
+          supabase
+            .from('posts')
+            .insert([{ ...post, user_id: user.id }])
+            .select()
+            .single(),
+        );
 
         if (error) throw error;
         const postData = data as Post;
@@ -300,13 +302,15 @@ export function usePosts(): UsePostsReturn {
         // H3 FIX: Include user_id in WHERE clause as defense-in-depth.
         // Even if RLS policies enforce ownership, this ensures the query
         // can't modify another user's post if RLS is misconfigured.
-        const { data, error } = await supabase
-          .from('posts')
-          .update(updates)
-          .eq('id', id)
-          .eq('user_id', user.id)
-          .select()
-          .single();
+        const { data, error } = await withRetry(async () =>
+          supabase
+            .from('posts')
+            .update(updates)
+            .eq('id', id)
+            .eq('user_id', user.id)
+            .select()
+            .single(),
+        );
 
         if (error) throw error;
         const postData = data as Post;
@@ -340,11 +344,13 @@ export function usePosts(): UsePostsReturn {
         const user = auth.user!;
 
         // H3 FIX: Include user_id as defense-in-depth (same as updatePost).
-        const { error } = await supabase
-          .from('posts')
-          .delete()
-          .eq('id', id)
-          .eq('user_id', user.id);
+        const { error } = await withRetry(async () =>
+          supabase
+            .from('posts')
+            .delete()
+            .eq('id', id)
+            .eq('user_id', user.id),
+        );
         if (error) throw error;
         postsCache.invalidateAll();
         setPosts((prev) => prev.filter((p) => p.id !== id));
@@ -377,7 +383,8 @@ export function usePosts(): UsePostsReturn {
           reactions: (post.reactions as Record<string, number>) ?? {},
           user_reactions: (post.user_reactions as string[]) ?? [],
         };
-      } catch {
+      } catch (err) {
+        console.error('Error fetching post:', toUserMessage(err));
         return null;
       }
     },
