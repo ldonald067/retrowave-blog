@@ -442,6 +442,7 @@ function App() {
         <AuthModal
           isOpen={showAuthModal}
           defaultTab={authModalTab}
+          onClose={() => setShowAuthModal(false)}
         />
       </Suspense>
     );

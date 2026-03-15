@@ -95,8 +95,25 @@ new findings after completing work.
   structured TypeScript objects automatically. A SQL function returning `jsonb`
   can correctly type as `{ profile: ..., posts: [...] }` in TypeScript.
 
+## Icons & Assets
+
+- [2026-03-15 /frontend] Two retro icon libraries used in tandem: **pepicons** (Pop! variant)
+  for functional UI icons (nav, buttons, actions) and **react-old-icons** for decorative Win98
+  nostalgic accents (section headers, sidebar stats, profile form labels).
+- [2026-03-15 /frontend] `pepicons/pop` exports named SVG strings (no default export). Import
+  as `import * as popIcons from 'pepicons/pop'`. Wrapper component `Pepicon.tsx` uses
+  `dangerouslySetInnerHTML` — safe because SVGs are static build-time strings from npm.
+- [2026-03-15 /frontend] `react-old-icons` exports React components that render `<img>` tags
+  fetching `.webp` from GitHub raw. They accept a `size` prop and `alt` prop. External network
+  dependency — icons won't render offline.
+- [2026-03-15 /frontend] Supabase now issues `sb_publishable_*` keys (new format) alongside
+  legacy `eyJ*` JWT keys. The JS client (`createClient`) accepts both formats.
+
 ## Code Debt
 
+- [2026-03-15 /frontend] RESOLVED: AuthModal had no back/close button — users were
+  trapped on the auth screen after skipping onboarding. Added `onClose` prop and
+  "← back" button to return to the read-only blog feed.
 - [2026-02-26 /frontend-design] RESOLVED: LoginForm/SignUpForm refactored to use
   `<Input>` UI primitive. Dead props removed (AuthModal onClose, AvatarPicker
   currentUrl).

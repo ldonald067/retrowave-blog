@@ -7,9 +7,10 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 interface AuthModalProps {
   isOpen: boolean;
   defaultTab?: 'login' | 'signup';
+  onClose?: () => void;
 }
 
-export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalProps) {
+export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>(defaultTab);
   const dialogRef = useRef<HTMLDivElement>(null);
   useFocusTrap(dialogRef, isOpen);
@@ -43,6 +44,18 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
           }}
         >
           <div className="flex items-center justify-between px-4 h-14">
+            {onClose ? (
+              <button
+                onClick={onClose}
+                className="w-16 text-left text-xs font-bold min-h-[44px] flex items-center transition hover:opacity-70"
+                style={{ color: 'var(--link-color)', fontFamily: 'var(--title-font)' }}
+                aria-label="Go back to blog"
+              >
+                ← back
+              </button>
+            ) : (
+              <div className="w-16" />
+            )}
             <h1 className="flex-1 text-center xanga-title text-lg">
               ✨ {activeTab === 'signup' ? 'Create Your Xanga' : 'Sign In'} ✨
             </h1>
