@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { Pepicon } from './ui';
 
 interface ErrorMessageProps {
   error: string;
@@ -53,7 +53,7 @@ export default function ErrorMessage({ error, onRetry }: ErrorMessageProps) {
             onClick={onRetry}
             className="xanga-button w-full py-2.5 text-sm flex items-center justify-center gap-2"
           >
-            <RefreshCw size={14} />
+            <Pepicon name="loop" size={14} />
             ~ try again ~
           </motion.button>
         )}

@@ -15,3 +15,4 @@ export type { ReactionEmoji } from './ReactionBar';
 
 export { default as StyledEmoji } from './StyledEmoji';
 export { default as YouTubeCard } from './YouTubeCard';
+export { default as Pepicon } from './Pepicon';

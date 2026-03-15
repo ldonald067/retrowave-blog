@@ -1,10 +1,7 @@
 import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  X, Save, User, FileText, Image, Palette, Heart, Music,
-  Sparkles, ShieldOff, Download, Trash2,
-} from 'lucide-react';
-import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji } from './ui';
+import { X } from 'lucide-react';
+import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji, Pepicon } from './ui';
 import ConfirmDialog from './ConfirmDialog';
 import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
@@ -289,7 +286,7 @@ export default function ProfileModal({
               {/* Avatar Section */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Image size={14} style={{ color: 'var(--accent-primary)' }} />
+                  <Pepicon name="camera" size={14} color="var(--accent-primary)" />
                   profile pic
                 </h3>
 
@@ -343,7 +340,7 @@ export default function ProfileModal({
               {/* Display Name */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <User size={14} style={{ color: 'var(--accent-primary)' }} />
+                  <Pepicon name="person" size={14} color="var(--accent-primary)" />
                   display name
                 </h3>
                 <Input
@@ -367,7 +364,7 @@ export default function ProfileModal({
               {/* Bio */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <FileText size={14} style={{ color: 'var(--accent-primary)' }} />
+                  <Pepicon name="file" size={14} color="var(--accent-primary)" />
                   about me
                 </h3>
                 <Textarea
@@ -389,7 +386,7 @@ export default function ProfileModal({
               {/* Current Mood */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Heart size={14} style={{ color: 'var(--accent-primary)' }} />
+                  <Pepicon name="heartFilled" size={14} color="var(--accent-primary)" />
                   current mood
                 </h3>
                 <Select
@@ -407,7 +404,7 @@ export default function ProfileModal({
               {/* Currently Listening */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Music size={14} style={{ color: 'var(--accent-secondary)' }} />
+                  <Pepicon name="musicNoteSingle" size={14} color="var(--accent-secondary)" />
                   currently listening 2
                 </h3>
                 <Input
@@ -425,7 +422,7 @@ export default function ProfileModal({
               {/* Theme Picker */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Palette size={14} style={{ color: 'var(--accent-primary)' }} />
+                  <Pepicon name="star" size={14} color="var(--accent-primary)" />
                   theme
                 </h3>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -473,7 +470,7 @@ export default function ProfileModal({
               {/* Emoji Style Picker */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Sparkles size={14} style={{ color: 'var(--accent-primary)' }} />
+                  <Pepicon name="stars" size={14} color="var(--accent-primary)" />
                   emoji style
                 </h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -528,7 +525,7 @@ export default function ProfileModal({
               {!isInitialSetup && blockedUsers.length > 0 && (
                 <div className="xanga-box p-4">
                   <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                    <ShieldOff size={14} style={{ color: 'var(--accent-secondary)' }} />
+                    <Pepicon name="shield" size={14} color="var(--accent-secondary)" />
                     blocked users
                   </h3>
                   {blockedLoading ? (
@@ -601,7 +598,7 @@ export default function ProfileModal({
               {!isInitialSetup && (
                 <div className="xanga-box p-4 space-y-3">
                   <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                    <User size={14} style={{ color: 'var(--accent-primary)' }} />
+                    <Pepicon name="person" size={14} color="var(--accent-primary)" />
                     account
                   </h3>
 
@@ -619,7 +616,7 @@ export default function ProfileModal({
                       fontFamily: 'var(--title-font)',
                     }}
                   >
-                    <Download size={14} />
+                    <Pepicon name="floppyDisk" size={14} />
                     {exporting ? '~ exporting... ~' : '~ export my data ~'}
                   </motion.button>
                   <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -643,7 +640,7 @@ export default function ProfileModal({
                         fontFamily: 'var(--title-font)',
                       }}
                     >
-                      <Trash2 size={14} />
+                      <Pepicon name="trash" size={14} />
                       ~ delete account ~
                     </motion.button>
                     <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
@@ -686,7 +683,7 @@ export default function ProfileModal({
               onClick={handleSubmit}
               className="xanga-button flex items-center gap-2 text-sm"
             >
-              <Save size={14} />
+              <Pepicon name="floppyDisk" size={14} />
               {saving ? 'saving...' : isInitialSetup ? "~ let's go! ~" : '~ save changes ~'}
             </button>
           </div>

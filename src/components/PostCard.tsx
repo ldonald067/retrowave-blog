@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Share2, Ban, Flag } from 'lucide-react';
+import { Pepicon } from './ui';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
@@ -176,7 +176,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
                 style={{ color: 'var(--text-muted)' }}
                 aria-label="Report this post"
               >
-                <Flag size={12} />
+                <Pepicon name="flag" size={12} />
                 ~ report ~
               </a>
               <motion.button
@@ -186,7 +186,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
                 style={{ color: 'var(--text-muted)' }}
                 aria-label="Block this user"
               >
-                <Ban size={12} />
+                <Pepicon name="shield" size={12} />
                 ~ block ~
               </motion.button>
             </>
@@ -203,7 +203,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
           aria-label="Share post"
           style={{ color: 'var(--text-muted)' }}
         >
-          <Share2 size={14} />
+          <Pepicon name="shareIos" size={14} />
         </motion.button>
       </div>
 

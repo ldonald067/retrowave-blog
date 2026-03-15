@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PenLine, Home, User, Star, LogIn } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
+import { Pepicon } from './ui';
 import { sparkleBurst } from '../lib/celebrations';
 
 const STATUS_KEY = 'xanga-status';
@@ -92,12 +92,12 @@ export default function Header({
           <div className="flex items-center gap-2 sm:gap-4">
             {user && profile ? (
               <span style={{ color: 'var(--text-muted)' }}>
-                <Star size={12} className="inline" style={{ color: 'var(--accent-primary)' }} /> Welcome back,{' '}
+                <Pepicon name="starFilled" size={12} color="var(--accent-primary)" /> Welcome back,{' '}
                 {profile.display_name || 'friend'}!
               </span>
             ) : (
               <span style={{ color: 'var(--text-muted)' }}>
-                <Star size={12} className="inline" style={{ color: 'var(--accent-primary)' }} /> Welcome to My Journal
+                <Pepicon name="starFilled" size={12} color="var(--accent-primary)" /> Welcome to My Journal
               </span>
             )}
           </div>
@@ -200,14 +200,14 @@ export default function Header({
               className="xanga-button flex items-center gap-1"
               aria-label="Scroll to top"
             >
-              <Home size={14} />
+              <Pepicon name="house" size={14} />
               <span className="hidden sm:inline">Home</span>
             </motion.button>
 
             {user ? (
               <>
                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onProfileClick} className="xanga-button flex items-center gap-1" aria-label="Edit profile">
-                  <User size={14} />
+                  <Pepicon name="person" size={14} />
                   <span className="hidden sm:inline">Profile</span>
                 </motion.button>
 
@@ -218,7 +218,7 @@ export default function Header({
                   className="xanga-button flex items-center gap-1"
                   aria-label="Create new entry"
                 >
-                  <PenLine size={14} />
+                  <Pepicon name="pen" size={14} />
                   <span className="hidden sm:inline">New Entry</span>
                 </motion.button>
               </>
@@ -229,7 +229,7 @@ export default function Header({
                 onClick={onAuthClick}
                 className="xanga-button flex items-center gap-1"
               >
-                <LogIn size={14} />
+                <Pepicon name="key" size={14} />
                 <span className="hidden sm:inline">Sign In</span>
               </motion.button>
             )}

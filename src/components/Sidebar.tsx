@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Calendar, Settings, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
-import { Avatar, YouTubeCard } from './ui';
+import { Avatar, YouTubeCard, Pepicon } from './ui';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { useTrailMode, TRAIL_MODE_OPTIONS } from './CursorSparkle';
 
@@ -92,7 +92,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
                   borderColor: 'var(--border-primary)',
                 }}
               >
-                <Settings size={12} style={{ color: 'var(--accent-primary)' }} />
+                <Pepicon name="gear" size={12} color="var(--accent-primary)" />
               </motion.button>
             )}
           </div>
@@ -115,7 +115,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
               }}
             >
               <div className="flex items-center gap-2">
-                <Heart size={14} style={{ color: 'var(--accent-primary)' }} />
+                <Pepicon name="heartFilled" size={14} color="var(--accent-primary)" />
                 <span className="font-bold" style={{ color: 'var(--text-body)' }}>Current Mood:</span>
               </div>
               <div className="ml-6 mt-1" style={{ color: 'var(--text-muted)' }}>
@@ -187,7 +187,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
         <div className="space-y-2 text-xs">
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-              <BookOpen size={12} style={{ color: 'var(--accent-primary)' }} />
+              <Pepicon name="book" size={12} color="var(--accent-primary)" />
               Entries:
             </span>
             <span className="font-bold" style={{ color: 'var(--accent-primary)' }}>{postCount}</span>
@@ -195,7 +195,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
 
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-              <Calendar size={12} style={{ color: 'var(--accent-secondary)' }} />
+              <Pepicon name="calendar" size={12} color="var(--accent-secondary)" />
               member since:
             </span>
             <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince} ✨</span>

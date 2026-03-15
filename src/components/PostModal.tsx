@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Save } from 'lucide-react';
+import { X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
-import { Input, Textarea, Select, YouTubeCard } from './ui';
+import { Input, Textarea, Select, YouTubeCard, Pepicon } from './ui';
 import ConfirmDialog from './ConfirmDialog';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
@@ -567,7 +567,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                 disabled={saving || loadingFullContent}
                 className="xanga-button flex items-center gap-2 text-sm"
               >
-                <Save size={14} />
+                <Pepicon name="floppyDisk" size={14} />
                 <span>{saving ? 'saving...' : loadingFullContent ? 'loading...' : '~ save entry ~'}</span>
               </button>
             </div>
