@@ -7,13 +7,9 @@ import {
   Windows95Notepad,
   Windows95WordPad,
   Windows95Configuration,
-  Windows95MyComputer,
   Winamp as WinampIcon,
   VisualStudioFace,
-  FloppyDisk,
-  Windows95RecycleBin,
 } from 'react-old-icons';
-import ConfirmDialog from './ConfirmDialog';
 import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
 import {
@@ -24,10 +20,6 @@ import {
 } from '../lib/emojiStyles';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useBlocks } from '../hooks/useBlocks';
-import { supabase } from '../lib/supabase';
-import { toUserMessage } from '../lib/errors';
-import { withRetry } from '../lib/retry';
-import { hapticImpact } from '../lib/capacitor';
 import { sparkleBurst, emojiRain } from '../lib/celebrations';
 import type { Profile } from '../types/profile';
 
@@ -65,9 +57,6 @@ export default function ProfileModal({
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
   const [blockedUsers, setBlockedUsers] = useState<Array<{ blocked_id: string; created_at: string }>>([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
-  const [exporting, setExporting] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   // UX: Capture initial theme/emoji to revert on cancel (preview-without-commit)
   const originalThemeRef = useRef<string>(profile?.theme || DEFAULT_THEME);
@@ -169,55 +158,6 @@ export default function ProfileModal({
 
   const fallbackSeed = userId || 'guest';
 
-  const handleExportData = async () => {
-    setExporting(true);
-    try {
-      const { data, error } = await withRetry(async () =>
-        supabase.rpc('export_user_data'),
-      );
-      if (error) throw error;
-
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `my-journal-data-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      onSuccess?.('~ ur data has been exported! ~');
-    } catch (err) {
-      onError?.(toUserMessage(err));
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    setDeleteAccountLoading(true);
-    try {
-      const { error } = await withRetry(async () =>
-        supabase.rpc('delete_user_account'),
-      );
-      if (error) throw error;
-
-      await hapticImpact();
-
-      // Sign out after account deletion — triggers auth state change
-      await supabase.auth.signOut();
-
-      onSuccess?.('~ ur account has been deleted. farewell friend ~');
-      onClose();
-    } catch (err) {
-      onError?.(toUserMessage(err));
-    } finally {
-      setDeleteAccountLoading(false);
-      setShowDeleteConfirm(false);
-    }
-  };
-
   return (
     <AnimatePresence>
       <motion.div
@@ -260,7 +200,7 @@ export default function ProfileModal({
             }}
           >
             <div className="flex items-center justify-between">
-              <h2 className="xanga-title text-xl sm:text-2xl flex items-center gap-2">
+              <h2 className="xanga-title text-lg sm:text-2xl flex items-center gap-2">
                 ✨ {isInitialSetup ? '~ welcome! set up ur profile ~' : '~ edit profile ~'}
               </h2>
               {!isInitialSetup && (
@@ -422,7 +362,7 @@ export default function ProfileModal({
                   type="text"
                   value={currentMusic}
                   onChange={(e) => setCurrentMusic(e.target.value)}
-                  placeholder="artist - song name, or paste a youtube link"
+                  placeholder="song, artist, or youtube link..."
                   maxLength={200}
                 />
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
@@ -461,7 +401,7 @@ export default function ProfileModal({
                         {theme.previewColors.map((color, i) => (
                           <div
                             key={i}
-                            className="w-3 h-3 sm:w-4 sm:h-4 rounded-full"
+                            className="w-4 h-4 rounded-full"
                             style={{ backgroundColor: color, border: '1px solid var(--border-primary)' }}
                           />
                         ))}
@@ -605,61 +545,6 @@ export default function ProfileModal({
                 </div>
               </div>
 
-              {/* Account Actions — only show for existing users, not initial setup */}
-              {!isInitialSetup && (
-                <div className="xanga-box p-4 space-y-3">
-                  <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                    <Windows95MyComputer size={20} alt="" />
-                    account
-                  </h3>
-
-                  {/* Export My Data */}
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    type="button"
-                    onClick={handleExportData}
-                    disabled={exporting}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold border-2 border-dotted transition hover:opacity-80 min-h-[44px]"
-                    style={{
-                      backgroundColor: 'var(--card-bg)',
-                      color: 'var(--text-body)',
-                      borderColor: 'var(--border-primary)',
-                      fontFamily: 'var(--title-font)',
-                    }}
-                  >
-                    <FloppyDisk size={18} alt="" />
-                    {exporting ? '~ exporting... ~' : '~ export my data ~'}
-                  </motion.button>
-                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    download all ur posts, reactions & profile as a json file
-                  </p>
-
-                  {/* Delete Account — danger zone */}
-                  <div
-                    className="pt-3 mt-3 border-t-2 border-dotted"
-                    style={{ borderColor: 'var(--accent-secondary)' }}
-                  >
-                    <motion.button
-                      whileTap={{ scale: 0.97 }}
-                      type="button"
-                      onClick={() => setShowDeleteConfirm(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold border-2 transition hover:opacity-80 min-h-[44px]"
-                      style={{
-                        backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 10%, var(--card-bg))',
-                        color: 'var(--accent-secondary)',
-                        borderColor: 'var(--accent-secondary)',
-                        fontFamily: 'var(--title-font)',
-                      }}
-                    >
-                      <Windows95RecycleBin size={18} alt="" />
-                      ~ delete account ~
-                    </motion.button>
-                    <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                      this will permanently delete ur account & all ur data. this can't be undone!
-                    </p>
-                  </div>
-                </div>
-              )}
             </form>
             </fieldset>
           </div>
@@ -700,17 +585,6 @@ export default function ProfileModal({
           </div>
         </motion.div>
 
-        {/* Delete Account Confirmation */}
-        {showDeleteConfirm && (
-          <ConfirmDialog
-            title="~ delete account? ~"
-            message="this will permanently delete ur account, all ur posts, reactions & data. this can NOT be undone. r u absolutely sure?"
-            confirmLabel="~ yes, delete everything ~"
-            loading={deleteAccountLoading}
-            onConfirm={handleDeleteAccount}
-            onCancel={() => setShowDeleteConfirm(false)}
-          />
-        )}
       </motion.div>
     </AnimatePresence>
   );

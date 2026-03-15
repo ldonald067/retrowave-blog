@@ -31,6 +31,7 @@ import { useOnlineStatus } from './hooks/useOnlineStatus';
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
 const ProfileModal = lazy(() => import('./components/ProfileModal'));
+const SettingsModal = lazy(() => import('./components/SettingsModal'));
 const AuthModal = lazy(() => import('./components/AuthModal'));
 const AgeVerification = lazy(() => import('./components/AgeVerification'));
 const OnboardingFlow = lazy(() => import('./components/OnboardingFlow'));
@@ -211,6 +212,7 @@ function App() {
     try { return !localStorage.getItem('hasCompletedOnboarding'); } catch { return false; }
   });
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   // Subscribe to emoji style changes for footer attribution
@@ -489,6 +491,7 @@ function App() {
           onSignOut={handleSignOut}
           onAuthClick={() => setShowAuthModal(true)}
           onProfileClick={handleProfileClick}
+          onSettingsClick={() => setShowSettingsModal(true)}
         />
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row gap-6">
@@ -512,6 +515,7 @@ function App() {
           onSignOut={handleSignOut}
           onAuthClick={() => setShowAuthModal(true)}
           onProfileClick={handleProfileClick}
+          onSettingsClick={() => setShowSettingsModal(true)}
         />
         <ErrorMessage error={error} onRetry={refetch} />
       </div>
@@ -530,6 +534,7 @@ function App() {
         onSignOut={handleSignOut}
         onAuthClick={() => setShowAuthModal(true)}
         onProfileClick={handleProfileClick}
+        onSettingsClick={() => setShowSettingsModal(true)}
       />
 
       {/* Offline banner */}
@@ -608,6 +613,17 @@ function App() {
             onSuccess={success}
             onError={showError}
             isInitialSetup={needsProfileSetup}
+          />
+        </Suspense>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <Suspense fallback={<LazyFallback />}>
+          <SettingsModal
+            onClose={() => setShowSettingsModal(false)}
+            onSuccess={success}
+            onError={showError}
           />
         </Suspense>
       )}

@@ -55,28 +55,27 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
         }}
       >
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h2 className="xanga-title text-2xl mb-1">
+          <div className="flex-1 min-w-0">
+            <h2 className="xanga-title text-lg sm:text-2xl mb-1">
               <motion.button
                 whileTap={{ scale: 0.97 }}
                 onClick={() => onView(post)}
-                className="text-left cursor-pointer transition hover:opacity-80"
+                className="text-left cursor-pointer transition hover:opacity-80 line-clamp-2"
                 style={{ color: 'inherit', textShadow: 'inherit' }}
                 aria-label={`View post: ${post.title}`}
               >
                 {post.title}
               </motion.button>
             </h2>
-            <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs" style={{ color: 'var(--text-muted)' }}>
               <span className="flex items-center gap-1">
                 <span style={{ color: 'var(--accent-primary)' }}>📅</span>
-                {formatDate(post.created_at, 'MMM dd, yyyy')} @{' '}
-                {formatDate(post.created_at, 'h:mm a')}
+                {formatDate(post.created_at, 'MMM dd, yyyy')}
               </span>
-              <span>•</span>
+              <span className="hidden sm:inline">•</span>
               <span className="flex items-center gap-1">
                 <span style={{ color: 'var(--accent-secondary)' }}>⏰</span>
-                {formatRelativeDate(post.created_at)}
+                {formatDate(post.created_at, 'h:mm a')} · {formatRelativeDate(post.created_at)}
               </span>
             </div>
           </div>

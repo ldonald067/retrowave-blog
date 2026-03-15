@@ -76,7 +76,7 @@ export default function AgeVerification({ onVerified, requireTOS = true, loading
           >
             {/* Welcome Section */}
             <div className="xanga-box p-4 sm:p-6 mb-4 text-center">
-              <div className="text-4xl sm:text-5xl mb-3" aria-hidden="true">🛡️✨</div>
+              <div className="text-3xl sm:text-5xl mb-3" aria-hidden="true">🛡️✨</div>
               <h2
                 className="xanga-title text-lg sm:text-xl mb-2"
               >

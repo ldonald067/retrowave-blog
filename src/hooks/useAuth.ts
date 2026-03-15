@@ -22,6 +22,13 @@ interface UseAuthReturn {
     birthYear: number,
     tosAccepted: boolean,
   ) => Promise<{ error: string | null }>;
+  /** Password-based sign-up — no email delivery needed */
+  signUpWithPassword: (
+    email: string,
+    password: string,
+    birthYear: number,
+    tosAccepted: boolean,
+  ) => Promise<{ error: string | null }>;
   signIn: (email: string) => Promise<{ error: string | null }>;
   signInWithPassword: (
     email: string,
@@ -232,6 +239,31 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
+  const signUpWithPassword = async (
+    email: string,
+    password: string,
+    birthYear: number,
+    tosAccepted: boolean,
+  ): Promise<{ error: string | null }> => {
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            birth_year: birthYear,
+            tos_accepted: tosAccepted,
+          },
+        },
+      });
+
+      if (error) throw error;
+      return { error: null };
+    } catch (err) {
+      return { error: toUserMessage(err) };
+    }
+  };
+
   const signIn = async (
     email: string,
   ): Promise<{ error: string | null }> => {
@@ -348,6 +380,7 @@ export function useAuth(): UseAuthReturn {
     profileError,
     loading,
     signUp,
+    signUpWithPassword,
     signIn,
     signInWithPassword,
     signOut,

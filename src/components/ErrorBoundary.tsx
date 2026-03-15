@@ -44,7 +44,7 @@ export default class ErrorBoundary extends Component<Props, State> {
     return (
       <div className="min-h-screen themed-bg flex items-center justify-center p-6">
         <div className="xanga-box max-w-md w-full text-center space-y-4">
-          <h1 className="xanga-title text-3xl">Oops! 😵</h1>
+          <h1 className="xanga-title text-2xl sm:text-3xl">Oops! 😵</h1>
           <p className="xanga-subtitle">Something went wrong rendering this page.</p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Something went wrong. Try refreshing the page.

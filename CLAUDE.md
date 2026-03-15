@@ -37,7 +37,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ## Project Layout
 
 ```
-src/components/    # UI components (PostCard, Header, Sidebar, modals, ui/ primitives)
+src/components/    # UI components (PostCard, Header, Sidebar, modals incl. SettingsModal, ui/ primitives)
 src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useToast, useFocusTrap, useOnlineStatus, useYouTubeInfo
 src/lib/           # supabase, auth-guard, errors, retry, validation, cache, moderation, themes, emojiStyles, capacitor, constants, celebrations
 src/types/         # post, profile, database, link-preview
@@ -77,3 +77,5 @@ Cross-cutting knowledge lives in `.claude/learnings.md` — all skills read it.
 - All `localStorage` access wrapped in try/catch (Safari private browsing throws).
 - `react-old-icons` fetches `.webp` from GitHub at runtime — icons won't render offline. `pepicons` SVGs are bundled (no network needed).
 - `.env` is gitignored. Copy `.env.example` → `.env` on each new machine and fill in Supabase credentials.
+- Settings (⚙️ gear icon → SettingsModal: export data + delete account) and Profile (👤 → ProfileModal: avatar, name, bio, theme, emoji style) are separate modals. Don't merge them.
+- 6 emoji styles: native, fluent, twemoji, openmoji, blob, noto. Fills 2×3 grid. CDN URLs in `emojiStyles.ts`.

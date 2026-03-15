@@ -157,7 +157,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   initial={{ scale: 0, rotate: -10 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
-                  className="text-4xl sm:text-5xl mb-4 tracking-widest"
+                  className="text-3xl sm:text-5xl mb-4 tracking-widest"
                 >
                   {slide.emoji}
                 </motion.div>

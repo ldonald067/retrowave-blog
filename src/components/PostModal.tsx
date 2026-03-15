@@ -408,7 +408,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                     label="🎵 currently listening 2:"
                     value={music}
                     onChange={(e) => setMusic(e.target.value)}
-                    placeholder="song name, artist, or paste a youtube link..."
+                    placeholder="song, artist, or youtube link..."
                     maxLength={200}
                   />
                   <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>

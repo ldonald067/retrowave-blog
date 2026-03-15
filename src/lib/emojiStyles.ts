@@ -1,7 +1,7 @@
 /**
  * Emoji Style System
  *
- * Provides 5 emoji rendering styles (native + 4 CDN-based sets).
+ * Provides 6 emoji rendering styles (native + 5 CDN-based sets).
  * Preference stored in localStorage — no DB migration needed.
  * Uses a module-level reactive store so any component can subscribe
  * via `useEmojiStyle()` without React context or prop drilling.
@@ -14,7 +14,7 @@ import { useState, useEffect } from 'react';
 
 // ── Style definitions ──────────────────────────────────────────────
 
-export type EmojiStyleId = 'native' | 'fluent' | 'twemoji' | 'openmoji' | 'blob';
+export type EmojiStyleId = 'native' | 'fluent' | 'twemoji' | 'openmoji' | 'blob' | 'noto';
 
 interface EmojiStyle {
   id: EmojiStyleId;
@@ -48,6 +48,12 @@ export const EMOJI_STYLES: EmojiStyle[] = [
     id: 'blob',
     name: 'blob',
     description: 'cute google blobs',
+    license: 'Apache 2.0',
+  },
+  {
+    id: 'noto',
+    name: 'noto color',
+    description: 'google flat color',
     license: 'Apache 2.0',
   },
 ];
@@ -149,6 +155,9 @@ function buildUrl(codepoint: string, style: EmojiStyleId): string | null {
     case 'blob':
       // Google Blob emoji — Apache 2.0, UPPERCASE codepoint SVG
       return `https://cdn.jsdelivr.net/npm/@svgmoji/blob@2.0.0/svg/${codepoint.toUpperCase()}.svg`;
+    case 'noto':
+      // Google Noto Color Emoji — Apache 2.0, UPPERCASE codepoint SVG
+      return `https://cdn.jsdelivr.net/npm/@svgmoji/noto@2.0.0/svg/${codepoint.toUpperCase()}.svg`;
   }
 }
 
@@ -176,6 +185,7 @@ export function getEmojiAttribution(): string | null {
     twemoji: 'Twemoji',
     openmoji: 'OpenMoji',
     blob: 'Google Blob Emoji',
+    noto: 'Google Noto Color Emoji',
   };
 
   return `Emoji: ${names[style.id]} (${style.license})`;

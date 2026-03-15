@@ -53,8 +53,8 @@ const { data, error } = await withRetry(async () =>
 | `get_posts_with_reactions` | `usePosts.ts` | Feed pagination + reactions |
 | `get_post_by_id` | `usePosts.ts` | Single post (full content) |
 | `toggle_user_block` | `useBlocks.ts` | Block/unblock user |
-| `export_user_data` | `ProfileModal.tsx` | GDPR data export |
-| `delete_user_account` | `ProfileModal.tsx` | Account deletion |
+| `export_user_data` | `SettingsModal.tsx` | GDPR data export |
+| `delete_user_account` | `SettingsModal.tsx` | Account deletion |
 
 ### Tables → Hooks
 

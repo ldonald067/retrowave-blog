@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Import the class by re-creating a cache (the module exports singletons)
 // We test via the exported singletons to match real usage

@@ -59,8 +59,8 @@ Cross-check the contracts listed in CLAUDE.md:
 | `get_posts_with_reactions` | `usePosts.ts` | Read-only, cursor pagination |
 | `get_post_by_id` | `usePosts.ts` | Read-only, full post content |
 | `toggle_user_block` | `useBlocks.ts` | Mutation, returns `is_blocked` |
-| `export_user_data` | `ProfileModal.tsx` | SECURITY DEFINER, returns jsonb |
-| `delete_user_account` | `ProfileModal.tsx` | SECURITY DEFINER, cascading delete |
+| `export_user_data` | `SettingsModal.tsx` | SECURITY DEFINER, returns jsonb |
+| `delete_user_account` | `SettingsModal.tsx` | SECURITY DEFINER, cascading delete |
 
 **Direct table access** (no RPC):
 - `useReactions.ts` → `post_reactions` (INSERT/DELETE with optimistic UI)

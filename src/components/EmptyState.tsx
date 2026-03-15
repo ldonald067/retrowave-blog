@@ -17,7 +17,7 @@ export default function EmptyState({ onCreatePost }: EmptyStateProps) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.1, type: 'spring', stiffness: 300, damping: 25 }}
-        className="xanga-box lined-paper p-6 sm:p-8 w-full max-w-lg"
+        className="xanga-box lined-paper px-4 py-6 sm:p-8 w-full max-w-lg"
       >
         {/* Journal header */}
         <div className="mb-4 pb-3 border-b-2 border-dotted" style={{ borderColor: 'var(--border-primary)' }}>

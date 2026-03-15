@@ -11,11 +11,12 @@ const isDev = import.meta.env.DEV;
 
 export default function SignUpForm() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [step, setStep] = useState<'email' | 'age' | 'success'>('email');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedBirthYear, setSavedBirthYear] = useState<number>(2000);
   const [savedTosAccepted, setSavedTosAccepted] = useState<boolean>(true);
-  const { signUp, devSignUp } = useAuth();
+  const { signUpWithPassword, devSignUp } = useAuth();
   const { showToast } = useToast();
 
   const handleEmailSubmit = (e: React.FormEvent) => {
@@ -28,6 +29,10 @@ export default function SignUpForm() {
       showToast('Please enter a valid email address', 'error');
       return;
     }
+    if (!password || password.length < 6) {
+      showToast('Password must be at least 6 characters', 'error');
+      return;
+    }
     setStep('age');
   };
 
@@ -37,7 +42,20 @@ export default function SignUpForm() {
     setSavedTosAccepted(tosAccepted);
 
     try {
-      const { error } = await signUp(email, birthYear, tosAccepted);
+      // DEV: Use anonymous auth to bypass email entirely
+      if (isDev && devSignUp) {
+        const { error } = await devSignUp(email, birthYear, tosAccepted);
+        if (error) {
+          showToast(error, 'error');
+          setIsSubmitting(false);
+          return;
+        }
+        showToast('Account created! Logging you in...', 'success');
+        return;
+      }
+
+      // PROD: Use password-based sign-up
+      const { error } = await signUpWithPassword(email, password, birthYear, tosAccepted);
 
       if (error) {
         showToast(error, 'error');
@@ -45,7 +63,7 @@ export default function SignUpForm() {
         return;
       }
 
-      setStep('success');
+      showToast('Account created! You are now signed in ✨', 'success');
     } catch (err) {
       showToast('Something went wrong. Please try again.', 'error');
     } finally {
@@ -69,10 +87,11 @@ export default function SignUpForm() {
 
   const handleStartOver = () => {
     setEmail('');
+    setPassword('');
     setStep('email');
   };
 
-  // Success screen after signup
+  // Success screen (fallback — password sign-up usually auto-logs in)
   if (step === 'success') {
     return (
       <motion.div
@@ -81,19 +100,10 @@ export default function SignUpForm() {
         className="w-full text-center"
       >
         <div className="xanga-box p-6 mb-4">
-          <div className="text-4xl mb-3">📬✨</div>
-          <h2 className="xanga-title text-xl mb-2">~ check ur email!! ~</h2>
-          <p className="xanga-subtitle mb-1">we sent a magic link to:</p>
+          <div className="text-3xl sm:text-4xl mb-3">✨🎉</div>
+          <h2 className="xanga-title text-xl mb-2">~ ur account is ready!! ~</h2>
+          <p className="xanga-subtitle mb-1">signed up as:</p>
           <p className="font-semibold text-sm mt-1" style={{ color: 'var(--accent-primary)' }}>{email}</p>
-        </div>
-
-        <div className="xanga-box p-4 mb-4 text-left">
-          <p className="xanga-title text-sm mb-2">next steps:</p>
-          <ol className="list-decimal list-inside text-xs space-y-1" style={{ color: 'var(--text-body)' }}>
-            <li>open ur email inbox</li>
-            <li>find the email from us (check spam 2!)</li>
-            <li>click the magic link 2 sign in ✨</li>
-          </ol>
         </div>
 
         {/* DEV ONLY */}
@@ -141,9 +151,18 @@ export default function SignUpForm() {
           autoFocus
         />
 
+        <Input
+          label="create a password:"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="at least 6 characters..."
+          required
+        />
+
         <div className="xanga-box p-3">
           <p className="text-xs" style={{ color: 'var(--text-body)' }}>
-            💌 we'll send u a magic link - no password needed!
+            🔑 pick a password 2 create ur account - u can sign in with it later!
           </p>
         </div>
 

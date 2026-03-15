@@ -54,6 +54,19 @@ new findings after completing work.
   AvatarPicker, PostCard. iPads (810px) now keep 44px targets; only desktop (1024px+)
   relaxes. Fixed in commit 5739ab3.
 
+- [2026-03-15 /mobile] RESOLVED: Header top banner overflowed on 375px — "Welcome back,
+  username" + "~ settings ~" + "~ logout ~" wrapped to two lines. Fixed by: truncating
+  welcome text ("Hi, name!" on mobile), replacing text links with Pepicon icons (gear,
+  leave) on mobile, showing labels only at sm: breakpoint.
+- [2026-03-15 /mobile] Feed RPCs (get_posts_with_reactions, get_post_by_id) changed to
+  personal diary mode — only returns current user's own posts, not all public posts.
+- [2026-03-15 /mobile] RESOLVED: Deep mobile audit — PostCard date metadata wrapped onto
+  two lines via `flex-wrap` + hidden separator on mobile. Title clamped to 2 lines via
+  `line-clamp-2`. EmptyState padding reduced (`px-4 py-6` on mobile). ProfileModal title
+  `text-lg sm:text-2xl`, theme color dots `w-4 h-4` consistently. Header status truncate
+  reduced to `max-w-[140px]`. OnboardingFlow/AgeVerification/SignUpForm emoji sizes reduced
+  on mobile (`text-3xl sm:text-4xl/5xl`). ErrorBoundary title responsive.
+
 ## Styling & Theming
 
 - [2026-02-25 /frontend] Never use alpha-channel hex colors (`#rrggbbaa`) for text.
@@ -94,6 +107,14 @@ new findings after completing work.
 - [2026-02-25 /fullstack] PostgREST parses `jsonb` SQL return values into
   structured TypeScript objects automatically. A SQL function returning `jsonb`
   can correctly type as `{ profile: ..., posts: [...] }` in TypeScript.
+
+- [2026-03-15 /fullstack] RESOLVED: Settings and Profile split into separate modals.
+  Gear icon → SettingsModal (export data + delete account). Profile nav button →
+  ProfileModal (avatar, name, bio, mood, music, theme, emoji style). Previously both
+  pointed to the same ProfileModal, and the gear icon was broken (opened AuthModal).
+- [2026-03-15 /frontend] 6 emoji styles fill 2×3 grid: native, fluent, twemoji,
+  openmoji, blob, noto. Noto Color Emoji uses `@svgmoji/noto@2.0.0` on jsDelivr
+  (same pattern as blob/openmoji). Apache 2.0 license.
 
 ## Icons & Assets
 

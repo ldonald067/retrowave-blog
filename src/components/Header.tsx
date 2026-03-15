@@ -15,6 +15,7 @@ interface HeaderProps {
   onSignOut: () => void;
   onAuthClick: () => void;
   onProfileClick?: () => void;
+  onSettingsClick?: () => void;
 }
 
 export default function Header({
@@ -24,6 +25,7 @@ export default function Header({
   onSignOut,
   onAuthClick,
   onProfileClick,
+  onSettingsClick,
 }: HeaderProps) {
   const [status, setStatus] = useState(() => {
     try { return localStorage.getItem(STATUS_KEY) || ''; } catch { return ''; }
@@ -90,10 +92,12 @@ export default function Header({
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-4 min-w-0 flex-1">
             {user && profile ? (
-              <span style={{ color: 'var(--text-muted)' }}>
-                <Pepicon name="starFilled" size={12} color="var(--accent-primary)" /> Welcome back,{' '}
+              <span className="truncate" style={{ color: 'var(--text-muted)' }}>
+                <Pepicon name="starFilled" size={12} color="var(--accent-primary)" />{' '}
+                <span className="hidden sm:inline">Welcome back, </span>
+                <span className="sm:hidden">Hi, </span>
                 {profile.display_name || 'friend'}!
               </span>
             ) : (
@@ -102,15 +106,16 @@ export default function Header({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3" style={{ color: 'var(--text-muted)' }}>
+          <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
             {user ? (
               <>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={onAuthClick} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Open settings">
-                  ~ settings ~
+                <motion.button whileTap={{ scale: 0.95 }} onClick={onSettingsClick} className="transition min-h-[44px] flex items-center px-1" style={{ color: 'inherit' }} aria-label="Open settings">
+                  <Pepicon name="gear" size={16} color="var(--text-muted)" />
+                  <span className="hidden sm:inline ml-1">settings</span>
                 </motion.button>
-                <span>•</span>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={onSignOut} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Sign out of your account">
-                  ~ logout ~
+                <motion.button whileTap={{ scale: 0.95 }} onClick={onSignOut} className="transition min-h-[44px] flex items-center px-1" style={{ color: 'inherit' }} aria-label="Sign out of your account">
+                  <Pepicon name="leave" size={16} color="var(--text-muted)" />
+                  <span className="hidden sm:inline ml-1">logout</span>
                 </motion.button>
               </>
             ) : (
@@ -171,7 +176,7 @@ export default function Header({
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.15 }}
                   onClick={startEditing}
-                  className="aim-status truncate max-w-[200px] sm:max-w-[400px] min-h-[44px] flex items-center"
+                  className="aim-status truncate max-w-[140px] sm:max-w-[300px] min-h-[44px] flex items-center"
                   title="Click to edit your status"
                   aria-label="Edit your status"
                 >
