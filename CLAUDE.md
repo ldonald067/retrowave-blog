@@ -24,6 +24,8 @@ npx tsc --noEmit       # Type check
 
 React 19 + TypeScript 5.9 + Vite 7 + Tailwind CSS 4 + Framer Motion + Supabase (PostgreSQL + Auth + Edge Functions). Capacitor 8 for iOS wrapper. No Express/Node server.
 
+Icons: pepicons (Pop! variant, SVG strings) for functional UI + react-old-icons (Win98 `.webp` images from GitHub) for decorative accents. Wrapper: `src/components/ui/Pepicon.tsx`.
+
 ## Environment
 
 Copy `.env.example` → `.env`:
@@ -37,11 +39,12 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ```
 src/components/    # UI components (PostCard, Header, Sidebar, modals, ui/ primitives)
 src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useToast, useFocusTrap, useOnlineStatus, useYouTubeInfo
-src/lib/           # supabase, auth-guard, errors, retry, validation, cache, moderation, themes, emojiStyles, capacitor, constants
+src/lib/           # supabase, auth-guard, errors, retry, validation, cache, moderation, themes, emojiStyles, capacitor, constants, celebrations
 src/types/         # post, profile, database, link-preview
 src/utils/         # formatDate, parseYouTube
 supabase/          # 24 SQL migrations + moderate-content edge function
 ios/               # Capacitor iOS app
+.claude/           # launch.json (dev server), learnings.md, skills (commands/)
 ```
 
 ## Workflow
@@ -72,3 +75,5 @@ Cross-cutting knowledge lives in `.claude/learnings.md` — all skills read it.
 - `requireAuth()` discriminated union doesn't narrow — use `auth.user!` after the error check.
 - Path aliases: `@/*`, `@components/*`, `@hooks/*`, `@utils/*`, `@lib/*`.
 - All `localStorage` access wrapped in try/catch (Safari private browsing throws).
+- `react-old-icons` fetches `.webp` from GitHub at runtime — icons won't render offline. `pepicons` SVGs are bundled (no network needed).
+- `.env` is gitignored. Copy `.env.example` → `.env` on each new machine and fill in Supabase credentials.
