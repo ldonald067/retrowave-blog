@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Music, Calendar, Settings, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, Calendar, Settings, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 import { Avatar, YouTubeCard } from './ui';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
+import { useTrailMode, TRAIL_MODE_OPTIONS } from './CursorSparkle';
 
 interface SidebarProps {
   user: SupabaseUser | null;
@@ -58,6 +59,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
   );
 
   const ytInfo = useYouTubeInfo(userData.music);
+  const [trailMode, setTrail] = useTrailMode();
 
   // Full sidebar content — shared between mobile expanded and desktop
   const sidebarContent = (
@@ -122,25 +124,30 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
             </div>
           )}
 
-          {/* Currently Listening - from profile with YouTube support */}
+          {/* Currently Listening - Winamp-style mini player */}
           {userData.music && (
-            <div
-              className="p-2 rounded-lg border"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 10%, var(--card-bg))',
-                borderColor: 'color-mix(in srgb, var(--accent-secondary) 30%, var(--card-bg))',
-              }}
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <Music size={14} style={{ color: 'var(--accent-secondary)' }} />
-                <span className="font-bold text-xs" style={{ color: 'var(--text-body)' }}>Listening to:</span>
+            <div className="winamp-player">
+              <div className="winamp-titlebar">
+                <span>♫ WINAMP</span>
+                <span style={{ fontSize: '7px', opacity: 0.7 }}>v2.91</span>
               </div>
-              {ytInfo ? (
-                <div className="ml-1">
+              <div className="winamp-display">
+                {ytInfo?.title || userData.music}
+              </div>
+              <div className="winamp-progress">
+                <div className="winamp-progress-bar" />
+              </div>
+              <div className="winamp-controls">
+                <button className="winamp-btn" aria-label="Previous track" title="Previous">⏮</button>
+                <button className="winamp-btn" aria-label="Play" title="Play">▶</button>
+                <button className="winamp-btn" aria-label="Pause" title="Pause">⏸</button>
+                <button className="winamp-btn" aria-label="Stop" title="Stop">⏹</button>
+                <button className="winamp-btn" aria-label="Next track" title="Next">⏭</button>
+              </div>
+              {ytInfo && (
+                <div className="px-1 pb-1">
                   <YouTubeCard ytInfo={ytInfo} size="sm" />
                 </div>
-              ) : (
-                <div className="ml-6 text-xs italic" style={{ color: 'var(--text-muted)' }}>{userData.music}</div>
               )}
             </div>
           )}
@@ -193,6 +200,39 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
             </span>
             <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince} ✨</span>
           </div>
+        </div>
+      </motion.div>
+
+      {/* Cursor Trail Picker — desktop only */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="xanga-box p-4 hidden lg:block"
+      >
+        <h3
+          className="xanga-title text-lg mb-2 border-b-2 border-dotted pb-1"
+          style={{ borderColor: 'var(--border-primary)' }}
+        >
+          cursor trail ✦
+        </h3>
+        <div className="flex flex-wrap gap-1">
+          {TRAIL_MODE_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              onClick={() => setTrail(opt.id)}
+              className="xanga-button text-[10px] px-2 py-1"
+              style={{
+                opacity: trailMode === opt.id ? 1 : 0.6,
+                transform: trailMode === opt.id ? 'scale(1.05)' : 'scale(1)',
+                transition: 'opacity 0.2s, transform 0.2s',
+              }}
+              aria-label={`Set cursor trail to ${opt.label}`}
+              aria-pressed={trailMode === opt.id}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       </motion.div>
 

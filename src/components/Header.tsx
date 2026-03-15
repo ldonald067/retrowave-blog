@@ -187,7 +187,7 @@ export default function Header({
         <div className="flex items-center justify-between">
           {/* Site title */}
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex-1">
-            <h1 className="xanga-title text-xl sm:text-3xl mb-0 sm:mb-1">✨ My Journal ✨</h1>
+            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1">✨ My Journal ✨</h1>
             <p className="xanga-subtitle hidden sm:block">~ where my thoughts come alive ~</p>
           </motion.div>
 

@@ -218,9 +218,10 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           aria-label={
             isViewMode ? `Viewing: ${title}` : mode === 'edit' ? 'Edit entry' : 'New entry'
           }
-          initial={{ scale: 0.95, y: 20 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.95, y: 20 }}
+          initial={{ scale: 0.9, y: 40, rotateX: 8, opacity: 0 }}
+          animate={{ scale: 1, y: 0, rotateX: 0, opacity: 1 }}
+          exit={{ scale: 0.9, y: 40, rotateX: 8, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 28 }}
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={{ left: 0, right: 0.5 }}
@@ -246,7 +247,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
             }}
           >
             <div className="flex items-center justify-between">
-              <h2 className="xanga-title text-xl sm:text-2xl">
+              <h2 className="xanga-title glitter-text text-xl sm:text-2xl">
                 {isViewMode ? (
                   <span className="flex items-center gap-2">
                     ✨ {post?.title}

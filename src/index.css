@@ -281,6 +281,29 @@ body {
   font-weight: bold;
 }
 
+/* ===== Glitter Text — 2005 glitter text generator vibes ===== */
+.glitter-text {
+  background: linear-gradient(
+    90deg,
+    var(--text-title) 0%,
+    var(--accent-secondary) 20%,
+    var(--text-title) 40%,
+    var(--accent-primary) 60%,
+    var(--text-title) 80%,
+    var(--accent-secondary) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: glitter-sweep 3s ease-in-out infinite;
+}
+
+@keyframes glitter-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
 .xanga-subtitle {
   font-family: 'Verdana', sans-serif;
   color: var(--text-subtitle);
@@ -519,6 +542,93 @@ select:focus-visible {
   }
 }
 
+/* ===== Winamp Mini Player ===== */
+.winamp-player {
+  border: 2px solid var(--border-primary);
+  border-radius: 4px;
+  overflow: hidden;
+  font-family: 'Courier New', 'Lucida Console', monospace;
+  font-size: 9px;
+  background: color-mix(in srgb, var(--bg-primary) 80%, var(--accent-primary));
+}
+
+.winamp-titlebar {
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+  color: #fff;
+  font-size: 8px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+}
+
+.winamp-display {
+  background: #0a1628;
+  color: #00ff41;
+  padding: 4px 6px;
+  margin: 3px;
+  border-radius: 2px;
+  font-size: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 0 4px #00ff41;
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.winamp-progress {
+  height: 4px;
+  margin: 0 3px 3px;
+  background: #1a2a3a;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.winamp-progress-bar {
+  height: 100%;
+  width: 65%;
+  background: linear-gradient(90deg, #00ff41, #00cc33);
+  border-radius: 2px;
+  animation: winamp-progress-move 8s linear infinite;
+}
+
+@keyframes winamp-progress-move {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.winamp-controls {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px 3px 4px;
+}
+
+.winamp-btn {
+  width: 20px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  line-height: 1;
+  border: 1px solid color-mix(in srgb, var(--border-primary) 60%, #000);
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--button-gradient-from), var(--button-gradient-to));
+  cursor: pointer;
+  color: var(--text-body);
+  transition: transform 0.1s;
+}
+
+.winamp-btn:active {
+  transform: scale(0.9);
+}
+
 /* ===== Lined Paper Background ===== */
 .lined-paper {
   background-image: repeating-linear-gradient(
@@ -647,6 +757,17 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
 
   .marquee-banner-inner {
     animation: none !important;
+  }
+
+  .glitter-text {
+    animation: none !important;
+    -webkit-text-fill-color: var(--text-title) !important;
+    background: none !important;
+  }
+
+  .winamp-progress-bar {
+    animation: none !important;
+    width: 65% !important;
   }
 
   .cursor-sparkle,
