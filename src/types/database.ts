@@ -207,7 +207,6 @@ export interface Database {
         Args: {
           p_cursor: string | null;
           p_limit: number;
-          p_user_id: string | null;
         };
         Returns: Array<{
           id: string;
@@ -233,7 +232,6 @@ export interface Database {
       get_post_by_id: {
         Args: {
           p_post_id: string;
-          p_user_id: string | null;
         };
         Returns: Array<{
           id: string;

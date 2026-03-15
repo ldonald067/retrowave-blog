@@ -42,7 +42,7 @@ src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useToast, useFo
 src/lib/           # supabase, auth-guard, errors, retry, validation, cache, moderation, themes, emojiStyles, capacitor, constants, celebrations
 src/types/         # post, profile, database, link-preview
 src/utils/         # formatDate, parseYouTube
-supabase/          # 24 SQL migrations + moderate-content edge function
+supabase/          # 26 SQL migrations + moderate-content edge function
 ios/               # Capacitor iOS app
 .claude/           # launch.json (dev server), learnings.md, skills (commands/)
 ```

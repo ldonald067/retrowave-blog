@@ -98,7 +98,6 @@ export function usePosts(): UsePostsReturn {
         supabase.rpc('get_posts_with_reactions', {
           p_cursor: cursor,
           p_limit: PAGE_SIZE,
-          p_user_id: userId,
         }),
       );
 
@@ -361,15 +360,9 @@ export function usePosts(): UsePostsReturn {
   const fetchPost = useCallback(
     async (postId: string): Promise<Post | null> => {
       try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const userId = session?.user?.id ?? null;
-
         const { data, error: rpcError } = await withRetry(async () =>
           supabase.rpc('get_post_by_id', {
             p_post_id: postId,
-            p_user_id: userId,
           }),
         );
 
