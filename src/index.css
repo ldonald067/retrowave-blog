@@ -296,6 +296,9 @@ body {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  /* text-shadow doesn't work with transparent text-fill — use filter instead */
+  text-shadow: none;
+  filter: drop-shadow(2px 2px 0px var(--shadow-color));
   animation: glitter-sweep 3s ease-in-out infinite;
 }
 
@@ -627,6 +630,24 @@ select:focus-visible {
 
 .winamp-btn:active {
   transform: scale(0.9);
+}
+
+/* Mobile: Winamp transport buttons are decorative, disable pointer events
+   and shrink controls row to save space. Buttons are 20x16px (intentionally
+   tiny for authentic Winamp look) — not interactive, so no 44px needed. */
+@media (max-width: 480px) {
+  .winamp-controls {
+    pointer-events: none;
+    gap: 1px;
+    padding: 1px 3px 3px;
+  }
+
+  .winamp-btn {
+    width: 18px;
+    height: 14px;
+    font-size: 7px;
+    cursor: default;
+  }
 }
 
 /* ===== Lined Paper Background ===== */

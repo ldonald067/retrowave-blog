@@ -42,6 +42,14 @@ new findings after completing work.
 - [2026-02-26 /frontend-design] RESOLVED: Remaining touch target gaps fixed —
   ProfileModal unblock button, Sidebar profile edit button, AgeVerification
   birth year select. All now min-h-[44px].
+- [2026-03-14 /mobile] RESOLVED: `.glitter-text` uses `filter: drop-shadow()` instead of
+  `text-shadow` because `-webkit-text-fill-color: transparent` makes text-shadow invisible
+  on iOS Safari. `text-shadow: none` explicitly set to prevent inheritance from `.xanga-title`.
+- [2026-03-14 /mobile] RESOLVED: Winamp transport buttons (20×16px) are decorative-only
+  on mobile — `pointer-events: none` at 480px breakpoint. No 44px target needed since
+  they aren't interactive on touch devices.
+- [2026-03-14 /mobile] RESOLVED: PostModal 3D entrance uses `perspective: 1200` on overlay
+  wrapper and softened `rotateX: 6` (was 8) to prevent iOS Safari rendering artifacts.
 - [2026-02-26 /mobile] RESOLVED: `sm:min-h-0` → `lg:min-h-0` in Button, ReactionBar,
   AvatarPicker, PostCard. iPads (810px) now keep 44px targets; only desktop (1024px+)
   relaxes. Fixed in commit 5739ab3.

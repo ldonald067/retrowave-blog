@@ -209,6 +209,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4"
+        style={{ perspective: 1200 }}
         onClick={handleClose}
       >
         <motion.div
@@ -218,10 +219,10 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           aria-label={
             isViewMode ? `Viewing: ${title}` : mode === 'edit' ? 'Edit entry' : 'New entry'
           }
-          initial={{ scale: 0.9, y: 40, rotateX: 8, opacity: 0 }}
+          initial={{ scale: 0.9, y: 30, rotateX: 6, opacity: 0 }}
           animate={{ scale: 1, y: 0, rotateX: 0, opacity: 1 }}
-          exit={{ scale: 0.9, y: 40, rotateX: 8, opacity: 0 }}
-          transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+          exit={{ scale: 0.9, y: 30, rotateX: 6, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 26 }}
           drag="x"
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={{ left: 0, right: 0.5 }}
