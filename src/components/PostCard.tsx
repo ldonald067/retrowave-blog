@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Pepicon } from './ui';
+import { Winamp as WinampIcon } from 'react-old-icons';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
@@ -128,7 +129,8 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
             }}
           >
             <div className="flex items-center gap-1 mb-1">
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>🎵 Currently listening to:</span>
+              <WinampIcon size={14} alt="" />
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Currently listening to:</span>
             </div>
             {ytInfo ? (
               <YouTubeCard ytInfo={ytInfo} />

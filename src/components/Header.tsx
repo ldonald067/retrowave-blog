@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 import { Pepicon } from './ui';
+import { Windows95Notepad, Windows95Password } from 'react-old-icons';
 import { sparkleBurst } from '../lib/celebrations';
 
 const STATUS_KEY = 'xanga-status';
@@ -218,7 +219,7 @@ export default function Header({
                   className="xanga-button flex items-center gap-1"
                   aria-label="Create new entry"
                 >
-                  <Pepicon name="pen" size={14} />
+                  <Windows95Notepad size={18} alt="" />
                   <span className="hidden sm:inline">New Entry</span>
                 </motion.button>
               </>
@@ -229,7 +230,7 @@ export default function Header({
                 onClick={onAuthClick}
                 className="xanga-button flex items-center gap-1"
               >
-                <Pepicon name="key" size={14} />
+                <Windows95Password size={18} alt="" />
                 <span className="hidden sm:inline">Sign In</span>
               </motion.button>
             )}

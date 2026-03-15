@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 import { Avatar, YouTubeCard, Pepicon } from './ui';
+import { Windows95Notepad, Windows98DateTime, Windows95MyComputer, Winamp as WinampIcon } from 'react-old-icons';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { useTrailMode, TRAIL_MODE_OPTIONS } from './CursorSparkle';
 
@@ -128,7 +129,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
           {userData.music && (
             <div className="winamp-player">
               <div className="winamp-titlebar">
-                <span>♫ WINAMP</span>
+                <span className="flex items-center gap-1"><WinampIcon size={12} alt="" /> WINAMP</span>
                 <span style={{ fontSize: '7px', opacity: 0.7 }}>v2.91</span>
               </div>
               <div className="winamp-display">
@@ -187,7 +188,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
         <div className="space-y-2 text-xs">
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-              <Pepicon name="book" size={12} color="var(--accent-primary)" />
+              <Windows95Notepad size={14} alt="" />
               Entries:
             </span>
             <span className="font-bold" style={{ color: 'var(--accent-primary)' }}>{postCount}</span>
@@ -195,7 +196,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
 
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-              <Pepicon name="calendar" size={12} color="var(--accent-secondary)" />
+              <Windows98DateTime size={14} alt="" />
               member since:
             </span>
             <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince} ✨</span>
@@ -239,6 +240,9 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
       {/* Powered By badge (very Xanga!) */}
       <div className="text-center text-xs py-2" style={{ color: 'var(--text-muted)' }}>
         <p className="mb-1">powered by</p>
+        <div className="flex items-center justify-center gap-1.5 mb-1">
+          <Windows95MyComputer size={20} alt="" />
+        </div>
         <p className="xanga-subtitle">
           <span className="blink">✨</span> YourJournal <span className="blink">✨</span>
         </p>

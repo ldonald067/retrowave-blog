@@ -2,6 +2,17 @@ import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji, Pepicon } from './ui';
+import {
+  Windows95Mspaint,
+  Windows95Notepad,
+  Windows95WordPad,
+  Windows95Configuration,
+  Windows95MyComputer,
+  Winamp as WinampIcon,
+  VisualStudioFace,
+  FloppyDisk,
+  Windows95RecycleBin,
+} from 'react-old-icons';
 import ConfirmDialog from './ConfirmDialog';
 import { VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES, MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
@@ -286,7 +297,7 @@ export default function ProfileModal({
               {/* Avatar Section */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Pepicon name="camera" size={14} color="var(--accent-primary)" />
+                  <Windows95Mspaint size={20} alt="" />
                   profile pic
                 </h3>
 
@@ -340,7 +351,7 @@ export default function ProfileModal({
               {/* Display Name */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Pepicon name="person" size={14} color="var(--accent-primary)" />
+                  <Windows95Notepad size={20} alt="" />
                   display name
                 </h3>
                 <Input
@@ -364,7 +375,7 @@ export default function ProfileModal({
               {/* Bio */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Pepicon name="file" size={14} color="var(--accent-primary)" />
+                  <Windows95WordPad size={20} alt="" />
                   about me
                 </h3>
                 <Textarea
@@ -386,7 +397,7 @@ export default function ProfileModal({
               {/* Current Mood */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Pepicon name="heartFilled" size={14} color="var(--accent-primary)" />
+                  <VisualStudioFace size={20} alt="" />
                   current mood
                 </h3>
                 <Select
@@ -404,7 +415,7 @@ export default function ProfileModal({
               {/* Currently Listening */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Pepicon name="musicNoteSingle" size={14} color="var(--accent-secondary)" />
+                  <WinampIcon size={20} alt="" />
                   currently listening 2
                 </h3>
                 <Input
@@ -422,7 +433,7 @@ export default function ProfileModal({
               {/* Theme Picker */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                  <Pepicon name="star" size={14} color="var(--accent-primary)" />
+                  <Windows95Configuration size={20} alt="" />
                   theme
                 </h3>
                 <div className="grid grid-cols-2 gap-2 sm:gap-3">
@@ -598,7 +609,7 @@ export default function ProfileModal({
               {!isInitialSetup && (
                 <div className="xanga-box p-4 space-y-3">
                   <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                    <Pepicon name="person" size={14} color="var(--accent-primary)" />
+                    <Windows95MyComputer size={20} alt="" />
                     account
                   </h3>
 
@@ -616,7 +627,7 @@ export default function ProfileModal({
                       fontFamily: 'var(--title-font)',
                     }}
                   >
-                    <Pepicon name="floppyDisk" size={14} />
+                    <FloppyDisk size={18} alt="" />
                     {exporting ? '~ exporting... ~' : '~ export my data ~'}
                   </motion.button>
                   <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -640,7 +651,7 @@ export default function ProfileModal({
                         fontFamily: 'var(--title-font)',
                       }}
                     >
-                      <Pepicon name="trash" size={14} />
+                      <Windows95RecycleBin size={18} alt="" />
                       ~ delete account ~
                     </motion.button>
                     <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
