@@ -20,6 +20,7 @@ import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
 import { hapticImpact } from '../lib/capacitor';
+import { sparkleBurst, emojiRain } from '../lib/celebrations';
 import type { Profile } from '../types/profile';
 
 // Header (~70px) + Footer (~70px) + padding = ~180px of non-scrollable modal chrome
@@ -146,6 +147,8 @@ export default function ProfileModal({
     if (error) {
       onError?.(error);
     } else {
+      sparkleBurst();
+      emojiRain(['✨', '💕', '⭐', '🌈'], 10);
       onSuccess?.(SUCCESS_MESSAGES.profile.updated);
       onClose();
     }
@@ -541,7 +544,8 @@ export default function ProfileModal({
                           <span className="text-xs truncate" style={{ color: 'var(--text-body)' }}>
                             {block.blocked_id.substring(0, 8)}...
                           </span>
-                          <button
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
                             type="button"
                             onClick={async () => {
                               const { error } = await toggleBlock(block.blocked_id);
@@ -558,8 +562,8 @@ export default function ProfileModal({
                               color: 'var(--accent-secondary)',
                             }}
                           >
-                            unblock
-                          </button>
+                            ~ unblock ~
+                          </motion.button>
                         </div>
                       ))}
                     </div>
@@ -602,7 +606,8 @@ export default function ProfileModal({
                   </h3>
 
                   {/* Export My Data */}
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
                     type="button"
                     onClick={handleExportData}
                     disabled={exporting}
@@ -616,7 +621,7 @@ export default function ProfileModal({
                   >
                     <Download size={14} />
                     {exporting ? '~ exporting... ~' : '~ export my data ~'}
-                  </button>
+                  </motion.button>
                   <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                     download all ur posts, reactions & profile as a json file
                   </p>
@@ -626,7 +631,8 @@ export default function ProfileModal({
                     className="pt-3 mt-3 border-t-2 border-dotted"
                     style={{ borderColor: 'var(--accent-secondary)' }}
                   >
-                    <button
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
                       type="button"
                       onClick={() => setShowDeleteConfirm(true)}
                       className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold border-2 transition hover:opacity-80 min-h-[44px]"
@@ -639,7 +645,7 @@ export default function ProfileModal({
                     >
                       <Trash2 size={14} />
                       ~ delete account ~
-                    </button>
+                    </motion.button>
                     <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
                       this will permanently delete ur account & all ur data. this can't be undone!
                     </p>

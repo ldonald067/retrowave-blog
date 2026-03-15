@@ -79,7 +79,8 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
               editable={!!onEditProfile}
             />
             {user && onEditProfile && (
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={onEditProfile}
                 className="absolute -bottom-1 -right-1 min-h-[44px] min-w-[44px] flex items-center justify-center border-2 rounded-full shadow-md transition"
                 title="Edit Profile"
@@ -90,7 +91,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
                 }}
               >
                 <Settings size={12} style={{ color: 'var(--accent-primary)' }} />
-              </button>
+              </motion.button>
             )}
           </div>
           <h2 className="xanga-title text-xl mb-1">{userData.displayName}</h2>
@@ -188,9 +189,9 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
               <Calendar size={12} style={{ color: 'var(--accent-secondary)' }} />
-              Member Since:
+              member since:
             </span>
-            <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince}</span>
+            <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince} ✨</span>
           </div>
         </div>
       </motion.div>
@@ -209,7 +210,8 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
     <aside className="w-full lg:w-64 space-y-4" role="complementary" aria-label="Blog sidebar">
       {/* Mobile: compact summary bar + collapsible */}
       <div className="lg:hidden">
-        <button
+        <motion.button
+          whileTap={{ scale: 0.98 }}
           onClick={handleToggleCollapsed}
           className="xanga-box w-full p-3 flex items-center gap-3 min-h-[44px]"
           aria-expanded={!collapsed}
@@ -235,7 +237,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
           <span style={{ color: 'var(--text-muted)' }}>
             {collapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
           </span>
-        </button>
+        </motion.button>
 
         <AnimatePresence>
           {!collapsed && (

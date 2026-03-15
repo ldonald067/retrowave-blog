@@ -56,14 +56,15 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <h2 className="xanga-title text-2xl mb-1">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.97 }}
                 onClick={() => onView(post)}
                 className="text-left cursor-pointer transition hover:opacity-80"
                 style={{ color: 'inherit', textShadow: 'inherit' }}
                 aria-label={`View post: ${post.title}`}
               >
                 {post.title}
-              </button>
+              </motion.button>
             </h2>
             <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
               <span className="flex items-center gap-1">
@@ -82,7 +83,8 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
           {/* Edit/Delete buttons - only show for post owner */}
           {isOwner && (
             <div className="flex gap-1">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={() => onEdit(post)}
                 className="icon-btn-hover p-2.5 lg:p-1.5 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
                 title="Edit post"
@@ -90,8 +92,9 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
                 style={{ color: 'var(--link-color)' }}
               >
                 <span className="text-sm">✏️</span>
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={() => onDelete(post)}
                 className="icon-btn-hover p-2.5 lg:p-1.5 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
                 title="Delete post"
@@ -99,7 +102,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
                 style={{ color: 'var(--accent-secondary)' }}
               >
                 <span className="text-sm">🗑️</span>
-              </button>
+              </motion.button>
             </div>
           )}
         </div>
@@ -174,21 +177,23 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
                 aria-label="Report this post"
               >
                 <Flag size={12} />
-                report
+                ~ report ~
               </a>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={() => onBlock?.(post.user_id)}
                 className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] min-w-[44px] justify-center"
                 style={{ color: 'var(--text-muted)' }}
                 aria-label="Block this user"
               >
                 <Ban size={12} />
-                block
-              </button>
+                ~ block ~
+              </motion.button>
             </>
           )}
         </div>
-        <button
+        <motion.button
+          whileTap={{ scale: 0.9 }}
           onClick={() => {
             const snippet = post.content ? post.content.substring(0, SHARE_SNIPPET_MAX) : '';
             void sharePost(post.title, `${snippet}${snippet.length < (post.content?.length ?? 0) ? '...' : ''}`);
@@ -199,7 +204,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
           style={{ color: 'var(--text-muted)' }}
         >
           <Share2 size={14} />
-        </button>
+        </motion.button>
       </div>
 
       {/* Post footer - reactions row */}

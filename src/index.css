@@ -477,6 +477,48 @@ select:focus-visible {
   vertical-align: text-bottom;
 }
 
+/* ===== Sparkle Burst (celebration effect) ===== */
+.sparkle-burst {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  animation: sparkle-burst-out 600ms ease-out forwards;
+}
+
+@keyframes sparkle-burst-out {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--burst-x, 50px), var(--burst-y, -50px)) scale(0.3) rotate(180deg);
+  }
+}
+
+/* ===== Emoji Rain (MySpace snowflake style) ===== */
+.emoji-rain {
+  position: fixed;
+  top: -30px;
+  pointer-events: none;
+  z-index: 9999;
+  animation: emoji-fall linear forwards;
+}
+
+@keyframes emoji-fall {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(100vh + 40px)) rotate(360deg);
+  }
+}
+
 /* ===== Lined Paper Background ===== */
 .lined-paper {
   background-image: repeating-linear-gradient(
@@ -604,7 +646,9 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
     animation: none !important;
   }
 
-  .cursor-sparkle {
+  .cursor-sparkle,
+  .sparkle-burst,
+  .emoji-rain {
     display: none !important;
   }
 

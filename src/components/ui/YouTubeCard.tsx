@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Youtube, ExternalLink } from 'lucide-react';
 import { openUrl } from '../../lib/capacitor';
 import type { YouTubeInfoWithTitle } from '../../hooks/useYouTubeInfo';
@@ -48,19 +49,22 @@ export default function YouTubeCard({ ytInfo, size = 'md', useNativeOpen = true 
   const [thumbError, setThumbError] = useState(false);
 
   return (
-    <a
+    <motion.a
+      whileHover={{ scale: 1.02, y: -1 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
       href={ytInfo.watchUrl}
       target="_blank"
       rel="noopener noreferrer"
       onClick={
         useNativeOpen
-          ? (e) => {
+          ? (e: React.MouseEvent) => {
               e.preventDefault();
               void openUrl(ytInfo.watchUrl);
             }
           : undefined
       }
-      className={`flex ${s.layout} ${s.gap} ${s.pad} rounded transition hover:opacity-80`}
+      className={`flex ${s.layout} ${s.gap} ${s.pad} rounded transition`}
       style={{
         backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg))',
       }}
@@ -107,6 +111,6 @@ export default function YouTubeCard({ ytInfo, size = 'md', useNativeOpen = true 
           <ExternalLink size={s.extIcon} style={{ color: 'var(--text-muted)' }} />
         </div>
       </div>
-    </a>
+    </motion.a>
   );
 }

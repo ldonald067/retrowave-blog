@@ -85,8 +85,8 @@ export default function ConfirmDialog({
               whileTap={{ scale: 0.95 }}
               className="px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110 min-h-[44px]"
               style={{
-                background: 'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, #000))',
-                color: 'var(--button-text, #ffffff)',
+                background: 'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, var(--bg-primary)))',
+                color: 'var(--button-text, var(--text-title))',
                 borderColor: 'var(--accent-secondary)',
                 fontFamily: 'var(--title-font)',
                 boxShadow: '0 2px 8px color-mix(in srgb, var(--accent-secondary) 40%, transparent)',

@@ -25,6 +25,7 @@ import { withRetry } from './lib/retry';
 import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
+import { sparkleBurst, emojiRain } from './lib/celebrations';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
@@ -325,6 +326,8 @@ function App() {
         return;
       }
       void hapticImpact();
+      sparkleBurst();
+      emojiRain(['✨', '💕', '📝', '⭐'], 12);
       success(SUCCESS_MESSAGES.post.created);
 
       // Also update profile mood/music if provided in the post

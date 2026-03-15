@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PenLine, Home, User, Star, LogIn } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
+import { sparkleBurst } from '../lib/celebrations';
 
 const STATUS_KEY = 'xanga-status';
 
@@ -28,6 +29,7 @@ export default function Header({
   });
   const [editingStatus, setEditingStatus] = useState(false);
   const [draftStatus, setDraftStatus] = useState('');
+  const [statusSaved, setStatusSaved] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -49,6 +51,12 @@ export default function Header({
     setEditingStatus(false);
     // Notify other components (e.g. Sidebar) that the status changed
     window.dispatchEvent(new CustomEvent('xanga-status-update', { detail: trimmed }));
+    // Visual feedback: brief "saved!" flash + sparkle burst
+    if (trimmed) {
+      setStatusSaved(true);
+      sparkleBurst(undefined, undefined, 8);
+      setTimeout(() => setStatusSaved(false), 1200);
+    }
   };
 
   const cancelEdit = () => {
@@ -96,13 +104,13 @@ export default function Header({
           <div className="flex items-center gap-3" style={{ color: 'var(--text-muted)' }}>
             {user ? (
               <>
-                <button onClick={onAuthClick} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Open settings">
-                  Settings
-                </button>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={onAuthClick} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Open settings">
+                  ~ settings ~
+                </motion.button>
                 <span>•</span>
-                <button onClick={onSignOut} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Sign out of your account">
-                  Logout
-                </button>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={onSignOut} className="transition min-h-[44px] flex items-center" style={{ color: 'inherit' }} aria-label="Sign out of your account">
+                  ~ logout ~
+                </motion.button>
               </>
             ) : (
               <button
@@ -166,7 +174,7 @@ export default function Header({
                   title="Click to edit your status"
                   aria-label="Edit your status"
                 >
-                  {status ? `~ ${status} ~` : '~ set your status ~'}
+                  {statusSaved ? '✨ saved!' : status ? `~ ${status} ~` : '~ set your status ~'}
                 </motion.button>
               )}
             </AnimatePresence>
@@ -185,21 +193,23 @@ export default function Header({
 
           {/* Navigation */}
           <nav className="flex items-center gap-1 sm:gap-2">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="xanga-button flex items-center gap-1"
               aria-label="Scroll to top"
             >
               <Home size={14} />
               <span className="hidden sm:inline">Home</span>
-            </button>
+            </motion.button>
 
             {user ? (
               <>
-                <button onClick={onProfileClick} className="xanga-button flex items-center gap-1" aria-label="Edit profile">
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onProfileClick} className="xanga-button flex items-center gap-1" aria-label="Edit profile">
                   <User size={14} />
                   <span className="hidden sm:inline">Profile</span>
-                </button>
+                </motion.button>
 
                 <motion.button
                   whileHover={{ scale: 1.05 }}
