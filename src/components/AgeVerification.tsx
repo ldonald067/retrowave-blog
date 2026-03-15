@@ -52,7 +52,7 @@ export default function AgeVerification({ onVerified, requireTOS = true, loading
     <div className="fixed inset-0 xanga-auth-bg z-50 overflow-hidden flex flex-col">
       {/* Xanga-style header bar */}
       <div
-        className="flex-shrink-0 border-b-2 border-dotted py-2 px-4"
+        className="flex-shrink-0 border-b-2 border-dotted py-2 px-4 safe-area-top"
         style={{
           backgroundColor: 'var(--card-bg)',
           borderColor: 'var(--border-primary)',
@@ -67,7 +67,7 @@ export default function AgeVerification({ onVerified, requireTOS = true, loading
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 safe-area-bottom">
         <div className="w-full max-w-md mx-auto min-h-full flex flex-col justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -131,13 +131,13 @@ export default function AgeVerification({ onVerified, requireTOS = true, loading
               {/* Terms of Service Checkbox */}
               {requireTOS && (
                 <div className="xanga-box p-3 sm:p-4">
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-3 min-h-[44px]">
                     <input
                       type="checkbox"
                       id="tos"
                       checked={tosAccepted}
                       onChange={(e) => setTosAccepted(e.target.checked)}
-                      className="mt-1 w-4 h-4 cursor-pointer rounded"
+                      className="mt-1 w-5 h-5 min-w-[20px] min-h-[20px] cursor-pointer rounded"
                       style={{ accentColor: 'var(--accent-primary)' }}
                     />
                     <label

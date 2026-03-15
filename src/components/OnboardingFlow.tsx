@@ -84,7 +84,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     <div ref={containerRef} className="fixed inset-0 xanga-auth-bg z-50 overflow-hidden flex flex-col">
       {/* Xanga-style header */}
       <div
-        className="flex-shrink-0 border-b-2 border-dotted py-2 px-4"
+        className="flex-shrink-0 border-b-2 border-dotted py-2 px-4 safe-area-top"
         style={{
           backgroundColor: 'var(--card-bg)',
           borderColor: 'var(--border-primary)',
@@ -198,7 +198,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
       {/* Bottom navigation - Xanga style */}
       <div
-        className="flex-shrink-0 border-t-2 border-dotted py-4 px-4 sm:px-6"
+        className="flex-shrink-0 border-t-2 border-dotted py-4 px-4 sm:px-6 safe-area-bottom"
         style={{
           backgroundColor: 'var(--card-bg)',
           borderColor: 'var(--border-primary)',

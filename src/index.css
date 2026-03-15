@@ -515,7 +515,7 @@ select:focus-visible {
   }
   100% {
     opacity: 0;
-    transform: translateY(calc(100vh + 40px)) rotate(360deg);
+    transform: translateY(calc(100dvh + 40px)) rotate(360deg);
   }
 }
 
@@ -537,6 +537,9 @@ select:focus-visible {
   font-size: 11px;
   cursor: pointer;
   transition: color 0.2s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .xanga-link:hover {
@@ -684,5 +687,9 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
 
   .safe-area-bottom {
     padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .safe-area-top {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
   }
 }

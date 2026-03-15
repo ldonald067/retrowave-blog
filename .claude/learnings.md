@@ -23,9 +23,15 @@ new findings after completing work.
 - [2026-02-25 /mobile] `vh` units used for modal maxHeight (`90vh`, `95vh`). No
   `dvh`/`svh` usage yet. On iOS Safari, `100vh` includes the URL bar, so `90vh`
   is conservative enough to work. `dvh` would be more correct but `90vh` suffices.
-- [2026-02-25 /mobile] PostList virtualizer container uses
-  `maxHeight: calc(100vh - 200px)` — the 200px magic number accounts for Header
-  height. If Header layout changes, this value must be updated.
+- [2026-03-14 /mobile] RESOLVED: PostList virtualizer now uses `100dvh` instead of
+  `100vh`. Emoji-rain keyframe also uses `100dvh`. Both previously caused clipping
+  on iOS Safari where `100vh` includes the URL bar.
+- [2026-03-14 /mobile] RESOLVED: `.safe-area-top` CSS utility class added alongside
+  existing `.safe-area-bottom`. Applied to AgeVerification, OnboardingFlow, AuthModal
+  headers. Safe-area-bottom applied to OnboardingFlow footer and AgeVerification content.
+- [2026-03-14 /mobile] RESOLVED: `.xanga-link` now has `min-height: 44px` with
+  `inline-flex` + `align-items: center` for Apple HIG touch targets. AgeVerification
+  TOS checkbox container has `min-h-[44px]`, checkbox itself `w-5 h-5`.
 - [2026-02-25 /mobile] Modals use `max-h-[95vh] sm:max-h-[90vh]` — 95% on mobile
   (more space needed), 90% on desktop (more breathing room). This is intentional.
 - [2026-02-25 /mobile] Input `font-size: 16px !important` at mobile breakpoint

@@ -36,7 +36,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
       >
         {/* Xanga-style Header */}
         <div
-          className="flex-shrink-0 border-b-2 border-dotted"
+          className="flex-shrink-0 border-b-2 border-dotted safe-area-top"
           style={{
             backgroundColor: 'var(--card-bg)',
             borderColor: 'var(--border-primary)',
