@@ -180,7 +180,7 @@ export default function SignUpForm() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="at least 8 characters, letters + numbers..."
+          placeholder="8+ chars, letters & numbers..."
           required
         />
 

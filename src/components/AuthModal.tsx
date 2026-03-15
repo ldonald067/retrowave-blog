@@ -56,16 +56,16 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
             ) : (
               <div className="w-16" />
             )}
-            <h1 className="flex-1 text-center xanga-title text-lg">
-              ✨ {activeTab === 'signup' ? 'Create Your Xanga' : 'Sign In'} ✨
+            <h1 className="flex-1 text-center xanga-title text-sm sm:text-lg whitespace-nowrap">
+              ✨ {activeTab === 'signup' ? 'Create Your Xanga' : 'Welcome Back'} ✨
             </h1>
             <div className="w-16" />
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8">
-          <div className="max-w-sm mx-auto min-h-full flex flex-col justify-center">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-8">
+          <div className="max-w-sm mx-auto sm:min-h-full sm:flex sm:flex-col sm:justify-center">
             {/* Xanga-style Tab Selector */}
             <div
               className="flex border-2 border-dotted rounded-lg overflow-hidden mb-6"
