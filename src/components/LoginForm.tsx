@@ -88,27 +88,27 @@ export default function LoginForm() {
         )}
 
         {mode === 'password' ? (
-          <div className="xanga-box p-3">
+          <div className="xanga-box p-3 text-center">
             <p className="text-xs" style={{ color: 'var(--text-body)' }}>
               🔑 sign in with ur email & password
             </p>
             <button
               type="button"
               onClick={() => setMode('magic')}
-              className="xanga-link text-xs mt-1 min-h-[44px] flex items-center"
+              className="xanga-link text-xs mt-1 min-h-[44px] inline-flex items-center justify-center"
             >
               ~ or use a magic link ~
             </button>
           </div>
         ) : (
-          <div className="xanga-box p-3">
+          <div className="xanga-box p-3 text-center">
             <p className="text-xs mb-1" style={{ color: 'var(--text-body)' }}>
               💌 we'll email u a magic link - just click it 2 sign in!
             </p>
             <button
               type="button"
               onClick={() => setMode('password')}
-              className="xanga-link text-xs mt-1 min-h-[44px] flex items-center"
+              className="xanga-link text-xs mt-1 min-h-[44px] inline-flex items-center justify-center"
             >
               ~ or use a password ~
             </button>

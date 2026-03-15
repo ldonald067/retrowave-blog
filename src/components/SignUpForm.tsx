@@ -184,7 +184,7 @@ export default function SignUpForm() {
           required
         />
 
-        <div className="xanga-box p-3">
+        <div className="xanga-box p-3 text-center">
           <p className="text-xs" style={{ color: 'var(--text-body)' }}>
             🔑 pick a password with letters & numbers 2 create ur account!
           </p>
