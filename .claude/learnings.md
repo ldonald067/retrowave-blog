@@ -154,6 +154,17 @@ new findings after completing work.
   offline." for network-flavored errors when `navigator.onLine` is false.
   Commit 5739ab3.
 
+- [2026-03-15 /fullstack] `excerpt` column exists in `posts` table and
+  `get_posts_result` composite type, is selected by both feed RPCs, but is never
+  referenced anywhere in the frontend (`src/`) and is absent from `database.ts`
+  TypeScript types. Dead column — can be dropped from the composite type SELECT
+  lists, and eventually from the table itself.
+- [2026-03-15 /fullstack] `p_user_id` parameter on `get_posts_with_reactions` and
+  `get_post_by_id` is no longer used after diary mode migration (20260315000000).
+  Both RPCs now derive the user from `auth.uid()` exclusively. The frontend still
+  passes `p_user_id` from `usePosts.ts`, and `database.ts` still declares it. Can
+  be removed from SQL params, TS types, and hook call sites for cleanliness.
+
 ## False Positives (Do NOT Flag)
 
 These have been investigated and confirmed as non-issues:
