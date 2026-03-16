@@ -91,6 +91,7 @@ Optional free-text grouping for journal entries. No separate table — just a `c
 - **RPCs**: `get_user_chapters()` returns `{chapter, post_count, latest_post}[]` for autocomplete/sidebar
 - **Hook**: `useChapters()` fetches chapter list. `usePosts` doesn't filter server-side; chapter filtering is client-side in App.tsx
 - **UI**: PostModal has a combo-input with autocomplete dropdown. PostCard shows `📖 chapter` badge (clickable → filters feed). Sidebar shows chapter nav list
+- **Mobile**: All chapter buttons use `min-h-[44px] lg:min-h-[36px]` (44px touch targets on mobile, relaxed on desktop). PostCard badge truncates at `max-w-[160px] sm:max-w-[220px]`. Filter banner text truncates for narrow screens
 - **Validation**: `quickContentCheck()` moderation on chapter names, same as usernames
 
 ## Gotchas
@@ -108,3 +109,4 @@ Optional free-text grouping for journal entries. No separate table — just a `c
 - Auth forms use inline field errors (not toasts) — `useToast()` is per-instance local state, and App-level `<Toast>` isn't mounted during the auth early-return.
 - `useChapters` is called once in App.tsx — chapters are passed as props to both Sidebar and PostModal. Don't add a second `useChapters()` call inside PostModal (it was removed to avoid duplicate RPC fetches).
 - Chapter filtering is client-side (`posts.filter()`). Pagination stays active when filtering so users can load older pages to find more chapter entries.
+- Mobile touch target pattern: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never use bare `min-h-[36px]` — it fails Apple HIG on phones. The `lg:` breakpoint (1024px) matches the sidebar fixed/collapsible switch.
