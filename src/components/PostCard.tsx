@@ -83,11 +83,11 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
                   <span className="hidden sm:inline">•</span>
                   <button
                     onClick={(e) => { e.stopPropagation(); onChapterClick?.(post.chapter!); }}
-                    className="flex items-center gap-1 transition hover:underline"
+                    className="flex items-center gap-1 transition hover:underline min-h-[44px] lg:min-h-0 max-w-[160px] sm:max-w-[220px]"
                     style={{ color: 'var(--accent-primary)' }}
                     aria-label={`Filter by chapter: ${post.chapter}`}
                   >
-                    📖 {post.chapter}
+                    📖 <span className="truncate">{post.chapter}</span>
                   </button>
                 </>
               )}

@@ -442,7 +442,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                               key={c.chapter}
                               type="button"
                               onMouseDown={(e) => { e.preventDefault(); setChapter(c.chapter); setShowChapterPicker(false); }}
-                              className="w-full text-left px-3 py-2 text-xs transition hover:brightness-95 min-h-[36px] flex items-center justify-between gap-2"
+                              className="w-full text-left px-3 py-2 text-xs transition hover:brightness-95 min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
                               style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-body)' }}
                             >
                               <span className="truncate">📖 {c.chapter}</span>

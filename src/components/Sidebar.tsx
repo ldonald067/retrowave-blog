@@ -226,7 +226,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
             {/* "All entries" option */}
             <button
               onClick={() => onChapterSelect?.(null)}
-              className="w-full text-left px-2 py-1.5 rounded text-xs transition min-h-[36px] flex items-center justify-between gap-2"
+              className="w-full text-left px-2 py-1.5 rounded text-xs transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
               style={{
                 color: activeChapter === null ? 'var(--accent-primary)' : 'var(--text-body)',
                 fontWeight: activeChapter === null ? 700 : 400,
@@ -240,7 +240,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               <button
                 key={ch.chapter}
                 onClick={() => onChapterSelect?.(activeChapter === ch.chapter ? null : ch.chapter)}
-                className="w-full text-left px-2 py-1.5 rounded text-xs transition min-h-[36px] flex items-center justify-between gap-2"
+                className="w-full text-left px-2 py-1.5 rounded text-xs transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
                 style={{
                   color: activeChapter === ch.chapter ? 'var(--accent-primary)' : 'var(--text-body)',
                   fontWeight: activeChapter === ch.chapter ? 700 : 400,

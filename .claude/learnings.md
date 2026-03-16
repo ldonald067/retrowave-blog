@@ -199,6 +199,10 @@ new findings after completing work.
   `tabIndex={-1}` on decorative Winamp buttons, `aria-hidden` on decorative emojis.
   Hover contrast on `.xanga-button` forced to `#ffffff`.
 
+- [2026-03-15 /mobile] RESOLVED: Chapter touch targets — PostCard chapter badge, Sidebar chapter
+  nav buttons, and PostModal autocomplete items all bumped to `min-h-[44px] lg:min-h-[36px]`
+  (44px on mobile, relaxed on desktop). Chapter filter banner "show all" no longer overrides
+  `.xanga-link`'s 44px. PostCard badge and filter banner text truncated for 375px.
 - [2026-03-15 /fullstack] RESOLVED: `useChapters.ts` now calls `requireAuth()` before
   `supabase.rpc('get_user_chapters')`. Previously relied on App.tsx auth gate + RPC returning
   empty for anon. Now consistent with all other hooks (useBlocks, useReactions, usePosts).

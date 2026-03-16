@@ -596,7 +596,7 @@ function App() {
                 animate={{ opacity: 1, y: 0 }}
                 className="xanga-box p-3 mb-4 flex items-center justify-between gap-2"
               >
-                <span className="text-xs font-bold" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
+                <span className="text-xs font-bold min-w-0 truncate" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
                   📖 {chapterFilter}
                   <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
                     ({filteredPosts.length} {filteredPosts.length === 1 ? 'entry' : 'entries'})
@@ -604,7 +604,7 @@ function App() {
                 </span>
                 <button
                   onClick={() => setChapterFilter(null)}
-                  className="xanga-link text-xs min-h-[36px] px-2"
+                  className="xanga-link text-xs flex-shrink-0 px-2"
                 >
                   ~ show all ~
                 </button>
