@@ -7,9 +7,11 @@ import { Input, Textarea, Select, YouTubeCard, Pepicon } from './ui';
 import ConfirmDialog from './ConfirmDialog';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
+import { useChapters } from '../hooks/useChapters';
 import type { Post, CreatePostInput } from '../types/post';
 import { MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
+import { POST_LIMITS } from '../lib/validation';
 
 // Header (~60px) + Footer (~80px) = ~140px of non-scrollable modal chrome
 const MODAL_CHROME_HEIGHT = 140;
@@ -27,8 +29,11 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
+  const [chapter, setChapter] = useState('');
+  const [showChapterPicker, setShowChapterPicker] = useState(false);
   const [mood, setMood] = useState('');
   const [music, setMusic] = useState('');
+  const { chapters: existingChapters } = useChapters();
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
@@ -51,9 +56,10 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           (title !== (post.title || '') ||
             content !== baseContent ||
             author !== (post.author || '') ||
+            chapter !== (post.chapter || '') ||
             mood !== (post.mood || '') ||
             music !== (post.music || ''));
-  }, [loadingFullContent, mode, title, content, author, mood, music, post, fullContent]);
+  }, [loadingFullContent, mode, title, content, author, chapter, mood, music, post, fullContent]);
 
   // UX: Check for unsaved changes before closing — shows styled ConfirmDialog instead of window.confirm
   const handleClose = useCallback(() => {
@@ -76,6 +82,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           if (draft.title) setTitle(draft.title);
           if (draft.content) setContent(draft.content);
           if (draft.author) setAuthor(draft.author);
+          if (draft.chapter) setChapter(draft.chapter);
           if (draft.mood) setMood(draft.mood);
           if (draft.music) setMusic(draft.music);
           setDraftRestored(true);
@@ -102,6 +109,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
         setContent(post.content || '');
       }
       setAuthor(post.author || '');
+      setChapter(post.chapter || '');
       setMood(post.mood || '');
       setMusic(post.music || '');
     }
@@ -147,7 +155,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
       // Only save if there's meaningful content
       if (title || content) {
         try {
-          localStorage.setItem('post-draft', JSON.stringify({ title, content, author, mood, music }));
+          localStorage.setItem('post-draft', JSON.stringify({ title, content, author, chapter, mood, music }));
         } catch {
           // Private browsing or storage quota exceeded — draft lives in React state
         }
@@ -156,7 +164,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
     return () => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
-  }, [title, content, author, mood, music, mode]);
+  }, [title, content, author, chapter, mood, music, mode]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -175,6 +183,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
       title,
       content,
       author: author || 'Anonymous',
+      chapter: chapter.trim() || null,
       mood,
       music,
     };
@@ -292,6 +301,21 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                   </div>
                 )}
 
+                {post?.chapter && (
+                  <div className="mb-3">
+                    <span
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border-2 border-dotted"
+                      style={{
+                        borderColor: 'var(--accent-primary)',
+                        color: 'var(--accent-primary)',
+                        backgroundColor: 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
+                      }}
+                    >
+                      📖 {post.chapter}
+                    </span>
+                  </div>
+                )}
+
                 {post?.music && (
                   <div
                     className="xanga-box p-3 mb-3"
@@ -382,6 +406,52 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                     aria-required="true"
                   />
                   <p className="text-xs mt-1 text-right" style={{ color: 'var(--text-muted)' }}>{title.length}/200</p>
+                </div>
+
+                {/* Chapter (optional) */}
+                <div className="relative">
+                  <Input
+                    label="📖 chapter (optional):"
+                    value={chapter}
+                    onChange={(e) => setChapter(e.target.value)}
+                    onFocus={() => setShowChapterPicker(true)}
+                    onBlur={() => setTimeout(() => setShowChapterPicker(false), 150)}
+                    placeholder="name a chapter for this entry..."
+                    maxLength={POST_LIMITS.chapter.max}
+                  />
+                  {/* Chapter autocomplete dropdown */}
+                  <AnimatePresence>
+                    {showChapterPicker && existingChapters.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute z-10 left-0 right-0 mt-1 rounded-lg border-2 border-dotted overflow-hidden max-h-[140px] overflow-y-auto"
+                        style={{
+                          backgroundColor: 'var(--card-bg)',
+                          borderColor: 'var(--border-primary)',
+                        }}
+                      >
+                        {existingChapters
+                          .filter((c) => !chapter || c.chapter.toLowerCase().includes(chapter.toLowerCase()))
+                          .map((c) => (
+                            <button
+                              key={c.chapter}
+                              type="button"
+                              onMouseDown={(e) => { e.preventDefault(); setChapter(c.chapter); setShowChapterPicker(false); }}
+                              className="w-full text-left px-3 py-2 text-xs transition hover:brightness-95 min-h-[36px] flex items-center justify-between gap-2"
+                              style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-body)' }}
+                            >
+                              <span className="truncate">📖 {c.chapter}</span>
+                              <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                                {c.post_count} {c.post_count === 1 ? 'entry' : 'entries'}
+                              </span>
+                            </button>
+                          ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 {/* Author + Mood row */}

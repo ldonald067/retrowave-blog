@@ -13,6 +13,7 @@ export interface Database {
           title: string;
           content: string;
           author: string;
+          chapter: string | null;
           mood: string | null;
           music: string | null;
           embedded_links: Json | null;
@@ -27,6 +28,7 @@ export interface Database {
           title: string;
           content: string;
           author?: string;
+          chapter?: string | null;
           mood?: string | null;
           music?: string | null;
           embedded_links?: Json | null;
@@ -41,6 +43,7 @@ export interface Database {
           title?: string;
           content?: string;
           author?: string;
+          chapter?: string | null;
           mood?: string | null;
           music?: string | null;
           embedded_links?: Json | null;
@@ -214,6 +217,7 @@ export interface Database {
           title: string;
           content: string;
           author: string;
+          chapter: string | null;
           mood: string | null;
           music: string | null;
           embedded_links: Json | null;
@@ -239,6 +243,7 @@ export interface Database {
           title: string;
           content: string;
           author: string;
+          chapter: string | null;
           mood: string | null;
           music: string | null;
           embedded_links: Json | null;
@@ -251,6 +256,15 @@ export interface Database {
           content_truncated: boolean;
           reactions: Record<string, number>;
           user_reactions: string[];
+        }>;
+      };
+      // Chapter listing for autocomplete/browsing
+      get_user_chapters: {
+        Args: Record<string, never>;
+        Returns: Array<{
+          chapter: string;
+          post_count: number;
+          latest_post: string;
         }>;
       };
       // Apple Guideline 1.2: Toggle block/unblock for a user.

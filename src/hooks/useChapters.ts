@@ -1,0 +1,46 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
+import { withRetry } from '../lib/retry';
+
+export interface Chapter {
+  chapter: string;
+  post_count: number;
+  latest_post: string;
+}
+
+interface UseChaptersReturn {
+  chapters: Chapter[];
+  loading: boolean;
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Fetches the current user's chapter list for autocomplete and browsing.
+ * Returns chapters sorted by most recent post date.
+ */
+export function useChapters(): UseChaptersReturn {
+  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchChapters = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await withRetry(async () =>
+        supabase.rpc('get_user_chapters'),
+      );
+      if (error) throw error;
+      setChapters((data as Chapter[]) ?? []);
+    } catch {
+      // Silent fail — chapters are optional UX enhancement
+      setChapters([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchChapters();
+  }, [fetchChapters]);
+
+  return { chapters, loading, refetch: fetchChapters };
+}

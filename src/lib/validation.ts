@@ -20,6 +20,7 @@ export const POST_LIMITS = {
   title: { min: 1, max: 200 },
   content: { min: 1, max: 50000 },
   author: { max: 50 },
+  chapter: { max: 100 },
   mood: { max: 100 },
   music: { max: 200 },
 } as const;
@@ -28,6 +29,7 @@ interface PostValidationErrors {
   title?: string;
   content?: string;
   author?: string;
+  chapter?: string;
   mood?: string;
   music?: string;
   embedded_links?: string;
@@ -66,6 +68,18 @@ export function validatePostInput(
     const author = input.author ?? '';
     if (author.length > POST_LIMITS.author.max) {
       errors.author = `Author name must be ${POST_LIMITS.author.max} characters or fewer`;
+    }
+  }
+
+  if ('chapter' in input) {
+    const chapter = input.chapter ?? '';
+    if (chapter.length > POST_LIMITS.chapter.max) {
+      errors.chapter = `Chapter name must be ${POST_LIMITS.chapter.max} characters or fewer`;
+    } else if (chapter.length > 0) {
+      const mod = quickContentCheck(chapter);
+      if (!mod.allowed) {
+        errors.chapter = 'Chapter name contains inappropriate content';
+      }
     }
   }
 

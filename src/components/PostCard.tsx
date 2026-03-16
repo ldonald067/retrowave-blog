@@ -77,6 +77,14 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
                 <span style={{ color: 'var(--accent-secondary)' }}>⏰</span>
                 {formatDate(post.created_at, 'h:mm a')} · {formatRelativeDate(post.created_at)}
               </span>
+              {post.chapter && (
+                <>
+                  <span className="hidden sm:inline">•</span>
+                  <span className="flex items-center gap-1" style={{ color: 'var(--accent-primary)' }}>
+                    📖 {post.chapter}
+                  </span>
+                </>
+              )}
             </div>
           </div>
 
