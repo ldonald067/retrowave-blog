@@ -218,6 +218,24 @@ new findings after completing work.
   adding columns — can't ALTER TYPE ADD ATTRIBUTE because the RPC functions depend on it.
   Drop functions first, then type, then recreate both.
 
+## Toast & Notifications
+
+- [2026-03-16 /frontend] Toast redesigned from boxed notification → minimal centered pill. Uses
+  `rounded-full`, theme CSS vars (`--card-bg`, `--border-primary`, `--title-font`), emoji prefix
+  per type (✅/❌/✨), 0.75rem font. Positioned bottom-center with `env(safe-area-inset-bottom)`
+  for iOS. Click-to-dismiss + auto-dismiss (success 2500ms, info 3000ms, error 4000ms).
+- [2026-03-16 /frontend] Error toast messages use `~` tildes retro style: `~ couldnt post that :(
+  try again ~`. Never include raw error strings from Supabase/network — always use friendly copy.
+- [2026-03-16 /frontend] Toast stacking uses `index * 2.75rem` offset from bottom. Max 3 visible
+  toasts (`MAX_VISIBLE_TOASTS` in useToast.ts) — oldest dropped when exceeded.
+
+## Auth & Profile
+
+- [2026-03-16 /feature] RESOLVED: Profile polling storm — auth state change flurries caused
+  hundreds of repeated GET /profiles requests. Fixed by adding 2-second cooldown throttle
+  (`FETCH_COOLDOWN_MS`) + existing in-flight guard in `fetchProfile`. Cooldown skips if no
+  profile loaded yet (initial load always proceeds).
+
 ## False Positives (Do NOT Flag)
 
 These have been investigated and confirmed as non-issues:

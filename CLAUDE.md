@@ -44,7 +44,7 @@ src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useChapters, us
 src/lib/           # supabase, auth-guard, errors, retry, validation, cache, moderation, themes, emojiStyles, capacitor, constants, celebrations
 src/types/         # post, profile, database, link-preview
 src/utils/         # formatDate, parseYouTube
-supabase/          # 29 SQL migrations + moderate-content edge function
+supabase/          # 30 SQL migrations + moderate-content edge function
 ios/               # Capacitor iOS app
 .claude/           # launch.json (dev server), learnings.md, skills (commands/)
 ```
@@ -85,14 +85,7 @@ Keep these in sync when changing limits or adding fields:
 
 ## Chapters
 
-Optional free-text grouping for journal entries. No separate table — just a `chapter` column on `posts`.
-
-- **DB**: nullable `text`, CHECK ≤100 chars, partial index `(user_id, chapter) WHERE chapter IS NOT NULL`
-- **RPCs**: `get_user_chapters()` returns `{chapter, post_count, latest_post}[]` for autocomplete/sidebar
-- **Hook**: `useChapters()` fetches chapter list. `usePosts` doesn't filter server-side; chapter filtering is client-side in App.tsx
-- **UI**: PostModal has a combo-input with autocomplete dropdown. PostCard shows `📖 chapter` badge (clickable → filters feed). Sidebar shows chapter nav list
-- **Mobile**: All chapter buttons use `min-h-[44px] lg:min-h-[36px]` (44px touch targets on mobile, relaxed on desktop). PostCard badge truncates at `max-w-[160px] sm:max-w-[220px]`. Filter banner text truncates for narrow screens
-- **Validation**: `quickContentCheck()` moderation on chapter names, same as usernames
+Optional free-text grouping — just a `chapter` column on `posts`, no separate table. Autocomplete from existing chapters via `get_user_chapters()` RPC. Client-side filtering in App.tsx. See `.claude/learnings.md` for implementation details.
 
 ## Gotchas
 
@@ -107,6 +100,6 @@ Optional free-text grouping for journal entries. No separate table — just a `c
 - Settings (⚙️ gear icon → SettingsModal: export data + delete account) and Profile (👤 → ProfileModal: avatar, name, bio, theme, emoji style) are separate modals. Don't merge them.
 - 6 emoji styles: native, fluent, twemoji, openmoji, blob, noto. Fills 2×3 grid. CDN URLs in `emojiStyles.ts`.
 - Auth forms use inline field errors (not toasts) — `useToast()` is per-instance local state, and App-level `<Toast>` isn't mounted during the auth early-return.
-- `useChapters` is called once in App.tsx — chapters are passed as props to both Sidebar and PostModal. Don't add a second `useChapters()` call inside PostModal (it was removed to avoid duplicate RPC fetches).
-- Chapter filtering is client-side (`posts.filter()`). Pagination stays active when filtering so users can load older pages to find more chapter entries.
-- Mobile touch target pattern: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never use bare `min-h-[36px]` — it fails Apple HIG on phones. The `lg:` breakpoint (1024px) matches the sidebar fixed/collapsible switch.
+- `useChapters` is called once in App.tsx — chapters passed as props to Sidebar and PostModal. Don't add a second call (causes duplicate RPC fetches).
+- Mobile touch targets: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never use bare `min-h-[36px]` — fails Apple HIG. The `lg:` breakpoint (1024px) matches sidebar fixed/collapsible switch.
+- Toast notifications are minimal centered pills (not boxed). Error messages use `~` tildes for the retro vibe. Keep messages short — no raw error details.
