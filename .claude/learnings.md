@@ -81,7 +81,10 @@ new findings after completing work.
   `initial`, creating invisible text or transparent backgrounds.
 - [2026-02-25 /frontend] Dark theme `--text-muted` minimum contrast values (WCAG
   AA 4.5:1 against `--bg-primary`): emo-dark `#858585`, scene-kid `#00bb00`,
-  grunge `#a09078`, pastel-goth `#b0a0c0`. These are the verified-passing values.
+  grunge `#b0a088`, pastel-goth `#b0a0c0`. These are the verified-passing values.
+- [2026-03-15 /mobile] RESOLVED: Cottage Core `--text-muted` bumped from `#8c7a5c`
+  → `#7a6844` (was ~3.8:1, now ~4.6:1 on `#fff8f0`). Grunge bumped from `#a09078`
+  → `#b0a088` (~5.0:1 on `#242018`). Both now pass WCAG AA.
 - [2026-02-26 /frontend-design] RESOLVED: `.xanga-button` now enforces
   `min-height: 44px` in CSS. Select.tsx now has `min-h-[44px]`.
 
@@ -183,6 +186,18 @@ new findings after completing work.
 - [2026-03-15 /feature] Password policy bumped to 8-char minimum + letters_digits
   requirement. Enforced in config.toml (server) and SignUpForm.tsx (client).
   `PASSWORD_MIN_LENGTH` constant exported from validation.ts for single source of truth.
+- [2026-03-15 /mobile] RESOLVED: Auth form validation switched from toast popups to
+  inline field errors using Input's existing `error` prop. Removed HTML `required`
+  attributes so custom validation fires instead of browser tooltips. Errors clear on
+  type via onChange handlers.
+- [2026-03-15 /mobile] RESOLVED: Auth header title "✨ Create Your Xanga ✨" wrapped
+  to 2 lines at 375px. Fixed by reducing `text-sm` → `text-xs` (mobile), keeps
+  `sm:text-lg` for larger screens.
+- [2026-03-15 /mobile] RESOLVED: Full accessibility audit — added focus-visible rings
+  to all buttons/links/roles (global CSS catch-all), disabled state on `.xanga-button`
+  (opacity + cursor), `role="alert"` on PostModal moderation error, `aria-hidden` +
+  `tabIndex={-1}` on decorative Winamp buttons, `aria-hidden` on decorative emojis.
+  Hover contrast on `.xanga-button` forced to `#ffffff`.
 
 ## False Positives (Do NOT Flag)
 
@@ -206,3 +221,5 @@ These have been investigated and confirmed as non-issues:
 - `/mobile`: `handleSubmit` type mismatch in ProfileModal (`onClick` passes
   `MouseEvent`, handler expects `FormEvent`) — pre-existing, tsc doesn't flag it,
   works at runtime due to event type compatibility.
+- `/mobile`: Winamp button touch targets (20×16px) — decorative only. Now
+  `aria-hidden="true"` + `tabIndex={-1}`, invisible to assistive tech and keyboard.
