@@ -25,10 +25,11 @@ interface PostCardProps {
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
   onBlock?: (userId: string) => void;
+  onChapterClick?: (chapter: string) => void;
   currentUserId?: string;
 }
 
-const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReaction, onBlock, currentUserId }: PostCardProps) {
+const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReaction, onBlock, onChapterClick, currentUserId }: PostCardProps) {
   const isOwner = currentUserId === post.user_id;
   const ytInfo = useYouTubeInfo(post.music);
 
@@ -80,9 +81,14 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
               {post.chapter && (
                 <>
                   <span className="hidden sm:inline">•</span>
-                  <span className="flex items-center gap-1" style={{ color: 'var(--accent-primary)' }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onChapterClick?.(post.chapter!); }}
+                    className="flex items-center gap-1 transition hover:underline"
+                    style={{ color: 'var(--accent-primary)' }}
+                    aria-label={`Filter by chapter: ${post.chapter}`}
+                  >
                     📖 {post.chapter}
-                  </span>
+                  </button>
                 </>
               )}
             </div>

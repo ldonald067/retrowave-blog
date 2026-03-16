@@ -27,6 +27,7 @@ import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
 import { sparkleBurst, emojiRain } from './lib/celebrations';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
+import { useChapters } from './hooks/useChapters';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
@@ -58,6 +59,7 @@ function PostList({
   onView,
   onReaction,
   onBlock,
+  onChapterClick,
   currentUserId,
   onLoadMore,
   loadingMore,
@@ -70,6 +72,7 @@ function PostList({
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
   onBlock?: (userId: string) => void;
+  onChapterClick?: (chapter: string) => void;
   currentUserId?: string;
   onLoadMore: () => void;
   loadingMore: boolean;
@@ -127,6 +130,7 @@ function PostList({
                   onView={onView}
                   onReaction={onReaction}
                   onBlock={onBlock}
+                  onChapterClick={onChapterClick}
                   currentUserId={currentUserId}
                 />
               </div>
@@ -198,6 +202,9 @@ function App() {
     onOptimisticUpdate: applyOptimisticReaction,
   });
 
+  const { chapters, refetch: refetchChapters } = useChapters();
+  const [chapterFilter, setChapterFilter] = useState<string | null>(null);
+
   const { toggleBlock } = useBlocks();
   // State for block confirmation dialog
   const [userToBlock, setUserToBlock] = useState<string | null>(null);
@@ -240,6 +247,15 @@ function App() {
       setAuthModalTab('signup'); // Default to signup for new users
     }
   }, [authLoading, user]);
+
+  // Filter posts by chapter (client-side)
+  const filteredPosts = chapterFilter
+    ? posts.filter((p) => p.chapter === chapterFilter)
+    : posts;
+
+  const handleChapterClick = useCallback((chapter: string) => {
+    setChapterFilter((prev) => (prev === chapter ? null : chapter));
+  }, []);
 
   const handleNewPost = useCallback(() => {
     if (!user) {
@@ -341,6 +357,8 @@ function App() {
       }
     }
     setShowModal(false);
+    // Refresh chapter list if the post had a chapter
+    if (postData.chapter) void refetchChapters();
   };
 
   const handleSignOut = async () => {
@@ -559,24 +577,67 @@ function App() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left Sidebar */}
-          <Sidebar user={user} profile={profile} onEditProfile={handleProfileClick} postCount={posts.length} />
+          <Sidebar
+            user={user}
+            profile={profile}
+            onEditProfile={handleProfileClick}
+            postCount={posts.length}
+            chapters={chapters}
+            activeChapter={chapterFilter}
+            onChapterSelect={setChapterFilter}
+          />
 
           {/* Main Content Area */}
           <main className="flex-1 min-w-0">
+            {/* Chapter filter banner */}
+            {chapterFilter && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="xanga-box p-3 mb-4 flex items-center justify-between gap-2"
+              >
+                <span className="text-xs font-bold" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
+                  📖 {chapterFilter}
+                  <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
+                    ({filteredPosts.length} {filteredPosts.length === 1 ? 'entry' : 'entries'})
+                  </span>
+                </span>
+                <button
+                  onClick={() => setChapterFilter(null)}
+                  className="xanga-link text-xs min-h-[36px] px-2"
+                >
+                  ~ show all ~
+                </button>
+              </motion.div>
+            )}
+
             {posts.length === 0 ? (
               <EmptyState onCreatePost={handleNewPost} />
+            ) : filteredPosts.length === 0 ? (
+              <div className="xanga-box p-6 text-center">
+                <p className="text-sm" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
+                  no entries in this chapter yet ✨
+                </p>
+                <button
+                  onClick={() => setChapterFilter(null)}
+                  className="xanga-link text-xs mt-2"
+                >
+                  ~ show all entries ~
+                </button>
+              </div>
             ) : (
               <PostList
-                posts={posts}
+                posts={filteredPosts}
                 onEdit={handleEditPost}
                 onDelete={handleDeletePost}
                 onView={handleViewPost}
                 onReaction={handleReaction}
                 onBlock={handleBlock}
+                onChapterClick={handleChapterClick}
                 currentUserId={user?.id}
                 onLoadMore={loadMore}
                 loadingMore={loadingMore}
-                hasMore={hasMore}
+                hasMore={chapterFilter ? false : hasMore}
                 loadMoreError={loadMoreError}
               />
             )}
