@@ -199,6 +199,9 @@ new findings after completing work.
   `tabIndex={-1}` on decorative Winamp buttons, `aria-hidden` on decorative emojis.
   Hover contrast on `.xanga-button` forced to `#ffffff`.
 
+- [2026-03-15 /fullstack] RESOLVED: `useChapters.ts` now calls `requireAuth()` before
+  `supabase.rpc('get_user_chapters')`. Previously relied on App.tsx auth gate + RPC returning
+  empty for anon. Now consistent with all other hooks (useBlocks, useReactions, usePosts).
 - [2026-03-15 /feature] Chapters feature: nullable `chapter` text column on posts (≤100 chars),
   `get_user_chapters()` RPC returns chapter list with post counts and latest dates. `useChapters`
   hook called once in App.tsx — chapters passed as props to Sidebar and PostModal (no duplicate

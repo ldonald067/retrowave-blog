@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { withRetry } from '../lib/retry';
+import { requireAuth } from '../lib/auth-guard';
 
 export interface Chapter {
   chapter: string;
@@ -25,6 +26,11 @@ export function useChapters(): UseChaptersReturn {
   const fetchChapters = useCallback(async () => {
     setLoading(true);
     try {
+      const auth = await requireAuth();
+      if (auth.error) {
+        setChapters([]);
+        return;
+      }
       const { data, error } = await withRetry(async () =>
         supabase.rpc('get_user_chapters'),
       );
