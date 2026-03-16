@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode } from 'react';
-import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion, useMotionValue, animate } from 'framer-motion';
 import type { ToastType } from '../hooks/useToast';
 import { SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 
@@ -21,7 +21,6 @@ const TYPE_COLORS: Record<ToastType, string> = {
 export default function Toast({ message, type = 'success', onClose, duration = 3000, index = 0 }: ToastProps) {
   const progressRef = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
-  const opacity = useTransform(x, [0, 150], [1, 0]);
 
   // Auto-dismiss timer + progress bar animation
   useEffect(() => {
@@ -50,10 +49,11 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
 
   const accentColor = TYPE_COLORS[type];
 
+  // Mobile: bottom-anchored, compact. Desktop: top-right, standard.
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: -30, x: 40 }}
+      initial={{ opacity: 0, y: 30, x: 0 }}
       animate={{ opacity: 1, y: 0, x: 0 }}
       exit={{ opacity: 0, x: 80, transition: { duration: 0.25, ease: 'easeIn' } }}
       transition={{
@@ -62,8 +62,10 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
         damping: 28,
         mass: 0.8,
       }}
-      className="fixed right-4 left-4 sm:left-auto z-[100] max-w-md"
-      style={{ top: `${1 + index * 4.5}rem`, x, opacity }}
+      className="fixed left-3 right-3 sm:left-auto sm:right-4 sm:max-w-sm z-[100]"
+      style={{
+        bottom: `max(${0.75 + index * 3.5}rem, calc(env(safe-area-inset-bottom) + ${0.75 + index * 3.5}rem))`,
+      }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={{ left: 0.05, right: 0.4 }}
@@ -81,15 +83,15 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
       <div
         role="alert"
         aria-live={type === 'error' ? 'assertive' : 'polite'}
-        className="xanga-box flex items-center justify-between gap-3 px-4 py-3 overflow-hidden"
+        className="xanga-box flex items-center justify-between gap-2 px-3 py-2 sm:px-4 sm:py-3 overflow-hidden"
         style={{
           borderColor: accentColor,
-          borderLeftWidth: '4px',
+          borderLeftWidth: '3px',
           borderLeftStyle: 'solid',
         }}
       >
         {/* Icon with pop entrance */}
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-1 min-w-0">
           <motion.span
             initial={{ scale: 0, rotate: -45 }}
             animate={{ scale: 1, rotate: 0 }}
@@ -99,26 +101,26 @@ export default function Toast({ message, type = 'success', onClose, duration = 3
               damping: 15,
               delay: 0.15,
             }}
-            className="text-base flex-shrink-0"
+            className="text-sm sm:text-base flex-shrink-0"
           >
             {icons[type]}
           </motion.span>
           <p
-            className="text-sm font-bold truncate"
+            className="text-xs sm:text-sm font-bold truncate"
             style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
           >
             {message}
           </p>
         </div>
 
-        {/* Close button with hover rotation */}
+        {/* Close button — compact on mobile, standard on desktop */}
         <motion.button
           onClick={onClose}
           aria-label="Close notification"
           whileHover={{ rotate: 90, scale: 1.1 }}
           whileTap={{ scale: 0.85 }}
           transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-          className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded transition-colors hover:opacity-70 flex-shrink-0"
+          className="p-1.5 sm:p-2 min-w-[44px] min-h-[44px] flex items-center justify-center rounded transition-colors hover:opacity-70 flex-shrink-0"
           style={{ color: 'var(--text-muted)' }}
         >
           ✕

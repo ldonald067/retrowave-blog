@@ -300,7 +300,7 @@ function App() {
     const { error } = await deletePost(postToDelete.id);
     setDeleteLoading(false);
     if (error) {
-      showError(`~ couldnt delete that :( ${error} ~`);
+      showError('~ couldnt delete that :( try again ~');
     } else {
       void hapticImpact();
       success(SUCCESS_MESSAGES.post.deleted);
@@ -332,7 +332,7 @@ function App() {
     if (modalMode === 'edit' && selectedPost) {
       const { error } = await updatePost(selectedPost.id, postData);
       if (error) {
-        showError(`~ couldnt update that :( ${error} ~`);
+        showError('~ couldnt save that :( try again ~');
         return;
       }
       void hapticImpact();
@@ -340,7 +340,7 @@ function App() {
     } else {
       const { error } = await createPost(postData);
       if (error) {
-        showError(`~ couldnt post that :( ${error} ~`);
+        showError('~ couldnt post that :( try again ~');
         return;
       }
       void hapticImpact();
@@ -364,7 +364,7 @@ function App() {
   const handleSignOut = async () => {
     const { error } = await signOut();
     if (error) {
-      showError(`~ couldnt sign out :( ${error} ~`);
+      showError('~ couldnt sign out :( try again ~');
     } else {
       success(SUCCESS_MESSAGES.auth.signedOut);
       setShowAuthModal(true);
@@ -405,7 +405,7 @@ function App() {
     const { is_blocked, error: blockError } = await toggleBlock(userToBlock);
     setBlockLoading(false);
     if (blockError) {
-      showError(`~ couldnt block that user :( ${blockError} ~`);
+      showError('~ couldnt block that user :( try again ~');
     } else {
       void hapticImpact();
       success(is_blocked ? SUCCESS_MESSAGES.block.blocked : SUCCESS_MESSAGES.block.unblocked);

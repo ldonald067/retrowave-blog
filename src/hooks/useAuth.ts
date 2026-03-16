@@ -57,6 +57,9 @@ export function useAuth(): UseAuthReturn {
 
   // T2-3 FIX: Track in-flight fetchProfile to avoid duplicate concurrent calls.
   const fetchingProfileFor = useRef<string | null>(null);
+  // Throttle: prevent rapid sequential profile fetches (e.g. after auth state flurries)
+  const lastFetchTime = useRef<number>(0);
+  const FETCH_COOLDOWN_MS = 2000;
 
   useEffect(() => {
     let cancelled = false;
@@ -98,6 +101,10 @@ export function useAuth(): UseAuthReturn {
   const fetchProfile = async (userId: string): Promise<void> => {
     // Prevent duplicate concurrent fetches for the same user
     if (fetchingProfileFor.current === userId) return;
+    // Throttle rapid sequential fetches (auth state change flurries)
+    const now = Date.now();
+    if (now - lastFetchTime.current < FETCH_COOLDOWN_MS && profile) return;
+    lastFetchTime.current = now;
     fetchingProfileFor.current = userId;
 
     try {

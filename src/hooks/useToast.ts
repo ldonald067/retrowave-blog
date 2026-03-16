@@ -11,11 +11,11 @@ export interface Toast {
 
 const MAX_VISIBLE_TOASTS = 3;
 
-/** Default durations by type — errors stay longer so users can read them */
+/** Default durations by type — short & non-intrusive, especially on mobile */
 const DEFAULT_DURATIONS: Record<ToastType, number> = {
-  success: 3000,
-  info: 4000,
-  error: 6000,
+  success: 2500,
+  info: 3000,
+  error: 4000,
 };
 
 interface UseToastReturn {
