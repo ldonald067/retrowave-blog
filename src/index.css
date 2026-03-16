@@ -335,16 +335,28 @@ body {
   transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
-.xanga-button:hover {
+.xanga-button:hover:not(:disabled) {
   background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
-  color: var(--button-text, #ffffff);
+  color: #ffffff;
   transform: translateY(-1px);
   box-shadow: 3px 3px 0px var(--shadow-color), 0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent);
 }
 
-.xanga-button:active {
+.xanga-button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+}
+
+.xanga-button:active:not(:disabled) {
   transform: translateY(2px);
   box-shadow: 0 0 0 transparent;
+}
+
+.xanga-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* Mood icons spacing */
@@ -412,6 +424,14 @@ body {
 }
 
 /* ===== Focus Rings — WCAG 2.4.7 visible focus ===== */
+/* Catch-all for buttons without their own focus-visible (tab buttons, icon buttons, etc.) */
+button:focus-visible,
+[role='button']:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
@@ -676,6 +696,12 @@ select:focus-visible {
 .xanga-link:hover {
   color: var(--link-hover);
   text-decoration: none;
+}
+
+.xanga-link:focus-visible {
+  outline: 2px solid var(--link-color);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* ===== AIM Status Style ===== */

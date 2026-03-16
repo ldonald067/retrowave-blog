@@ -10,32 +10,43 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<'password' | 'magic'>('password');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const { signIn, signInWithPassword } = useAuth();
   const { toasts, showToast, hideToast } = useToast();
 
+  const clearErrors = () => {
+    setEmailError('');
+    setPasswordError('');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
+
+    let hasError = false;
 
     if (!email) {
-      showToast('Please enter your email', 'error');
-      return;
+      setEmailError('enter ur email');
+      hasError = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('that doesn\'t look like an email');
+      hasError = true;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showToast('Please enter a valid email address', 'error');
-      return;
+
+    if (mode === 'password' && !password) {
+      setPasswordError('enter ur password');
+      hasError = true;
     }
+
+    if (hasError) return;
 
     setIsSubmitting(true);
 
     if (mode === 'password') {
-      if (!password) {
-        showToast('Please enter your password', 'error');
-        setIsSubmitting(false);
-        return;
-      }
       const { error } = await signInWithPassword(email, password);
       if (error) {
-        showToast(error, 'error');
+        setPasswordError('wrong email or password');
       }
     } else {
       const { error } = await signIn(email);
@@ -70,9 +81,9 @@ export default function LoginForm() {
           label="ur email address:"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
           placeholder="you@example.com"
-          required
+          error={emailError}
           autoFocus
         />
 
@@ -81,33 +92,30 @@ export default function LoginForm() {
             label="ur password:"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => { setPassword(e.target.value); setPasswordError(''); }}
             placeholder="shhh it's a secret..."
-            required
+            error={passwordError}
           />
         )}
 
         {mode === 'password' ? (
-          <div className="xanga-box p-3 text-center">
-            <p className="text-xs" style={{ color: 'var(--text-body)' }}>
-              🔑 sign in with ur email & password
-            </p>
+          <div className="text-center">
             <button
               type="button"
-              onClick={() => setMode('magic')}
-              className="xanga-link text-xs mt-1 min-h-[44px] inline-flex items-center justify-center"
+              onClick={() => { setMode('magic'); clearErrors(); }}
+              className="xanga-link text-xs min-h-[44px] inline-flex items-center justify-center"
             >
               ~ or use a magic link ~
             </button>
           </div>
         ) : (
-          <div className="xanga-box p-3 text-center">
-            <p className="text-xs mb-1" style={{ color: 'var(--text-body)' }}>
-              💌 we'll email u a magic link - just click it 2 sign in!
+          <div className="text-center">
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              💌 we'll email u a link — just click it 2 sign in!
             </p>
             <button
               type="button"
-              onClick={() => setMode('password')}
+              onClick={() => { setMode('password'); clearErrors(); }}
               className="xanga-link text-xs mt-1 min-h-[44px] inline-flex items-center justify-center"
             >
               ~ or use a password ~

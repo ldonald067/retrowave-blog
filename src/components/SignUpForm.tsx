@@ -18,27 +18,39 @@ export default function SignUpForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedBirthYear, setSavedBirthYear] = useState<number>(2000);
   const [savedTosAccepted, setSavedTosAccepted] = useState<boolean>(true);
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const { signUpWithPassword, devSignUp } = useAuth();
   const { toasts, showToast, hideToast } = useToast();
 
+  const clearErrors = () => {
+    setEmailError('');
+    setPasswordError('');
+  };
+
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    clearErrors();
+
+    let hasError = false;
+
     if (!email) {
-      showToast('Please enter your email', 'error');
-      return;
+      setEmailError('enter ur email');
+      hasError = true;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailError('that doesn\'t look like an email');
+      hasError = true;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showToast('Please enter a valid email address', 'error');
-      return;
-    }
+
     if (!password || password.length < PASSWORD_MIN_LENGTH) {
-      showToast(`Password must be at least ${PASSWORD_MIN_LENGTH} characters`, 'error');
-      return;
+      setPasswordError(`at least ${PASSWORD_MIN_LENGTH} characters plz`);
+      hasError = true;
+    } else if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+      setPasswordError('needs both letters & numbers');
+      hasError = true;
     }
-    if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
-      showToast('Password must contain both letters and numbers', 'error');
-      return;
-    }
+
+    if (hasError) return;
     setStep('age');
   };
 
@@ -94,12 +106,12 @@ export default function SignUpForm() {
   const handleStartOver = () => {
     setEmail('');
     setPassword('');
+    clearErrors();
     setStep('email');
   };
 
-  // Render toast notifications — this component uses its own useToast() state
-  // because it renders inside AuthModal's early return where App-level toasts
-  // aren't mounted. Each return path includes this toast layer.
+  // Toast layer for server errors (age verification, sign-up failures)
+  // — inline errors handle form validation instead
   const toastLayer = (
     <AnimatePresence>
       {toasts.map((toast, index) => (
@@ -169,9 +181,9 @@ export default function SignUpForm() {
           label="ur email address:"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => { setEmail(e.target.value); setEmailError(''); }}
           placeholder="you@example.com"
-          required
+          error={emailError}
           autoFocus
         />
 
@@ -179,16 +191,10 @@ export default function SignUpForm() {
           label="create a password:"
           type="password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => { setPassword(e.target.value); setPasswordError(''); }}
           placeholder="8+ chars, letters & numbers..."
-          required
+          error={passwordError}
         />
-
-        <div className="xanga-box p-3 text-center">
-          <p className="text-xs" style={{ color: 'var(--text-body)' }}>
-            🔑 pick a password with letters & numbers 2 create ur account!
-          </p>
-        </div>
 
         <button
           type="submit"

@@ -138,12 +138,12 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0 }:
               <div className="winamp-progress">
                 <div className="winamp-progress-bar" />
               </div>
-              <div className="winamp-controls">
-                <button className="winamp-btn" aria-label="Previous track" title="Previous">⏮</button>
-                <button className="winamp-btn" aria-label="Play" title="Play">▶</button>
-                <button className="winamp-btn" aria-label="Pause" title="Pause">⏸</button>
-                <button className="winamp-btn" aria-label="Stop" title="Stop">⏹</button>
-                <button className="winamp-btn" aria-label="Next track" title="Next">⏭</button>
+              <div className="winamp-controls" aria-hidden="true">
+                <button className="winamp-btn" tabIndex={-1}>⏮</button>
+                <button className="winamp-btn" tabIndex={-1}>▶</button>
+                <button className="winamp-btn" tabIndex={-1}>⏸</button>
+                <button className="winamp-btn" tabIndex={-1}>⏹</button>
+                <button className="winamp-btn" tabIndex={-1}>⏭</button>
               </div>
               {ytInfo && (
                 <div className="px-1 pb-1">

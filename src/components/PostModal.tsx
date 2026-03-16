@@ -353,6 +353,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                 {/* Moderation Error Alert */}
                 {moderationError && (
                   <div
+                    role="alert"
                     className="xanga-box p-3"
                     style={{ borderColor: 'var(--accent-secondary)' }}
                   >

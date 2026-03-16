@@ -56,7 +56,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
             ) : (
               <div className="w-16" />
             )}
-            <h1 className="flex-1 text-center xanga-title text-sm sm:text-lg whitespace-nowrap">
+            <h1 className="flex-1 text-center xanga-title text-xs sm:text-lg whitespace-nowrap">
               ✨ {activeTab === 'signup' ? 'Create Your Xanga' : 'Welcome Back'} ✨
             </h1>
             <div className="w-16" />
@@ -79,7 +79,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
                 aria-selected={activeTab === 'login'}
                 id="tab-login"
                 aria-controls="tabpanel-login"
-                className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition min-h-[44px]"
+                className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition min-h-[44px] hover:brightness-95 active:brightness-90"
                 style={{
                   fontFamily: 'var(--title-font)',
                   backgroundColor: activeTab === 'login' ? 'var(--button-gradient-from)' : 'var(--card-bg)',
@@ -94,7 +94,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
                 aria-selected={activeTab === 'signup'}
                 id="tab-signup"
                 aria-controls="tabpanel-signup"
-                className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition border-l-2 border-dotted min-h-[44px]"
+                className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition border-l-2 border-dotted min-h-[44px] hover:brightness-95 active:brightness-90"
                 style={{
                   fontFamily: 'var(--title-font)',
                   borderColor: 'var(--border-primary)',
