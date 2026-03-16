@@ -106,5 +106,5 @@ Optional free-text grouping for journal entries. No separate table — just a `c
 - Settings (⚙️ gear icon → SettingsModal: export data + delete account) and Profile (👤 → ProfileModal: avatar, name, bio, theme, emoji style) are separate modals. Don't merge them.
 - 6 emoji styles: native, fluent, twemoji, openmoji, blob, noto. Fills 2×3 grid. CDN URLs in `emojiStyles.ts`.
 - Auth forms use inline field errors (not toasts) — `useToast()` is per-instance local state, and App-level `<Toast>` isn't mounted during the auth early-return.
-- `useChapters` hook makes an RPC call on mount. It's used inside PostModal (lazy-loaded), so it only fires when composing/editing a post. The Sidebar chapter list comes from App-level state.
-- Chapter filtering is client-side (`posts.filter()`). This works for a solo journal but would need server-side `WHERE chapter = $1` for multi-user or large datasets.
+- `useChapters` is called once in App.tsx — chapters are passed as props to both Sidebar and PostModal. Don't add a second `useChapters()` call inside PostModal (it was removed to avoid duplicate RPC fetches).
+- Chapter filtering is client-side (`posts.filter()`). Pagination stays active when filtering so users can load older pages to find more chapter entries.

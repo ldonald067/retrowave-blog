@@ -637,7 +637,7 @@ function App() {
                 currentUserId={user?.id}
                 onLoadMore={loadMore}
                 loadingMore={loadingMore}
-                hasMore={chapterFilter ? false : hasMore}
+                hasMore={hasMore}
                 loadMoreError={loadMoreError}
               />
             )}
@@ -654,6 +654,7 @@ function App() {
             onSave={handleSavePost}
             onClose={() => setShowModal(false)}
             fetchFullPost={fetchPost}
+            chapters={chapters}
           />
         </Suspense>
       )}

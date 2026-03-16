@@ -7,7 +7,7 @@ import { Input, Textarea, Select, YouTubeCard, Pepicon } from './ui';
 import ConfirmDialog from './ConfirmDialog';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
-import { useChapters } from '../hooks/useChapters';
+import type { Chapter } from '../hooks/useChapters';
 import type { Post, CreatePostInput } from '../types/post';
 import { MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
@@ -23,9 +23,11 @@ interface PostModalProps {
   mode?: 'create' | 'edit' | 'view';
   /** M2: Fetches a post with full content for view/edit modes. */
   fetchFullPost?: (id: string) => Promise<Post | null>;
+  /** Existing chapters for autocomplete — passed from App to avoid duplicate RPC calls. */
+  chapters?: Chapter[];
 }
 
-export default function PostModal({ post, onSave, onClose, mode = 'create', fetchFullPost }: PostModalProps) {
+export default function PostModal({ post, onSave, onClose, mode = 'create', fetchFullPost, chapters = [] }: PostModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
@@ -33,7 +35,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
   const [showChapterPicker, setShowChapterPicker] = useState(false);
   const [mood, setMood] = useState('');
   const [music, setMusic] = useState('');
-  const { chapters: existingChapters } = useChapters();
+  const existingChapters = chapters;
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
