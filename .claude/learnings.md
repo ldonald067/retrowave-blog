@@ -200,13 +200,13 @@ new findings after completing work.
   Hover contrast on `.xanga-button` forced to `#ffffff`.
 
 - [2026-03-15 /feature] Chapters feature: nullable `chapter` text column on posts (≤100 chars),
-  `get_user_chapters()` RPC returns chapter list with post counts and latest dates. PostModal
-  autocomplete uses `useChapters` hook. Sidebar chapter nav and PostCard chapter badge both
-  drive client-side filtering in App.tsx via `chapterFilter` state.
+  `get_user_chapters()` RPC returns chapter list with post counts and latest dates. `useChapters`
+  hook called once in App.tsx — chapters passed as props to Sidebar and PostModal (no duplicate
+  RPC calls). PostCard chapter badge and Sidebar nav both drive client-side filtering via
+  `chapterFilter` state in App.tsx.
 - [2026-03-15 /feature] Chapter filtering is client-side only (posts already loaded from feed
-  RPC). When filtering, `hasMore` is forced to `false` to hide the pagination sentinel. Works
-  because this is a personal diary — small dataset. Would need server-side WHERE clause for
-  larger datasets.
+  RPC). Pagination stays active during filtering so users can load older pages to find more
+  chapter entries. Would need server-side WHERE clause for larger datasets.
 - [2026-03-15 /migration] `get_posts_result` composite type must be dropped and recreated when
   adding columns — can't ALTER TYPE ADD ATTRIBUTE because the RPC functions depend on it.
   Drop functions first, then type, then recreate both.
