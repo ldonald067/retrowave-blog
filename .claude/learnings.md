@@ -37,7 +37,7 @@ Keep frontend and backend in sync when changing limits or adding fields:
 
 ### Mobile & iOS
 - Touch targets: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never bare `min-h-[36px]` — fails Apple HIG.
-- `ESTIMATED_POST_HEIGHT` (380px) must match real PostCard height or virtualizer overlaps on initial render.
+- `ESTIMATED_POST_HEIGHT` (380px) must match real PostCard height or virtualizer overlaps. Cards now show date only (no time), no edit/delete icons — may be slightly shorter.
 - WCAG AA: `--accent-primary` must hit 4.5:1 on `--card-bg`. `--text-title` only needs 3:1 (large text).
 
 ### UI Conventions
@@ -178,6 +178,11 @@ Keep frontend and backend in sync when changing limits or adding fields:
 - [2026-03-16 /mobile] Footer spacing tightened on mobile: `mt-6 sm:mt-12 py-4 sm:py-6` and
   end-of-list `py-3 sm:py-6`. Gap reduced from ~72px to ~36px.
 - [2026-03-16 /mobile] "Powered by YourJournal" moved from sidebar to page footer.
+- [2026-03-17 /frontend] PostCard simplified: no time/relative date (date only), no edit/delete icons.
+  Owner clicks post → opens edit mode directly (saves a click). Non-owners get view mode.
+- [2026-03-17 /frontend] Edit/delete moved to PostModal: delete button in footer (left, destructive
+  fill on hover), cancel (center-right, subtle lift + bg tint), save (right). No X close in edit
+  mode — cancel handles it. View mode keeps X for non-owners.
 - [2026-03-15 /feature] Username format: `^[a-zA-Z0-9_-]+$` enforced at DB + client. Default
   username from email sanitized with `regexp_replace` in DB trigger and `.replace()` in useAuth.
 - [2026-03-15 /feature] Profile fields (username, display_name, bio) moderated via
