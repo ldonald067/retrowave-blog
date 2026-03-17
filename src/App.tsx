@@ -56,8 +56,6 @@ const ESTIMATED_POST_HEIGHT = 380;
 
 function PostList({
   posts,
-  onEdit,
-  onDelete,
   onView,
   onReaction,
   onBlock,
@@ -69,8 +67,6 @@ function PostList({
   loadMoreError,
 }: {
   posts: Post[];
-  onEdit: (post: Post) => void;
-  onDelete: (post: Post) => void;
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
   onBlock?: (userId: string) => void;
@@ -127,8 +123,6 @@ function PostList({
               >
                 <PostCard
                   post={post}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
                   onView={onView}
                   onReaction={onReaction}
                   onBlock={onBlock}
@@ -289,22 +283,12 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [user, showModal, showProfileModal, showSettingsModal, handleNewPost]);
 
-  const handleEditPost = useCallback((post: Post) => {
-    if (!user) {
-      showError('~ sign in 2 edit entries! ~');
-      setShowAuthModal(true);
-      return;
-    }
-    setSelectedPost(post);
-    setModalMode('edit');
-    setShowModal(true);
-  }, [user, showError]);
-
   const handleViewPost = useCallback((post: Post) => {
     setSelectedPost(post);
-    setModalMode('view');
+    // Owner clicks → edit directly (saves a click). Non-owner → view-only.
+    setModalMode(user && user.id === post.user_id ? 'edit' : 'view');
     setShowModal(true);
-  }, []);
+  }, [user]);
 
   const handleDeletePost = useCallback((post: Post) => {
     if (!user) {
@@ -661,8 +645,6 @@ function App() {
             ) : (
               <PostList
                 posts={filteredPosts}
-                onEdit={handleEditPost}
-                onDelete={handleDeletePost}
                 onView={handleViewPost}
                 onReaction={handleReaction}
                 onBlock={handleBlock}
@@ -688,6 +670,8 @@ function App() {
             onClose={() => setShowModal(false)}
             fetchFullPost={fetchPost}
             chapters={chapters}
+            onDelete={handleDeletePost}
+            isOwner={!!user && !!selectedPost && user.id === selectedPost.user_id}
           />
         </Suspense>
       )}

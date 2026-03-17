@@ -25,9 +25,13 @@ interface PostModalProps {
   fetchFullPost?: (id: string) => Promise<Post | null>;
   /** Existing chapters for autocomplete — passed from App to avoid duplicate RPC calls. */
   chapters?: Chapter[];
+  /** Owner-only: delete the current post. */
+  onDelete?: (post: Post) => void;
+  /** Whether the current user owns this post. */
+  isOwner?: boolean;
 }
 
-export default function PostModal({ post, onSave, onClose, mode = 'create', fetchFullPost, chapters = [] }: PostModalProps) {
+export default function PostModal({ post, onSave, onClose, mode = 'create', fetchFullPost, chapters = [], onDelete, isOwner }: PostModalProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
@@ -270,14 +274,17 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                   '✨ ~ new entry ~'
                 )}
               </h2>
-              <button
-                onClick={handleClose}
-                aria-label="Close modal"
-                className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                <X size={18} />
-              </button>
+              {/* View mode: X to close. Edit/create mode: cancel is in the footer. */}
+              {isViewMode && (
+                <button
+                  onClick={handleClose}
+                  aria-label="Close modal"
+                  className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  <X size={18} />
+                </button>
+              )}
             </div>
           </div>
 
@@ -616,33 +623,59 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           {/* Footer */}
           {!isViewMode && (
             <div
-              className="p-3 sm:p-4 border-t-2 border-dotted flex justify-end gap-2 modal-footer-safe"
+              className="p-3 sm:p-4 border-t-2 border-dotted flex items-center justify-between modal-footer-safe"
               style={{
                 background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
                 borderColor: 'var(--border-primary)',
               }}
             >
-              <button
-                type="button"
-                onClick={handleClose}
-                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted min-h-[44px]"
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  color: 'var(--text-body)',
-                  borderColor: 'var(--border-primary)',
-                  fontFamily: 'var(--title-font)',
-                }}
-              >
-                cancel
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={saving || loadingFullContent}
-                className="xanga-button flex items-center gap-2 text-sm"
-              >
-                <Pepicon name="floppyDisk" size={14} />
-                <span>{saving ? 'saving...' : loadingFullContent ? 'loading...' : '~ save entry ~'}</span>
-              </button>
+              {/* Left: delete (edit mode only, owner only) */}
+              <div>
+                {mode === 'edit' && isOwner && onDelete && post && (
+                  <motion.button
+                    whileHover={{ scale: 1.04, backgroundColor: 'var(--accent-secondary)', color: '#fff' }}
+                    whileTap={{ scale: 0.9 }}
+                    type="button"
+                    onClick={() => onDelete(post)}
+                    className="px-3 py-2 rounded-lg text-xs font-bold border-2 border-dotted min-h-[44px] flex items-center gap-1.5"
+                    style={{
+                      backgroundColor: 'var(--card-bg)',
+                      color: 'var(--accent-secondary)',
+                      borderColor: 'var(--accent-secondary)',
+                      fontFamily: 'var(--title-font)',
+                    }}
+                    aria-label="Delete post"
+                  >
+                    🗑️ delete
+                  </motion.button>
+                )}
+              </div>
+              {/* Right: cancel + save */}
+              <div className="flex gap-2">
+                <motion.button
+                  whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', backgroundColor: 'color-mix(in srgb, var(--border-primary) 28%, var(--card-bg))' }}
+                  whileTap={{ scale: 0.97 }}
+                  type="button"
+                  onClick={handleClose}
+                  className="px-4 py-2 rounded-lg text-xs font-bold border-2 border-dotted min-h-[44px]"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--border-primary) 15%, var(--card-bg))',
+                    color: 'var(--text-body)',
+                    borderColor: 'var(--border-primary)',
+                    fontFamily: 'var(--title-font)',
+                  }}
+                >
+                  cancel
+                </motion.button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={saving || loadingFullContent}
+                  className="xanga-button flex items-center gap-2 text-sm"
+                >
+                  <Pepicon name="floppyDisk" size={14} />
+                  <span>{saving ? 'saving...' : loadingFullContent ? 'loading...' : '~ save entry ~'}</span>
+                </button>
+              </div>
             </div>
           )}
         </motion.div>

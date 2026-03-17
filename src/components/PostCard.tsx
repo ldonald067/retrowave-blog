@@ -4,7 +4,7 @@ import { Pepicon } from './ui';
 import { Winamp as WinampIcon } from 'react-old-icons';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
-import { formatDate, formatRelativeDate } from '../utils/formatDate';
+import { formatDate } from '../utils/formatDate';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { BLOG_OWNER_EMAIL, FEED_EXCERPT_MAX } from '../lib/constants';
 import ReactionBar from './ui/ReactionBar';
@@ -19,8 +19,6 @@ function truncateContent(content: string, maxLength = FEED_EXCERPT_MAX): string 
 
 interface PostCardProps {
   post: Post;
-  onEdit: (post: Post) => void;
-  onDelete: (post: Post) => void;
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
   onBlock?: (userId: string) => void;
@@ -28,7 +26,7 @@ interface PostCardProps {
   currentUserId?: string;
 }
 
-const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReaction, onBlock, onChapterClick, currentUserId }: PostCardProps) {
+const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onChapterClick, currentUserId }: PostCardProps) {
   const isOwner = currentUserId === post.user_id;
   const ytInfo = useYouTubeInfo(post.music);
 
@@ -54,70 +52,37 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
           borderColor: 'var(--border-primary)',
         }}
       >
-        <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            <h2 className="xanga-title text-lg sm:text-2xl mb-1">
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => onView(post)}
-                className="text-left cursor-pointer transition hover:opacity-80 line-clamp-2"
-                style={{ color: 'inherit', textShadow: 'inherit' }}
-                aria-label={`View post: ${post.title}`}
-              >
-                {post.title}
-              </motion.button>
-            </h2>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-              <span className="flex items-center gap-1">
-                <span style={{ color: 'var(--accent-primary)' }}>📅</span>
-                {formatDate(post.created_at, 'MMM dd, yyyy')}
-              </span>
-              <span className="hidden sm:inline">•</span>
-              <span className="flex items-center gap-1">
-                <span style={{ color: 'var(--accent-secondary)' }}>⏰</span>
-                {formatDate(post.created_at, 'h:mm a')} · {formatRelativeDate(post.created_at)}
-              </span>
-              {post.chapter && (
-                <>
-                  <span className="hidden sm:inline">•</span>
-                  <button
-                    onClick={(e) => { e.stopPropagation(); onChapterClick?.(post.chapter!); }}
-                    className="flex items-center gap-1 transition hover:underline min-h-[44px] lg:min-h-0 max-w-[160px] sm:max-w-[220px]"
-                    style={{ color: 'var(--accent-primary)' }}
-                    aria-label={`Filter by chapter: ${post.chapter}`}
-                  >
-                    📖 <span className="truncate">{post.chapter}</span>
-                  </button>
-                </>
-              )}
-            </div>
+        <div>
+          <h2 className="xanga-title text-lg sm:text-2xl mb-1">
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onView(post)}
+              className="text-left cursor-pointer transition hover:opacity-80 line-clamp-2"
+              style={{ color: 'inherit', textShadow: 'inherit' }}
+              aria-label={`View post: ${post.title}`}
+            >
+              {post.title}
+            </motion.button>
+          </h2>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+            <span className="flex items-center gap-1">
+              <span style={{ color: 'var(--accent-primary)' }}>📅</span>
+              {formatDate(post.created_at, 'MMM dd, yyyy')}
+            </span>
+            {post.chapter && (
+              <>
+                <span className="hidden sm:inline">•</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); onChapterClick?.(post.chapter!); }}
+                  className="flex items-center gap-1 transition hover:underline min-h-[44px] lg:min-h-0 max-w-[160px] sm:max-w-[220px]"
+                  style={{ color: 'var(--accent-primary)' }}
+                  aria-label={`Filter by chapter: ${post.chapter}`}
+                >
+                  📖 <span className="truncate">{post.chapter}</span>
+                </button>
+              </>
+            )}
           </div>
-
-          {/* Edit/Delete buttons - only show for post owner */}
-          {isOwner && (
-            <div className="flex gap-1">
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => onEdit(post)}
-                className="icon-btn-hover p-2.5 lg:p-1.5 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
-                title="Edit post"
-                aria-label="Edit post"
-                style={{ color: 'var(--link-color)' }}
-              >
-                <span className="text-sm">✏️</span>
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => onDelete(post)}
-                className="icon-btn-hover p-2.5 lg:p-1.5 min-w-[44px] min-h-[44px] lg:min-w-0 lg:min-h-0 rounded-lg transition-all text-xs flex items-center justify-center hover:scale-110"
-                title="Delete post"
-                aria-label="Delete post"
-                style={{ color: 'var(--accent-secondary)' }}
-              >
-                <span className="text-sm">🗑️</span>
-              </motion.button>
-            </div>
-          )}
         </div>
       </div>
 
