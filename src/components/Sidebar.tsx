@@ -4,7 +4,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 import { Avatar, YouTubeCard, Pepicon } from './ui';
-import { Windows95Notepad, Windows98DateTime, Windows95MyComputer, Winamp as WinampIcon } from 'react-old-icons';
+import { Windows95Notepad, Windows98DateTime, Winamp as WinampIcon } from 'react-old-icons';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { useTrailMode, TRAIL_MODE_OPTIONS } from './CursorSparkle';
 import type { Chapter } from '../hooks/useChapters';
@@ -24,9 +24,11 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
   const [collapsed, setCollapsed] = useState(() => {
     try {
       const stored = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
-      return stored === null ? false : stored === 'true';
+      // Default to collapsed (true) so mobile users see the feed first.
+      // Desktop sidebar is always visible via `hidden lg:block`, unaffected.
+      return stored === null ? true : stored === 'true';
     } catch {
-      return false;
+      return true;
     }
   });
   // Reactive AIM status — syncs when Header dispatches 'xanga-status-update'
@@ -208,13 +210,13 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
         </div>
       </motion.div>
 
-      {/* Chapters */}
+      {/* Chapters — desktop only; mobile uses ChapterChips above the feed */}
       {chapters.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
-          className="xanga-box p-4"
+          className="xanga-box p-4 hidden lg:block"
         >
           <h3
             className="xanga-title text-lg mb-2 border-b-2 border-dotted pb-1"
@@ -226,30 +228,32 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
             {/* "All entries" option */}
             <button
               onClick={() => onChapterSelect?.(null)}
-              className="w-full text-left px-2 py-1.5 rounded text-xs transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
+              className="w-full text-left px-2 py-1.5 rounded text-[13px] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
               style={{
                 color: activeChapter === null ? 'var(--accent-primary)' : 'var(--text-body)',
                 fontWeight: activeChapter === null ? 700 : 400,
+                fontFamily: 'var(--title-font)',
                 backgroundColor: activeChapter === null ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'transparent',
               }}
             >
               <span>✨ all entries</span>
-              <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{postCount}</span>
+              <span className="text-[10px] font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{postCount}</span>
             </button>
             {chapters.map((ch) => (
               <button
                 key={ch.chapter}
                 onClick={() => onChapterSelect?.(activeChapter === ch.chapter ? null : ch.chapter)}
-                className="w-full text-left px-2 py-1.5 rounded text-xs transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
+                className="w-full text-left px-2 py-1.5 rounded text-[13px] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
                 style={{
                   color: activeChapter === ch.chapter ? 'var(--accent-primary)' : 'var(--text-body)',
                   fontWeight: activeChapter === ch.chapter ? 700 : 400,
+                  fontFamily: 'var(--title-font)',
                   backgroundColor: activeChapter === ch.chapter ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'transparent',
                 }}
                 aria-pressed={activeChapter === ch.chapter}
               >
                 <span className="truncate">📖 {ch.chapter}</span>
-                <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>{ch.post_count}</span>
+                <span className="text-[10px] font-normal flex-shrink-0" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{ch.post_count}</span>
               </button>
             ))}
           </div>
@@ -289,16 +293,6 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
         </div>
       </motion.div>
 
-      {/* Powered By badge (very Xanga!) */}
-      <div className="text-center text-xs py-2" style={{ color: 'var(--text-muted)' }}>
-        <p className="mb-1">powered by</p>
-        <div className="flex items-center justify-center gap-1.5 mb-1">
-          <Windows95MyComputer size={20} alt="" />
-        </div>
-        <p className="xanga-subtitle">
-          <span className="blink">✨</span> YourJournal <span className="blink">✨</span>
-        </p>
-      </div>
     </>
   );
 

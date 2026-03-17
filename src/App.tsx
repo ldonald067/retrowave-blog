@@ -9,6 +9,7 @@ import { useBlocks } from './hooks/useBlocks';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import CursorSparkle from './components/CursorSparkle';
+import ChapterChips from './components/ChapterChips';
 import PostCard from './components/PostCard';
 import LoadingSpinner from './components/LoadingSpinner';
 import PostSkeleton, { SidebarSkeleton } from './components/PostSkeleton';
@@ -26,6 +27,7 @@ import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
 import { sparkleBurst, emojiRain } from './lib/celebrations';
+import { Windows95MyComputer } from 'react-old-icons';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useChapters } from './hooks/useChapters';
 
@@ -50,7 +52,7 @@ function LazyFallback() {
 
 /** Virtualized post list — only renders posts visible in viewport */
 const VIRTUAL_OVERSCAN = 3;
-const ESTIMATED_POST_HEIGHT = 280;
+const ESTIMATED_POST_HEIGHT = 380;
 
 function PostList({
   posts,
@@ -166,7 +168,7 @@ function PostList({
 
       {/* End-of-list indicator */}
       {!hasMore && posts.length > 0 && (
-        <div className="text-center py-6">
+        <div className="text-center py-3 sm:py-6">
           <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
             ~ that's all for now! ~
           </p>
@@ -268,6 +270,25 @@ function App() {
     setShowModal(true);
   }, [user, showError]);
 
+  // Keyboard shortcut: Ctrl+N / Cmd+N → new post (desktop only)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        // Skip if user is typing in an input/textarea
+        const tag = document.activeElement?.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        // Skip if any modal is open
+        if (showModal || showProfileModal || showSettingsModal) return;
+        // Skip if not authenticated
+        if (!user) return;
+        e.preventDefault();
+        handleNewPost();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [user, showModal, showProfileModal, showSettingsModal, handleNewPost]);
+
   const handleEditPost = useCallback((post: Post) => {
     if (!user) {
       showError('~ sign in 2 edit entries! ~');
@@ -304,9 +325,10 @@ function App() {
     } else {
       void hapticImpact();
       success(SUCCESS_MESSAGES.post.deleted);
+      void refetchChapters(); // Last post in a chapter may have been deleted
     }
     setPostToDelete(null);
-  }, [postToDelete, deletePost, showError, success]);
+  }, [postToDelete, deletePost, showError, success, refetchChapters]);
 
   const handleSavePost = async (postData: CreatePostInput) => {
     // C1 FIX: Run AI moderation before saving. quickContentCheck already ran
@@ -344,8 +366,10 @@ function App() {
         return;
       }
       void hapticImpact();
-      sparkleBurst();
-      emojiRain(['✨', '💕', '📝', '⭐'], 12);
+      // Fewer particles on mobile to avoid frame drops on older phones
+      const isMobile = window.innerWidth < 640;
+      sparkleBurst(undefined, undefined, isMobile ? 6 : 12);
+      emojiRain(['✨', '💕', '📝', '⭐'], isMobile ? 6 : 12);
       success(SUCCESS_MESSAGES.post.created);
 
       // Also update profile mood/music if provided in the post
@@ -357,8 +381,8 @@ function App() {
       }
     }
     setShowModal(false);
-    // Refresh chapter list if the post had a chapter
-    if (postData.chapter) void refetchChapters();
+    // Refresh chapter list — user may have added/changed/removed a chapter
+    void refetchChapters();
   };
 
   const handleSignOut = async () => {
@@ -410,9 +434,10 @@ function App() {
       void hapticImpact();
       success(is_blocked ? SUCCESS_MESSAGES.block.blocked : SUCCESS_MESSAGES.block.unblocked);
       void refetch(); // Refresh feed to hide blocked user's posts
+      void refetchChapters(); // Blocked user's posts hidden → chapter counts change
     }
     setUserToBlock(null);
-  }, [userToBlock, toggleBlock, showError, success, refetch]);
+  }, [userToBlock, toggleBlock, showError, success, refetch, refetchChapters]);
 
   const handleOnboardingComplete = () => {
     try { localStorage.setItem('hasCompletedOnboarding', 'true'); } catch { /* private browsing */ }
@@ -587,6 +612,14 @@ function App() {
             onChapterSelect={setChapterFilter}
           />
 
+          {/* Mobile: horizontal chapter chips above feed */}
+          <ChapterChips
+            chapters={chapters}
+            activeChapter={chapterFilter}
+            onChapterSelect={setChapterFilter}
+            postCount={posts.length}
+          />
+
           {/* Main Content Area */}
           <main className="flex-1 min-w-0">
             {/* Chapter filter banner */}
@@ -730,7 +763,7 @@ function App() {
 
       {/* Footer - very Xanga! */}
       <footer
-        className="mt-12 py-6 border-t-2 border-dotted"
+        className="mt-6 sm:mt-12 py-4 sm:py-6 border-t-2 border-dotted"
         style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--footer-bg)' }}
       >
         <div className="max-w-7xl mx-auto px-4 text-center space-y-3">
@@ -741,6 +774,13 @@ function App() {
             <span className="pixel-badge badge-web2">web 2.0 ✓</span>
             <span className="pixel-badge badge-powered">♻ nostalgia</span>
             <span className="pixel-badge badge-800">800x600</span>
+          </div>
+          <div className="flex items-center justify-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+            <span>powered by</span>
+            <Windows95MyComputer size={16} alt="" />
+            <span className="xanga-subtitle">
+              <span className="blink">✨</span> YourJournal <span className="blink">✨</span>
+            </span>
           </div>
           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
             © 2005-2026 My Journal • All rights reserved

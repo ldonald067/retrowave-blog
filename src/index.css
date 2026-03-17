@@ -758,6 +758,74 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
   background-color: color-mix(in srgb, currentColor 15%, transparent);
 }
 
+/* ===== Chapter Chips — horizontal swipe row (mobile only) ===== */
+.chapter-chips-wrapper {
+  position: relative;
+}
+
+.chapter-chips-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  padding: 4px 2px;
+}
+
+.chapter-chips-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari — chips are swipeable, scrollbar adds noise */
+}
+
+.chapter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 9999px;
+  border: 1.5px solid;
+  font-size: 13px;
+  font-family: var(--title-font);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.chapter-chip-count {
+  font-size: 10px;
+  font-family: sans-serif;
+  font-weight: 500;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  line-height: 1.4;
+}
+
+/* Fade edges — hint that the row is scrollable */
+.chapter-chips-fade-left,
+.chapter-chips-fade-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 28px;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.2s;
+}
+
+.chapter-chips-fade-left {
+  left: 0;
+  background: linear-gradient(to right, var(--bg-primary), transparent);
+}
+
+.chapter-chips-fade-right {
+  right: 0;
+  background: linear-gradient(to left, var(--bg-primary), transparent);
+}
+
 /* ===== iPhone Responsive ===== */
 @media (max-width: 480px) {
   .marquee-banner {

@@ -6,8 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate, formatRelativeDate } from '../utils/formatDate';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
-import { BLOG_OWNER_EMAIL, FEED_EXCERPT_MAX, SHARE_SNIPPET_MAX } from '../lib/constants';
-import { sharePost } from '../lib/capacitor';
+import { BLOG_OWNER_EMAIL, FEED_EXCERPT_MAX } from '../lib/constants';
 import ReactionBar from './ui/ReactionBar';
 import YouTubeCard from './ui/YouTubeCard';
 import type { Post } from '../types/post';
@@ -171,7 +170,7 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
         )}
       </div>
 
-      {/* Post footer - author row */}
+      {/* Post footer - author + actions row */}
       <div
         className="px-4 pt-2 pb-1 border-t flex items-center justify-between text-xs"
         style={{
@@ -180,46 +179,31 @@ const PostCard = memo(function PostCard({ post, onEdit, onDelete, onView, onReac
           color: 'var(--text-muted)',
         }}
       >
-        <div className="flex items-center gap-3">
-          {post.author && <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</span>}
-          {/* Apple Guideline 1.2: UGC apps must provide reporting + blocking */}
-          {!isOwner && currentUserId && (
-            <>
-              <a
-                href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
-                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px]"
-                style={{ color: 'var(--text-muted)' }}
-                aria-label="Report this post"
-              >
-                <Pepicon name="flag" size={12} />
-                ~ report ~
-              </a>
-              <motion.button
-                whileTap={{ scale: 0.9 }}
-                onClick={() => onBlock?.(post.user_id)}
-                className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] min-w-[44px] justify-center"
-                style={{ color: 'var(--text-muted)' }}
-                aria-label="Block this user"
-              >
-                <Pepicon name="shield" size={12} />
-                ~ block ~
-              </motion.button>
-            </>
-          )}
-        </div>
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={() => {
-            const snippet = post.content ? post.content.substring(0, SHARE_SNIPPET_MAX) : '';
-            void sharePost(post.title, `${snippet}${snippet.length < (post.content?.length ?? 0) ? '...' : ''}`);
-          }}
-          className="p-1.5 rounded transition hover:opacity-70 min-h-[44px] min-w-[44px] flex items-center justify-center"
-          title="Share post"
-          aria-label="Share post"
-          style={{ color: 'var(--text-muted)' }}
-        >
-          <Pepicon name="shareIos" size={14} />
-        </motion.button>
+        {post.author && <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</span>}
+        {/* Apple Guideline 1.2: UGC apps must provide reporting + blocking */}
+        {!isOwner && currentUserId && (
+          <div className="flex items-center gap-1">
+            <a
+              href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
+              className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px]"
+              style={{ color: 'var(--text-muted)' }}
+              aria-label="Report this post"
+            >
+              <Pepicon name="flag" size={12} />
+              ~ report ~
+            </a>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => onBlock?.(post.user_id)}
+              className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] min-w-[44px] justify-center"
+              style={{ color: 'var(--text-muted)' }}
+              aria-label="Block this user"
+            >
+              <Pepicon name="shield" size={12} />
+              ~ block ~
+            </motion.button>
+          </div>
+        )}
       </div>
 
       {/* Post footer - reactions row */}

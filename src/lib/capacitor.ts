@@ -3,13 +3,12 @@
  *
  * All native-only calls are guarded by `Capacitor.isNativePlatform()` so the
  * web build is never affected.  Plugins that already provide web fallbacks
- * (Share, Browser, Haptics) are called unconditionally.
+ * (Browser, Haptics) are called unconditionally.
  */
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { Share } from '@capacitor/share';
 import { Browser } from '@capacitor/browser';
 import { SplashScreen } from '@capacitor/splash-screen';
 
@@ -96,26 +95,6 @@ export async function hapticImpact(): Promise<void> {
     await Haptics.impact({ style: ImpactStyle.Light });
   } catch {
     // Silently swallow — device may not support haptics
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Share
-// ---------------------------------------------------------------------------
-
-/** Share a post via the native share sheet (falls back to Web Share API). */
-export async function sharePost(
-  title: string,
-  text: string,
-): Promise<void> {
-  try {
-    await Share.share({
-      title,
-      text,
-      dialogTitle: '~ share this entry ~',
-    });
-  } catch {
-    // User cancelled or share not available
   }
 }
 

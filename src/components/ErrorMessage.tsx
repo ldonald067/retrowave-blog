@@ -11,20 +11,10 @@ export default function ErrorMessage({ error, onRetry }: ErrorMessageProps) {
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
+      role="alert"
       className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6"
     >
-      <motion.div
-        animate={{
-          rotate: [0, 10, -10, 0],
-        }}
-        transition={{
-          duration: 0.5,
-          repeat: 3,
-        }}
-        className="text-5xl mb-4"
-      >
-        😵‍💫
-      </motion.div>
+      <div className="text-5xl mb-4">😵‍💫</div>
 
       <div className="xanga-box p-6 max-w-md w-full mb-6">
         <h2 className="xanga-title text-xl mb-3">

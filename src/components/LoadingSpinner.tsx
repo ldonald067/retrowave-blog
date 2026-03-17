@@ -4,7 +4,7 @@ export default function LoadingSpinner() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-3">
+    <div className="flex flex-col items-center justify-center min-h-screen gap-3" role="status" aria-live="polite">
       <motion.div
         animate={{
           rotate: prefersReducedMotion ? 0 : 360,

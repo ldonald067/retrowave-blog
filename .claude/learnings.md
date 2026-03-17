@@ -29,6 +29,10 @@ new findings after completing work.
 - [2026-03-14 /mobile] RESOLVED: `.safe-area-top` CSS utility class added alongside
   existing `.safe-area-bottom`. Applied to AgeVerification, OnboardingFlow, AuthModal
   headers. Safe-area-bottom applied to OnboardingFlow footer and AgeVerification content.
+- [2026-03-16 /mobile] Chapters on mobile: horizontal swipeable chip row (`ChapterChips`)
+  placed above the feed in App.tsx, always visible without expanding sidebar. Sidebar
+  chapter list now `hidden lg:block` (desktop only). Chips use `scroll-snap-type: x`,
+  fade edges for scroll hint, `role="tablist"`/`aria-selected` for a11y, 44px min-height.
 - [2026-03-14 /mobile] RESOLVED: `.xanga-link` now has `min-height: 44px` with
   `inline-flex` + `align-items: center` for Apple HIG touch targets. AgeVerification
   TOS checkbox container has `min-h-[44px]`, checkbox itself `w-5 h-5`.
@@ -87,6 +91,14 @@ new findings after completing work.
   → `#b0a088` (~5.0:1 on `#242018`). Both now pass WCAG AA.
 - [2026-02-26 /frontend-design] RESOLVED: `.xanga-button` now enforces
   `min-height: 44px` in CSS. Select.tsx now has `min-h-[44px]`.
+- [2026-03-16 /mobile] RESOLVED: `--accent-primary` contrast failures on 4 themes. These are
+  used for small text (chapter names, author names, links) needing 4.5:1 WCAG AA. Fixes:
+  Classic Xanga `#ff1493` → `#d6157e` (4.88:1 on white), Cottage Core `#7d8c5c` → `#617544`
+  (4.70:1 on `#fff8f0`), MySpace Blue `#0066cc` → `#1188dd` (5.01:1 on `#001133`), Grunge
+  `#8b7355` → `#a89070` (5.24:1 on `#242018`). `--text-title` kept at original values since
+  headings (text-lg+) only need 3:1 for large text.
+- [2026-03-16 /mobile] LoadingSpinner now has `role="status" aria-live="polite"` for screen
+  reader announcement. ErrorMessage now has `role="alert"`.
 
 ## Architecture & Integration
 
@@ -235,6 +247,32 @@ new findings after completing work.
   hundreds of repeated GET /profiles requests. Fixed by adding 2-second cooldown throttle
   (`FETCH_COOLDOWN_MS`) + existing in-flight guard in `fetchProfile`. Cooldown skips if no
   profile loaded yet (initial load always proceeds).
+
+## UX & Interaction
+
+- [2026-03-16 /fullstack] RESOLVED: Chapter sidebar counts went stale after editing/deleting posts
+  or blocking users. Fixed by calling `refetchChapters()` in all three success paths (save, delete,
+  block), not just on post creation. Previously only `handleSavePost` with a truthy chapter triggered it.
+- [2026-03-16 /fullstack] Share button removed from PostCard — no public URLs exist yet (personal
+  diary mode). `sharePost` and `SHARE_SNIPPET_MAX` removed from capacitor.ts and constants.ts.
+  Will return when shareable profile/post links are built.
+- [2026-03-16 /fullstack] Keyboard shortcut Ctrl+N / Cmd+N opens new post modal. Guarded by: user
+  authenticated, no modal open, active element not input/textarea/select. `e.preventDefault()` blocks
+  browser's native new-window behavior.
+
+- [2026-03-16 /mobile] Sidebar now defaults to collapsed on mobile (first-time users). Desktop
+  sidebar unaffected (`hidden lg:block` always visible). Previous default `false` forced mobile
+  users to scroll past 500px+ of profile/stats/chapters before reaching the feed.
+- [2026-03-16 /mobile] PostCard footer author row restructured — author name and report/block
+  buttons now direct children of the flex container (no wrapper div) so `justify-between` spreads
+  them properly. Owner view no longer has empty right side.
+- [2026-03-16 /mobile] ErrorMessage emoji (😵‍💫) wiggle animation removed — was using Framer Motion
+  `animate` which ignores CSS `prefers-reduced-motion`. Replaced with static emoji. The
+  `<MotionConfig reducedMotion="user">` wrapper in App.tsx only covers the main app, not the
+  ErrorMessage which renders in the error/loading early-returns.
+- [2026-03-16 /mobile] Celebration particles (sparkleBurst + emojiRain) halved on mobile
+  (6 particles vs 12 on desktop). Prevents frame drops on mid-range phones. Detection via
+  `window.innerWidth < 640` at call site in App.tsx.
 
 ## False Positives (Do NOT Flag)
 
