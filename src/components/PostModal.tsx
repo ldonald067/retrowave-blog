@@ -174,7 +174,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
     setSaving(true);
 
     // Run content moderation check
-    const moderationResult = quickContentCheck(`${title} ${content}`);
+    const moderationResult = quickContentCheck(`${title} ${content}${chapter ? ` ${chapter}` : ''}`);
     if (!moderationResult.allowed) {
       setModerationError(moderationResult.reason || 'Content violates community guidelines');
       setSaving(false);
