@@ -13,6 +13,54 @@ new findings after completing work.
 
 ---
 
+## Shared Data Contracts
+
+Keep frontend and backend in sync when changing limits or adding fields:
+
+| Data | Frontend | Backend |
+|------|----------|---------|
+| Post field limits | `validation.ts` `POST_LIMITS` | `20260223000001_post_constraints.sql` |
+| Profile field limits | `validation.ts` `PROFILE_LIMITS` | `20260224000004` + `20260224000008` |
+| Chapter max length | `validation.ts` `POST_LIMITS.chapter` (100) | `20260315000004` CHECK constraint |
+| Reaction emoji set | `ReactionBar.tsx` `REACTION_EMOJIS` | `20260224000004` CHECK constraint |
+| Password policy | `validation.ts` `PASSWORD_MIN_LENGTH` (8) | `config.toml` `minimum_password_length` |
+| Username format | `validation.ts` `USERNAME_PATTERN` | `20260315000002` CHECK constraint |
+| Moderation lists | `moderation.ts` `BLOCKED_PATTERNS` | `edge fn moderate-content` |
+
+## Gotchas
+
+### TypeScript
+- `noUncheckedIndexedAccess` enabled — array indexing returns `T | undefined`.
+- Supabase query builders return `PromiseLike` not `Promise` — wrap with `async` in `withRetry()`.
+- `requireAuth()` discriminated union doesn't narrow — use `auth.user!` after the error check.
+- Path aliases: `@/*`, `@components/*`, `@hooks/*`, `@utils/*`, `@lib/*`.
+
+### Mobile & iOS
+- Touch targets: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never bare `min-h-[36px]` — fails Apple HIG.
+- `ESTIMATED_POST_HEIGHT` (380px) must match real PostCard height or virtualizer overlaps on initial render.
+- WCAG AA: `--accent-primary` must hit 4.5:1 on `--card-bg`. `--text-title` only needs 3:1 (large text).
+
+### UI Conventions
+- Settings (gear → SettingsModal) and Profile (avatar → ProfileModal) are separate modals. Don't merge.
+- Toast: minimal centered pills. Error messages use `~` tildes. Never raw error strings.
+- Auth forms use inline field errors (not toasts) — App-level `<Toast>` isn't mounted during auth.
+- Keyboard shortcut: Ctrl+N / Cmd+N opens new post modal.
+
+### Data & Environment
+- `is_admin` and COPPA fields are trigger-protected — need SECURITY DEFINER RPCs.
+- All `localStorage` access in try/catch (Safari private browsing throws).
+- `react-old-icons` fetches `.webp` from GitHub at runtime — won't render offline.
+- `.env` is gitignored. Copy `.env.example` → `.env` on each machine.
+- `useChapters` called once in App.tsx — don't add a second call (duplicate RPCs).
+- `sharePost` removed from capacitor.ts. `SHARE_SNIPPET_MAX` removed from constants.ts.
+
+### Chapters
+- Optional `chapter` column on `posts` (no separate table). `get_user_chapters()` RPC. Client-side filtering.
+- Mobile: `ChapterChips` horizontal swipe row above feed. Desktop: vertical list in sidebar.
+- `refetchChapters()` called on post create, edit, delete, and block to keep counts in sync.
+
+---
+
 ## Responsive & Mobile
 
 - [2026-02-25 /mobile] iPhone SE (375x667): PostModal `MODAL_CHROME_HEIGHT=140`
