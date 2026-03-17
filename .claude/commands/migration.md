@@ -105,6 +105,13 @@ When invoked without a task, check all sync points for drift and report:
 |-----------|--------|---------|
 | ... | IN SYNC / DRIFT | ... |
 
+## Cross-Domain
+
+- After migration: run `/fullstack` to verify RPC type alignment
+- New RPCs need wiring: `/feature` (hooks, auth guards, error handling)
+- Schema changes affecting UI: `/frontend` (new fields to display)
+- New tables with UGC: `/mobile` (App Store compliance — reporting, moderation)
+
 ## Learnings
 
 Append findings to `.claude/learnings.md`:

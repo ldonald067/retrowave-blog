@@ -155,6 +155,12 @@ expect(result.current.posts[0]?.id).toBe('post-1');
 - [ ] Tests cover happy path, auth guard, and error cases
 - [ ] All tests pass: `npm run test`
 
+## Cross-Domain
+
+- After writing tests: run `/preflight` to verify full pipeline
+- Mock chain patterns depend on Supabase API shape: check `/feature` for current table → hook mapping
+- New hooks need tests before commit: check existing tests in `src/hooks/__tests__/` for patterns
+
 ## Learnings
 
 Append findings to `.claude/learnings.md`:

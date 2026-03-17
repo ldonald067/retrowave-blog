@@ -96,6 +96,13 @@ npx tsc --noEmit
 
 Reference `.claude/learnings.md` false positives to avoid repeating dismissed findings.
 
+## Cross-Domain
+
+- Touch target or layout changes → `/frontend` (CSS patterns, theme vars)
+- New Capacitor plugins → `/feature` (guard patterns in capacitor.ts)
+- RPC data displayed in mobile UI → `/fullstack` (type alignment)
+- New modals → `/frontend` (swipe-to-dismiss, focus trap, safe areas)
+
 ## Learnings
 
 Append findings to `.claude/learnings.md`:

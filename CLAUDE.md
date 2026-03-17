@@ -28,6 +28,18 @@ React 19 + TypeScript 5.9 + Vite 7 + Tailwind CSS 4 + Framer Motion + Supabase (
 
 Icons: pepicons (Pop! variant, SVG strings) for functional UI + react-old-icons (Win98 `.webp` images from GitHub) for decorative accents. Wrapper: `src/components/ui/Pepicon.tsx`.
 
+## Architecture
+
+```
+User → App.tsx → hooks (useAuth, usePosts, useReactions, useBlocks, useChapters)
+                   ↓
+                Supabase Client → RPCs / direct .from() queries
+                   ↓
+                PostgreSQL (RLS policies + triggers)
+```
+
+Key data flow: Auth gates in App.tsx → hooks call `requireAuth()` → `withRetry(async () => supabase.rpc(...))` → `toUserMessage(error)` on failure.
+
 ## Environment
 
 Copy `.env.example` → `.env`:
@@ -57,15 +69,15 @@ Run `npx tsc --noEmit && npm run build && npm run test` before committing. Alway
 
 Use the right skill for the task. Each skill contains full domain context — patterns, checklists, and gotchas specific to that area.
 
-| Skill | When to use |
-|-------|-------------|
-| `/frontend` | UI: theming, components, CSS, Xanga aesthetic, copy, responsive |
-| `/feature` | Backend wiring: Supabase RPCs, hooks, auth patterns, error handling |
-| `/fullstack` | Audit: RPC type alignment, RLS policies, shared data contracts |
-| `/mobile` | iOS: Capacitor, App Store compliance, touch targets, safe areas |
-| `/migration` | SQL: new tables/columns/RPCs, syncing database.ts + validation.ts |
-| `/test` | Tests: Vitest mock patterns, Supabase chain mocking, hook testing |
-| `/preflight` | Pre-commit: runs tsc + build + tests, diagnoses failures |
+| Skill | When to use | Related skills |
+|-------|-------------|----------------|
+| `/frontend` | UI: theming, components, CSS, Xanga aesthetic, copy, responsive | `/mobile` (touch targets), `/fullstack` (RPC data) |
+| `/feature` | Backend wiring: Supabase RPCs, hooks, auth patterns, error handling | `/migration` (SQL), `/fullstack` (audit after) |
+| `/fullstack` | Audit: RPC type alignment, RLS policies, shared data contracts | `/feature` (wiring), `/migration` (sync) |
+| `/mobile` | iOS: Capacitor, App Store compliance, touch targets, safe areas | `/frontend` (responsive CSS) |
+| `/migration` | SQL: new tables/columns/RPCs, syncing database.ts + validation.ts | `/fullstack` (verify after), `/feature` (wire up) |
+| `/test` | Tests: Vitest mock patterns, Supabase chain mocking, hook testing | `/preflight` (run after) |
+| `/preflight` | Pre-commit: runs tsc + build + tests, diagnoses failures | `/test` (fix patterns), `/migration` (type sync) |
 
 Cross-cutting knowledge lives in `.claude/learnings.md` — all skills read it.
 
@@ -93,23 +105,41 @@ Optional free-text grouping — just a `chapter` column on `posts`, no separate 
 
 See `.claude/learnings.md` for implementation details.
 
+## Recent Changes
+
+<!-- Keep ~5 most recent significant changes. Oldest drops off when new ones are added. -->
+- **2026-03-17**: ChapterChips horizontal swipe row for mobile chapter navigation
+- **2026-03-17**: Virtualizer overlap fix (ESTIMATED_POST_HEIGHT 280→380), footer spacing tightened
+- **2026-03-17**: WCAG AA contrast fixes on 4 themes (accent-primary colors)
+- **2026-03-16**: Toast redesign — minimal centered pills with retro copy
+- **2026-03-16**: Share button removed (no public URLs yet), keyboard shortcut Ctrl+N added
+
 ## Gotchas
 
-- `is_admin` and COPPA fields are trigger-protected — need SECURITY DEFINER RPCs to modify.
+### TypeScript
 - `noUncheckedIndexedAccess` enabled — array indexing returns `T | undefined`.
 - Supabase query builders return `PromiseLike` not `Promise` — wrap with `async` in `withRetry()`.
 - `requireAuth()` discriminated union doesn't narrow — use `auth.user!` after the error check.
 - Path aliases: `@/*`, `@components/*`, `@hooks/*`, `@utils/*`, `@lib/*`.
+
+### Mobile & iOS
+- Touch targets: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never use bare `min-h-[36px]` — fails Apple HIG. The `lg:` breakpoint (1024px) matches sidebar fixed/collapsible switch.
+- `ESTIMATED_POST_HEIGHT` (380px) in App.tsx must be close to real PostCard height to avoid virtualizer overlap on initial render. If PostCard layout changes significantly, re-measure and update.
+- WCAG AA contrast: `--accent-primary` must hit 4.5:1 on `--card-bg` for each theme. `--text-title` only needs 3:1 (large text). Verified for all 8 themes.
+
+### UI Conventions
+- Settings (gear icon → SettingsModal: export data + delete account) and Profile (avatar → ProfileModal: avatar, name, bio, theme, emoji style) are separate modals. Don't merge them.
+- 6 emoji styles: native, fluent, twemoji, openmoji, blob, noto. Fills 2x3 grid. CDN URLs in `emojiStyles.ts`.
+- Toast notifications are minimal centered pills (not boxed). Error messages use `~` tildes for the retro vibe. Keep messages short — no raw error details.
+- Auth forms use inline field errors (not toasts) — `useToast()` is per-instance local state, and App-level `<Toast>` isn't mounted during the auth early-return.
+- Keyboard shortcut: Ctrl+N / Cmd+N opens new post modal (guarded by auth, no modal open, not in input).
+
+### Data & Environment
+- `is_admin` and COPPA fields are trigger-protected — need SECURITY DEFINER RPCs to modify.
 - All `localStorage` access wrapped in try/catch (Safari private browsing throws).
 - `react-old-icons` fetches `.webp` from GitHub at runtime — icons won't render offline. `pepicons` SVGs are bundled (no network needed).
 - `.env` is gitignored. Copy `.env.example` → `.env` on each new machine and fill in Supabase credentials.
-- Settings (⚙️ gear icon → SettingsModal: export data + delete account) and Profile (👤 → ProfileModal: avatar, name, bio, theme, emoji style) are separate modals. Don't merge them.
-- 6 emoji styles: native, fluent, twemoji, openmoji, blob, noto. Fills 2×3 grid. CDN URLs in `emojiStyles.ts`.
-- Auth forms use inline field errors (not toasts) — `useToast()` is per-instance local state, and App-level `<Toast>` isn't mounted during the auth early-return.
 - `useChapters` is called once in App.tsx — chapters passed as props to Sidebar and PostModal. Don't add a second call (causes duplicate RPC fetches).
-- Mobile touch targets: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never use bare `min-h-[36px]` — fails Apple HIG. The `lg:` breakpoint (1024px) matches sidebar fixed/collapsible switch.
-- Toast notifications are minimal centered pills (not boxed). Error messages use `~` tildes for the retro vibe. Keep messages short — no raw error details.
-- `ESTIMATED_POST_HEIGHT` (380px) in App.tsx must be close to real PostCard height to avoid virtualizer overlap on initial render. If PostCard layout changes significantly, re-measure and update.
-- WCAG AA contrast: `--accent-primary` must hit 4.5:1 on `--card-bg` for each theme. `--text-title` only needs 3:1 (large text). Verified for all 8 themes.
-- Keyboard shortcut: Ctrl+N / Cmd+N opens new post modal (guarded by auth, no modal open, not in input).
+
+### Removed/Deprecated
 - `sharePost` removed from capacitor.ts — share feature not currently available. `SHARE_SNIPPET_MAX` removed from constants.ts.
