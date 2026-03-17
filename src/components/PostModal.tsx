@@ -351,7 +351,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                   </p>
                 )}
 
-                <div className="prose prose-sm max-w-none" style={{ color: 'var(--text-body)' }}>
+                <div className="prose prose-sm sm:prose max-w-none" style={{ color: 'var(--text-body)' }}>
                   {loadingFullContent ? (
                     <p className="text-xs italic" style={{ color: 'var(--text-muted)' }}>
                       loading full entry...

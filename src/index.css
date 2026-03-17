@@ -310,7 +310,7 @@ body {
 .xanga-subtitle {
   font-family: 'Verdana', sans-serif;
   color: var(--text-subtitle);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: normal;
 }
 
@@ -327,7 +327,7 @@ body {
   padding: 6px 15px;
   min-height: 44px; /* Apple HIG touch target */
   font-family: 'Verdana', sans-serif;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: bold;
   color: var(--button-text, var(--text-title));
   cursor: pointer;
@@ -740,14 +740,14 @@ select:focus-visible {
 /* ===== AIM Status Style ===== */
 .aim-status {
   font-family: 'Verdana', sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   font-style: italic;
   color: var(--text-muted);
 }
 
 .aim-status-edit {
   font-family: 'Verdana', sans-serif;
-  font-size: 10px;
+  font-size: 12px;
   font-style: italic;
   background: var(--card-bg);
   border: 1px dotted var(--border-primary);
@@ -868,8 +868,8 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
   }
 
   .xanga-button {
-    padding: 5px 10px;
-    font-size: 10px;
+    padding: 5px 12px;
+    font-size: 12px;
   }
 
   .aim-status-edit {

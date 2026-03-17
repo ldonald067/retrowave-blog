@@ -412,7 +412,7 @@ export default function ProfileModal({
                       >
                         {theme.name}
                       </p>
-                      <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{theme.description}</p>
+                      <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{theme.description}</p>
                     </button>
                   ))}
                 </div>
