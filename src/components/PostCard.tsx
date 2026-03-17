@@ -64,7 +64,7 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
               {post.title}
             </motion.button>
           </h2>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs min-h-[28px]" style={{ color: 'var(--text-muted)' }}>
             <span className="flex items-center gap-1">
               <span style={{ color: 'var(--accent-primary)' }}>📅</span>
               {formatDate(post.created_at, 'MMM dd, yyyy')}
@@ -74,7 +74,7 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
                 <span className="hidden sm:inline">•</span>
                 <button
                   onClick={(e) => { e.stopPropagation(); onChapterClick?.(post.chapter!); }}
-                  className="flex items-center gap-1 transition hover:underline min-h-[44px] lg:min-h-0 max-w-[160px] sm:max-w-[220px]"
+                  className="flex items-center gap-1 transition hover:underline min-h-[28px] lg:min-h-0 max-w-[160px] sm:max-w-[220px]"
                   style={{ color: 'var(--accent-primary)' }}
                   aria-label={`Filter by chapter: ${post.chapter}`}
                 >
