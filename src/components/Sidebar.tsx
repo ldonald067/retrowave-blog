@@ -235,6 +235,8 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                 fontFamily: 'var(--title-font)',
                 backgroundColor: activeChapter === null ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'transparent',
               }}
+              aria-label={`Show all entries (${postCount})`}
+              aria-pressed={activeChapter === null}
             >
               <span>✨ all entries</span>
               <span className="text-[10px] font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{postCount}</span>
@@ -251,6 +253,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                   backgroundColor: activeChapter === ch.chapter ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'transparent',
                 }}
                 aria-pressed={activeChapter === ch.chapter}
+                aria-label={`Filter by chapter: ${ch.chapter} (${ch.post_count} ${ch.post_count === 1 ? 'entry' : 'entries'})`}
               >
                 <span className="truncate">📖 {ch.chapter}</span>
                 <span className="text-[10px] font-normal flex-shrink-0" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{ch.post_count}</span>

@@ -31,7 +31,7 @@ describe('useToast', () => {
     });
 
     expect(result.current.toasts[0]?.type).toBe('success');
-    expect(result.current.toasts[0]?.duration).toBe(2500);
+    expect(result.current.toasts[0]?.duration).toBe(3000);
   });
 
   it('removes a toast via hideToast', () => {

@@ -79,6 +79,16 @@ function PostList({
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  // Screen reader announcement for loaded posts
+  const [srAnnouncement, setSrAnnouncement] = useState('');
+  const prevCountRef = useRef(posts.length);
+  useEffect(() => {
+    if (posts.length > prevCountRef.current) {
+      const newCount = posts.length - prevCountRef.current;
+      setSrAnnouncement(`${newCount} more ${newCount === 1 ? 'post' : 'posts'} loaded`);
+    }
+    prevCountRef.current = posts.length;
+  }, [posts.length]);
 
   const virtualizer = useVirtualizer({
     count: posts.length,
@@ -108,6 +118,8 @@ function PostList({
 
   return (
     <div>
+      {/* Screen reader announcement for infinite scroll */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">{srAnnouncement}</div>
       <div ref={parentRef} className="overflow-auto" style={{ maxHeight: 'calc(100dvh - 200px)', scrollbarWidth: 'thin' }}>
         <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map((virtualRow) => {
@@ -553,6 +565,7 @@ function App() {
     <ErrorBoundary>
     <MotionConfig reducedMotion="user">
     <div className="min-h-screen themed-bg">
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       <CursorSparkle />
       <Header
         onNewPost={handleNewPost}
@@ -605,7 +618,7 @@ function App() {
           />
 
           {/* Main Content Area */}
-          <main className="flex-1 min-w-0">
+          <main id="main-content" className="flex-1 min-w-0">
             {/* Chapter filter banner */}
             {chapterFilter && (
               <motion.div

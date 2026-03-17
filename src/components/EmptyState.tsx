@@ -1,10 +1,11 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface EmptyStateProps {
   onCreatePost: () => void;
 }
 
 export default function EmptyState({ onCreatePost }: EmptyStateProps) {
+  const prefersReducedMotion = useReducedMotion();
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -22,7 +23,7 @@ export default function EmptyState({ onCreatePost }: EmptyStateProps) {
         {/* Journal header */}
         <div className="mb-4 pb-3 border-b-2 border-dotted" style={{ borderColor: 'var(--border-primary)' }}>
           <motion.div
-            animate={{ opacity: [1, 0.5, 1] }}
+            animate={prefersReducedMotion ? {} : { opacity: [1, 0.5, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
             className="text-3xl sm:text-4xl mb-2"
           >

@@ -37,6 +37,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
   const [author, setAuthor] = useState('');
   const [chapter, setChapter] = useState('');
   const [showChapterPicker, setShowChapterPicker] = useState(false);
+  const [chapterHighlight, setChapterHighlight] = useState(-1);
   const [mood, setMood] = useState('');
   const [music, setMusic] = useState('');
   const existingChapters = chapters;
@@ -364,7 +365,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
               </div>
             ) : (
               <fieldset disabled={saving || loadingFullContent}>
-              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+              <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4" aria-busy={saving || loadingFullContent}>
                 {/* Draft Restored Banner */}
                 <AnimatePresence>
                   {draftRestored && (
@@ -422,11 +423,35 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                   <Input
                     label="📖 chapter (optional):"
                     value={chapter}
-                    onChange={(e) => setChapter(e.target.value)}
-                    onFocus={() => setShowChapterPicker(true)}
+                    onChange={(e) => { setChapter(e.target.value); setChapterHighlight(-1); }}
+                    onFocus={() => { setShowChapterPicker(true); setChapterHighlight(-1); }}
                     onBlur={() => setTimeout(() => setShowChapterPicker(false), 150)}
+                    onKeyDown={(e) => {
+                      if (!showChapterPicker) return;
+                      const filtered = existingChapters.filter((c) => !chapter || c.chapter.toLowerCase().includes(chapter.toLowerCase()));
+                      if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        setChapterHighlight((prev) => Math.min(prev + 1, filtered.length - 1));
+                      } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        setChapterHighlight((prev) => Math.max(prev - 1, -1));
+                      } else if (e.key === 'Enter' && chapterHighlight >= 0 && filtered[chapterHighlight]) {
+                        e.preventDefault();
+                        setChapter(filtered[chapterHighlight].chapter);
+                        setShowChapterPicker(false);
+                        setChapterHighlight(-1);
+                      } else if (e.key === 'Escape') {
+                        setShowChapterPicker(false);
+                        setChapterHighlight(-1);
+                      }
+                    }}
                     placeholder="name a chapter for this entry..."
                     maxLength={POST_LIMITS.chapter.max}
+                    role="combobox"
+                    aria-expanded={showChapterPicker && existingChapters.length > 0}
+                    aria-autocomplete="list"
+                    aria-controls="chapter-listbox"
+                    aria-activedescendant={chapterHighlight >= 0 ? `chapter-option-${chapterHighlight}` : undefined}
                   />
                   {/* Chapter autocomplete dropdown */}
                   <AnimatePresence>
@@ -436,6 +461,9 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.15 }}
+                        id="chapter-listbox"
+                        role="listbox"
+                        aria-label="Existing chapters"
                         className="absolute z-10 left-0 right-0 mt-1 rounded-lg border-2 border-dotted overflow-hidden max-h-[140px] overflow-y-auto"
                         style={{
                           backgroundColor: 'var(--card-bg)',
@@ -444,13 +472,21 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                       >
                         {existingChapters
                           .filter((c) => !chapter || c.chapter.toLowerCase().includes(chapter.toLowerCase()))
-                          .map((c) => (
+                          .map((c, idx) => (
                             <button
                               key={c.chapter}
+                              id={`chapter-option-${idx}`}
                               type="button"
-                              onMouseDown={(e) => { e.preventDefault(); setChapter(c.chapter); setShowChapterPicker(false); }}
+                              role="option"
+                              aria-selected={idx === chapterHighlight}
+                              onMouseDown={(e) => { e.preventDefault(); setChapter(c.chapter); setShowChapterPicker(false); setChapterHighlight(-1); }}
                               className="w-full text-left px-3 py-2 text-xs transition hover:brightness-95 min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
-                              style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-body)' }}
+                              style={{
+                                backgroundColor: idx === chapterHighlight
+                                  ? 'color-mix(in srgb, var(--accent-primary) 15%, var(--card-bg))'
+                                  : 'var(--card-bg)',
+                                color: 'var(--text-body)',
+                              }}
                             >
                               <span className="truncate">📖 {c.chapter}</span>
                               <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>

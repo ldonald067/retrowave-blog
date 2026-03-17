@@ -49,7 +49,7 @@ export default function ConfirmDialog({
             id="confirm-dialog-title"
             className="xanga-title text-lg mb-2"
           >
-            ⚠️ {title}
+            <span aria-hidden="true">⚠️</span> {title}
           </h3>
 
           <p

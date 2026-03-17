@@ -83,8 +83,9 @@ export default function ReactionBar({
                 : 'var(--card-bg)',
               boxShadow: isActive ? '0 1px 3px color-mix(in srgb, var(--accent-primary) 30%, transparent)' : 'none',
             }}
-            aria-label={`${isActive ? 'Remove' : 'Add'} ${emoji} reaction`}
+            aria-label={`${isActive ? 'Remove' : 'Add'} ${emoji} reaction${disabled ? ' (sign in required)' : ''}`}
             aria-pressed={isActive}
+            aria-disabled={disabled || undefined}
           >
             <StyledEmoji emoji={emoji} size={18} overrideStyle={emojiStyle} />
             {count > 0 && (

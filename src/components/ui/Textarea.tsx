@@ -43,7 +43,7 @@ export default function Textarea({
           color: 'var(--text-body)',
         }}
         aria-invalid={error ? true : undefined}
-        aria-describedby={error ? `${textareaId}-error` : undefined}
+        aria-describedby={[error ? `${textareaId}-error` : '', charCount ? `${textareaId}-count` : '', hint && !error ? `${textareaId}-hint` : ''].filter(Boolean).join(' ') || undefined}
         {...props}
       />
       <div className="mt-1 flex justify-between items-start">
@@ -65,13 +65,14 @@ export default function Textarea({
             )}
           </AnimatePresence>
           {hint && !error && (
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <p id={`${textareaId}-hint`} className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {hint}
             </p>
           )}
         </div>
         {charCount && (
           <p
+            id={`${textareaId}-count`}
             className="text-xs ml-2 font-bold"
             style={{
               color: isOverLimit

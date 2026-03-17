@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import type { Chapter } from '../hooks/useChapters';
 
@@ -54,6 +54,31 @@ export default function ChapterChips({
     }
   }, [activeChapter]);
 
+  // Arrow key navigation for tabs (WAI-ARIA tabs pattern)
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const tabs = Array.from(el.querySelectorAll<HTMLElement>('[role="tab"]'));
+    const currentIndex = tabs.indexOf(document.activeElement as HTMLElement);
+    if (currentIndex === -1) return;
+
+    let nextIndex = -1;
+    if (e.key === 'ArrowRight') {
+      nextIndex = (currentIndex + 1) % tabs.length;
+    } else if (e.key === 'ArrowLeft') {
+      nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    } else if (e.key === 'Home') {
+      nextIndex = 0;
+    } else if (e.key === 'End') {
+      nextIndex = tabs.length - 1;
+    }
+    if (nextIndex >= 0) {
+      e.preventDefault();
+      tabs[nextIndex]?.focus();
+      tabs[nextIndex]?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    }
+  }, []);
+
   if (chapters.length === 0) return null;
 
   const allChips = [
@@ -81,6 +106,7 @@ export default function ChapterChips({
         className="chapter-chips-scroll"
         role="tablist"
         aria-label="Chapter filter"
+        onKeyDown={handleKeyDown}
       >
         {allChips.map((chip) => {
           const isActive = activeChapter === chip.id;
@@ -91,6 +117,7 @@ export default function ChapterChips({
               onClick={() => onChapterSelect(chip.id)}
               role="tab"
               aria-selected={isActive}
+              tabIndex={isActive ? 0 : -1}
               data-active={isActive}
               className="chapter-chip"
               style={{
