@@ -39,7 +39,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key-here
 ## Project Layout
 
 ```
-src/components/    # UI components (PostCard, Header, Sidebar, modals incl. SettingsModal, ui/ primitives)
+src/components/    # UI components (PostCard, Header, Sidebar, ChapterChips, modals incl. SettingsModal, ui/ primitives)
 src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useChapters, useToast, useFocusTrap, useOnlineStatus, useYouTubeInfo
 src/lib/           # supabase, auth-guard, errors, retry, validation, cache, moderation, themes, emojiStyles, capacitor, constants, celebrations
 src/types/         # post, profile, database, link-preview
@@ -85,7 +85,13 @@ Keep these in sync when changing limits or adding fields:
 
 ## Chapters
 
-Optional free-text grouping — just a `chapter` column on `posts`, no separate table. Autocomplete from existing chapters via `get_user_chapters()` RPC. Client-side filtering in App.tsx. See `.claude/learnings.md` for implementation details.
+Optional free-text grouping — just a `chapter` column on `posts`, no separate table. Autocomplete from existing chapters via `get_user_chapters()` RPC. Client-side filtering in App.tsx.
+
+- **Mobile**: horizontal swipeable chip row (`ChapterChips`) pinned above the feed, always visible. Scroll-snap, fade edges, ARIA tablist.
+- **Desktop**: vertical list in sidebar (unchanged).
+- `refetchChapters()` called on post create, edit, delete, and block to keep counts in sync.
+
+See `.claude/learnings.md` for implementation details.
 
 ## Gotchas
 
@@ -103,3 +109,7 @@ Optional free-text grouping — just a `chapter` column on `posts`, no separate 
 - `useChapters` is called once in App.tsx — chapters passed as props to Sidebar and PostModal. Don't add a second call (causes duplicate RPC fetches).
 - Mobile touch targets: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never use bare `min-h-[36px]` — fails Apple HIG. The `lg:` breakpoint (1024px) matches sidebar fixed/collapsible switch.
 - Toast notifications are minimal centered pills (not boxed). Error messages use `~` tildes for the retro vibe. Keep messages short — no raw error details.
+- `ESTIMATED_POST_HEIGHT` (380px) in App.tsx must be close to real PostCard height to avoid virtualizer overlap on initial render. If PostCard layout changes significantly, re-measure and update.
+- WCAG AA contrast: `--accent-primary` must hit 4.5:1 on `--card-bg` for each theme. `--text-title` only needs 3:1 (large text). Verified for all 8 themes.
+- Keyboard shortcut: Ctrl+N / Cmd+N opens new post modal (guarded by auth, no modal open, not in input).
+- `sharePost` removed from capacitor.ts — share feature not currently available. `SHARE_SNIPPET_MAX` removed from constants.ts.

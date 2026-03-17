@@ -273,6 +273,13 @@ new findings after completing work.
 - [2026-03-16 /mobile] Celebration particles (sparkleBurst + emojiRain) halved on mobile
   (6 particles vs 12 on desktop). Prevents frame drops on mid-range phones. Detection via
   `window.innerWidth < 640` at call site in App.tsx.
+- [2026-03-16 /mobile] Virtualizer ESTIMATED_POST_HEIGHT bumped 280→380. PostCards with
+  title, date, chapter tag, content, author, and reactions are typically 340-380px. Too-low
+  estimate causes visible overlap on initial render before measureElement corrects layout.
+- [2026-03-16 /mobile] Footer spacing: `mt-12 py-6` → `mt-6 sm:mt-12 py-4 sm:py-6` and
+  end-of-list `py-6` → `py-3 sm:py-6`. Tightens mobile gap from ~72px to ~36px.
+- [2026-03-16 /mobile] "Powered by YourJournal" moved from sidebar bottom to page footer
+  (between pixel badges and copyright). Less awkward placement, visible to all users.
 
 ## False Positives (Do NOT Flag)
 
