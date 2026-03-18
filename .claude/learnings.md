@@ -59,6 +59,8 @@ Keep frontend and backend in sync when changing limits or adding fields:
 - Optional `chapter` column on `posts` (no separate table). `get_user_chapters()` RPC. Client-side filtering.
 - Mobile: `ChapterChips` horizontal swipe row above feed. Desktop: vertical list in sidebar.
 - `refetchChapters()` called on post create, edit, delete, and block to keep counts in sync.
+- "Loose entries" filter (`__loose__` sentinel in `LOOSE_ENTRIES` const) shows posts with no chapter.
+  Only appears when uncategorized posts exist. 🍃 icon. Both ChapterChips and Sidebar support it.
 
 ### Text Size & Contrast
 - Minimum readable text: 12px (`text-xs`). Decorative pixel badges: 11px. Winamp/sparkle: exempt (`aria-hidden`).
