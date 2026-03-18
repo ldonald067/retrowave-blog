@@ -116,11 +116,33 @@ function PostList({
     return () => observer.disconnect();
   }, [handleLoadMore]);
 
+  // Dynamically compute available height instead of hardcoding calc(100dvh - 200px).
+  // This accounts for variable header/sidebar/chips height above the feed.
+  const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    const computeHeight = () => {
+      if (!parentRef.current) return;
+      const rect = parentRef.current.getBoundingClientRect();
+      const available = window.innerHeight - rect.top - 16; // 16px bottom breathing room
+      setContainerHeight(Math.max(300, available)); // never smaller than 300px
+    };
+    // Initial measurement after layout settles
+    requestAnimationFrame(() => requestAnimationFrame(computeHeight));
+    window.addEventListener('resize', computeHeight);
+    // Recompute when sidebar collapses/expands (content above changes height)
+    const observer = new ResizeObserver(computeHeight);
+    if (parentRef.current?.parentElement) observer.observe(parentRef.current.parentElement);
+    return () => {
+      window.removeEventListener('resize', computeHeight);
+      observer.disconnect();
+    };
+  }, []);
+
   return (
     <div>
       {/* Screen reader announcement for infinite scroll */}
       <div className="sr-only" aria-live="polite" aria-atomic="true">{srAnnouncement}</div>
-      <div ref={parentRef} className="overflow-auto" style={{ maxHeight: 'calc(100dvh - 200px)', scrollbarWidth: 'thin' }}>
+      <div ref={parentRef} className="overflow-auto" style={{ maxHeight: containerHeight ? `${containerHeight}px` : 'calc(100dvh - 200px)', scrollbarWidth: 'thin' }}>
         <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const post = posts[virtualRow.index];
@@ -145,44 +167,44 @@ function PostList({
             );
           })}
         </div>
+
+        {/* Inline error for pagination failures */}
+        {loadMoreError && (
+          <div className="xanga-box p-3 mt-4 text-center">
+            <p className="text-xs" style={{ color: 'var(--accent-secondary)', fontFamily: 'var(--title-font)' }}>
+              ❌ {loadMoreError}
+            </p>
+            <button onClick={onLoadMore} className="xanga-link text-xs mt-2">
+              ~ try again ~
+            </button>
+          </div>
+        )}
+
+        {/* Infinite scroll sentinel + fallback manual button */}
+        {hasMore && !loadMoreError && (
+          <div ref={loadMoreRef} className="flex justify-center pt-4 pb-2">
+            <button
+              onClick={onLoadMore}
+              disabled={loadingMore}
+              className="xanga-button text-sm"
+            >
+              {loadingMore ? 'Loading...' : '\u00AB Older Entries'}
+            </button>
+          </div>
+        )}
+
+        {/* End-of-list indicator */}
+        {!hasMore && posts.length > 0 && (
+          <div className="text-center py-3 sm:py-6">
+            <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
+              ~ that's all for now! ~
+            </p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+              ✨ u've reached the end of the feed ✨
+            </p>
+          </div>
+        )}
       </div>
-
-      {/* Inline error for pagination failures */}
-      {loadMoreError && (
-        <div className="xanga-box p-3 mt-4 text-center">
-          <p className="text-xs" style={{ color: 'var(--accent-secondary)', fontFamily: 'var(--title-font)' }}>
-            ❌ {loadMoreError}
-          </p>
-          <button onClick={onLoadMore} className="xanga-link text-xs mt-2">
-            ~ try again ~
-          </button>
-        </div>
-      )}
-
-      {/* Infinite scroll sentinel + fallback manual button */}
-      {hasMore && !loadMoreError && (
-        <div ref={loadMoreRef} className="flex justify-center pt-4 pb-2">
-          <button
-            onClick={onLoadMore}
-            disabled={loadingMore}
-            className="xanga-button text-sm"
-          >
-            {loadingMore ? 'Loading...' : '\u00AB Older Entries'}
-          </button>
-        </div>
-      )}
-
-      {/* End-of-list indicator */}
-      {!hasMore && posts.length > 0 && (
-        <div className="text-center py-3 sm:py-6">
-          <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
-            ~ that's all for now! ~
-          </p>
-          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
-            ✨ u've reached the end of the feed ✨
-          </p>
-        </div>
-      )}
     </div>
   );
 }
@@ -596,8 +618,8 @@ function App() {
       </AnimatePresence>
 
       {/* Xanga-style sidebar layout */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex flex-col lg:flex-row gap-6">
+      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
           {/* Left Sidebar */}
           <Sidebar
             user={user}

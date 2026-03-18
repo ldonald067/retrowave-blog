@@ -188,6 +188,11 @@ Keep frontend and backend in sync when changing limits or adding fields:
   (6 particles vs 12 on desktop). `window.innerWidth < 640` detection at call site.
 - [2026-03-16 /mobile] Virtualizer ESTIMATED_POST_HEIGHT bumped 280 to 380. PostCards with
   title, date, chapter tag, content, author, and reactions are typically 340-380px.
+- [2026-03-18 /mobile] Virtualizer scroll container now uses dynamic height via ResizeObserver
+  instead of hardcoded `calc(100dvh - 200px)`. Measures actual position on screen and fills
+  remaining viewport. Eliminates dual-scroll on mobile where header+sidebar+chips consumed
+  ~428px but the container was getting 612px (extending below viewport). End-of-list indicator
+  and load-more sentinel moved inside the scroll container so they scroll with the feed.
 - [2026-03-16 /mobile] Footer spacing tightened on mobile: `mt-6 sm:mt-12 py-4 sm:py-6` and
   end-of-list `py-3 sm:py-6`. Gap reduced from ~72px to ~36px.
 - [2026-03-16 /mobile] "Powered by YourJournal" moved from sidebar to page footer.
