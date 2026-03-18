@@ -37,7 +37,8 @@ Keep frontend and backend in sync when changing limits or adding fields:
 
 ### Mobile & iOS
 - Touch targets: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never bare `min-h-[36px]` — fails Apple HIG.
-- `ESTIMATED_POST_HEIGHT` (380px) must match real PostCard height or virtualizer overlaps. Cards now show date only (no time), no edit/delete icons — may be slightly shorter.
+- `ESTIMATED_POST_HEIGHT` (380px) must match real PostCard height or virtualizer overlaps. Actual card height 278-299px after removing time/icons — estimate is generous but prevents overlap.
+- PostCard title button and metadata row both need `min-h-[44px] lg:min-h-0`. The metadata row min-height must be on the row itself (not just the chapter button) so posts with and without chapters have consistent spacing.
 - WCAG AA: `--accent-primary` must hit 4.5:1 on `--card-bg`. `--text-title` only needs 3:1 (large text).
 
 ### UI Conventions
