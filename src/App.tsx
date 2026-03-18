@@ -233,6 +233,7 @@ function App() {
   });
 
   const { chapters, refetch: refetchChapters } = useChapters();
+  const LOOSE_ENTRIES = '__loose__';
   const [chapterFilter, setChapterFilter] = useState<string | null>(null);
 
   const { toggleBlock } = useBlocks();
@@ -279,9 +280,12 @@ function App() {
   }, [authLoading, user]);
 
   // Filter posts by chapter (client-side)
-  const filteredPosts = chapterFilter
-    ? posts.filter((p) => p.chapter === chapterFilter)
-    : posts;
+  const filteredPosts = chapterFilter === LOOSE_ENTRIES
+    ? posts.filter((p) => !p.chapter)
+    : chapterFilter
+      ? posts.filter((p) => p.chapter === chapterFilter)
+      : posts;
+  const looseCount = posts.filter((p) => !p.chapter).length;
 
   const handleChapterClick = useCallback((chapter: string) => {
     setChapterFilter((prev) => (prev === chapter ? null : chapter));
@@ -629,6 +633,8 @@ function App() {
             chapters={chapters}
             activeChapter={chapterFilter}
             onChapterSelect={setChapterFilter}
+            looseCount={looseCount}
+            looseKey={LOOSE_ENTRIES}
           />
 
           {/* Mobile: horizontal chapter chips above feed */}
@@ -637,6 +643,8 @@ function App() {
             activeChapter={chapterFilter}
             onChapterSelect={setChapterFilter}
             postCount={posts.length}
+            looseCount={looseCount}
+            looseKey={LOOSE_ENTRIES}
           />
 
           {/* Main Content Area */}
@@ -649,7 +657,7 @@ function App() {
                 className="xanga-box p-3 mb-4 flex items-center justify-between gap-2"
               >
                 <span className="text-xs font-bold min-w-0 truncate" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
-                  📖 {chapterFilter}
+                  {chapterFilter === LOOSE_ENTRIES ? '🍃 loose entries' : `📖 ${chapterFilter}`}
                   <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
                     ({filteredPosts.length} {filteredPosts.length === 1 ? 'entry' : 'entries'})
                   </span>

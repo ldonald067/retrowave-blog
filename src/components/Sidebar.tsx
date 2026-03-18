@@ -17,9 +17,11 @@ interface SidebarProps {
   chapters?: Chapter[];
   activeChapter?: string | null;
   onChapterSelect?: (chapter: string | null) => void;
+  looseCount?: number;
+  looseKey?: string;
 }
 
-export default function Sidebar({ user, profile, onEditProfile, postCount = 0, chapters = [], activeChapter = null, onChapterSelect }: SidebarProps) {
+export default function Sidebar({ user, profile, onEditProfile, postCount = 0, chapters = [], activeChapter = null, onChapterSelect, looseCount = 0, looseKey = '__loose__' }: SidebarProps) {
   const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
   const [collapsed, setCollapsed] = useState(() => {
     try {
@@ -241,6 +243,23 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               <span>✨ all entries</span>
               <span className="text-xs font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{postCount}</span>
             </button>
+            {looseCount > 0 && (
+              <button
+                onClick={() => onChapterSelect?.(activeChapter === looseKey ? null : looseKey)}
+                className="w-full text-left px-2 py-1.5 rounded text-[13px] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
+                style={{
+                  color: activeChapter === looseKey ? 'var(--accent-primary)' : 'var(--text-body)',
+                  fontWeight: activeChapter === looseKey ? 700 : 400,
+                  fontFamily: 'var(--title-font)',
+                  backgroundColor: activeChapter === looseKey ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'transparent',
+                }}
+                aria-label={`Show loose entries (${looseCount})`}
+                aria-pressed={activeChapter === looseKey}
+              >
+                <span>🍃 loose entries</span>
+                <span className="text-xs font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{looseCount}</span>
+              </button>
+            )}
             {chapters.map((ch) => (
               <button
                 key={ch.chapter}

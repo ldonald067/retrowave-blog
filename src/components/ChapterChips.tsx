@@ -7,6 +7,8 @@ interface ChapterChipsProps {
   activeChapter: string | null;
   onChapterSelect: (chapter: string | null) => void;
   postCount: number;
+  looseCount?: number;
+  looseKey?: string;
 }
 
 /**
@@ -19,6 +21,8 @@ export default function ChapterChips({
   activeChapter,
   onChapterSelect,
   postCount,
+  looseCount = 0,
+  looseKey = '__loose__',
 }: ChapterChipsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -82,8 +86,9 @@ export default function ChapterChips({
   if (chapters.length === 0) return null;
 
   const allChips = [
-    { id: null as string | null, label: 'all entries', count: postCount },
-    ...chapters.map((ch) => ({ id: ch.chapter as string | null, label: ch.chapter, count: ch.post_count })),
+    { id: null as string | null, label: 'all entries', count: postCount, icon: '✨' },
+    ...(looseCount > 0 ? [{ id: looseKey as string | null, label: 'loose entries', count: looseCount, icon: '🍃' }] : []),
+    ...chapters.map((ch) => ({ id: ch.chapter as string | null, label: ch.chapter, count: ch.post_count, icon: '📖' })),
   ];
 
   return (
@@ -133,8 +138,7 @@ export default function ChapterChips({
               }}
             >
               <span className="truncate max-w-[140px]">
-                {chip.id === null ? '✨ ' : '📖 '}
-                {chip.label}
+                {chip.icon} {chip.label}
               </span>
               <span
                 className="chapter-chip-count"
