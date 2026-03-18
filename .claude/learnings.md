@@ -59,6 +59,12 @@ Keep frontend and backend in sync when changing limits or adding fields:
 - Mobile: `ChapterChips` horizontal swipe row above feed. Desktop: vertical list in sidebar.
 - `refetchChapters()` called on post create, edit, delete, and block to keep counts in sync.
 
+### Text Size & Contrast
+- Minimum readable text: 12px (`text-xs`). Decorative pixel badges: 11px. Winamp/sparkle: exempt (`aria-hidden`).
+- No `text-[10px]` in components — all bumped to `text-xs`. CSS pixel-badge bumped 9px → 11px.
+- Button gradient contrast fixed on 6 themes (darkened `--button-gradient-from/to`). Scene Kid and Y2K Cyber passed without changes.
+- Emo Dark `--text-subtitle`/`--accent-secondary`/`--em-color`: `#8b008b` → `#b020b0` (3.23:1 on card-bg).
+
 ---
 
 ## Responsive & Mobile
