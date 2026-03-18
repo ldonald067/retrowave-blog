@@ -137,6 +137,13 @@ Keep frontend and backend in sync when changing limits or adding fields:
   (100 chars max), `get_user_chapters()` RPC returns chapter list with post counts
   and latest dates. `useChapters` hook called once in App.tsx — chapters passed as
   props to Sidebar and PostModal (no duplicate RPC calls). Client-side filtering only.
+- [2026-03-18 /fullstack] Full audit: all 7 RPCs match database.ts types, all 4 tables
+  have RLS enabled with correct ownership + rate-limit policies, all shared data contracts
+  in sync (POST_LIMITS, PROFILE_LIMITS, emoji set, moderation lists, password policy).
+- [2026-03-18 /fullstack] Minor: `tos_accepted` in `handle_new_user` is still read from
+  signup metadata (`raw_user_meta_data->>'tos_accepted'`). Low practical risk because
+  `age_verified` is server-derived and the app gates on both fields together, but a client
+  could technically pre-set `tos_accepted: true` in the signup call.
 - [2026-03-15 /migration] `get_posts_result` composite type must be dropped and recreated
   when adding columns — can't ALTER TYPE ADD ATTRIBUTE because the RPC functions depend
   on it. Drop functions first, then type, then recreate both.
