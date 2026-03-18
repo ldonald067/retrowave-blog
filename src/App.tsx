@@ -178,7 +178,7 @@ function PostList({
           <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
             ~ that's all for now! ~
           </p>
-          <p className="text-[10px] mt-1" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
             ✨ u've reached the end of the feed ✨
           </p>
         </div>
@@ -786,7 +786,7 @@ function App() {
             Made with <span style={{ color: 'var(--accent-primary)' }}>💕</span> and nostalgia
           </p>
           {emojiStyle !== 'native' && getEmojiAttribution() && (
-            <p className="text-[10px]" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
+            <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
               {getEmojiAttribution()}
             </p>
           )}

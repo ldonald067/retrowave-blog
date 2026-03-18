@@ -94,7 +94,7 @@ export default function ReactionBar({
                 initial={{ scale: 1.4, opacity: 0.5 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-                className="text-[10px] font-semibold"
+                className="text-xs font-semibold"
                 style={{ color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)' }}
               >
                 {count}

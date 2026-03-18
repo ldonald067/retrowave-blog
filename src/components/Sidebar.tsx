@@ -239,7 +239,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               aria-pressed={activeChapter === null}
             >
               <span>✨ all entries</span>
-              <span className="text-[10px] font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{postCount}</span>
+              <span className="text-xs font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{postCount}</span>
             </button>
             {chapters.map((ch) => (
               <button
@@ -256,7 +256,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                 aria-label={`Filter by chapter: ${ch.chapter} (${ch.post_count} ${ch.post_count === 1 ? 'entry' : 'entries'})`}
               >
                 <span className="truncate">📖 {ch.chapter}</span>
-                <span className="text-[10px] font-normal flex-shrink-0" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{ch.post_count}</span>
+                <span className="text-xs font-normal flex-shrink-0" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{ch.post_count}</span>
               </button>
             ))}
           </div>
@@ -281,7 +281,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
             <button
               key={opt.id}
               onClick={() => setTrail(opt.id)}
-              className="xanga-button text-[10px] px-2 py-1"
+              className="xanga-button text-xs px-2 py-1"
               style={{
                 opacity: trailMode === opt.id ? 1 : 0.6,
                 transform: trailMode === opt.id ? 'scale(1.05)' : 'scale(1)',

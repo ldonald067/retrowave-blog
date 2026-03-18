@@ -57,7 +57,7 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => onView(post)}
-              className="text-left cursor-pointer transition hover:opacity-80 line-clamp-2"
+              className="text-left cursor-pointer transition hover:opacity-80 line-clamp-2 py-1"
               style={{ color: 'inherit', textShadow: 'inherit' }}
               aria-label={`View post: ${post.title}`}
             >

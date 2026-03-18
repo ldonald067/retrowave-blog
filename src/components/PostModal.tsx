@@ -489,7 +489,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                               }}
                             >
                               <span className="truncate">📖 {c.chapter}</span>
-                              <span className="text-[10px] flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                              <span className="text-xs flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
                                 {c.post_count} {c.post_count === 1 ? 'entry' : 'entries'}
                               </span>
                             </button>

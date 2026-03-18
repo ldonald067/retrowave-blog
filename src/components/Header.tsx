@@ -78,7 +78,7 @@ export default function Header({
     >
       {/* Marquee Banner */}
       <div className="marquee-banner" aria-hidden="true">
-        <div className="marquee-banner-inner" style={{ color: 'var(--text-subtitle)', fontSize: '10px' }}>
+        <div className="marquee-banner-inner" style={{ color: 'var(--text-subtitle)', fontSize: '12px' }}>
           ~ welcome to my xanga ~ ✨ ~ thanks 4 stopping by ~ ♥ ~ have a gr8 day ~ ☆ ~ xoxo ~ ✨ ~
         </div>
       </div>
