@@ -62,6 +62,9 @@ Keep frontend and backend in sync when changing limits or adding fields:
 - `refetchChapters()` called on post create, edit, delete, and block to keep counts in sync.
 - "Loose entries" filter (`__loose__` sentinel in `LOOSE_ENTRIES` const) shows posts with no chapter.
   Only appears when uncategorized posts exist. 🍃 icon. Both ChapterChips and Sidebar support it.
+- Chapter privacy: `private_chapters` text[] on profiles. Chapters in this array are hidden from
+  public profile (get_public_profile RPC filters them). Toggle via 🔒 button in sidebar (desktop)
+  or filter banner (mobile). Post-level `is_private` still works independently — two privacy layers.
 
 ### Text Size & Contrast
 - Minimum readable text: 12px (`text-xs`). Decorative pixel badges: 11px. Winamp/sparkle: exempt (`aria-hidden`).

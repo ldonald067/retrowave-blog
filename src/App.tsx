@@ -310,6 +310,21 @@ function App() {
     setChapterFilter((prev) => (prev === chapter ? null : chapter));
   }, []);
 
+  const toggleChapterPrivacy = useCallback(async (chapter: string) => {
+    if (!profile) return;
+    const current = profile.private_chapters ?? [];
+    const isPrivate = current.includes(chapter);
+    const updated = isPrivate
+      ? current.filter((c) => c !== chapter)
+      : [...current, chapter];
+    const { error: err } = await updateProfile({ private_chapters: updated });
+    if (err) {
+      showError(`~ ${err} ~`);
+    } else {
+      success(isPrivate ? '📖 chapter is now public ~' : '🔒 chapter is now private ~');
+    }
+  }, [profile, updateProfile, showError, success]);
+
   const handleNewPost = useCallback(() => {
     if (!user) {
       showError('~ sign in 2 write entries! ~');
@@ -674,6 +689,8 @@ function App() {
             onChapterSelect={setChapterFilter}
             looseCount={looseCount}
             looseKey={LOOSE_ENTRIES}
+            privateChapters={profile?.private_chapters ?? []}
+            onToggleChapterPrivacy={toggleChapterPrivacy}
           />
 
           {/* Mobile: horizontal chapter chips above feed */}
@@ -684,31 +701,51 @@ function App() {
             postCount={posts.length}
             looseCount={looseCount}
             looseKey={LOOSE_ENTRIES}
+            privateChapters={profile?.private_chapters ?? []}
           />
 
           {/* Main Content Area */}
           <main id="main-content" className="flex-1 min-w-0">
             {/* Chapter filter banner */}
-            {chapterFilter && (
-              <motion.div
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="xanga-box p-3 mb-4 flex items-center justify-between gap-2"
-              >
-                <span className="text-xs font-bold min-w-0 truncate" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
-                  {chapterFilter === LOOSE_ENTRIES ? '🍃 loose entries' : `📖 ${chapterFilter}`}
-                  <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
-                    ({filteredPosts.length} {filteredPosts.length === 1 ? 'entry' : 'entries'})
-                  </span>
-                </span>
-                <button
-                  onClick={() => setChapterFilter(null)}
-                  className="xanga-link text-xs flex-shrink-0 px-2"
+            {chapterFilter && (() => {
+              const isRealChapter = chapterFilter !== LOOSE_ENTRIES;
+              const isChapterPrivate = isRealChapter && (profile?.private_chapters ?? []).includes(chapterFilter);
+              return (
+                <motion.div
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="xanga-box p-3 mb-4 flex items-center justify-between gap-2"
                 >
-                  ~ show all ~
-                </button>
-              </motion.div>
-            )}
+                  <span className="text-xs font-bold min-w-0 truncate" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
+                    {chapterFilter === LOOSE_ENTRIES ? '🍃 loose entries' : `${isChapterPrivate ? '🔒' : '📖'} ${chapterFilter}`}
+                    <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
+                      ({filteredPosts.length} {filteredPosts.length === 1 ? 'entry' : 'entries'})
+                    </span>
+                  </span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {isRealChapter && (
+                      <button
+                        onClick={() => toggleChapterPrivacy(chapterFilter)}
+                        className="text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[28px]"
+                        style={{
+                          color: isChapterPrivate ? 'var(--accent-primary)' : 'var(--text-muted)',
+                          backgroundColor: 'color-mix(in srgb, var(--border-primary) 20%, transparent)',
+                        }}
+                        aria-label={isChapterPrivate ? 'Make chapter public' : 'Make chapter private'}
+                      >
+                        {isChapterPrivate ? '🔓 make public' : '🔒 make private'}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setChapterFilter(null)}
+                      className="xanga-link text-xs px-2"
+                    >
+                      ~ show all ~
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })()}
 
             {posts.length === 0 ? (
               <EmptyState onCreatePost={handleNewPost} />

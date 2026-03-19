@@ -14,6 +14,7 @@ export interface Profile {
   current_music: string | null;
   is_admin: boolean;
   is_public: boolean;
+  private_chapters: string[];
   created_at: string;
   updated_at: string;
 }

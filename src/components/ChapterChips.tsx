@@ -9,6 +9,7 @@ interface ChapterChipsProps {
   postCount: number;
   looseCount?: number;
   looseKey?: string;
+  privateChapters?: string[];
 }
 
 /**
@@ -23,6 +24,7 @@ export default function ChapterChips({
   postCount,
   looseCount = 0,
   looseKey = '__loose__',
+  privateChapters = [],
 }: ChapterChipsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -86,10 +88,13 @@ export default function ChapterChips({
   if (chapters.length === 0) return null;
 
   const allChips = useMemo(() => [
-    { id: null as string | null, label: 'all entries', count: postCount, icon: '✨' },
-    ...(looseCount > 0 ? [{ id: looseKey as string | null, label: 'loose entries', count: looseCount, icon: '🍃' }] : []),
-    ...chapters.map((ch) => ({ id: ch.chapter as string | null, label: ch.chapter, count: ch.post_count, icon: '📖' })),
-  ], [chapters, postCount, looseCount, looseKey]);
+    { id: null as string | null, label: 'all entries', count: postCount, icon: '✨', isPrivate: false },
+    ...(looseCount > 0 ? [{ id: looseKey as string | null, label: 'loose entries', count: looseCount, icon: '🍃', isPrivate: false }] : []),
+    ...chapters.map((ch) => {
+      const priv = privateChapters.includes(ch.chapter);
+      return { id: ch.chapter as string | null, label: ch.chapter, count: ch.post_count, icon: priv ? '🔒' : '📖', isPrivate: priv };
+    }),
+  ], [chapters, postCount, looseCount, looseKey, privateChapters]);
 
   return (
     <div className="chapter-chips-wrapper lg:hidden relative mb-4">
