@@ -706,7 +706,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                 <button
                   onClick={handleSubmit}
                   disabled={saving || loadingFullContent}
-                  className="xanga-button flex items-center gap-2 text-sm"
+                  className="xanga-button flex items-center gap-2 text-sm min-h-[44px]"
                 >
                   <Pepicon name="floppyDisk" size={14} />
                   <span>{saving ? 'saving...' : loadingFullContent ? 'loading...' : '~ save entry ~'}</span>

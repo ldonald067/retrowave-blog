@@ -726,7 +726,7 @@ function App() {
                     {isRealChapter && (
                       <button
                         onClick={() => toggleChapterPrivacy(chapterFilter)}
-                        className="text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[28px]"
+                        className="text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] lg:min-h-[28px]"
                         style={{
                           color: isChapterPrivate ? 'var(--accent-primary)' : 'var(--text-muted)',
                           backgroundColor: 'color-mix(in srgb, var(--border-primary) 20%, transparent)',
