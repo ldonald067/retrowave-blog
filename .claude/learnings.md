@@ -155,9 +155,10 @@ Keep frontend and backend in sync when changing limits or adding fields:
 - [2026-03-15 /frontend] Two retro icon libraries used in tandem: **pepicons** (Pop! variant)
   for functional UI icons (nav, buttons, actions) and **react-old-icons** for decorative Win98
   nostalgic accents (section headers, sidebar stats, profile form labels).
-- [2026-03-15 /frontend] `pepicons/pop` exports named SVG strings (no default export). Import
-  as `import * as popIcons from 'pepicons/pop'`. Wrapper component `Pepicon.tsx` uses
-  `dangerouslySetInnerHTML` — safe because SVGs are static build-time strings from npm.
+- [2026-03-15 /frontend] `pepicons/pop` exports named SVG strings (no default export). `Pepicon.tsx`
+  imports only 11 used icons by name for tree-shaking (was `import *` = 1,275 icons = 2.4 MB).
+  Uses `dangerouslySetInnerHTML` — safe because SVGs are static build-time strings from npm.
+  **When adding a new icon**: add named import to `Pepicon.tsx` and entry to `usedIcons` map.
 - [2026-03-15 /frontend] `react-old-icons` exports React components that render `<img>` tags
   fetching `.webp` from GitHub raw. They accept a `size` prop and `alt` prop. External network
   dependency — icons won't render offline.
@@ -209,6 +210,13 @@ Keep frontend and backend in sync when changing limits or adding fields:
   `quickContentCheck()`. Mood/music NOT moderated (personal expression, low abuse risk).
 - [2026-03-15 /feature] Password policy: 8-char minimum + letters_digits. Enforced in
   config.toml (server) and SignUpForm.tsx (client). `PASSWORD_MIN_LENGTH` in validation.ts.
+
+## Performance
+
+- [2026-03-18 /frontend] Main bundle: 3,130 KB → 672 KB (-78%) by tree-shaking pepicons.
+  `import * as popIcons` pulled all 1,275 icons (2.4 MB SVG strings). Now imports 11 by name.
+- [2026-03-18 /frontend] `filteredPosts` and `looseCount` memoized with `useMemo` in App.tsx.
+  Previously re-filtered every render. `allChips` in ChapterChips also memoized.
 
 ## Code Debt
 
