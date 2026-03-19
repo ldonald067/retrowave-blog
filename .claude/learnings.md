@@ -26,6 +26,7 @@ Keep frontend and backend in sync when changing limits or adding fields:
 | Password policy | `validation.ts` `PASSWORD_MIN_LENGTH` (8) | `config.toml` `minimum_password_length` |
 | Username format | `validation.ts` `USERNAME_PATTERN` | `20260315000002` CHECK constraint |
 | Moderation lists | `moderation.ts` `BLOCKED_PATTERNS` | `edge fn moderate-content` |
+| Public profile flag | `profile.ts` `is_public` | `20260319000001` column + RPC |
 
 ## Gotchas
 
@@ -112,6 +113,13 @@ Keep frontend and backend in sync when changing limits or adding fields:
   `--text-title` kept at original values — headings (text-lg+) only need 3:1 for large text.
 - [2026-03-16 /mobile] LoadingSpinner has `role="status" aria-live="polite"`, ErrorMessage
   has `role="alert"` for screen reader announcements.
+
+### Public Profiles
+- `is_public` boolean on profiles (default false). `get_public_profile(username)` RPC returns profile + posts as jsonb.
+- Hash routing: `#/u/username` in App.tsx. `usePublicProfile` hook (no auth required). `PublicProfileView` component.
+- Visitors see read-only journal with owner's theme applied. Must sign up to react (existing RLS blocks anonymous INSERT).
+- Toggle in ProfileModal → shows shareable URL with copy-to-clipboard. Sidebar shows "share profile" link when public.
+- No comments, no followers, no discovery feed — zero moderation overhead.
 
 ## Architecture & Integration
 
