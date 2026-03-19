@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { Chapter } from '../hooks/useChapters';
 
@@ -85,11 +85,11 @@ export default function ChapterChips({
 
   if (chapters.length === 0) return null;
 
-  const allChips = [
+  const allChips = useMemo(() => [
     { id: null as string | null, label: 'all entries', count: postCount, icon: '✨' },
     ...(looseCount > 0 ? [{ id: looseKey as string | null, label: 'loose entries', count: looseCount, icon: '🍃' }] : []),
     ...chapters.map((ch) => ({ id: ch.chapter as string | null, label: ch.chapter, count: ch.post_count, icon: '📖' })),
-  ];
+  ], [chapters, postCount, looseCount, looseKey]);
 
   return (
     <div className="chapter-chips-wrapper lg:hidden relative mb-4">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { useAuth } from './hooks/useAuth';
@@ -279,13 +279,16 @@ function App() {
     }
   }, [authLoading, user]);
 
-  // Filter posts by chapter (client-side)
-  const filteredPosts = chapterFilter === LOOSE_ENTRIES
-    ? posts.filter((p) => !p.chapter)
-    : chapterFilter
-      ? posts.filter((p) => p.chapter === chapterFilter)
-      : posts;
-  const looseCount = posts.filter((p) => !p.chapter).length;
+  // Filter posts by chapter (client-side) — memoized to avoid re-filtering on every render
+  const looseCount = useMemo(() => posts.filter((p) => !p.chapter).length, [posts]);
+  const filteredPosts = useMemo(() =>
+    chapterFilter === LOOSE_ENTRIES
+      ? posts.filter((p) => !p.chapter)
+      : chapterFilter
+        ? posts.filter((p) => p.chapter === chapterFilter)
+        : posts,
+    [posts, chapterFilter, LOOSE_ENTRIES],
+  );
 
   const handleChapterClick = useCallback((chapter: string) => {
     setChapterFilter((prev) => (prev === chapter ? null : chapter));
