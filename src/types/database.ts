@@ -75,6 +75,7 @@ export interface Database {
           current_mood: string | null;
           current_music: string | null;
           is_admin: boolean;
+          is_public: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -91,6 +92,7 @@ export interface Database {
           current_mood?: string | null;
           current_music?: string | null;
           is_admin?: boolean;
+          is_public?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -107,6 +109,7 @@ export interface Database {
           current_mood?: string | null;
           current_music?: string | null;
           is_admin?: boolean;
+          is_public?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -266,6 +269,13 @@ export interface Database {
           post_count: number;
           latest_post: string;
         }>;
+      };
+      // Public profile: returns profile + posts for shareable profiles
+      get_public_profile: {
+        Args: {
+          p_username: string;
+        };
+        Returns: Json | null;
       };
       // Apple Guideline 1.2: Toggle block/unblock for a user.
       toggle_user_block: {

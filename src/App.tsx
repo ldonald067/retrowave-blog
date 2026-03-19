@@ -38,8 +38,16 @@ const SettingsModal = lazy(() => import('./components/SettingsModal'));
 const AuthModal = lazy(() => import('./components/AuthModal'));
 const AgeVerification = lazy(() => import('./components/AgeVerification'));
 const OnboardingFlow = lazy(() => import('./components/OnboardingFlow'));
+const PublicProfileView = lazy(() => import('./components/PublicProfileView'));
 
 type ModalMode = 'create' | 'edit' | 'view';
+
+/** Parse #/u/username from URL hash */
+function getPublicUsername(): string | null {
+  const hash = window.location.hash;
+  const match = hash.match(/^#\/u\/([a-zA-Z0-9_-]+)$/);
+  return match?.[1] ?? null;
+}
 
 /** Minimal fallback shown while lazy chunks load */
 function LazyFallback() {
@@ -210,6 +218,14 @@ function PostList({
 }
 
 function App() {
+  // ── Public profile routing via hash ──────────────────────────────────────
+  const [publicUsername, setPublicUsername] = useState<string | null>(getPublicUsername);
+  useEffect(() => {
+    const onHashChange = () => setPublicUsername(getPublicUsername());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
   const { user, profile, profileError, loading: authLoading, signOut, updateProfile, refetchProfile } = useAuth();
   const {
     posts,
@@ -485,6 +501,26 @@ function App() {
         <OnboardingFlow onComplete={handleOnboardingComplete} />
       </Suspense>
     );
+  }
+
+  // Public profile view — no auth required, show read-only journal
+  if (publicUsername && (!user || profile?.username !== publicUsername)) {
+    return (
+      <Suspense fallback={<LazyFallback />}>
+        <PublicProfileView
+          username={publicUsername}
+          onSignUp={() => {
+            window.location.hash = '';
+            setShowAuthModal(true);
+          }}
+          onGoHome={() => { window.location.hash = ''; }}
+        />
+      </Suspense>
+    );
+  }
+  // If viewing own public profile, redirect to normal feed
+  if (publicUsername && user && profile?.username === publicUsername) {
+    window.location.hash = '';
   }
 
   // Show loading spinner during auth initialization

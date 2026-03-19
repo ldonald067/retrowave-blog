@@ -107,6 +107,18 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
           </div>
           <h2 className="xanga-title text-xl mb-1">{userData.displayName}</h2>
           <p className="xanga-subtitle">@{userData.username}</p>
+          {profile?.is_public && (
+            <button
+              onClick={() => {
+                void navigator.clipboard.writeText(`${window.location.origin}/#/u/${userData.username}`);
+              }}
+              className="xanga-link text-xs mt-1 inline-flex items-center gap-1"
+              title="Copy public profile link"
+              aria-label="Copy public profile link"
+            >
+              🔗 share profile
+            </button>
+          )}
           {/* AIM-style status — reactive via custom event from Header */}
           {aimStatus && (
             <p className="aim-status mt-1">📟 ~ {aimStatus} ~</p>

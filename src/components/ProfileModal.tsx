@@ -55,6 +55,8 @@ export default function ProfileModal({
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
+  const [isPublic, setIsPublic] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState<Array<{ blocked_id: string; created_at: string }>>([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -88,6 +90,7 @@ export default function ProfileModal({
       setCurrentMood(profile.current_mood || '');
       setCurrentMusic(profile.current_music || '');
       setSelectedTheme(profile.theme || DEFAULT_THEME);
+      setIsPublic(profile.is_public ?? false);
     }
   }, [profile]);
 
@@ -135,6 +138,7 @@ export default function ProfileModal({
       theme: selectedTheme,
       current_mood: currentMood.trim() || null,
       current_music: currentMusic.trim() || null,
+      is_public: isPublic,
     };
 
     const { error } = await onSave(updates);
@@ -471,6 +475,63 @@ export default function ProfileModal({
                   ))}
                 </div>
               </div>
+
+              {/* Public Profile Toggle */}
+              {!isInitialSetup && (
+                <div className="xanga-box p-4">
+                  <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                    <Pepicon name="stars" size={14} color="var(--accent-primary)" />
+                    share your journal
+                  </h3>
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold" style={{ color: 'var(--text-body)' }}>
+                        make profile public
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                        anyone with your link can read your journal
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={isPublic}
+                      onClick={() => setIsPublic(!isPublic)}
+                      className="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 transition-colors duration-200 ease-in-out min-h-[44px] min-w-[44px] items-center"
+                      style={{
+                        backgroundColor: isPublic ? 'var(--accent-primary)' : 'color-mix(in srgb, var(--border-primary) 50%, var(--card-bg))',
+                        borderColor: isPublic ? 'var(--accent-primary)' : 'var(--border-primary)',
+                      }}
+                    >
+                      <span
+                        className="inline-block h-4 w-4 rounded-full shadow transition-transform duration-200"
+                        style={{
+                          backgroundColor: 'var(--card-bg)',
+                          transform: isPublic ? 'translateX(22px)' : 'translateX(3px)',
+                        }}
+                      />
+                    </button>
+                  </div>
+                  {isPublic && profile?.username && (
+                    <div className="mt-3 p-2 rounded border text-xs" style={{ borderColor: 'var(--border-primary)', backgroundColor: 'color-mix(in srgb, var(--accent-primary) 5%, var(--card-bg))' }}>
+                      <p className="font-mono truncate" style={{ color: 'var(--text-body)' }}>
+                        {window.location.origin}/#/u/{profile.username}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void navigator.clipboard.writeText(`${window.location.origin}/#/u/${profile.username}`);
+                          setCopiedUrl(true);
+                          setTimeout(() => setCopiedUrl(false), 2000);
+                        }}
+                        className="xanga-link text-xs mt-1"
+                      >
+                        {copiedUrl ? '✓ copied!' : '📋 copy link'}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Blocked Users Section */}
               {!isInitialSetup && blockedUsers.length > 0 && (
