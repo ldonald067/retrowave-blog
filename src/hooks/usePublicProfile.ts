@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { withRetry } from '../lib/retry';
 import type { PublicProfileData } from '../types/profile';
 
 interface UsePublicProfileReturn {
@@ -21,9 +22,9 @@ export function usePublicProfile(username: string | null): UsePublicProfileRetur
     setLoading(true);
     setNotFound(false);
 
-    const { data: result, error } = await supabase.rpc('get_public_profile', {
-      p_username: name,
-    });
+    const { data: result, error } = await withRetry(async () =>
+      supabase.rpc('get_public_profile', { p_username: name }),
+    );
 
     if (error || !result) {
       setData(null);
