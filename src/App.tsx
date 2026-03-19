@@ -533,7 +533,7 @@ function App() {
               }),
             );
             if (error) {
-              showError(`~ couldnt verify :( ${toUserMessage(error)} ~`);
+              showError(`~ ${toUserMessage(error)} ~`);
             } else {
               // Refresh profile to pick up the new COPPA values
               await refetchProfile();

@@ -36,8 +36,9 @@ export function useChapters(): UseChaptersReturn {
       );
       if (error) throw error;
       setChapters((data as Chapter[]) ?? []);
-    } catch {
-      // Silent fail — chapters are optional UX enhancement
+    } catch (err) {
+      // Chapters are optional UX — degrade gracefully but log for observability
+      console.warn('[useChapters] fetch failed:', err);
       setChapters([]);
     } finally {
       setLoading(false);
