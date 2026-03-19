@@ -102,8 +102,10 @@ Keep frontend and backend in sync when changing limits or adding fields:
   `:root` defaults in `index.css`. Missing variables silently fall back to
   `initial`, creating invisible text or transparent backgrounds.
 - [2026-02-25 /frontend] Dark theme `--text-muted` minimum contrast values (WCAG
-  AA 4.5:1 against `--bg-primary`): emo-dark `#858585`, scene-kid `#00bb00`,
-  grunge `#b0a088`, pastel-goth `#b0a0c0`. These are the verified-passing values.
+  AA 4.5:1 against `--card-bg`): emo-dark `#858585`, scene-kid `#00bb00`,
+  grunge `#b8a890` (bumped from `#b0a088`), pastel-goth `#b0a0c0`.
+- [2026-03-18 /frontend] Grunge theme full contrast fix: `--text-body` `#c0b098` (was `#b8a888`),
+  `--button-gradient-from` `#5a5040` (was `#3a3228`). All now pass 4.5:1 on `#242018`.
 - [2026-03-16 /mobile] `--accent-primary` contrast values (WCAG AA 4.5:1 on `--card-bg`):
   Classic Xanga `#d6157e` (4.88:1 on white), Cottage Core `#617544` (4.70:1 on `#fff8f0`),
   MySpace Blue `#1188dd` (5.01:1 on `#001133`), Grunge `#a89070` (5.24:1 on `#242018`).
@@ -146,6 +148,12 @@ Keep frontend and backend in sync when changing limits or adding fields:
 - [2026-03-18 /fullstack] RESOLVED: `tos_accepted` in `handle_new_user` was read from
   signup metadata. Fixed in `20260318000000_fix_tos_trust.sql` — now always defaults to
   `false`. The `set_age_verification()` RPC is the only legitimate path to set it.
+- [2026-03-18 /fullstack] Error handling audit: all hooks use `toUserMessage()`, no raw
+  error.message leaks. 27 error patterns + fallback in errors.ts. All catch blocks handled.
+- [2026-03-18 /migration] Migration drift audit: zero drift. All POST_LIMITS, PROFILE_LIMITS,
+  composite types, and RPC signatures match between database.ts, validation.ts, and SQL.
+- [2026-03-18 /mobile] iOS App Store readiness: all guidelines pass (1.2 UGC, 5.1.1 data
+  rights, safe areas, legal docs, COPPA age gate). Ready for submission.
 - [2026-03-15 /migration] `get_posts_result` composite type must be dropped and recreated
   when adding columns — can't ALTER TYPE ADD ATTRIBUTE because the RPC functions depend
   on it. Drop functions first, then type, then recreate both.
