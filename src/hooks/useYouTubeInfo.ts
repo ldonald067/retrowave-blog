@@ -27,11 +27,15 @@ export function useYouTubeInfo(url: string | null | undefined): YouTubeInfoWithT
 
     // Fetch title asynchronously
     let cancelled = false;
-    fetchYouTubeTitle(info.videoId).then((title) => {
-      if (!cancelled && title) {
-        setYtInfo((prev) => (prev ? { ...prev, title } : null));
-      }
-    });
+    fetchYouTubeTitle(info.videoId)
+      .then((title) => {
+        if (!cancelled && title) {
+          setYtInfo((prev) => (prev ? { ...prev, title } : null));
+        }
+      })
+      .catch(() => {
+        // Silent fail — video preview still works without title
+      });
 
     return () => {
       cancelled = true;
