@@ -81,6 +81,9 @@ Keep frontend and backend in sync when changing limits or adding fields:
 - [2026-02-25 /mobile] The 480px breakpoint in `index.css` is the only custom CSS
   breakpoint. Everything else uses Tailwind's `sm:` (640px) and `lg:` (1024px).
   Sidebar switches from collapsible to fixed at `lg:`.
+- [2026-03-19 /mobile] Nav button labels (Home, Profile, New Entry) show at `lg:` (1024px),
+  not `sm:` (640px). At tablet widths (640-1023px) three labeled buttons overflowed the
+  header. Now icons-only below `lg:`, matching the sidebar breakpoint.
 - [2026-02-25 /mobile] Modals use `max-h-[95vh] sm:max-h-[90vh]` — 95% on mobile
   (more space needed), 90% on desktop (more breathing room). This is intentional.
 - [2026-02-25 /mobile] Input `font-size: 16px !important` at mobile breakpoint
