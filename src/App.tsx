@@ -369,6 +369,7 @@ function App() {
       return;
     }
     setPostToDelete(post);
+    setSelectedPost(null); // Close edit modal so confirm dialog is visible
   }, [user, showError]);
 
   const confirmDeletePost = useCallback(async () => {
