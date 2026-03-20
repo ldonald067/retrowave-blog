@@ -76,9 +76,8 @@ Keep frontend and backend in sync when changing limits or adding fields:
 
 ## Responsive & Mobile
 
-- [2026-02-25 /mobile] iPhone SE (375x667): PostModal `MODAL_CHROME_HEIGHT=140`
-  leaves ~493px scrollable at 95vh. ProfileModal's 180px leaves ~453px. Both are
-  tight but usable. Monitor if users report difficulty scrolling.
+- [2026-02-25 /mobile] iPhone SE (375x667): PostModal uses flexbox (flex-col + flex-1 min-h-0)
+  so footer stays pinned. ProfileModal's 180px chrome leaves ~453px. Both are tight but usable.
 - [2026-02-25 /mobile] The 480px breakpoint in `index.css` is the only custom CSS
   breakpoint. Everything else uses Tailwind's `sm:` (640px) and `lg:` (1024px).
   Sidebar switches from collapsible to fixed at `lg:`.
@@ -92,6 +91,10 @@ Keep frontend and backend in sync when changing limits or adding fields:
   fade edges for scroll hint, `role="tablist"`/`aria-selected` for a11y, 44px min-height.
 - [2026-03-15 /mobile] Feed RPCs (get_posts_with_reactions, get_post_by_id) changed to
   personal diary mode — only returns current user's own posts, not all public posts.
+- [2026-03-19 /mobile] Full responsive audit: mobile (375px), tablet (768px), desktop (1280px).
+  All user flows pass — signup, empty state, post CRUD, edit modal ⋮ menu, chapters, profile,
+  settings. Tablet 640-1023px is the known awkward zone (labels shown, sidebar still collapsed) —
+  functional but not polished. Not worth a `md:` breakpoint for a journal app.
 
 ## Styling & Theming
 
@@ -165,10 +168,13 @@ Keep frontend and backend in sync when changing limits or adding fields:
   composite types, and RPC signatures match between database.ts, validation.ts, and SQL.
 - [2026-03-18 /mobile] iOS App Store readiness: all guidelines pass (1.2 UGC, 5.1.1 data
   rights, safe areas, legal docs, COPPA age gate). Ready for submission.
-- [2026-03-19 /frontend] PostModal footer now uses flexbox (flex-col + flex-1 min-h-0) instead
+- [2026-03-19 /frontend] PostModal uses flexbox layout (flex-col + flex-1 min-h-0) instead
   of hardcoded maxHeight calc. Footer always visible, never cut off. MODAL_CHROME_HEIGHT removed.
-- [2026-03-19 /frontend] Post privacy toggle (🔒/🔓) in PostModal footer. Per-post `is_private`
-  persisted via CreatePostInput. Emoji-only on mobile, emoji+label on desktop (`hidden sm:inline`).
+- [2026-03-19 /frontend] PostModal ⋮ menu (top-right header): contains privacy toggle (🔒/🔓)
+  and delete entry. Click-outside-to-close, `role="menu"`/`role="menuitem"`, 44px touch targets.
+  Footer simplified to just privacy badge (read-only) + cancel + save.
+- [2026-03-19 /frontend] Per-post `is_private` toggle persisted via CreatePostInput. Available on
+  both create and edit modes. Footer shows "🔒 private" badge when enabled.
 - [2026-03-15 /migration] `get_posts_result` composite type must be dropped and recreated
   when adding columns — can't ALTER TYPE ADD ATTRIBUTE because the RPC functions depend
   on it. Drop functions first, then type, then recreate both.
@@ -224,9 +230,9 @@ Keep frontend and backend in sync when changing limits or adding fields:
 - [2026-03-16 /mobile] "Powered by YourJournal" moved from sidebar to page footer.
 - [2026-03-17 /frontend] PostCard simplified: no time/relative date (date only), no edit/delete icons.
   Owner clicks post → opens edit mode directly (saves a click). Non-owners get view mode.
-- [2026-03-17 /frontend] Edit/delete moved to PostModal: delete button in footer (left, destructive
-  fill on hover), cancel (center-right, subtle lift + bg tint), save (right). No X close in edit
-  mode — cancel handles it. View mode keeps X for non-owners.
+- [2026-03-19 /frontend] Edit/delete actions in ⋮ dropdown menu (top-right header). View mode
+  keeps X close for non-owners. Delete triggers confirm dialog (setSelectedPost(null) closes
+  edit modal first so confirm is visible — was a z-index bug).
 - [2026-03-15 /feature] Username format: `^[a-zA-Z0-9_-]+$` enforced at DB + client. Default
   username from email sanitized with `regexp_replace` in DB trigger and `.replace()` in useAuth.
 - [2026-03-15 /feature] Profile fields (username, display_name, bio) moderated via

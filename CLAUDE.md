@@ -28,7 +28,7 @@ src/components/    # PostCard, Header, Sidebar, ChapterChips, modals, ui/
 src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useChapters, useToast, useFocusTrap, useOnlineStatus
 src/lib/           # supabase, auth-guard, errors, retry, validation, cache, moderation, themes, capacitor, celebrations
 src/types/         # post, profile, database
-supabase/          # 30 migrations + moderate-content edge function
+supabase/          # 32 migrations + moderate-content edge function
 ios/               # Capacitor iOS app
 .claude/           # learnings.md, commands/ (skills)
 ```
