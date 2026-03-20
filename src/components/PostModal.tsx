@@ -13,8 +13,6 @@ import { MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { quickContentCheck } from '../lib/moderation';
 import { POST_LIMITS } from '../lib/validation';
 
-// Header (~60px) + Footer (~80px) = ~140px of non-scrollable modal chrome
-const MODAL_CHROME_HEIGHT = 140;
 
 interface PostModalProps {
   post?: Post | null;
@@ -41,6 +39,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
   const [mood, setMood] = useState('');
   const [music, setMusic] = useState('');
   const existingChapters = chapters;
+  const [isPrivate, setIsPrivate] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
@@ -117,6 +116,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
       }
       setAuthor(post.author || '');
       setChapter(post.chapter || '');
+      setIsPrivate(post.is_private ?? false);
       setMood(post.mood || '');
       setMusic(post.music || '');
     }
@@ -193,6 +193,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
       chapter: chapter.trim() || null,
       mood,
       music,
+      is_private: isPrivate,
     };
 
     try {
@@ -248,7 +249,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
               handleClose();
             }
           }}
-          className="rounded-xl shadow-2xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden"
+          className="rounded-xl shadow-2xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col"
           style={{
             backgroundColor: 'var(--modal-bg)',
             border: '4px solid var(--modal-border)',
@@ -289,11 +290,10 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
             </div>
           </div>
 
-          {/* Content — maxHeight = viewport minus header + footer chrome */}
+          {/* Content — flex-1 fills remaining space between header and footer */}
           <div
-            className="overflow-y-auto"
+            className="overflow-y-auto flex-1 min-h-0"
             style={{
-              maxHeight: `calc(95vh - ${MODAL_CHROME_HEIGHT}px)`,
               backgroundColor: 'var(--modal-bg)',
             }}
             onTouchMove={() => {
@@ -659,14 +659,14 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
           {/* Footer */}
           {!isViewMode && (
             <div
-              className="p-3 sm:p-4 border-t-2 border-dotted flex items-center justify-between modal-footer-safe"
+              className="p-3 sm:p-4 border-t-2 border-dotted flex items-center justify-between modal-footer-safe flex-shrink-0"
               style={{
                 background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
                 borderColor: 'var(--border-primary)',
               }}
             >
-              {/* Left: delete (edit mode only, owner only) */}
-              <div>
+              {/* Left: delete + private toggle */}
+              <div className="flex items-center gap-2">
                 {mode === 'edit' && isOwner && onDelete && post && (
                   <motion.button
                     whileHover={{ scale: 1.04, backgroundColor: 'var(--accent-secondary)', color: '#fff' }}
@@ -685,6 +685,21 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                     🗑️ delete
                   </motion.button>
                 )}
+                <button
+                  type="button"
+                  onClick={() => setIsPrivate((p) => !p)}
+                  className="min-h-[44px] px-2 flex items-center gap-1 text-xs font-bold rounded-lg transition hover:opacity-80"
+                  style={{
+                    color: isPrivate ? 'var(--accent-primary)' : 'var(--text-muted)',
+                    fontFamily: 'var(--title-font)',
+                  }}
+                  aria-label={isPrivate ? 'Make post public' : 'Make post private'}
+                  aria-pressed={isPrivate}
+                  title={isPrivate ? 'This post is private' : 'Make private'}
+                >
+                  {isPrivate ? '🔒' : '🔓'}
+                  <span className="hidden sm:inline">{isPrivate ? 'private' : 'public'}</span>
+                </button>
               </div>
               {/* Right: cancel + save */}
               <div className="flex gap-2">
