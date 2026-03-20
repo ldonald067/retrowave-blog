@@ -165,6 +165,10 @@ Keep frontend and backend in sync when changing limits or adding fields:
   composite types, and RPC signatures match between database.ts, validation.ts, and SQL.
 - [2026-03-18 /mobile] iOS App Store readiness: all guidelines pass (1.2 UGC, 5.1.1 data
   rights, safe areas, legal docs, COPPA age gate). Ready for submission.
+- [2026-03-19 /frontend] PostModal footer now uses flexbox (flex-col + flex-1 min-h-0) instead
+  of hardcoded maxHeight calc. Footer always visible, never cut off. MODAL_CHROME_HEIGHT removed.
+- [2026-03-19 /frontend] Post privacy toggle (🔒/🔓) in PostModal footer. Per-post `is_private`
+  persisted via CreatePostInput. Emoji-only on mobile, emoji+label on desktop (`hidden sm:inline`).
 - [2026-03-15 /migration] `get_posts_result` composite type must be dropped and recreated
   when adding columns — can't ALTER TYPE ADD ATTRIBUTE because the RPC functions depend
   on it. Drop functions first, then type, then recreate both.
