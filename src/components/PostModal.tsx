@@ -41,6 +41,8 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
   const existingChapters = chapters;
   const [isPrivate, setIsPrivate] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
@@ -214,6 +216,18 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
 
   const isViewMode = mode === 'view';
 
+  // Close more menu on outside click
+  useEffect(() => {
+    if (!showMoreMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target as Node)) {
+        setShowMoreMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showMoreMenu]);
+
   // YouTube info for view mode — hook called unconditionally, returns null when not applicable
   const viewModeYtInfo = useYouTubeInfo(isViewMode ? post?.music : null);
 
@@ -276,7 +290,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                   '✨ ~ new entry ~'
                 )}
               </h2>
-              {/* View mode: X to close. Edit/create mode: cancel is in the footer. */}
+              {/* View mode: X to close */}
               {isViewMode && (
                 <button
                   onClick={handleClose}
@@ -286,6 +300,50 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                 >
                   <X size={18} />
                 </button>
+              )}
+              {/* Edit/create mode: ⋮ more menu */}
+              {!isViewMode && (
+                <div className="relative" ref={moreMenuRef}>
+                  <button
+                    onClick={() => setShowMoreMenu((p) => !p)}
+                    aria-label="More options"
+                    aria-expanded={showMoreMenu}
+                    aria-haspopup="true"
+                    className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center hover:opacity-70"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    <span className="text-lg font-bold leading-none">⋮</span>
+                  </button>
+                  {showMoreMenu && (
+                    <div
+                      className="absolute right-0 top-full mt-1 z-50 rounded-lg border-2 border-dotted overflow-hidden min-w-[180px] shadow-lg"
+                      style={{
+                        backgroundColor: 'var(--card-bg)',
+                        borderColor: 'var(--border-primary)',
+                      }}
+                      role="menu"
+                    >
+                      <button
+                        role="menuitem"
+                        onClick={() => { setIsPrivate((p) => !p); setShowMoreMenu(false); }}
+                        className="w-full text-left px-4 py-3 text-xs font-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px]"
+                        style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
+                      >
+                        {isPrivate ? '🔓' : '🔒'} {isPrivate ? 'make public' : 'make private'}
+                      </button>
+                      {mode === 'edit' && isOwner && onDelete && post && (
+                        <button
+                          role="menuitem"
+                          onClick={() => { setShowMoreMenu(false); onDelete(post); }}
+                          className="w-full text-left px-4 py-3 text-xs font-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px] border-t border-dotted"
+                          style={{ color: 'var(--accent-secondary)', borderColor: 'var(--border-primary)', fontFamily: 'var(--title-font)' }}
+                        >
+                          🗑️ delete entry
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </div>
@@ -665,41 +723,16 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                 borderColor: 'var(--border-primary)',
               }}
             >
-              {/* Left: delete + private toggle */}
-              <div className="flex items-center gap-2">
-                {mode === 'edit' && isOwner && onDelete && post && (
-                  <motion.button
-                    whileHover={{ scale: 1.04, backgroundColor: 'var(--accent-secondary)', color: '#fff' }}
-                    whileTap={{ scale: 0.9 }}
-                    type="button"
-                    onClick={() => onDelete(post)}
-                    className="px-3 py-2 rounded-lg text-xs font-bold border-2 border-dotted min-h-[44px] flex items-center gap-1.5"
-                    style={{
-                      backgroundColor: 'var(--card-bg)',
-                      color: 'var(--accent-secondary)',
-                      borderColor: 'var(--accent-secondary)',
-                      fontFamily: 'var(--title-font)',
-                    }}
-                    aria-label="Delete post"
+              {/* Left: privacy indicator (read-only badge, toggle is in ⋮ menu) */}
+              <div className="flex items-center">
+                {isPrivate && (
+                  <span
+                    className="text-xs flex items-center gap-1 px-2 py-1 rounded-full"
+                    style={{ color: 'var(--text-muted)', backgroundColor: 'color-mix(in srgb, var(--border-primary) 20%, transparent)' }}
                   >
-                    🗑️ delete
-                  </motion.button>
+                    🔒 private
+                  </span>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setIsPrivate((p) => !p)}
-                  className="min-h-[44px] px-2 flex items-center gap-1 text-xs font-bold rounded-lg transition hover:opacity-80"
-                  style={{
-                    color: isPrivate ? 'var(--accent-primary)' : 'var(--text-muted)',
-                    fontFamily: 'var(--title-font)',
-                  }}
-                  aria-label={isPrivate ? 'Make post public' : 'Make post private'}
-                  aria-pressed={isPrivate}
-                  title={isPrivate ? 'This post is private' : 'Make private'}
-                >
-                  {isPrivate ? '🔒' : '🔓'}
-                  <span className="hidden sm:inline">{isPrivate ? 'private' : 'public'}</span>
-                </button>
               </div>
               {/* Right: cancel + save */}
               <div className="flex gap-2">
