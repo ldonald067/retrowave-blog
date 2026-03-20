@@ -207,14 +207,14 @@ export default function Header({
               aria-label="Scroll to top"
             >
               <Pepicon name="house" size={14} />
-              <span className="hidden sm:inline">Home</span>
+              <span className="hidden lg:inline">Home</span>
             </motion.button>
 
             {user ? (
               <>
                 <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onProfileClick} className="xanga-button flex items-center gap-1" aria-label="Edit profile">
                   <Pepicon name="person" size={14} />
-                  <span className="hidden sm:inline">Profile</span>
+                  <span className="hidden lg:inline">Profile</span>
                 </motion.button>
 
                 <motion.button
@@ -225,7 +225,7 @@ export default function Header({
                   aria-label="Create new entry"
                 >
                   <Windows95Notepad size={18} alt="" />
-                  <span className="hidden sm:inline">New Entry</span>
+                  <span className="hidden lg:inline">New Entry</span>
                 </motion.button>
               </>
             ) : (
@@ -236,7 +236,7 @@ export default function Header({
                 className="xanga-button flex items-center gap-1"
               >
                 <Windows95Password size={18} alt="" />
-                <span className="hidden sm:inline">Sign In</span>
+                <span className="hidden lg:inline">Sign In</span>
               </motion.button>
             )}
           </nav>
