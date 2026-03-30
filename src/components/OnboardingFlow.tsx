@@ -134,7 +134,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden px-4 sm:px-6 py-6 sm:py-8 flex flex-col items-center justify-center">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col items-center justify-center">
         <div className="w-full max-w-md" aria-live="polite" aria-atomic="true">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
