@@ -2,7 +2,7 @@
 
 Xanga/LiveJournal nostalgia blog. Solo operator, zero overhead. If a feature requires ongoing moderation, storage costs, or maintenance — don't build it.
 
-**IMPORTANT:** Before starting any task, read `.claude/learnings.md` for gotchas, data contracts, and known false positives. Use the right `/skill` for the domain (see table below).
+**IMPORTANT:** Before starting any task, check `.claude/learnings.md` for the relevant topic doc and read it. Use the right `/skill` for the domain (see table below).
 
 ## Commands
 
@@ -49,11 +49,18 @@ ios/               # Capacitor iOS app
 | `/test` | Vitest mock patterns, Supabase chain mocking |
 | `/preflight` | Pre-commit: tsc + build + tests, diagnose failures |
 
-## Key Docs
+## Key Docs (Progressive Disclosure)
 
-| File | Contains |
-|------|----------|
-| `.claude/learnings.md` | Gotchas, data contracts, false positives, architecture notes |
-| `.claude/commands/*.md` | Deep domain context per skill (patterns, checklists, code examples) |
-| `src/lib/validation.ts` | All field limits (POST_LIMITS, PROFILE_LIMITS) |
-| `src/lib/themes.ts` | 8 theme definitions (30+ CSS vars each) |
+CLAUDE.md is the always-loaded layer. Deeper context lives in topic-specific docs — load only what's relevant.
+
+| Layer | File | When to read |
+|-------|------|-------------|
+| Index | `.claude/learnings.md` | Start here — routes to topic docs |
+| Topic | `.claude/docs/gotchas.md` | Before any code change |
+| Topic | `.claude/docs/data-contracts.md` | Changing field limits or adding columns |
+| Topic | `.claude/docs/theming.md` | CSS variables, contrast, responsive |
+| Topic | `.claude/docs/architecture.md` | Supabase RPCs, auth, icons, performance |
+| Topic | `.claude/docs/false-positives.md` | Before flagging audit issues |
+| Skill | `.claude/commands/*.md` | Auto-loaded by `/skill` commands |
+| Code | `src/lib/validation.ts` | Field limits (POST_LIMITS, PROFILE_LIMITS) |
+| Code | `src/lib/themes.ts` | 8 theme definitions (42 CSS vars each) |
