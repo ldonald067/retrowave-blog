@@ -7,7 +7,7 @@ Branch: `fix/intentional-public-profile`
 - Keep optional public profiles for the Xanga-style publishing path.
 - Make publishing deliberate instead of a casual settings toggle.
 - Use one shared public-profile URL builder across profile settings and sidebar links.
-- Remove public-page reaction prompts so the public page reads as a journal page, not a social feed.
+- Remove public-page reaction prompts and public reaction counts so reactions stay account-only.
 
 ## Mobile UX Pass
 
@@ -22,7 +22,7 @@ Branch: `fix/intentional-public-profile`
 - Fixed here: nested confirmation dialogs stop click bubbling so cancelling the dialog does not close the profile modal behind it.
 - Still worth tackling: profile settings are long on mobile; style/profile/publishing could become separate sections if the modal starts feeling heavy.
 - Still worth tackling: entry privacy is hidden in the entry more menu; if public pages stay, the editor should make private/public status more visible before posting.
-- Still worth tackling: public pages are cleaner now, but the broader app still has reaction mechanics that may feel more social than journal-first.
+- Still worth tackling: the signed-in app still has reaction mechanics that may feel more social than journal-first.
 
 ## Verification
 

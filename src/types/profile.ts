@@ -31,7 +31,7 @@ export interface PublicProfile {
   created_at: string;
 }
 
-/** Public post (truncated content, reactions, no user_reactions) */
+/** Public post (truncated content, no reaction controls) */
 export interface PublicPost {
   id: string;
   title: string;
@@ -43,7 +43,6 @@ export interface PublicPost {
   is_private: boolean;
   created_at: string;
   content_truncated: boolean;
-  reactions: Record<string, number>;
 }
 
 /** Shape returned by get_public_profile RPC */
