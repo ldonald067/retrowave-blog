@@ -335,12 +335,20 @@ export function useAuth(): UseAuthReturn {
         return { error: firstError };
       }
 
-      const { error } = await withRetry(async () =>
-        supabase.from('profiles').update(updates).eq('id', currentUser.id),
+      const { data, error } = await withRetry(async () =>
+        supabase
+          .from('profiles')
+          .update(updates)
+          .eq('id', currentUser.id)
+          .select()
+          .single(),
       );
 
       if (error) throw error;
-      await fetchProfile(currentUser.id);
+      const profileData = data as Profile;
+      setProfile(profileData);
+      setProfileError(null);
+      applyTheme(profileData.theme ?? DEFAULT_THEME);
       return { error: null };
     } catch (err) {
       return { error: toUserMessage(err) };
