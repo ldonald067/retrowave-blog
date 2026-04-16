@@ -7,38 +7,13 @@ import { formatDate } from '../utils/formatDate';
 import LoadingSpinner from './LoadingSpinner';
 import type { PublicPost } from '../types/profile';
 
-const REACTION_EMOJIS = ['❤️', '🔥', '😂', '😢', '✨', '👀'];
-
 interface PublicProfileViewProps {
   username: string;
   onSignUp: () => void;
   onGoHome: () => void;
 }
 
-function ReactionDisplay({ reactions }: { reactions: Record<string, number> }) {
-  const entries = Object.entries(reactions).filter(([, count]) => count > 0);
-  if (entries.length === 0) return null;
-
-  return (
-    <div className="flex flex-wrap gap-1.5 mt-3">
-      {entries.map(([emoji, count]) => (
-        <span
-          key={emoji}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border"
-          style={{
-            borderColor: 'var(--border-primary)',
-            color: 'var(--text-muted)',
-            backgroundColor: 'color-mix(in srgb, var(--accent-primary) 8%, var(--card-bg))',
-          }}
-        >
-          {emoji} {count}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function PublicPostCard({ post, onReactClick }: { post: PublicPost; onReactClick: () => void }) {
+function PublicPostCard({ post }: { post: PublicPost }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -80,20 +55,6 @@ function PublicPostCard({ post, onReactClick }: { post: PublicPost; onReactClick
           {post.content_truncated && (
             <span style={{ color: 'var(--text-muted)' }}> ...</span>
           )}
-        </div>
-
-        {/* Reactions display */}
-        <ReactionDisplay reactions={post.reactions} />
-
-        {/* React prompt */}
-        <div className="mt-3 pt-3 border-t border-dotted" style={{ borderColor: 'var(--border-primary)' }}>
-          <button
-            onClick={onReactClick}
-            className="flex items-center gap-2 text-xs transition hover:opacity-80"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            {REACTION_EMOJIS.slice(0, 3).join(' ')} <span className="underline">sign up to react</span>
-          </button>
         </div>
       </div>
     </motion.article>
@@ -206,7 +167,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
             </div>
           ) : (
             posts.map((post) => (
-              <PublicPostCard key={post.id} post={post} onReactClick={onSignUp} />
+              <PublicPostCard key={post.id} post={post} />
             ))
           )}
         </div>
@@ -221,7 +182,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
           <div className="xanga-box p-6">
             <p className="xanga-title text-lg mb-2">✨ want your own journal? ✨</p>
             <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-              pick a theme, write your thoughts, share with friends
+              write privately, publish only what you choose
             </p>
             <button onClick={onSignUp} className="xanga-button text-sm px-6 py-2">
               start your journal

@@ -7,6 +7,7 @@ import { Avatar, YouTubeCard, Pepicon } from './ui';
 import { Windows95Notepad, Windows98DateTime, Winamp as WinampIcon } from 'react-old-icons';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { useTrailMode, TRAIL_MODE_OPTIONS } from './CursorSparkle';
+import { buildPublicProfileUrl } from '../lib/publicProfile';
 import type { Chapter } from '../hooks/useChapters';
 
 interface SidebarProps {
@@ -39,6 +40,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
   const [aimStatus, setAimStatus] = useState(() => {
     try { return localStorage.getItem('xanga-status') || ''; } catch { return ''; }
   });
+  const [shareCopied, setShareCopied] = useState(false);
   useEffect(() => {
     const handler = (e: Event) => setAimStatus((e as CustomEvent<string>).detail);
     window.addEventListener('xanga-status-update', handler);
@@ -55,7 +57,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
 
   const userData = useMemo(
     () => ({
-      username: user?.email?.split('@')[0] || 'guest',
+      username: profile?.username || user?.email?.split('@')[0] || 'guest',
       displayName: profile?.display_name || '✨ New User ✨',
       avatar:
         profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'guest'}`,
@@ -66,11 +68,14 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
         ? new Date(profile.created_at).getFullYear().toString()
         : '2026',
     }),
-    [user?.email, user?.id, profile?.display_name, profile?.avatar_url, profile?.bio, profile?.current_mood, profile?.current_music, profile?.created_at],
+    [user?.email, user?.id, profile?.username, profile?.display_name, profile?.avatar_url, profile?.bio, profile?.current_mood, profile?.current_music, profile?.created_at],
   );
 
   const ytInfo = useYouTubeInfo(userData.music);
   const [trailMode, setTrail] = useTrailMode();
+  const publicProfileUrl = profile?.is_public && profile?.username
+    ? buildPublicProfileUrl(profile.username)
+    : null;
 
   // Full sidebar content — shared between mobile expanded and desktop
   const sidebarContent = (
@@ -109,16 +114,18 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
           </div>
           <h2 className="xanga-title text-xl mb-1">{userData.displayName}</h2>
           <p className="xanga-subtitle">@{userData.username}</p>
-          {profile?.is_public && (
+          {publicProfileUrl && (
             <button
               onClick={() => {
-                void navigator.clipboard.writeText(`${window.location.origin}/#/u/${userData.username}`);
+                void navigator.clipboard.writeText(publicProfileUrl);
+                setShareCopied(true);
+                setTimeout(() => setShareCopied(false), 2000);
               }}
               className="xanga-link text-xs mt-1 inline-flex items-center gap-1"
-              title="Copy public profile link"
-              aria-label="Copy public profile link"
+              title="Copy public page link"
+              aria-label="Copy public page link"
             >
-              🔗 share profile
+              {shareCopied ? 'copied' : 'copy public page'}
             </button>
           )}
           {/* AIM-style status — reactive via custom event from Header */}

@@ -21,7 +21,10 @@ import {
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useBlocks } from '../hooks/useBlocks';
 import { sparkleBurst, emojiRain } from '../lib/celebrations';
+import { buildPublicProfileUrl } from '../lib/publicProfile';
 import type { Profile } from '../types/profile';
+import ConfirmDialog from './ConfirmDialog';
+import PublicPageSettings from './PublicPageSettings';
 
 // Header (~70px) + Footer (~70px) + padding = ~180px of non-scrollable modal chrome
 const MODAL_CHROME_HEIGHT = 180;
@@ -57,6 +60,7 @@ export default function ProfileModal({
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
   const [isPublic, setIsPublic] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const [blockedUsers, setBlockedUsers] = useState<Array<{ blocked_id: string; created_at: string }>>([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -73,13 +77,13 @@ export default function ProfileModal({
   }, [onClose]);
 
   const handleEscape = useCallback(() => {
-    if (saving || isInitialSetup) return;
+    if (saving || isInitialSetup || showPublishConfirm) return;
     if (showAvatarPicker) {
       setShowAvatarPicker(false);
     } else {
       handleCancel();
     }
-  }, [saving, isInitialSetup, showAvatarPicker, handleCancel]);
+  }, [saving, isInitialSetup, showPublishConfirm, showAvatarPicker, handleCancel]);
   useFocusTrap(dialogRef, true, handleEscape);
 
   useEffect(() => {
@@ -161,6 +165,15 @@ export default function ProfileModal({
   };
 
   const fallbackSeed = userId || 'guest';
+  const savedIsPublic = profile?.is_public ?? false;
+  const publicProfileUrl = profile?.username ? buildPublicProfileUrl(profile.username) : null;
+
+  const handleCopyPublicUrl = () => {
+    if (!publicProfileUrl) return;
+    void navigator.clipboard.writeText(publicProfileUrl);
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 2000);
+  };
 
   return (
     <AnimatePresence>
@@ -476,61 +489,20 @@ export default function ProfileModal({
                 </div>
               </div>
 
-              {/* Public Profile Toggle */}
+              {/* Public Page Settings */}
               {!isInitialSetup && (
-                <div className="xanga-box p-4">
-                  <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                    <Pepicon name="stars" size={14} color="var(--accent-primary)" />
-                    share your journal
-                  </h3>
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold" style={{ color: 'var(--text-body)' }}>
-                        make profile public
-                      </p>
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                        anyone with your link can read your journal
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={isPublic}
-                      onClick={() => setIsPublic(!isPublic)}
-                      className="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 transition-colors duration-200 ease-in-out min-h-[44px] min-w-[44px] items-center"
-                      style={{
-                        backgroundColor: isPublic ? 'var(--accent-primary)' : 'color-mix(in srgb, var(--border-primary) 50%, var(--card-bg))',
-                        borderColor: isPublic ? 'var(--accent-primary)' : 'var(--border-primary)',
-                      }}
-                    >
-                      <span
-                        className="inline-block h-4 w-4 rounded-full shadow transition-transform duration-200"
-                        style={{
-                          backgroundColor: 'var(--card-bg)',
-                          transform: isPublic ? 'translateX(22px)' : 'translateX(3px)',
-                        }}
-                      />
-                    </button>
-                  </div>
-                  {isPublic && profile?.username && (
-                    <div className="mt-3 p-2 rounded border text-xs" style={{ borderColor: 'var(--border-primary)', backgroundColor: 'color-mix(in srgb, var(--accent-primary) 5%, var(--card-bg))' }}>
-                      <p className="font-mono truncate" style={{ color: 'var(--text-body)' }}>
-                        {window.location.origin}/#/u/{profile.username}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void navigator.clipboard.writeText(`${window.location.origin}/#/u/${profile.username}`);
-                          setCopiedUrl(true);
-                          setTimeout(() => setCopiedUrl(false), 2000);
-                        }}
-                        className="xanga-link text-xs mt-1"
-                      >
-                        {copiedUrl ? '✓ copied!' : '📋 copy link'}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <PublicPageSettings
+                  enabled={isPublic}
+                  savedEnabled={savedIsPublic}
+                  publicUrl={publicProfileUrl}
+                  copied={copiedUrl}
+                  onRequestPublish={() => setShowPublishConfirm(true)}
+                  onUnpublish={() => {
+                    setIsPublic(false);
+                    setCopiedUrl(false);
+                  }}
+                  onCopy={handleCopyPublicUrl}
+                />
               )}
 
               {/* Blocked Users Section */}
@@ -645,6 +617,27 @@ export default function ProfileModal({
             </button>
           </div>
         </motion.div>
+
+        {showPublishConfirm && (
+          <ConfirmDialog
+            title="publish public page?"
+            message={(
+              <div className="space-y-2">
+                <p>This creates a public page for entries you mark public.</p>
+                <p style={{ color: 'var(--text-muted)' }}>
+                  Private entries and private chapters stay hidden. Anyone with the link can view public entries after you save.
+                </p>
+              </div>
+            )}
+            confirmLabel="publish page"
+            cancelLabel="keep private"
+            onConfirm={() => {
+              setIsPublic(true);
+              setShowPublishConfirm(false);
+            }}
+            onCancel={() => setShowPublishConfirm(false)}
+          />
+        )}
 
       </motion.div>
     </AnimatePresence>

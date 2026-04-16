@@ -1,10 +1,10 @@
-import { useRef } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface ConfirmDialogProps {
   title: string;
-  message: string;
+  message: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
@@ -31,7 +31,10 @@ export default function ConfirmDialog({
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
-        onClick={onCancel}
+        onClick={(e) => {
+          e.stopPropagation();
+          onCancel();
+        }}
       >
         <motion.div
           ref={dialogRef}
@@ -52,13 +55,13 @@ export default function ConfirmDialog({
             <span aria-hidden="true">⚠️</span> {title}
           </h3>
 
-          <p
+          <div
             id="confirm-dialog-message"
             className="text-sm mb-5"
             style={{ color: 'var(--text-body)' }}
           >
             {message}
-          </p>
+          </div>
 
           <div className="flex gap-3 justify-end">
             <motion.button
