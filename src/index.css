@@ -159,6 +159,7 @@ body {
   color: var(--text-body);
   font-size: 13px;
   line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .prose h1,
@@ -279,6 +280,7 @@ body {
   color: var(--text-title);
   text-shadow: 2px 2px 0px var(--shadow-color);
   font-weight: bold;
+  overflow-wrap: anywhere;
 }
 
 /* ===== Glitter Text — 2005 glitter text generator vibes ===== */
@@ -312,6 +314,7 @@ body {
   color: var(--text-subtitle);
   font-size: 12px;
   font-weight: normal;
+  overflow-wrap: anywhere;
 }
 
 /* Blinky text (very 2000s!) */

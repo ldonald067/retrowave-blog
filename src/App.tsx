@@ -715,15 +715,15 @@ function App() {
                 <motion.div
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="xanga-box p-3 mb-4 flex items-center justify-between gap-2"
+                  className="xanga-box p-3 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
                 >
-                  <span className="text-xs font-bold min-w-0 truncate" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
+                  <span className="text-xs font-bold min-w-0 w-full sm:w-auto truncate" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
                     {chapterFilter === LOOSE_ENTRIES ? '🍃 loose entries' : `${isChapterPrivate ? '🔒' : '📖'} ${chapterFilter}`}
                     <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
                       ({filteredPosts.length} {filteredPosts.length === 1 ? 'entry' : 'entries'})
                     </span>
                   </span>
-                  <div className="flex items-center gap-1 flex-shrink-0">
+                  <div className="flex items-center justify-end gap-1 flex-wrap w-full sm:w-auto sm:flex-shrink-0">
                     {isRealChapter && (
                       <button
                         onClick={() => toggleChapterPrivacy(chapterFilter)}

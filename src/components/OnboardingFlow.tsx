@@ -67,7 +67,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const variants = {
     enter: (dir: number) => ({
-      x: dir > 0 ? 300 : -300,
+      x: dir === 0 ? 0 : dir > 0 ? 300 : -300,
       opacity: 0,
     }),
     center: {
@@ -141,30 +141,30 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               key={currentStep}
               custom={direction}
               variants={variants}
-              initial="enter"
+              initial={direction === 0 ? 'center' : 'enter'}
               animate="center"
               exit="exit"
               transition={{
                 x: { type: 'spring', stiffness: 300, damping: 30 },
                 opacity: { duration: 0.2 },
               }}
-              className="w-full"
+              className="w-full max-w-full"
             >
               {/* Slide content as xanga-box */}
-              <div className="xanga-box p-5 sm:p-8 text-center">
+              <div className="xanga-box p-5 sm:p-8 text-center min-w-0">
                 {/* Emoji illustration */}
                 <motion.div
-                  initial={{ scale: 0, rotate: -10 }}
+                  initial={direction === 0 ? false : { scale: 0, rotate: -10 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
-                  className="text-3xl sm:text-5xl mb-4 tracking-widest"
+                  className="text-3xl sm:text-5xl mb-4 tracking-widest break-words"
                 >
                   {slide.emoji}
                 </motion.div>
 
                 {/* Decorative divider */}
                 <p
-                  className="text-xs mb-4 tracking-wider"
+                  className="text-xs mb-4 tracking-wider break-words"
                   style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
                 >
                   {slide.decoration}
@@ -172,20 +172,20 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
                 {/* Title */}
                 <motion.h2
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={direction === 0 ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="xanga-title text-lg sm:text-xl mb-3"
+                  className="xanga-title text-lg sm:text-xl mb-3 break-words"
                 >
                   {slide.title}
                 </motion.h2>
 
                 {/* Description */}
                 <motion.p
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={direction === 0 ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25 }}
-                  className="text-xs sm:text-sm leading-relaxed"
+                  className="text-xs sm:text-sm leading-relaxed break-words"
                   style={{ color: 'var(--text-body)' }}
                 >
                   {slide.description}

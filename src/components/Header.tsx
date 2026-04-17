@@ -190,15 +190,15 @@ export default function Header({
 
       {/* Main header */}
       <div className="max-w-7xl mx-auto px-4 py-2 sm:py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           {/* Site title */}
-          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex-1">
-            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1">✨ My Journal ✨</h1>
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex-1 min-w-0">
+            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 truncate">✨ My Journal ✨</h1>
             <p className="xanga-subtitle hidden sm:block">~ where my thoughts come alive ~</p>
           </motion.div>
 
           {/* Navigation */}
-          <nav className="flex items-center gap-1 sm:gap-2">
+          <nav className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

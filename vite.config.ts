@@ -21,9 +21,22 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-icons': ['lucide-react', 'pepicons', 'react-old-icons'],
           'vendor-motion': ['framer-motion'],
           'vendor-markdown': ['react-markdown', 'rehype-sanitize'],
           'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-capacitor': [
+            '@capacitor/app',
+            '@capacitor/browser',
+            '@capacitor/core',
+            '@capacitor/haptics',
+            '@capacitor/keyboard',
+            '@capacitor/share',
+            '@capacitor/splash-screen',
+            '@capacitor/status-bar',
+          ],
+          'vendor-utils': ['@tanstack/react-virtual', 'date-fns'],
         },
       },
     },

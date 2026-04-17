@@ -68,16 +68,25 @@ describe('useChapters', () => {
   // ── RPC error ───────────────────────────────────────────────────────────
 
   it('returns empty chapters on RPC error (silent fail)', async () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     vi.mocked(supabase.rpc).mockResolvedValueOnce({
       data: null,
       error: { message: 'RPC failed', code: '500' },
     } as never);
 
-    const { result } = renderHook(() => useChapters());
+    try {
+      const { result } = renderHook(() => useChapters());
 
-    await waitFor(() => expect(result.current.loading).toBe(false));
+      await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(result.current.chapters).toHaveLength(0);
+      expect(result.current.chapters).toHaveLength(0);
+      expect(warnSpy).toHaveBeenCalledWith('[useChapters] fetch failed:', {
+        message: 'RPC failed',
+        code: '500',
+      });
+    } finally {
+      warnSpy.mockRestore();
+    }
   });
 
   // ── Refetch ─────────────────────────────────────────────────────────────

@@ -112,8 +112,8 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               </motion.button>
             )}
           </div>
-          <h2 className="xanga-title text-xl mb-1">{userData.displayName}</h2>
-          <p className="xanga-subtitle">@{userData.username}</p>
+          <h2 className="xanga-title text-xl mb-1 break-words">{userData.displayName}</h2>
+          <p className="xanga-subtitle break-words">@{userData.username}</p>
           {publicProfileUrl && (
             <button
               onClick={() => {
@@ -197,7 +197,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
         >
           About Me
         </h3>
-        <p className="text-xs leading-relaxed italic" style={{ color: 'var(--text-body)' }}>{userData.bio}</p>
+        <p className="text-xs leading-relaxed italic break-words" style={{ color: 'var(--text-body)' }}>{userData.bio}</p>
       </motion.div>
 
       {/* Stats */}

@@ -28,7 +28,7 @@ function PublicPostCard({ post }: { post: PublicPost }) {
           borderColor: 'var(--border-primary)',
         }}
       >
-        <h2 className="xanga-title text-lg sm:text-2xl mb-1">{post.title}</h2>
+        <h2 className="xanga-title text-lg sm:text-2xl mb-1 break-words">{post.title}</h2>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs min-h-[28px]" style={{ color: 'var(--text-muted)' }}>
           <span className="flex items-center gap-1">
             <span style={{ color: 'var(--accent-primary)' }}>📅</span>
@@ -133,12 +133,12 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
               fallbackSeed={username}
             />
             <div className="flex-1 min-w-0">
-              <h1 className="xanga-title text-2xl sm:text-3xl">
+              <h1 className="xanga-title text-2xl sm:text-3xl break-words">
                 {profile.display_name || profile.username}
               </h1>
               <p className="xanga-subtitle">@{profile.username}</p>
               {profile.bio && (
-                <p className="text-sm mt-2 italic" style={{ color: 'var(--text-body)' }}>
+                <p className="text-sm mt-2 italic break-words" style={{ color: 'var(--text-body)' }}>
                   {profile.bio}
                 </p>
               )}
