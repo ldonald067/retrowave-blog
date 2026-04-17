@@ -9,8 +9,8 @@ This checklist tracks what can be tightened before real iPhone, Xcode, and App S
 - [x] 1. Add GitHub CI.
 - [x] 2. Build a no-Mac mobile QA pass.
 - [x] 3. Add focused UX regression tests.
-- [ ] 4. Prepare App Store privacy documentation.
-- [ ] 5. Tighten public-content review safety.
+- [x] 4. Prepare App Store privacy documentation.
+- [x] 5. Tighten public-content review safety.
 - [ ] 6. Audit accessibility and tap feel.
 - [ ] 7. Reduce duplicated UI/code where it lowers risk.
 - [ ] 8. Add backend privacy smoke checks.
@@ -81,7 +81,7 @@ Validation:
 
 ### 4. App Store Privacy Documentation
 
-Status: Not started.
+Status: Completed in this pass.
 
 Planned checks:
 
@@ -90,15 +90,32 @@ Planned checks:
 - Keep privacy wording aligned with the current permission posture: no camera/photo permission copy until image capture or upload exists.
 - Create a screenshot/reviewer-note checklist that leads with private journaling instead of public sharing.
 
+Artifact:
+
+- `docs/app-store/privacy.md`
+
 ### 5. Public-Content Review Safety
 
-Status: Not started.
+Status: Completed in this pass.
 
 Planned checks:
 
 - Review the public profile page for a lightweight report/contact path.
 - Keep the safety surface proportional: public pages need review safety, but the app should not become a social feed.
 - Confirm blocking/reporting language still makes sense for optional public journal pages.
+
+Implementation notes:
+
+- Public entries now include a small report link.
+- Public pages now include a page-level report link.
+- Public pages stay read-only and do not add reactions, comments, or feed mechanics.
+
+Validation:
+
+- Passed locally: `npm.cmd run lint`.
+- Passed locally: `npm.cmd run typecheck`.
+- Passed locally: `npm.cmd test` with 210 tests.
+- Passed locally: `npm.cmd run build`.
 
 ### 6. Accessibility And Tap Feel
 
@@ -141,3 +158,5 @@ Planned checks:
 - 2026-04-17: Added explicit TypeScript checking to local scripts and CI; fixed the Vite/Vitest config typing surfaced by that new check.
 - 2026-04-17: Added the mobile QA checklist and started UX regression coverage for private-by-default entries plus auth-scoped post loading.
 - 2026-04-17: Validated the second pass with lint, typecheck, 208 tests, and production build.
+- 2026-04-17: Added App Store privacy notes and lightweight public-page/public-entry reporting.
+- 2026-04-17: Validated the privacy/safety pass with lint, typecheck, 210 tests, and production build.

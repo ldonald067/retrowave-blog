@@ -5,6 +5,7 @@ import { applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { Avatar } from './ui';
 import { formatDate } from '../utils/formatDate';
 import LoadingSpinner from './LoadingSpinner';
+import { BLOG_OWNER_EMAIL } from '../lib/constants';
 import type { PublicPost } from '../types/profile';
 
 interface PublicProfileViewProps {
@@ -13,7 +14,16 @@ interface PublicProfileViewProps {
   onGoHome: () => void;
 }
 
-function PublicPostCard({ post }: { post: PublicPost }) {
+function buildReportHref(subject: string, body: string): string {
+  return `mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function PublicPostCard({ post, username }: { post: PublicPost; username: string }) {
+  const reportHref = buildReportHref(
+    `Report public entry: "${post.title}" (${post.id})`,
+    `Public page: @${username}\nEntry id: ${post.id}\nTitle: ${post.title}`,
+  );
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -56,6 +66,22 @@ function PublicPostCard({ post }: { post: PublicPost }) {
             <span style={{ color: 'var(--text-muted)' }}> ...</span>
           )}
         </div>
+      </div>
+
+      <div
+        className="px-4 py-2 border-t text-right"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
+          borderColor: 'var(--border-primary)',
+        }}
+      >
+        <a
+          href={reportHref}
+          className="xanga-link inline-flex items-center justify-end text-xs min-h-[44px]"
+          aria-label={`Report public entry: ${post.title}`}
+        >
+          ~ report entry ~
+        </a>
       </div>
     </motion.article>
   );
@@ -105,6 +131,10 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
   }
 
   const { profile, posts } = data;
+  const profileReportHref = buildReportHref(
+    `Report public page: @${profile.username}`,
+    `Public page: @${profile.username}`,
+  );
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -167,7 +197,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
             </div>
           ) : (
             posts.map((post) => (
-              <PublicPostCard key={post.id} post={post} />
+              <PublicPostCard key={post.id} post={post} username={profile.username} />
             ))
           )}
         </div>
@@ -191,6 +221,13 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
           <p className="text-xs mt-4" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
             powered by ✨ YourJournal
           </p>
+          <a
+            href={profileReportHref}
+            className="xanga-link mt-2 inline-flex items-center justify-center text-xs min-h-[44px]"
+            aria-label={`Report public page: ${profile.username}`}
+          >
+            report public page
+          </a>
         </motion.div>
       </div>
     </div>
