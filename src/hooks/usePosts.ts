@@ -4,20 +4,21 @@ import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
 import { requireAuth } from '../lib/auth-guard';
 import { postsCache } from '../lib/cache';
-import {
-  validatePostInput,
-  validateEmbeddedLinks,
-  hasValidationErrors,
-} from '../lib/validation';
+import { validatePostInput, validateEmbeddedLinks, hasValidationErrors } from '../lib/validation';
 import type { Post, CreatePostInput } from '../types/post';
 
 const PAGE_SIZE = 20;
 
-function cacheKey(
-  userId: string | null,
-  cursor: string | null,
-): string {
-  return `${userId ?? 'anon'}:${cursor ?? 'initial'}`;
+function cacheKey(userId: string, cursor: string | null): string {
+  return `${userId}:${cursor ?? 'initial'}`;
+}
+
+function normalizePost(post: Post): Post {
+  return {
+    ...post,
+    reactions: (post.reactions as Record<string, number>) ?? {},
+    user_reactions: (post.user_reactions as string[]) ?? [],
+  };
 }
 
 interface UsePostsReturn {
@@ -26,65 +27,62 @@ interface UsePostsReturn {
   loadingMore: boolean;
   hasMore: boolean;
   error: string | null;
-  /** Error from pagination (loadMore) — shown inline, not full-page */
+  /** Error from pagination, shown inline instead of replacing the full screen. */
   loadMoreError: string | null;
-  createPost: (
-    post: CreatePostInput,
-  ) => Promise<{ data: Post | null; error: string | null }>;
+  createPost: (post: CreatePostInput) => Promise<{ data: Post | null; error: string | null }>;
   updatePost: (
     id: string,
-    updates: Partial<CreatePostInput>,
+    updates: Partial<CreatePostInput>
   ) => Promise<{ data: Post | null; error: string | null }>;
   deletePost: (id: string) => Promise<{ error: string | null }>;
   loadMore: () => Promise<void>;
   refetch: () => Promise<void>;
-  /** Optimistically update reactions for a single post (no server round-trip). */
+  /** Optimistically update reactions for a single post without a server round trip. */
   applyOptimisticReaction: (
     postId: string,
     emoji: string,
     userId: string,
-    wasActive: boolean,
+    wasActive: boolean
   ) => void;
-  /** M2: Fetch a single post with full content (for view/edit modes). */
+  /** Fetch a single post with full content for view/edit modes. */
   fetchPost: (postId: string) => Promise<Post | null>;
 }
 
-export function usePosts(activeUserId?: string | null): UsePostsReturn {
+export function usePosts(currentUserId: string | null): UsePostsReturn {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
-  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [hasMore, setHasMore] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
 
   const cursorRef = useRef<string | null>(null);
-  const userIdRef = useRef<string | null>(null);
-  const isAuthScoped = activeUserId !== undefined;
-  // L4 FIX: Use a ref guard for loadMore instead of the `loadingMore` state.
-  // On iPhone momentum scroll, the virtualizer can fire loadMore rapidly.
-  // React state updates are async — the second call may see stale `false`
-  // before the first call's `setLoadingMore(true)` flushes.
+  const activeUserIdRef = useRef<string | null>(null);
   const loadingMoreRef = useRef<boolean>(false);
 
-  // ── Core fetch ─────────────────────────────────────────────────────────
+  const resetPostsState = useCallback((): void => {
+    setPosts([]);
+    setError(null);
+    setLoadMoreError(null);
+    setLoadingMore(false);
+    setHasMore(false);
+    cursorRef.current = null;
+    loadingMoreRef.current = false;
+  }, []);
+
   const fetchPage = useCallback(
     async (cursor: string | null, append: boolean): Promise<void> => {
-      if (isAuthScoped && !activeUserId) {
-        setPosts([]);
-        setHasMore(false);
+      if (!currentUserId) {
+        resetPostsState();
         return;
       }
 
-      const userId = isAuthScoped
-        ? activeUserId
-        : (await supabase.auth.getSession()).data.session?.user?.id ?? null;
-      userIdRef.current = userId;
+      if (activeUserIdRef.current !== currentUserId) return;
 
-      const key = cacheKey(userId, cursor);
-
-      // Check cache (skip for explicit refetch which calls invalidateAll first)
+      const key = cacheKey(currentUserId, cursor);
       const cached = postsCache.get(key) as Post[] | undefined;
       if (cached) {
+        if (activeUserIdRef.current !== currentUserId) return;
         if (append) {
           setPosts((prev) => [...prev, ...cached]);
         } else {
@@ -99,23 +97,17 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
         return;
       }
 
-      // T3: Single RPC replaces the two-query waterfall (N+1 fix)
       const { data, error: rpcError } = await withRetry(async () =>
         supabase.rpc('get_posts_with_reactions', {
           p_cursor: cursor,
           p_limit: PAGE_SIZE,
-        }),
+        })
       );
 
       if (rpcError) throw rpcError;
+      if (activeUserIdRef.current !== currentUserId) return;
 
-      const page = ((data as Post[]) ?? []).map((p) => ({
-        ...p,
-        // Ensure reactions/user_reactions are always present for UI
-        reactions: (p.reactions as Record<string, number>) ?? {},
-        user_reactions: (p.user_reactions as string[]) ?? [],
-      }));
-
+      const page = ((data as Post[]) ?? []).map(normalizePost);
       postsCache.set(key, page);
 
       if (page.length > 0) {
@@ -129,14 +121,24 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
         setPosts(page);
       }
     },
-    [activeUserId, isAuthScoped],
+    [currentUserId, resetPostsState]
   );
 
-  // ── Initial load ───────────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
+    const loadInitialPage = async (): Promise<void> => {
+      if (activeUserIdRef.current !== currentUserId) {
+        postsCache.invalidateAll();
+        activeUserIdRef.current = currentUserId;
+        resetPostsState();
+      }
+
+      if (!currentUserId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -144,50 +146,56 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
         cursorRef.current = null;
         loadingMoreRef.current = false;
         setLoadingMore(false);
-        if (isAuthScoped && !activeUserId) {
-          setPosts([]);
-          setHasMore(false);
-          return;
-        }
-        setPosts([]);
         setHasMore(true);
-        if (!cancelled) await fetchPage(null, false);
+        await fetchPage(null, false);
       } catch (err) {
-        if (!cancelled) setError(toUserMessage(err));
+        if (!cancelled && activeUserIdRef.current === currentUserId) {
+          setError(toUserMessage(err));
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && activeUserIdRef.current === currentUserId) {
+          setLoading(false);
+        }
       }
-    })();
+    };
+
+    void loadInitialPage();
 
     return () => {
       cancelled = true;
     };
-  }, [activeUserId, fetchPage, isAuthScoped]);
+  }, [currentUserId, fetchPage, resetPostsState]);
 
-  // ── Load more (pagination) ─────────────────────────────────────────────
   const loadMore = useCallback(async (): Promise<void> => {
-    // L4 FIX: Check the ref (synchronous) instead of stale state closure.
-    if (loadingMoreRef.current || !hasMore) return;
+    if (!currentUserId || loadingMoreRef.current || !hasMore) return;
+
     loadingMoreRef.current = true;
     setLoadMoreError(null);
+
     try {
       setLoadingMore(true);
       await fetchPage(cursorRef.current, true);
     } catch (err) {
-      // UX: Use separate state so pagination errors show inline, not full-page
       setLoadMoreError(toUserMessage(err));
     } finally {
       loadingMoreRef.current = false;
       setLoadingMore(false);
     }
-  }, [fetchPage, hasMore]);
+  }, [currentUserId, fetchPage, hasMore]);
 
-  // ── Refetch (force bypass cache) ────────────────────────────────────────
   const refetch = useCallback(async (): Promise<void> => {
+    postsCache.invalidateAll();
+
+    if (!currentUserId) {
+      resetPostsState();
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-      postsCache.invalidateAll();
+      setLoadMoreError(null);
       cursorRef.current = null;
       setHasMore(true);
       await fetchPage(null, false);
@@ -196,31 +204,23 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
     } finally {
       setLoading(false);
     }
-  }, [fetchPage]);
+  }, [currentUserId, fetchPage, resetPostsState]);
 
-  // ── T4: Optimistic reaction update ──────────────────────────────────────
   const applyOptimisticReaction = useCallback(
-    (
-      postId: string,
-      emoji: string,
-      _userId: string,
-      wasActive: boolean,
-    ): void => {
+    (postId: string, emoji: string, _userId: string, wasActive: boolean): void => {
       setPosts((prev) =>
         prev.map((post) => {
           if (post.id !== postId) return post;
           const currentCount = post.reactions?.[emoji] ?? 0;
           const newReactions = {
             ...post.reactions,
-            [emoji]: wasActive
-              ? Math.max(0, currentCount - 1)
-              : currentCount + 1,
+            [emoji]: wasActive ? Math.max(0, currentCount - 1) : currentCount + 1,
           };
           if (newReactions[emoji] === 0) delete newReactions[emoji];
 
           const currentUserReactions = post.user_reactions ?? [];
           const newUserReactions = wasActive
-            ? currentUserReactions.filter((r) => r !== emoji)
+            ? currentUserReactions.filter((reaction) => reaction !== emoji)
             : [...currentUserReactions, emoji];
 
           return {
@@ -228,20 +228,15 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
             reactions: newReactions,
             user_reactions: newUserReactions,
           };
-        }),
+        })
       );
-      // Invalidate cache so a hard refetch sees the latest
       postsCache.invalidateAll();
     },
-    [],
+    []
   );
 
-  // ── createPost ─────────────────────────────────────────────────────────
   const createPost = useCallback(
-    async (
-      post: CreatePostInput,
-    ): Promise<{ data: Post | null; error: string | null }> => {
-      // T3: Client-side validation
+    async (post: CreatePostInput): Promise<{ data: Post | null; error: string | null }> => {
       const errors = validatePostInput(post);
       if (hasValidationErrors(errors)) {
         const firstError = Object.values(errors)[0]!;
@@ -255,7 +250,6 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
       try {
         const auth = await requireAuth();
         if (auth.error) return { data: null, error: auth.error };
-        // Safe assertion: discriminated union guarantees user is non-null when error is null
         const user = auth.user!;
 
         const { data, error } = await withRetry(async () =>
@@ -263,7 +257,7 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
             .from('posts')
             .insert([{ ...post, user_id: user.id }])
             .select()
-            .single(),
+            .single()
         );
 
         if (error) throw error;
@@ -271,10 +265,6 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
 
         if (postData) {
           postsCache.invalidateAll();
-          // F1 FIX: The direct .insert().select() response lacks the joined
-          // fields that get_posts_with_reactions returns (profile info, reactions).
-          // Fill in defaults so PostCard renders correctly until the next
-          // full refetch pulls the RPC-enriched data.
           const enrichedPost: Post = {
             ...postData,
             reactions: {},
@@ -290,22 +280,18 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
         return { data: null, error: toUserMessage(err) };
       }
     },
-    [],
+    []
   );
 
-  // ── updatePost ─────────────────────────────────────────────────────────
   const updatePost = useCallback(
     async (
       id: string,
-      updates: Partial<CreatePostInput>,
+      updates: Partial<CreatePostInput>
     ): Promise<{ data: Post | null; error: string | null }> => {
-      // T3: Defensive ownership check
       const auth = await requireAuth();
       if (auth.error) return { data: null, error: auth.error };
-      // Safe assertion: discriminated union guarantees user is non-null when error is null
       const user = auth.user!;
 
-      // T3: Validate updates
       const errors = validatePostInput(updates);
       if (hasValidationErrors(errors)) {
         return { data: null, error: Object.values(errors)[0]! };
@@ -316,9 +302,6 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
       }
 
       try {
-        // H3 FIX: Include user_id in WHERE clause as defense-in-depth.
-        // Even if RLS policies enforce ownership, this ensures the query
-        // can't modify another user's post if RLS is misconfigured.
         const { data, error } = await withRetry(async () =>
           supabase
             .from('posts')
@@ -326,7 +309,7 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
             .eq('id', id)
             .eq('user_id', user.id)
             .select()
-            .single(),
+            .single()
         );
 
         if (error) throw error;
@@ -334,13 +317,10 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
 
         if (postData) {
           postsCache.invalidateAll();
-          // After editing, the local post has full content — not truncated
           setPosts((prev) =>
-            prev.map((p) =>
-              p.id === id
-                ? { ...p, ...postData, content_truncated: false }
-                : p,
-            ),
+            prev.map((post) =>
+              post.id === id ? { ...post, ...postData, content_truncated: false } : post
+            )
           );
         }
         return { data: postData, error: null };
@@ -348,64 +328,52 @@ export function usePosts(activeUserId?: string | null): UsePostsReturn {
         return { data: null, error: toUserMessage(err) };
       }
     },
-    [],
+    []
   );
 
-  // ── deletePost ─────────────────────────────────────────────────────────
-  const deletePost = useCallback(
-    async (id: string): Promise<{ error: string | null }> => {
-      try {
-        const auth = await requireAuth();
-        if (auth.error) return { error: auth.error };
-        // Safe assertion: discriminated union guarantees user is non-null when error is null
-        const user = auth.user!;
+  const deletePost = useCallback(async (id: string): Promise<{ error: string | null }> => {
+    try {
+      const auth = await requireAuth();
+      if (auth.error) return { error: auth.error };
+      const user = auth.user!;
 
-        // H3 FIX: Include user_id as defense-in-depth (same as updatePost).
-        const { error } = await withRetry(async () =>
-          supabase
-            .from('posts')
-            .delete()
-            .eq('id', id)
-            .eq('user_id', user.id),
-        );
-        if (error) throw error;
-        postsCache.invalidateAll();
-        setPosts((prev) => prev.filter((p) => p.id !== id));
-        return { error: null };
-      } catch (err) {
-        return { error: toUserMessage(err) };
-      }
-    },
-    [],
-  );
+      const { error } = await withRetry(async () =>
+        supabase.from('posts').delete().eq('id', id).eq('user_id', user.id)
+      );
+      if (error) throw error;
+      postsCache.invalidateAll();
+      setPosts((prev) => prev.filter((post) => post.id !== id));
+      return { error: null };
+    } catch (err) {
+      return { error: toUserMessage(err) };
+    }
+  }, []);
 
-  // ── M2: fetchPost (single post with full content) ──────────────────────
   const fetchPost = useCallback(
     async (postId: string): Promise<Post | null> => {
+      if (!currentUserId) return null;
+      const requestedUserId = currentUserId;
+
       try {
         const { data, error: rpcError } = await withRetry(async () =>
           supabase.rpc('get_post_by_id', {
             p_post_id: postId,
-          }),
+          })
         );
 
         if (rpcError) throw rpcError;
+        if (activeUserIdRef.current !== requestedUserId) return null;
 
         const rows = (data as Post[]) ?? [];
         if (rows.length === 0) return null;
 
-        const post = rows[0]!;
-        return {
-          ...post,
-          reactions: (post.reactions as Record<string, number>) ?? {},
-          user_reactions: (post.user_reactions as string[]) ?? [],
-        };
+        return normalizePost(rows[0]!);
       } catch (err) {
         console.error('Error fetching post:', toUserMessage(err));
         return null;
       }
     },
-    [],
+    [currentUserId]
   );
 
   return {

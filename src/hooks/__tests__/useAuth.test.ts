@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
+import type { Profile } from '../../types/profile';
 
-// Mock supabase — all variables must be inside the factory to avoid hoisting issues
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
@@ -22,14 +22,44 @@ vi.mock('../../lib/supabase', () => ({
   },
 }));
 
+vi.mock('../../lib/auth-guard', () => ({
+  requireAuth: vi.fn(),
+}));
+
 import { useAuth } from '../useAuth';
 import { supabase } from '../../lib/supabase';
+import { requireAuth } from '../../lib/auth-guard';
+
+const mockUser = { id: 'user-1', email: 'test@example.com' };
+
+const savedProfile: Profile = {
+  id: 'user-1',
+  username: 'testuser',
+  display_name: 'New Name',
+  bio: null,
+  avatar_url: null,
+  birth_year: 2000,
+  age_verified: true,
+  tos_accepted: true,
+  theme: 'default',
+  current_mood: null,
+  current_music: null,
+  is_admin: false,
+  is_public: false,
+  private_chapters: [],
+  created_at: '2026-04-17T00:00:00Z',
+  updated_at: '2026-04-17T00:00:00Z',
+};
 
 describe('useAuth', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(supabase.auth.getSession).mockResolvedValue({
       data: { session: null },
+    } as never);
+    vi.mocked(requireAuth).mockResolvedValue({
+      user: null,
+      error: 'You must be logged in to do that.',
     } as never);
   });
 
@@ -72,7 +102,6 @@ describe('useAuth', () => {
       response = await result.current.signIn('bad@email');
     });
 
-    // toUserMessage() maps unknown errors to a generic message
     expect(response.error).toBe('Something went wrong. Please try again.');
   });
 
@@ -117,5 +146,35 @@ describe('useAuth', () => {
     });
 
     expect(response.error).toBe('You must be logged in to do that.');
+  });
+
+  it('updateProfile uses the saved row immediately', async () => {
+    vi.mocked(requireAuth).mockResolvedValueOnce({
+      user: mockUser,
+      error: null,
+    } as never);
+
+    const query = {
+      update: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      select: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: savedProfile, error: null }),
+    };
+    vi.mocked(supabase.from).mockReturnValueOnce(query as never);
+
+    const { result } = renderHook(() => useAuth());
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let response: { error: string | null } = { error: null };
+    await act(async () => {
+      response = await result.current.updateProfile({ display_name: 'New Name' });
+    });
+
+    expect(response.error).toBeNull();
+    expect(query.update).toHaveBeenCalledWith({ display_name: 'New Name' });
+    expect(query.eq).toHaveBeenCalledWith('id', mockUser.id);
+    expect(query.select).toHaveBeenCalled();
+    expect(result.current.profile).toEqual(savedProfile);
+    expect(result.current.profileError).toBeNull();
   });
 });
