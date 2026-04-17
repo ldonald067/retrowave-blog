@@ -3,8 +3,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
-import { Avatar, YouTubeCard, Pepicon } from './ui';
-import { Windows95Notepad, Windows98DateTime, Winamp as WinampIcon } from 'react-old-icons';
+import {
+  Avatar,
+  YouTubeCard,
+  Pepicon,
+  Windows95Notepad,
+  Windows98DateTime,
+  Winamp as WinampIcon,
+} from './ui';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { useTrailMode, TRAIL_MODE_OPTIONS } from './CursorSparkle';
 import { buildPublicProfileUrl } from '../lib/publicProfile';

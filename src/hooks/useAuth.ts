@@ -4,10 +4,7 @@ import { applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
 import { requireAuth } from '../lib/auth-guard';
-import {
-  validateProfileInput,
-  hasValidationErrors,
-} from '../lib/validation';
+import { validateProfileInput, hasValidationErrors } from '../lib/validation';
 import { MIN_AGE } from '../lib/constants';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
@@ -15,37 +12,30 @@ import type { Profile } from '../types/profile';
 interface UseAuthReturn {
   user: User | null;
   profile: Profile | null;
-  /** Set when profile fetch/creation fails — show in UI so user knows */
+  /** Set when profile fetch or creation fails so the UI can surface it. */
   profileError: string | null;
   loading: boolean;
   signUp: (
     email: string,
     birthYear: number,
-    tosAccepted: boolean,
+    tosAccepted: boolean
   ) => Promise<{ error: string | null }>;
-  /** Password-based sign-up — no email delivery needed */
+  /** Password-based sign-up, with no email delivery needed. */
   signUpWithPassword: (
     email: string,
     password: string,
     birthYear: number,
-    tosAccepted: boolean,
+    tosAccepted: boolean
   ) => Promise<{ error: string | null }>;
   signIn: (email: string) => Promise<{ error: string | null }>;
-  signInWithPassword: (
-    email: string,
-    password: string,
-  ) => Promise<{ error: string | null }>;
+  signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<{ error: string | null }>;
-  updateProfile: (
-    updates: Partial<Profile>,
-  ) => Promise<{ error: string | null }>;
-  /** Re-fetch the profile from the database without updating it. */
+  updateProfile: (updates: Partial<Profile>) => Promise<{ error: string | null }>;
   refetchProfile: () => Promise<void>;
-  // Only available in development builds. Guard call sites with import.meta.env.DEV.
   devSignUp?: (
     email: string,
     birthYear: number,
-    tosAccepted: boolean,
+    tosAccepted: boolean
   ) => Promise<{ error: string | null }>;
 }
 
@@ -55,17 +45,13 @@ export function useAuth(): UseAuthReturn {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // T2-3 FIX: Track in-flight fetchProfile to avoid duplicate concurrent calls.
   const fetchingProfileFor = useRef<string | null>(null);
-  // Throttle: prevent rapid sequential profile fetches (e.g. after auth state flurries)
   const lastFetchTime = useRef<number>(0);
   const FETCH_COOLDOWN_MS = 2000;
 
   useEffect(() => {
     let cancelled = false;
 
-    // T2-3 FIX: Set up listener BEFORE getSession.
-    // Skip INITIAL_SESSION — getSession handles that path below.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -81,7 +67,6 @@ export function useAuth(): UseAuthReturn {
       }
     });
 
-    // Get initial session (source of truth for first render)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (cancelled) return;
       setUser(session?.user ?? null);
@@ -99,27 +84,25 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   const fetchProfile = async (userId: string): Promise<void> => {
-    // Prevent duplicate concurrent fetches for the same user
     if (fetchingProfileFor.current === userId) return;
-    // Throttle rapid sequential fetches (auth state change flurries)
+
     const now = Date.now();
     if (now - lastFetchTime.current < FETCH_COOLDOWN_MS && profile) return;
     lastFetchTime.current = now;
     fetchingProfileFor.current = userId;
 
     try {
-      // T2-2: Retry transient failures
       const { data, error } = await withRetry(async () =>
-        supabase.from('profiles').select('*').eq('id', userId).single(),
+        supabase.from('profiles').select('*').eq('id', userId).single()
       );
 
       if (error) {
         const err = error as { code?: string };
         if (err.code === 'PGRST116') {
-          // Profile missing — attempt creation
           const newProfile = await createProfileForUser(userId);
           if (newProfile) {
             setProfile(newProfile);
+            setProfileError(null);
             applyTheme(newProfile.theme ?? DEFAULT_THEME);
           }
           return;
@@ -129,6 +112,7 @@ export function useAuth(): UseAuthReturn {
 
       const profileData = data as Profile;
       setProfile(profileData);
+      setProfileError(null);
       applyTheme(profileData.theme ?? DEFAULT_THEME);
     } catch (err) {
       console.error('Error fetching profile:', toUserMessage(err));
@@ -140,40 +124,26 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
-  // T1-1 FIX: Read actual metadata from the auth user object.
-  // No longer hardcodes age_verified: true.
-  const createProfileForUser = async (
-    userId: string,
-  ): Promise<Profile | null> => {
+  const createProfileForUser = async (userId: string): Promise<Profile | null> => {
     const MAX_ATTEMPTS = 3;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
       try {
-        // L7 FIX: Use getSession() (local, no network call) instead of
-        // getUser() (network round-trip). We already have the userId param
-        // and just need the user's email + metadata from the cached session.
         const {
           data: { session },
         } = await supabase.auth.getSession();
         const authUser = session?.user ?? null;
-        // Strip non-alphanumeric chars from email local part to satisfy
-        // the username format constraint (alphanumeric + underscores + hyphens).
-        const emailLocalPart = (authUser?.email?.split('@')[0] || 'user')
-          .replace(/[^a-zA-Z0-9_-]/g, '_');
+        const emailLocalPart = (authUser?.email?.split('@')[0] || 'user').replace(
+          /[^a-zA-Z0-9_-]/g,
+          '_'
+        );
         const randomId = Math.random().toString(36).substring(2, 8);
-        const defaultUsername = authUser?.email
-          ? emailLocalPart
-          : `guest_${randomId}`;
+        const defaultUsername = authUser?.email ? emailLocalPart : `guest_${randomId}`;
 
-        // COPPA FIX: Derive age_verified from birth_year — never trust the
-        // metadata boolean. Matches the logic in handle_new_user trigger.
         const metadata = authUser?.user_metadata ?? {};
         const tosAccepted = Boolean(metadata['tos_accepted'] ?? false);
-        const birthYear = metadata['birth_year']
-          ? Number(metadata['birth_year'])
-          : null;
-        const ageVerified =
-          birthYear !== null && new Date().getFullYear() - birthYear >= MIN_AGE;
+        const birthYear = metadata['birth_year'] ? Number(metadata['birth_year']) : null;
+        const ageVerified = birthYear !== null && new Date().getFullYear() - birthYear >= MIN_AGE;
 
         const profileData = {
           id: userId,
@@ -191,7 +161,6 @@ export function useAuth(): UseAuthReturn {
           .single();
 
         if (error) {
-          // Profile was created by the DB trigger between our check and insert
           if ((error as { code?: string }).code === '23505') {
             const { data: existing } = await supabase
               .from('profiles')
@@ -201,9 +170,8 @@ export function useAuth(): UseAuthReturn {
             return (existing as Profile) ?? null;
           }
 
-          // T2-1 FIX: Retry transient errors
           if (attempt < MAX_ATTEMPTS) {
-            await new Promise((r) => setTimeout(r, 300 * attempt));
+            await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
             continue;
           }
           console.error('Error creating profile after retries:', toUserMessage(error));
@@ -214,7 +182,7 @@ export function useAuth(): UseAuthReturn {
         return data as Profile;
       } catch (err) {
         if (attempt < MAX_ATTEMPTS) {
-          await new Promise((r) => setTimeout(r, 300 * attempt));
+          await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
           continue;
         }
         console.error('Error creating profile:', toUserMessage(err));
@@ -229,7 +197,7 @@ export function useAuth(): UseAuthReturn {
   const signUp = async (
     email: string,
     birthYear: number,
-    tosAccepted: boolean,
+    tosAccepted: boolean
   ): Promise<{ error: string | null }> => {
     try {
       const { error } = await supabase.auth.signInWithOtp({
@@ -254,7 +222,7 @@ export function useAuth(): UseAuthReturn {
     email: string,
     password: string,
     birthYear: number,
-    tosAccepted: boolean,
+    tosAccepted: boolean
   ): Promise<{ error: string | null }> => {
     try {
       const { error } = await supabase.auth.signUp({
@@ -275,9 +243,7 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
-  const signIn = async (
-    email: string,
-  ): Promise<{ error: string | null }> => {
+  const signIn = async (email: string): Promise<{ error: string | null }> => {
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
@@ -292,7 +258,7 @@ export function useAuth(): UseAuthReturn {
 
   const signInWithPassword = async (
     email: string,
-    password: string,
+    password: string
   ): Promise<{ error: string | null }> => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -316,53 +282,47 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
-  const updateProfile = async (
-    updates: Partial<Profile>,
-  ): Promise<{ error: string | null }> => {
+  const updateProfile = async (updates: Partial<Profile>): Promise<{ error: string | null }> => {
     try {
       const auth = await requireAuth();
       if (auth.error) return { error: auth.error };
       const currentUser = auth.user!;
 
-      // F3 FIX: Validate string field lengths before sending to DB.
-      // Prevents oversized values from hitting the server and gives
-      // immediate feedback in the UI.
-      const validationErrors = validateProfileInput(
-        updates as Record<string, unknown>,
-      );
+      const validationErrors = validateProfileInput(updates as Record<string, unknown>);
       if (hasValidationErrors(validationErrors)) {
         const firstError = Object.values(validationErrors)[0]!;
         return { error: firstError };
       }
 
-      const { error } = await withRetry(async () =>
-        supabase.from('profiles').update(updates).eq('id', currentUser.id),
+      const { data, error } = await withRetry(async () =>
+        supabase.from('profiles').update(updates).eq('id', currentUser.id).select().single()
       );
 
       if (error) throw error;
-      await fetchProfile(currentUser.id);
+      if (!data) throw new Error('Profile update did not return a row.');
+
+      const profileData = data as Profile;
+      setProfile(profileData);
+      setProfileError(null);
+      applyTheme(profileData.theme ?? DEFAULT_THEME);
       return { error: null };
     } catch (err) {
       return { error: toUserMessage(err) };
     }
   };
 
-  // DEV ONLY: Sign up using anonymous auth (bypasses email completely)
   const devSignUp = async (
     _email: string,
     birthYear: number,
-    tosAccepted: boolean,
+    tosAccepted: boolean
   ): Promise<{ error: string | null }> => {
     try {
-      const { data, error: anonError } =
-        await supabase.auth.signInAnonymously();
+      const { data, error: anonError } = await supabase.auth.signInAnonymously();
 
       if (anonError) {
         return { error: toUserMessage(anonError) };
       }
 
-      // T1-1 FIX: Set metadata BEFORE fetchProfile runs so
-      // createProfileForUser reads correct values.
       if (data.user) {
         await supabase.auth.updateUser({
           data: {
@@ -379,8 +339,6 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
-  // C2 FIX: Expose refetchProfile so callers can refresh after RPC calls
-  // (e.g., set_age_verification) that bypass the normal updateProfile path.
   const refetchProfile = async (): Promise<void> => {
     if (user) await fetchProfile(user.id);
   };
@@ -397,8 +355,6 @@ export function useAuth(): UseAuthReturn {
     signOut,
     updateProfile,
     refetchProfile,
-    // T4: Only expose devSignUp in development. Vite replaces import.meta.env.DEV
-    // with `false` in production, and tree-shaking removes the dead code.
     ...(import.meta.env.DEV ? { devSignUp } : {}),
   };
 }

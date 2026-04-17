@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
+import type { Post } from '../../types/post';
 
-// Mock supabase
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     auth: {
@@ -12,12 +12,10 @@ vi.mock('../../lib/supabase', () => ({
   },
 }));
 
-// Mock withRetry to pass through
 vi.mock('../../lib/retry', () => ({
   withRetry: vi.fn((fn: () => Promise<unknown>) => fn()),
 }));
 
-// Mock postsCache
 vi.mock('../../lib/cache', () => ({
   postsCache: {
     get: vi.fn().mockReturnValue(undefined),
@@ -26,12 +24,10 @@ vi.mock('../../lib/cache', () => ({
   },
 }));
 
-// Mock auth-guard
 vi.mock('../../lib/auth-guard', () => ({
   requireAuth: vi.fn(),
 }));
 
-// Mock validation (pass-through for most tests)
 vi.mock('../../lib/validation', () => ({
   validatePostInput: vi.fn().mockReturnValue({}),
   validateEmbeddedLinks: vi.fn().mockReturnValue(null),
@@ -46,18 +42,22 @@ import { hasValidationErrors } from '../../lib/validation';
 
 const mockUser = { id: 'user-1', email: 'test@example.com' };
 
-const mockPost = {
+const mockPost: Post = {
   id: 'post-1',
   user_id: 'user-1',
   title: 'Test Post',
   content: 'Hello world',
+  author: 'Test User',
+  chapter: null,
   mood: null,
   music: null,
   embedded_links: null,
+  has_media: false,
+  is_private: true,
   created_at: '2025-01-01T00:00:00Z',
   updated_at: '2025-01-01T00:00:00Z',
-  reactions: { '❤️': 2 },
-  user_reactions: ['❤️'],
+  reactions: { heart: 2 },
+  user_reactions: ['heart'],
   content_truncated: false,
   profile_display_name: 'Test User',
   profile_avatar_url: null,
@@ -66,9 +66,6 @@ const mockPost = {
 describe('usePosts', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(supabase.auth.getSession).mockResolvedValue({
-      data: { session: null },
-    } as never);
     vi.mocked(supabase.rpc).mockResolvedValue({
       data: [],
       error: null,
@@ -80,15 +77,13 @@ describe('usePosts', () => {
     vi.mocked(hasValidationErrors).mockReturnValue(false);
   });
 
-  // ── Initial load ────────────────────────────────────────────────────────
-
   it('starts in loading state then resolves with posts', async () => {
     vi.mocked(supabase.rpc).mockResolvedValueOnce({
       data: [mockPost],
       error: null,
     } as never);
 
-    const { result } = renderHook(() => usePosts());
+    const { result } = renderHook(() => usePosts(mockUser.id));
     expect(result.current.loading).toBe(true);
 
     await waitFor(() => {
@@ -100,7 +95,7 @@ describe('usePosts', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('stays empty and skips loading when auth-scoped without a user', async () => {
+  it('does not fetch posts when signed out', async () => {
     const { result } = renderHook(() => usePosts(null));
 
     await waitFor(() => {
@@ -112,16 +107,61 @@ describe('usePosts', () => {
     expect(supabase.rpc).not.toHaveBeenCalled();
   });
 
-  it('clears and refetches posts when the auth-scoped user changes', async () => {
-    const secondPost = { ...mockPost, id: 'post-2', user_id: 'user-2' };
+  it('loads posts when a user signs in after a signed-out state', async () => {
+    const { result, rerender } = renderHook(({ userId }) => usePosts(userId), {
+      initialProps: { userId: null as string | null },
+    });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+    expect(supabase.rpc).not.toHaveBeenCalled();
+
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({
+      data: [mockPost],
+      error: null,
+    } as never);
+
+    rerender({ userId: mockUser.id });
+
+    await waitFor(() => {
+      expect(result.current.posts[0]?.id).toBe('post-1');
+    });
+    expect(supabase.rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears loaded posts when the user signs out', async () => {
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({
+      data: [mockPost],
+      error: null,
+    } as never);
+
+    const { result, rerender } = renderHook(({ userId }) => usePosts(userId), {
+      initialProps: { userId: mockUser.id as string | null },
+    });
+
+    await waitFor(() => {
+      expect(result.current.posts[0]?.id).toBe('post-1');
+    });
+
+    rerender({ userId: null });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.posts).toEqual([]);
+    });
+    expect(result.current.hasMore).toBe(false);
+  });
+
+  it('clears and refetches posts when the active user changes', async () => {
+    const secondPost: Post = { ...mockPost, id: 'post-2', user_id: 'user-2' };
     vi.mocked(supabase.rpc)
       .mockResolvedValueOnce({ data: [mockPost], error: null } as never)
       .mockResolvedValueOnce({ data: [secondPost], error: null } as never);
 
-    const { result, rerender } = renderHook(
-      ({ userId }) => usePosts(userId),
-      { initialProps: { userId: 'user-1' as string | null } },
-    );
+    const { result, rerender } = renderHook(({ userId }) => usePosts(userId), {
+      initialProps: { userId: 'user-1' as string | null },
+    });
 
     await waitFor(() => {
       expect(result.current.posts[0]?.id).toBe('post-1');
@@ -139,7 +179,7 @@ describe('usePosts', () => {
   it('sets error state on initial load failure', async () => {
     vi.mocked(supabase.rpc).mockRejectedValueOnce(new Error('Unknown failure'));
 
-    const { result } = renderHook(() => usePosts());
+    const { result } = renderHook(() => usePosts(mockUser.id));
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -149,13 +189,9 @@ describe('usePosts', () => {
     expect(result.current.posts).toHaveLength(0);
   });
 
-  // ── createPost ──────────────────────────────────────────────────────────
-
   it('createPost inserts and prepends to posts list', async () => {
-    // Initial load returns empty
     vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: [], error: null } as never);
 
-    // Mock the insert chain
     const singleMock = vi.fn().mockResolvedValue({
       data: { ...mockPost, id: 'post-new' },
       error: null,
@@ -164,10 +200,13 @@ describe('usePosts', () => {
     const insertMock = vi.fn().mockReturnValue({ select: selectMock });
     vi.mocked(supabase.from).mockReturnValue({ insert: insertMock } as never);
 
-    const { result } = renderHook(() => usePosts());
+    const { result } = renderHook(() => usePosts(mockUser.id));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    let response: { data: unknown; error: string | null } = { data: null, error: null };
+    let response: { data: unknown; error: string | null } = {
+      data: null,
+      error: null,
+    };
     await act(async () => {
       response = await result.current.createPost({
         title: 'New Post',
@@ -186,10 +225,13 @@ describe('usePosts', () => {
     vi.mocked(validatePostInput).mockReturnValueOnce({ title: 'Title is required' });
     vi.mocked(hasValidationErrors).mockReturnValueOnce(true);
 
-    const { result } = renderHook(() => usePosts());
+    const { result } = renderHook(() => usePosts(mockUser.id));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    let response: { data: unknown; error: string | null } = { data: null, error: null };
+    let response: { data: unknown; error: string | null } = {
+      data: null,
+      error: null,
+    };
     await act(async () => {
       response = await result.current.createPost({
         title: '',
@@ -197,7 +239,6 @@ describe('usePosts', () => {
       });
     });
 
-    // Should return validation error without hitting supabase
     expect(response.error).toBe('Title is required');
     expect(supabase.from).not.toHaveBeenCalled();
   });
@@ -208,10 +249,13 @@ describe('usePosts', () => {
       error: 'You must be logged in to do that.',
     } as never);
 
-    const { result } = renderHook(() => usePosts());
+    const { result } = renderHook(() => usePosts(mockUser.id));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    let response: { data: unknown; error: string | null } = { data: null, error: null };
+    let response: { data: unknown; error: string | null } = {
+      data: null,
+      error: null,
+    };
     await act(async () => {
       response = await result.current.createPost({
         title: 'Test',
@@ -223,22 +267,18 @@ describe('usePosts', () => {
     expect(supabase.from).not.toHaveBeenCalled();
   });
 
-  // ── deletePost ──────────────────────────────────────────────────────────
-
   it('deletePost removes post from state', async () => {
-    // Initial load with one post
     vi.mocked(supabase.rpc).mockResolvedValueOnce({
       data: [mockPost],
       error: null,
     } as never);
 
-    // Mock delete chain
     const eqUserMock = vi.fn().mockResolvedValue({ error: null });
     const eqIdMock = vi.fn().mockReturnValue({ eq: eqUserMock });
     const deleteMock = vi.fn().mockReturnValue({ eq: eqIdMock });
     vi.mocked(supabase.from).mockReturnValue({ delete: deleteMock } as never);
 
-    const { result } = renderHook(() => usePosts());
+    const { result } = renderHook(() => usePosts(mockUser.id));
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.posts).toHaveLength(1);
 
@@ -252,25 +292,22 @@ describe('usePosts', () => {
     expect(postsCache.invalidateAll).toHaveBeenCalled();
   });
 
-  // ── applyOptimisticReaction ─────────────────────────────────────────────
-
   it('applyOptimisticReaction adds a reaction count', async () => {
     vi.mocked(supabase.rpc).mockResolvedValueOnce({
       data: [mockPost],
       error: null,
     } as never);
 
-    const { result } = renderHook(() => usePosts());
+    const { result } = renderHook(() => usePosts(mockUser.id));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    // Add a fire reaction (wasActive=false → adding)
     act(() => {
-      result.current.applyOptimisticReaction('post-1', '🔥', 'user-1', false);
+      result.current.applyOptimisticReaction('post-1', 'fire', 'user-1', false);
     });
 
-    const updatedPost = result.current.posts.find((p) => p.id === 'post-1');
-    expect(updatedPost?.reactions?.['🔥']).toBe(1);
-    expect(updatedPost?.user_reactions).toContain('🔥');
+    const updatedPost = result.current.posts.find((post) => post.id === 'post-1');
+    expect(updatedPost?.reactions?.fire).toBe(1);
+    expect(updatedPost?.user_reactions).toContain('fire');
   });
 
   it('applyOptimisticReaction removes a reaction count', async () => {
@@ -279,21 +316,17 @@ describe('usePosts', () => {
       error: null,
     } as never);
 
-    const { result } = renderHook(() => usePosts());
+    const { result } = renderHook(() => usePosts(mockUser.id));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    // Remove the heart reaction (wasActive=true → removing)
     act(() => {
-      result.current.applyOptimisticReaction('post-1', '❤️', 'user-1', true);
+      result.current.applyOptimisticReaction('post-1', 'heart', 'user-1', true);
     });
 
-    const updatedPost = result.current.posts.find((p) => p.id === 'post-1');
-    // Was 2, now 1
-    expect(updatedPost?.reactions?.['❤️']).toBe(1);
-    expect(updatedPost?.user_reactions).not.toContain('❤️');
+    const updatedPost = result.current.posts.find((post) => post.id === 'post-1');
+    expect(updatedPost?.reactions?.heart).toBe(1);
+    expect(updatedPost?.user_reactions).not.toContain('heart');
   });
-
-  // ── refetch ─────────────────────────────────────────────────────────────
 
   it('refetch invalidates cache and reloads', async () => {
     vi.mocked(supabase.rpc).mockResolvedValue({
@@ -301,7 +334,7 @@ describe('usePosts', () => {
       error: null,
     } as never);
 
-    const { result } = renderHook(() => usePosts());
+    const { result } = renderHook(() => usePosts(mockUser.id));
     await waitFor(() => expect(result.current.loading).toBe(false));
 
     await act(async () => {
