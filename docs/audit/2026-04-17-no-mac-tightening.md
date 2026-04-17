@@ -7,8 +7,8 @@ This checklist tracks what can be tightened before real iPhone, Xcode, and App S
 ## Status
 
 - [x] 1. Add GitHub CI.
-- [ ] 2. Build a no-Mac mobile QA pass.
-- [ ] 3. Add focused UX regression tests.
+- [x] 2. Build a no-Mac mobile QA pass.
+- [x] 3. Add focused UX regression tests.
 - [ ] 4. Prepare App Store privacy documentation.
 - [ ] 5. Tighten public-content review safety.
 - [ ] 6. Audit accessibility and tap feel.
@@ -39,7 +39,7 @@ Validation:
 
 ### 2. No-Mac Mobile QA Pass
 
-Status: Not started.
+Status: Checklist created in this pass.
 
 Planned checks:
 
@@ -48,19 +48,36 @@ Planned checks:
 - Capture problematic states: auth, onboarding, profile settings tabs, entry editor, public page, empty states, and long text.
 - Document any layout issues with viewport size, screen, and exact reproduction steps.
 
+Artifact:
+
+- `docs/audit/2026-04-17-mobile-qa-checklist.md`
+
 ### 3. Focused UX Regression Tests
 
-Status: Not started.
+Status: Started in this pass.
 
 Planned checks:
 
-- New entries default to private.
+- New entries default to private. Covered.
 - Entry privacy is visible before title/content.
 - Public profile publishing requires deliberate confirmation.
 - Signed-out users do not see reaction prompts.
 - Signed-in users keep the account-only reaction flow.
 - Public share links use the saved profile username.
-- Posts clear and refetch on auth changes.
+- Posts clear and refetch on auth changes. Covered.
+
+Implementation notes:
+
+- `usePosts` now accepts an optional auth-scoped user id so the feed can clear immediately on logout and reload when a different user signs in.
+- `App` passes the current auth user id into `usePosts`.
+- Added tests for private-by-default entry save payloads and auth-scoped post clearing/refetching.
+
+Validation:
+
+- Passed locally: `npm.cmd run lint`.
+- Passed locally: `npm.cmd run typecheck`.
+- Passed locally: `npm.cmd test` with 208 tests.
+- Passed locally: `npm.cmd run build`.
 
 ### 4. App Store Privacy Documentation
 
@@ -122,3 +139,5 @@ Planned checks:
 
 - 2026-04-17: Started the no-Mac tightening checklist and added CI as the first completed track.
 - 2026-04-17: Added explicit TypeScript checking to local scripts and CI; fixed the Vite/Vitest config typing surfaced by that new check.
+- 2026-04-17: Added the mobile QA checklist and started UX regression coverage for private-by-default entries plus auth-scoped post loading.
+- 2026-04-17: Validated the second pass with lint, typecheck, 208 tests, and production build.

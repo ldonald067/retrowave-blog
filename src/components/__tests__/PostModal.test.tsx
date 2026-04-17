@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PostModal from '../PostModal';
 import type { Post } from '../../types/post';
 
@@ -109,6 +109,29 @@ describe('PostModal ⋮ Menu', () => {
     fireEvent.click(screen.getByRole('button', { name: /^public$/i }));
 
     expect(screen.getByText('Can appear on your public page.')).toBeInTheDocument();
+  });
+
+  it('saves new entries as private by default', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...defaultProps} mode="create" post={null} onSave={onSave} />);
+
+    fireEvent.change(screen.getByLabelText(/entry title/i), {
+      target: { value: 'Private draft' },
+    });
+    fireEvent.change(screen.getByLabelText(/ur thoughts/i), {
+      target: { value: 'This one starts private.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /save entry/i }));
+
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: 'Private draft',
+          content: 'This one starts private.',
+          is_private: true,
+        }),
+      );
+    });
   });
 
   it('shows delete option in edit mode for owner', () => {

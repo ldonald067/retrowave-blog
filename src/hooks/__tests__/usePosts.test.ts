@@ -100,6 +100,42 @@ describe('usePosts', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('stays empty and skips loading when auth-scoped without a user', async () => {
+    const { result } = renderHook(() => usePosts(null));
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.posts).toEqual([]);
+    expect(result.current.hasMore).toBe(false);
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('clears and refetches posts when the auth-scoped user changes', async () => {
+    const secondPost = { ...mockPost, id: 'post-2', user_id: 'user-2' };
+    vi.mocked(supabase.rpc)
+      .mockResolvedValueOnce({ data: [mockPost], error: null } as never)
+      .mockResolvedValueOnce({ data: [secondPost], error: null } as never);
+
+    const { result, rerender } = renderHook(
+      ({ userId }) => usePosts(userId),
+      { initialProps: { userId: 'user-1' as string | null } },
+    );
+
+    await waitFor(() => {
+      expect(result.current.posts[0]?.id).toBe('post-1');
+    });
+
+    rerender({ userId: 'user-2' });
+
+    await waitFor(() => {
+      expect(result.current.posts[0]?.id).toBe('post-2');
+    });
+
+    expect(supabase.rpc).toHaveBeenCalledTimes(2);
+  });
+
   it('sets error state on initial load failure', async () => {
     vi.mocked(supabase.rpc).mockRejectedValueOnce(new Error('Unknown failure'));
 

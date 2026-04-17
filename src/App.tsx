@@ -241,7 +241,7 @@ function App() {
     refetch,
     applyOptimisticReaction,
     fetchPost,
-  } = usePosts();
+  } = usePosts(user?.id ?? null);
   const { toasts, hideToast, success, error: showError } = useToast();
   // T4: Pass optimistic update handler to useReactions
   const { toggleReaction } = useReactions({
