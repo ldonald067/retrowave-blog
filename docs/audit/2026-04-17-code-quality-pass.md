@@ -98,6 +98,29 @@ Changed:
 
 The local icons keep the same small retro UI role without changing the journal flows.
 
+## Dependency Security Cleanup
+
+The next pass handled the npm security audit as a focused lockfile update instead of a broad dependency sweep.
+
+Fresh audit before the fix showed 9 advisories:
+
+- Vite/Rollup/picomatch build tooling advisories.
+- Capacitor CLI transitive advisories through `tar` and `@xmldom/xmldom`.
+- ESLint transitive advisories through `ajv`, `minimatch`, `brace-expansion`, and `flatted`.
+
+Applied:
+
+- `npm.cmd audit fix`
+- A second `npm.cmd audit fix` for the remaining old `brace-expansion` copy under the ESLint/minimatch path.
+
+Result:
+
+- `npm.cmd audit` now reports 0 vulnerabilities.
+- Only `package-lock.json` changed; `package.json` stayed unchanged.
+- No forced major dependency upgrades were applied.
+
+Also removed the stale `vendor-react` manual chunk from Vite because the post-upgrade production build generated it as an empty chunk. React now stays in the normal app bundle instead of producing warning noise.
+
 ## Not Brought Over
 
 - The old `fix/private-journal-privacy` branch was not applied because the newer merged branch already has more intentional public-profile and privacy UX work.
@@ -118,12 +141,14 @@ Notes:
 - The previous large chunk warning did not appear in this build. The largest emitted chunks were `vendor-icons` at about 332 KB and `index` at about 298 KB.
 - Re-ran the same checks after the modal cleanup pass; all still passed with 214 tests.
 - Re-ran the same checks after the icon cleanup pass; all still passed with 214 tests. The `vendor-icons` chunk dropped from about 332 KB to about 2.69 KB.
+- Re-ran `npm.cmd audit` after the dependency security cleanup; it reports 0 vulnerabilities.
+- Removed the stale empty `vendor-react` manual chunk after the dependency cleanup build surfaced that warning.
 
 ## Next Cleanup Candidates
 
 - Continue removing audit-label comments in nearby files, especially where comments are tracking old review IDs instead of explaining code.
 - Look at modal/form duplication after the hook cleanup is stable.
-- Investigate the existing large bundle warning with targeted lazy loading rather than random splitting.
+- Continue mobile/responsiveness review in browser-based viewport checks while native iOS testing is unavailable.
 - Keep public-profile language intentional: optional share page, not a feed.
 
 ## Activity Log
@@ -131,3 +156,4 @@ Notes:
 - 2026-04-17: Created the branch from current `main`, reworked the profile refresh fix, brought over the stronger auth-state behavior, validated locally, and pushed `cleanup/code-quality-pass`.
 - 2026-04-17: Added shared modal primitives and moved Settings, Profile, and Post modals onto the shared overlay/frame/header/footer pattern.
 - 2026-04-17: Replaced `react-old-icons` with local retro icons and removed it from the icon vendor chunk.
+- 2026-04-17: Ran a focused npm audit cleanup, patched vulnerable transitive packages through the lockfile, removed a stale empty Vite manual chunk, and confirmed `npm.cmd audit` reports 0 vulnerabilities.
