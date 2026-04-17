@@ -33,6 +33,37 @@ where schemaname = 'public'
   );
 
 select
+  'profiles select policy is owner scoped' as check_name,
+  count(*) filter (where policyname = 'Users can view own profile') = 1 as passed,
+  jsonb_agg(jsonb_build_object('policy', policyname, 'using', qual)) as observed
+from pg_policies
+where schemaname = 'public'
+  and tablename = 'profiles'
+  and cmd = 'SELECT';
+
+select
+  'reactions public select policy removed' as check_name,
+  count(*) = 0 as passed,
+  jsonb_agg(jsonb_build_object('policy', policyname, 'using', qual)) as observed
+from pg_policies
+where schemaname = 'public'
+  and tablename = 'post_reactions'
+  and cmd = 'SELECT'
+  and (
+    policyname = 'Anyone can read reactions'
+    or qual = 'true'
+  );
+
+select
+  'reactions select policy is account scoped' as check_name,
+  count(*) filter (where policyname = 'Users can read own or own-post reactions') = 1 as passed,
+  jsonb_agg(jsonb_build_object('policy', policyname, 'using', qual)) as observed
+from pg_policies
+where schemaname = 'public'
+  and tablename = 'post_reactions'
+  and cmd = 'SELECT';
+
+select
   'new posts default private' as check_name,
   column_default = 'true' as passed,
   column_default as observed
