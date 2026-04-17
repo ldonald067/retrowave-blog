@@ -29,6 +29,15 @@ import PublicPageSettings from './PublicPageSettings';
 // Header (~70px) + Footer (~70px) + padding = ~180px of non-scrollable modal chrome
 const MODAL_CHROME_HEIGHT = 180;
 
+type ProfileSection = 'profile' | 'vibe' | 'public' | 'safety';
+
+const PROFILE_SECTIONS: Array<{ id: ProfileSection; label: string }> = [
+  { id: 'profile', label: 'profile' },
+  { id: 'vibe', label: 'vibe' },
+  { id: 'public', label: 'public page' },
+  { id: 'safety', label: 'safety' },
+];
+
 interface ProfileModalProps {
   profile: Profile | null;
   userId?: string;
@@ -61,6 +70,7 @@ export default function ProfileModal({
   const [isPublic, setIsPublic] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [activeSection, setActiveSection] = useState<ProfileSection>('profile');
   const [blockedUsers, setBlockedUsers] = useState<Array<{ blocked_id: string; created_at: string }>>([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -108,6 +118,12 @@ export default function ProfileModal({
     });
   }, [userId, fetchBlockedUsers]);
 
+  useEffect(() => {
+    if (activeSection === 'safety' && !blockedLoading && blockedUsers.length === 0) {
+      setActiveSection('profile');
+    }
+  }, [activeSection, blockedLoading, blockedUsers.length]);
+
   const validate = (): boolean => {
     const newErrors: { displayName?: string; bio?: string } = {};
 
@@ -131,7 +147,10 @@ export default function ProfileModal({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) return;
+    if (!validate()) {
+      setActiveSection('profile');
+      return;
+    }
 
     setSaving(true);
 
@@ -167,6 +186,12 @@ export default function ProfileModal({
   const fallbackSeed = userId || 'guest';
   const savedIsPublic = profile?.is_public ?? false;
   const publicProfileUrl = profile?.username ? buildPublicProfileUrl(profile.username) : null;
+  const visibleSections = PROFILE_SECTIONS.filter(
+    (section) => section.id !== 'safety' || blockedLoading || blockedUsers.length > 0,
+  );
+  const showSection = (section: ProfileSection) =>
+    isInitialSetup || activeSection === section;
+  const modalChromeHeight = isInitialSetup ? MODAL_CHROME_HEIGHT : MODAL_CHROME_HEIGHT + 56;
 
   const handleCopyPublicUrl = () => {
     if (!publicProfileUrl) return;
@@ -236,11 +261,47 @@ export default function ProfileModal({
             </p>
           </div>
 
+          {!isInitialSetup && (
+            <div
+              className="px-3 sm:px-4 py-2 border-b-2 border-dotted overflow-x-auto"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--bg-primary) 40%, var(--modal-bg))',
+                borderColor: 'var(--border-primary)',
+              }}
+            >
+              <div className="grid grid-flow-col auto-cols-max gap-2" role="tablist" aria-label="Profile settings sections">
+                {visibleSections.map((section) => {
+                  const selected = activeSection === section.id;
+                  return (
+                    <button
+                      key={section.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      onClick={() => setActiveSection(section.id)}
+                      className="rounded border-2 border-dotted px-3 py-2 text-xs font-bold transition min-h-[44px] whitespace-nowrap"
+                      style={{
+                        backgroundColor: selected
+                          ? 'color-mix(in srgb, var(--accent-primary) 16%, var(--card-bg))'
+                          : 'var(--card-bg)',
+                        borderColor: selected ? 'var(--accent-primary)' : 'var(--border-primary)',
+                        color: selected ? 'var(--accent-primary)' : 'var(--text-body)',
+                        fontFamily: 'var(--title-font)',
+                      }}
+                    >
+                      {section.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Content — maxHeight = viewport minus header + footer chrome */}
           <div
             className="overflow-y-auto"
             style={{
-              maxHeight: `calc(95vh - ${MODAL_CHROME_HEIGHT}px)`,
+              maxHeight: `calc(95vh - ${modalChromeHeight}px)`,
               backgroundColor: 'var(--modal-bg)',
             }}
             onTouchMove={() => {
@@ -251,6 +312,7 @@ export default function ProfileModal({
           >
             <fieldset disabled={saving}>
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+              <div className="space-y-4" hidden={!showSection('profile')}>
               {/* Avatar Section */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
@@ -350,7 +412,9 @@ export default function ProfileModal({
                   hint="share a bit about urself"
                 />
               </div>
+              </div>
 
+              <div className="space-y-4" hidden={!showSection('vibe')}>
               {/* Current Mood */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
@@ -488,7 +552,9 @@ export default function ProfileModal({
                   ))}
                 </div>
               </div>
+              </div>
 
+              <div className="space-y-4" hidden={!showSection('public')}>
               {/* Public Page Settings */}
               {!isInitialSetup && (
                 <PublicPageSettings
@@ -504,7 +570,9 @@ export default function ProfileModal({
                   onCopy={handleCopyPublicUrl}
                 />
               )}
+              </div>
 
+              <div className="space-y-4" hidden={!showSection('safety')}>
               {/* Blocked Users Section */}
               {!isInitialSetup && blockedUsers.length > 0 && (
                 <div className="xanga-box p-4">
@@ -551,9 +619,10 @@ export default function ProfileModal({
                   )}
                 </div>
               )}
+              </div>
 
               {/* Preview Section */}
-              <div className="xanga-box p-4">
+              <div className="xanga-box p-4" hidden={!showSection('profile')}>
                 <h3 className="xanga-title text-base sm:text-lg mb-3">~ preview ~</h3>
                 <div className="flex items-start gap-3 sm:gap-4">
                   <Avatar src={avatarUrl} alt="Preview" size="lg" fallbackSeed={fallbackSeed} />

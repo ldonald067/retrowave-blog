@@ -100,6 +100,17 @@ describe('PostModal ⋮ Menu', () => {
     expect(screen.getByRole('menuitem', { name: /make private/ })).toBeInTheDocument();
   });
 
+  it('shows entry privacy in the editor body', () => {
+    render(<PostModal {...defaultProps} mode="create" post={null} />);
+
+    expect(screen.getByText(/entry privacy/i)).toBeInTheDocument();
+    expect(screen.getByText('Only you can see this entry.')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /^public$/i }));
+
+    expect(screen.getByText('Can appear on your public page.')).toBeInTheDocument();
+  });
+
   it('shows delete option in edit mode for owner', () => {
     render(<PostModal {...defaultProps} />);
     fireEvent.click(screen.getByLabelText('More options'));
@@ -126,7 +137,7 @@ describe('PostModal ⋮ Menu', () => {
 
     // Menu should close and footer should show private badge
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    expect(screen.getByText(/private/)).toBeInTheDocument();
+    expect(screen.getAllByText(/private/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows make public after toggling to private', () => {

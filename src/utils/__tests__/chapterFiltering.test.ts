@@ -160,9 +160,9 @@ describe('Chapter Privacy', () => {
 });
 
 describe('Post Privacy (is_private)', () => {
-  it('new posts default to public (is_private = false)', () => {
-    const defaultPost = { is_private: false };
-    expect(defaultPost.is_private).toBe(false);
+  it('new posts default to private (is_private = true)', () => {
+    const defaultPost = { is_private: true };
+    expect(defaultPost.is_private).toBe(true);
   });
 
   it('is_private is included in CreatePostInput', () => {
