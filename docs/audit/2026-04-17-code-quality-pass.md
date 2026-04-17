@@ -53,6 +53,33 @@ Small cleanup included:
 - Removed the unused `userIdRef`.
 - Replaced noisy test comments and mojibake reaction strings with readable ASCII fixtures.
 
+## Component Cleanup
+
+The next pass pulled repeated modal shell code into shared UI primitives instead of letting each modal carry its own overlay, frame, header, footer, and close-button styling.
+
+Shared pieces now live in `src/components/ui/Modal.tsx`:
+
+- `ModalOverlay`
+- `ModalFrame`
+- `ModalHeader`
+- `ModalFooter`
+- `ModalCloseButton`
+
+Applied to:
+
+- `SettingsModal`
+- `ProfileModal`
+- `PostModal`
+
+Kept intentionally local:
+
+- Form field layout and copy.
+- Post draft/preview behavior.
+- Profile tabs and public-page behavior.
+- Settings export/delete behavior.
+
+This keeps the reusable code at the modal chrome layer, where the duplication was obvious, without making the journal-specific flows harder to read.
+
 ## Not Brought Over
 
 - The old `fix/private-journal-privacy` branch was not applied because the newer merged branch already has more intentional public-profile and privacy UX work.
@@ -71,6 +98,7 @@ Notes:
 
 - `npm.cmd test` and `npm.cmd run build` both hit the known Windows sandbox `spawn EPERM` error first, then passed when rerun with approval.
 - The previous large chunk warning did not appear in this build. The largest emitted chunks were `vendor-icons` at about 332 KB and `index` at about 298 KB.
+- Re-ran the same checks after the modal cleanup pass; all still passed with 214 tests.
 
 ## Next Cleanup Candidates
 
@@ -82,3 +110,4 @@ Notes:
 ## Activity Log
 
 - 2026-04-17: Created the branch from current `main`, reworked the profile refresh fix, brought over the stronger auth-state behavior, validated locally, and pushed `cleanup/code-quality-pass`.
+- 2026-04-17: Added shared modal primitives and moved Settings, Profile, and Post modals onto the shared overlay/frame/header/footer pattern.

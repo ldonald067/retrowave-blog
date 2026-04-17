@@ -8,6 +8,7 @@ export { default as Textarea } from './Textarea';
 export { default as Select } from './Select';
 export { default as Card } from './Card';
 export type { CardVariant } from './Card';
+export { ModalOverlay, ModalFrame, ModalHeader, ModalFooter, ModalCloseButton } from './Modal';
 
 export { default as ReactionBar } from './ReactionBar';
 export { REACTION_EMOJIS } from './ReactionBar';
