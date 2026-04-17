@@ -22,7 +22,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
-          'vendor-icons': ['lucide-react', 'pepicons', 'react-old-icons'],
+          'vendor-icons': ['lucide-react', 'pepicons'],
           'vendor-motion': ['framer-motion'],
           'vendor-markdown': ['react-markdown', 'rehype-sanitize'],
           'vendor-supabase': ['@supabase/supabase-js'],

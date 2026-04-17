@@ -80,6 +80,24 @@ Kept intentionally local:
 
 This keeps the reusable code at the modal chrome layer, where the duplication was obvious, without making the journal-specific flows harder to read.
 
+## Icon Bundle Cleanup
+
+The next pass replaced the `react-old-icons` dependency with a small local retro icon set in `src/components/ui/RetroIcons.tsx`.
+
+Why:
+
+- The production build's largest emitted chunk was `vendor-icons`.
+- The app only used a small handful of old Windows-style icons.
+- Keeping those icons local removes a package dependency and avoids bundling an icon library for a few decorative glyphs.
+
+Changed:
+
+- Replaced all `react-old-icons` imports with exports from `src/components/ui`.
+- Removed `react-old-icons` from `package.json` and `package-lock.json`.
+- Removed `react-old-icons` from the Vite `vendor-icons` manual chunk.
+
+The local icons keep the same small retro UI role without changing the journal flows.
+
 ## Not Brought Over
 
 - The old `fix/private-journal-privacy` branch was not applied because the newer merged branch already has more intentional public-profile and privacy UX work.
@@ -99,6 +117,7 @@ Notes:
 - `npm.cmd test` and `npm.cmd run build` both hit the known Windows sandbox `spawn EPERM` error first, then passed when rerun with approval.
 - The previous large chunk warning did not appear in this build. The largest emitted chunks were `vendor-icons` at about 332 KB and `index` at about 298 KB.
 - Re-ran the same checks after the modal cleanup pass; all still passed with 214 tests.
+- Re-ran the same checks after the icon cleanup pass; all still passed with 214 tests. The `vendor-icons` chunk dropped from about 332 KB to about 2.69 KB.
 
 ## Next Cleanup Candidates
 
@@ -111,3 +130,4 @@ Notes:
 
 - 2026-04-17: Created the branch from current `main`, reworked the profile refresh fix, brought over the stronger auth-state behavior, validated locally, and pushed `cleanup/code-quality-pass`.
 - 2026-04-17: Added shared modal primitives and moved Settings, Profile, and Post modals onto the shared overlay/frame/header/footer pattern.
+- 2026-04-17: Replaced `react-old-icons` with local retro icons and removed it from the icon vendor chunk.

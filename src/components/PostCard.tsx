@@ -1,7 +1,6 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
-import { Pepicon } from './ui';
-import { Winamp as WinampIcon } from 'react-old-icons';
+import { Pepicon, Winamp as WinampIcon } from './ui';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate } from '../utils/formatDate';

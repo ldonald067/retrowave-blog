@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
-import { Pepicon } from './ui';
-import { Windows95Notepad, Windows95Password } from 'react-old-icons';
+import { Pepicon, Windows95Notepad, Windows95Password } from './ui';
 import { sparkleBurst } from '../lib/celebrations';
 
 const STATUS_KEY = 'xanga-status';

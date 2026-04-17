@@ -21,15 +21,13 @@ import {
   StyledEmoji,
   Textarea,
   Pepicon,
-} from './ui';
-import {
   Windows95Mspaint,
   Windows95Notepad,
   Windows95WordPad,
   Windows95Configuration,
   Winamp as WinampIcon,
   VisualStudioFace,
-} from 'react-old-icons';
+} from './ui';
 import {
   VALIDATION,
   ERROR_MESSAGES,

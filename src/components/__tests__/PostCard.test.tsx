@@ -47,6 +47,7 @@ vi.mock('rehype-sanitize', () => ({
 
 vi.mock('../ui', () => ({
   Pepicon: ({ name }: { name: string }) => <span data-testid={`icon-${name}`} />,
+  Winamp: () => <span />,
 }));
 
 vi.mock('../ui/ReactionBar', () => ({
@@ -55,10 +56,6 @@ vi.mock('../ui/ReactionBar', () => ({
 
 vi.mock('../ui/YouTubeCard', () => ({
   default: () => <div data-testid="youtube-card" />,
-}));
-
-vi.mock('react-old-icons', () => ({
-  Winamp: () => <span />,
 }));
 
 const basePost: Post = {

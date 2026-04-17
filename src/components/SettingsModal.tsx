@@ -7,8 +7,10 @@ import {
   ModalHeader,
   ModalOverlay,
   Pepicon,
+  Windows95MyComputer,
+  FloppyDisk,
+  Windows95RecycleBin,
 } from './ui';
-import { Windows95MyComputer, FloppyDisk, Windows95RecycleBin } from 'react-old-icons';
 import ConfirmDialog from './ConfirmDialog';
 import { SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { useFocusTrap } from '../hooks/useFocusTrap';

@@ -9,6 +9,19 @@ export { default as Select } from './Select';
 export { default as Card } from './Card';
 export type { CardVariant } from './Card';
 export { ModalOverlay, ModalFrame, ModalHeader, ModalFooter, ModalCloseButton } from './Modal';
+export {
+  FloppyDisk,
+  VisualStudioFace,
+  Winamp,
+  Windows95Configuration,
+  Windows95Mspaint,
+  Windows95MyComputer,
+  Windows95Notepad,
+  Windows95Password,
+  Windows95RecycleBin,
+  Windows95WordPad,
+  Windows98DateTime,
+} from './RetroIcons';
 
 export { default as ReactionBar } from './ReactionBar';
 export { REACTION_EMOJIS } from './ReactionBar';

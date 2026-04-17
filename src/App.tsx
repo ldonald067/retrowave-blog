@@ -27,7 +27,7 @@ import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
 import { sparkleBurst, emojiRain } from './lib/celebrations';
-import { Windows95MyComputer } from 'react-old-icons';
+import { Windows95MyComputer } from './components/ui';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useChapters } from './hooks/useChapters';
 
