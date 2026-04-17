@@ -19,9 +19,11 @@ const config: CapacitorConfig = {
   },
   plugins: {
     Keyboard: {
-      // Resize the web view body (not the native viewport) when the keyboard opens.
-      // Prevents modals from being pushed off-screen on iPhone.
-      resize: 'body',
+      resize: 'none',
+      resizeOnFullScreen: true,
+    },
+    StatusBar: {
+      overlaysWebView: true,
     },
     SplashScreen: {
       // We hide the splash screen manually after auth session resolves

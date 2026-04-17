@@ -355,14 +355,9 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
 
           {/* Content — flex-1 fills remaining space between header and footer */}
           <div
-            className="overflow-y-auto flex-1 min-h-0"
+            className="overflow-y-auto keyboard-safe-scroll flex-1 min-h-0"
             style={{
               backgroundColor: 'var(--modal-bg)',
-            }}
-            onTouchMove={() => {
-              if (document.activeElement instanceof HTMLElement) {
-                document.activeElement.blur();
-              }
             }}
           >
             {isViewMode ? (

@@ -64,7 +64,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-8">
+        <div className="flex-1 overflow-y-auto keyboard-safe-scroll px-4 sm:px-6 py-4 sm:py-8">
           <div className="max-w-sm mx-auto sm:min-h-full sm:flex sm:flex-col sm:justify-center">
             {/* Xanga-style Tab Selector */}
             <div

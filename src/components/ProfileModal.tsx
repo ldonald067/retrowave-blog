@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
+import { useState, useEffect, useRef, FormEvent, useCallback, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji, Pepicon } from './ui';
@@ -37,6 +37,20 @@ const PROFILE_SECTIONS: Array<{ id: ProfileSection; label: string }> = [
   { id: 'public', label: 'public page' },
   { id: 'safety', label: 'safety' },
 ];
+
+function ProfileSectionPanel({
+  visible,
+  children,
+}: {
+  visible: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-4" hidden={!visible}>
+      {children}
+    </div>
+  );
+}
 
 interface ProfileModalProps {
   profile: Profile | null;
@@ -299,20 +313,15 @@ export default function ProfileModal({
 
           {/* Content — maxHeight = viewport minus header + footer chrome */}
           <div
-            className="overflow-y-auto"
+            className="overflow-y-auto keyboard-safe-scroll"
             style={{
               maxHeight: `calc(95vh - ${modalChromeHeight}px)`,
               backgroundColor: 'var(--modal-bg)',
             }}
-            onTouchMove={() => {
-              if (document.activeElement instanceof HTMLElement) {
-                document.activeElement.blur();
-              }
-            }}
           >
             <fieldset disabled={saving}>
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
-              <div className="space-y-4" hidden={!showSection('profile')}>
+              <ProfileSectionPanel visible={showSection('profile')}>
               {/* Avatar Section */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
@@ -412,9 +421,9 @@ export default function ProfileModal({
                   hint="share a bit about urself"
                 />
               </div>
-              </div>
+              </ProfileSectionPanel>
 
-              <div className="space-y-4" hidden={!showSection('vibe')}>
+              <ProfileSectionPanel visible={showSection('vibe')}>
               {/* Current Mood */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
@@ -552,9 +561,9 @@ export default function ProfileModal({
                   ))}
                 </div>
               </div>
-              </div>
+              </ProfileSectionPanel>
 
-              <div className="space-y-4" hidden={!showSection('public')}>
+              <ProfileSectionPanel visible={showSection('public')}>
               {/* Public Page Settings */}
               {!isInitialSetup && (
                 <PublicPageSettings
@@ -570,9 +579,9 @@ export default function ProfileModal({
                   onCopy={handleCopyPublicUrl}
                 />
               )}
-              </div>
+              </ProfileSectionPanel>
 
-              <div className="space-y-4" hidden={!showSection('safety')}>
+              <ProfileSectionPanel visible={showSection('safety')}>
               {/* Blocked Users Section */}
               {!isInitialSetup && blockedUsers.length > 0 && (
                 <div className="xanga-box p-4">
@@ -619,7 +628,7 @@ export default function ProfileModal({
                   )}
                 </div>
               )}
-              </div>
+              </ProfileSectionPanel>
 
               {/* Preview Section */}
               <div className="xanga-box p-4" hidden={!showSection('profile')}>
