@@ -12,7 +12,7 @@ This branch starts the main-code cleanup from the current app instead of cleanin
 - [x] Inspect the stronger auth-state branch and bring over the parts still worth keeping.
 - [x] Start cleanup in the touched hooks and tests.
 - [x] Validate locally.
-- [ ] Push branch to GitHub.
+- [x] Push branch to GitHub.
 
 ## What Came Over
 
@@ -78,3 +78,7 @@ Notes:
 - Look at modal/form duplication after the hook cleanup is stable.
 - Investigate the existing large bundle warning with targeted lazy loading rather than random splitting.
 - Keep public-profile language intentional: optional share page, not a feed.
+
+## Activity Log
+
+- 2026-04-17: Created the branch from current `main`, reworked the profile refresh fix, brought over the stronger auth-state behavior, validated locally, and pushed `cleanup/code-quality-pass`.
