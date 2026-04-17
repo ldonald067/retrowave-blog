@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, FormEvent, useCallback } from 'react';
+import { useState, useEffect, useRef, FormEvent, useCallback, type ReactNode, type KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji, Pepicon } from './ui';
@@ -21,10 +21,54 @@ import {
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useBlocks } from '../hooks/useBlocks';
 import { sparkleBurst, emojiRain } from '../lib/celebrations';
+import { buildPublicProfileUrl } from '../lib/publicProfile';
 import type { Profile } from '../types/profile';
+import ConfirmDialog from './ConfirmDialog';
+import PublicPageSettings from './PublicPageSettings';
 
 // Header (~70px) + Footer (~70px) + padding = ~180px of non-scrollable modal chrome
 const MODAL_CHROME_HEIGHT = 180;
+
+type ProfileSection = 'profile' | 'vibe' | 'public' | 'safety';
+
+const PROFILE_SECTIONS: Array<{ id: ProfileSection; label: string }> = [
+  { id: 'profile', label: 'profile' },
+  { id: 'vibe', label: 'vibe' },
+  { id: 'public', label: 'public page' },
+  { id: 'safety', label: 'safety' },
+];
+
+function getSectionTabId(section: ProfileSection): string {
+  return `profile-section-tab-${section}`;
+}
+
+function getSectionPanelId(section: ProfileSection): string {
+  return `profile-section-panel-${section}`;
+}
+
+function ProfileSectionPanel({
+  id,
+  tabbed,
+  visible,
+  children,
+}: {
+  id: ProfileSection;
+  tabbed: boolean;
+  visible: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      id={tabbed ? getSectionPanelId(id) : undefined}
+      role={tabbed ? 'tabpanel' : undefined}
+      aria-labelledby={tabbed ? getSectionTabId(id) : undefined}
+      className="space-y-4"
+      hidden={!visible}
+    >
+      {children}
+    </div>
+  );
+}
 
 interface ProfileModalProps {
   profile: Profile | null;
@@ -57,6 +101,8 @@ export default function ProfileModal({
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
   const [isPublic, setIsPublic] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
+  const [showPublishConfirm, setShowPublishConfirm] = useState(false);
+  const [activeSection, setActiveSection] = useState<ProfileSection>('profile');
   const [blockedUsers, setBlockedUsers] = useState<Array<{ blocked_id: string; created_at: string }>>([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -73,13 +119,13 @@ export default function ProfileModal({
   }, [onClose]);
 
   const handleEscape = useCallback(() => {
-    if (saving || isInitialSetup) return;
+    if (saving || isInitialSetup || showPublishConfirm) return;
     if (showAvatarPicker) {
       setShowAvatarPicker(false);
     } else {
       handleCancel();
     }
-  }, [saving, isInitialSetup, showAvatarPicker, handleCancel]);
+  }, [saving, isInitialSetup, showPublishConfirm, showAvatarPicker, handleCancel]);
   useFocusTrap(dialogRef, true, handleEscape);
 
   useEffect(() => {
@@ -104,6 +150,12 @@ export default function ProfileModal({
     });
   }, [userId, fetchBlockedUsers]);
 
+  useEffect(() => {
+    if (activeSection === 'safety' && !blockedLoading && blockedUsers.length === 0) {
+      setActiveSection('profile');
+    }
+  }, [activeSection, blockedLoading, blockedUsers.length]);
+
   const validate = (): boolean => {
     const newErrors: { displayName?: string; bio?: string } = {};
 
@@ -127,7 +179,10 @@ export default function ProfileModal({
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) return;
+    if (!validate()) {
+      setActiveSection('profile');
+      return;
+    }
 
     setSaving(true);
 
@@ -161,6 +216,50 @@ export default function ProfileModal({
   };
 
   const fallbackSeed = userId || 'guest';
+  const savedIsPublic = profile?.is_public ?? false;
+  const publicProfileUrl = profile?.username ? buildPublicProfileUrl(profile.username) : null;
+  const visibleSections = PROFILE_SECTIONS.filter(
+    (section) => section.id !== 'safety' || blockedLoading || blockedUsers.length > 0,
+  );
+  const useSectionTabs = !isInitialSetup;
+  const showSection = (section: ProfileSection) =>
+    isInitialSetup || activeSection === section;
+  const modalChromeHeight = isInitialSetup ? MODAL_CHROME_HEIGHT : MODAL_CHROME_HEIGHT + 56;
+
+  const focusSection = useCallback((section: ProfileSection) => {
+    setActiveSection(section);
+    requestAnimationFrame(() => {
+      document.getElementById(getSectionTabId(section))?.focus();
+    });
+  }, []);
+
+  const handleSectionKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLButtonElement>, section: ProfileSection) => {
+      const currentIndex = visibleSections.findIndex((item) => item.id === section);
+      if (currentIndex < 0) return;
+
+      const lastIndex = visibleSections.length - 1;
+      let nextIndex = currentIndex;
+
+      if (event.key === 'ArrowRight') nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1;
+      else if (event.key === 'ArrowLeft') nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1;
+      else if (event.key === 'Home') nextIndex = 0;
+      else if (event.key === 'End') nextIndex = lastIndex;
+      else return;
+
+      event.preventDefault();
+      const nextSection = visibleSections[nextIndex]?.id;
+      if (nextSection) focusSection(nextSection);
+    },
+    [focusSection, visibleSections],
+  );
+
+  const handleCopyPublicUrl = () => {
+    if (!publicProfileUrl) return;
+    void navigator.clipboard.writeText(publicProfileUrl);
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 2000);
+  };
 
   return (
     <AnimatePresence>
@@ -223,21 +322,57 @@ export default function ProfileModal({
             </p>
           </div>
 
+          {!isInitialSetup && (
+            <div
+              className="px-3 sm:px-4 py-2 border-b-2 border-dotted overflow-x-auto"
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--bg-primary) 40%, var(--modal-bg))',
+                borderColor: 'var(--border-primary)',
+              }}
+            >
+              <div className="grid grid-flow-col auto-cols-max gap-2" role="tablist" aria-label="Profile settings sections">
+                {visibleSections.map((section) => {
+                  const selected = activeSection === section.id;
+                  return (
+                    <button
+                      key={section.id}
+                      id={getSectionTabId(section.id)}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      aria-controls={getSectionPanelId(section.id)}
+                      tabIndex={selected ? 0 : -1}
+                      onClick={() => setActiveSection(section.id)}
+                      onKeyDown={(event) => handleSectionKeyDown(event, section.id)}
+                      className="rounded border-2 border-dotted px-3 py-2 text-xs font-bold transition min-h-[44px] whitespace-nowrap"
+                      style={{
+                        backgroundColor: selected
+                          ? 'color-mix(in srgb, var(--accent-primary) 16%, var(--card-bg))'
+                          : 'var(--card-bg)',
+                        borderColor: selected ? 'var(--accent-primary)' : 'var(--border-primary)',
+                        color: selected ? 'var(--accent-primary)' : 'var(--text-body)',
+                        fontFamily: 'var(--title-font)',
+                      }}
+                    >
+                      {section.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Content — maxHeight = viewport minus header + footer chrome */}
           <div
-            className="overflow-y-auto"
+            className="overflow-y-auto keyboard-safe-scroll"
             style={{
-              maxHeight: `calc(95vh - ${MODAL_CHROME_HEIGHT}px)`,
+              maxHeight: `calc(95vh - ${modalChromeHeight}px)`,
               backgroundColor: 'var(--modal-bg)',
-            }}
-            onTouchMove={() => {
-              if (document.activeElement instanceof HTMLElement) {
-                document.activeElement.blur();
-              }
             }}
           >
             <fieldset disabled={saving}>
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+              <ProfileSectionPanel id="profile" tabbed={useSectionTabs} visible={showSection('profile')}>
               {/* Avatar Section */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
@@ -337,7 +472,9 @@ export default function ProfileModal({
                   hint="share a bit about urself"
                 />
               </div>
+              </ProfileSectionPanel>
 
+              <ProfileSectionPanel id="vibe" tabbed={useSectionTabs} visible={showSection('vibe')}>
               {/* Current Mood */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
@@ -475,64 +612,27 @@ export default function ProfileModal({
                   ))}
                 </div>
               </div>
+              </ProfileSectionPanel>
 
-              {/* Public Profile Toggle */}
+              <ProfileSectionPanel id="public" tabbed={useSectionTabs} visible={showSection('public')}>
+              {/* Public Page Settings */}
               {!isInitialSetup && (
-                <div className="xanga-box p-4">
-                  <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                    <Pepicon name="stars" size={14} color="var(--accent-primary)" />
-                    share your journal
-                  </h3>
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold" style={{ color: 'var(--text-body)' }}>
-                        make profile public
-                      </p>
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                        anyone with your link can read your journal
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={isPublic}
-                      onClick={() => setIsPublic(!isPublic)}
-                      className="relative inline-flex h-6 w-11 flex-shrink-0 rounded-full border-2 transition-colors duration-200 ease-in-out min-h-[44px] min-w-[44px] items-center"
-                      style={{
-                        backgroundColor: isPublic ? 'var(--accent-primary)' : 'color-mix(in srgb, var(--border-primary) 50%, var(--card-bg))',
-                        borderColor: isPublic ? 'var(--accent-primary)' : 'var(--border-primary)',
-                      }}
-                    >
-                      <span
-                        className="inline-block h-4 w-4 rounded-full shadow transition-transform duration-200"
-                        style={{
-                          backgroundColor: 'var(--card-bg)',
-                          transform: isPublic ? 'translateX(22px)' : 'translateX(3px)',
-                        }}
-                      />
-                    </button>
-                  </div>
-                  {isPublic && profile?.username && (
-                    <div className="mt-3 p-2 rounded border text-xs" style={{ borderColor: 'var(--border-primary)', backgroundColor: 'color-mix(in srgb, var(--accent-primary) 5%, var(--card-bg))' }}>
-                      <p className="font-mono truncate" style={{ color: 'var(--text-body)' }}>
-                        {window.location.origin}/#/u/{profile.username}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          void navigator.clipboard.writeText(`${window.location.origin}/#/u/${profile.username}`);
-                          setCopiedUrl(true);
-                          setTimeout(() => setCopiedUrl(false), 2000);
-                        }}
-                        className="xanga-link text-xs mt-1"
-                      >
-                        {copiedUrl ? '✓ copied!' : '📋 copy link'}
-                      </button>
-                    </div>
-                  )}
-                </div>
+                <PublicPageSettings
+                  enabled={isPublic}
+                  savedEnabled={savedIsPublic}
+                  publicUrl={publicProfileUrl}
+                  copied={copiedUrl}
+                  onRequestPublish={() => setShowPublishConfirm(true)}
+                  onUnpublish={() => {
+                    setIsPublic(false);
+                    setCopiedUrl(false);
+                  }}
+                  onCopy={handleCopyPublicUrl}
+                />
               )}
+              </ProfileSectionPanel>
 
+              <ProfileSectionPanel id="safety" tabbed={useSectionTabs} visible={showSection('safety')}>
               {/* Blocked Users Section */}
               {!isInitialSetup && blockedUsers.length > 0 && (
                 <div className="xanga-box p-4">
@@ -579,9 +679,10 @@ export default function ProfileModal({
                   )}
                 </div>
               )}
+              </ProfileSectionPanel>
 
               {/* Preview Section */}
-              <div className="xanga-box p-4">
+              <div className="xanga-box p-4" hidden={!showSection('profile')}>
                 <h3 className="xanga-title text-base sm:text-lg mb-3">~ preview ~</h3>
                 <div className="flex items-start gap-3 sm:gap-4">
                   <Avatar src={avatarUrl} alt="Preview" size="lg" fallbackSeed={fallbackSeed} />
@@ -645,6 +746,27 @@ export default function ProfileModal({
             </button>
           </div>
         </motion.div>
+
+        {showPublishConfirm && (
+          <ConfirmDialog
+            title="publish public page?"
+            message={(
+              <div className="space-y-2">
+                <p>This creates a public page for entries you mark public.</p>
+                <p style={{ color: 'var(--text-muted)' }}>
+                  Private entries and private chapters stay hidden. Anyone with the link can view public entries after you save.
+                </p>
+              </div>
+            )}
+            confirmLabel="publish page"
+            cancelLabel="keep private"
+            onConfirm={() => {
+              setIsPublic(true);
+              setShowPublishConfirm(false);
+            }}
+            onCancel={() => setShowPublishConfirm(false)}
+          />
+        )}
 
       </motion.div>
     </AnimatePresence>

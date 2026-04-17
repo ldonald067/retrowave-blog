@@ -49,7 +49,7 @@ interface UsePostsReturn {
   fetchPost: (postId: string) => Promise<Post | null>;
 }
 
-export function usePosts(): UsePostsReturn {
+export function usePosts(activeUserId?: string | null): UsePostsReturn {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingMore, setLoadingMore] = useState<boolean>(false);
@@ -59,6 +59,7 @@ export function usePosts(): UsePostsReturn {
 
   const cursorRef = useRef<string | null>(null);
   const userIdRef = useRef<string | null>(null);
+  const isAuthScoped = activeUserId !== undefined;
   // L4 FIX: Use a ref guard for loadMore instead of the `loadingMore` state.
   // On iPhone momentum scroll, the virtualizer can fire loadMore rapidly.
   // React state updates are async — the second call may see stale `false`
@@ -68,10 +69,15 @@ export function usePosts(): UsePostsReturn {
   // ── Core fetch ─────────────────────────────────────────────────────────
   const fetchPage = useCallback(
     async (cursor: string | null, append: boolean): Promise<void> => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      const userId = session?.user?.id ?? null;
+      if (isAuthScoped && !activeUserId) {
+        setPosts([]);
+        setHasMore(false);
+        return;
+      }
+
+      const userId = isAuthScoped
+        ? activeUserId
+        : (await supabase.auth.getSession()).data.session?.user?.id ?? null;
       userIdRef.current = userId;
 
       const key = cacheKey(userId, cursor);
@@ -123,7 +129,7 @@ export function usePosts(): UsePostsReturn {
         setPosts(page);
       }
     },
-    [],
+    [activeUserId, isAuthScoped],
   );
 
   // ── Initial load ───────────────────────────────────────────────────────
@@ -133,7 +139,18 @@ export function usePosts(): UsePostsReturn {
     (async () => {
       try {
         setLoading(true);
+        setError(null);
+        setLoadMoreError(null);
         cursorRef.current = null;
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+        if (isAuthScoped && !activeUserId) {
+          setPosts([]);
+          setHasMore(false);
+          return;
+        }
+        setPosts([]);
+        setHasMore(true);
         if (!cancelled) await fetchPage(null, false);
       } catch (err) {
         if (!cancelled) setError(toUserMessage(err));
@@ -145,7 +162,7 @@ export function usePosts(): UsePostsReturn {
     return () => {
       cancelled = true;
     };
-  }, [fetchPage]);
+  }, [activeUserId, fetchPage, isAuthScoped]);
 
   // ── Load more (pagination) ─────────────────────────────────────────────
   const loadMore = useCallback(async (): Promise<void> => {

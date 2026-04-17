@@ -67,7 +67,7 @@ export default function AgeVerification({ onVerified, requireTOS = true, loading
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 sm:py-8 safe-area-bottom">
+      <div className="flex-1 overflow-y-auto keyboard-safe-scroll px-4 sm:px-6 py-6 sm:py-8 safe-area-bottom">
         <div className="w-full max-w-md mx-auto min-h-full flex flex-col justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

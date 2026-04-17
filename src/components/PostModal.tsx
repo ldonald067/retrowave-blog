@@ -39,7 +39,7 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
   const [mood, setMood] = useState('');
   const [music, setMusic] = useState('');
   const existingChapters = chapters;
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(true);
   const [showPreview, setShowPreview] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const moreMenuRef = useRef<HTMLDivElement>(null);
@@ -66,8 +66,9 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
             author !== (post.author || '') ||
             chapter !== (post.chapter || '') ||
             mood !== (post.mood || '') ||
-            music !== (post.music || ''));
-  }, [loadingFullContent, mode, title, content, author, chapter, mood, music, post, fullContent]);
+            music !== (post.music || '') ||
+            isPrivate !== (post.is_private ?? false));
+  }, [loadingFullContent, mode, title, content, author, chapter, mood, music, isPrivate, post, fullContent]);
 
   // UX: Check for unsaved changes before closing — shows styled ConfirmDialog instead of window.confirm
   const handleClose = useCallback(() => {
@@ -215,6 +216,10 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
   };
 
   const isViewMode = mode === 'view';
+  const privacyLabel = isPrivate ? 'private' : 'public';
+  const privacyDetail = isPrivate
+    ? 'Only you can see this entry.'
+    : 'Can appear on your public page.';
 
   // Close more menu on outside click
   useEffect(() => {
@@ -350,14 +355,9 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
 
           {/* Content — flex-1 fills remaining space between header and footer */}
           <div
-            className="overflow-y-auto flex-1 min-h-0"
+            className="overflow-y-auto keyboard-safe-scroll flex-1 min-h-0"
             style={{
               backgroundColor: 'var(--modal-bg)',
-            }}
-            onTouchMove={() => {
-              if (document.activeElement instanceof HTMLElement) {
-                document.activeElement.blur();
-              }
             }}
           >
             {isViewMode ? (
@@ -461,6 +461,65 @@ export default function PostModal({ post, onSave, onClose, mode = 'create', fetc
                     </p>
                   </div>
                 )}
+
+                <div className="xanga-box p-3 sm:p-4">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="xanga-title text-base flex items-center gap-2">
+                        {isPrivate ? '🔒' : '🔓'} entry privacy
+                      </h3>
+                      <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                        {privacyDetail}
+                      </p>
+                    </div>
+                    <span
+                      className="inline-flex w-fit rounded border px-2 py-1 text-xs font-bold"
+                      style={{
+                        borderColor: isPrivate ? 'var(--border-primary)' : 'var(--accent-primary)',
+                        color: isPrivate ? 'var(--text-muted)' : 'var(--accent-primary)',
+                        backgroundColor: isPrivate
+                          ? 'var(--card-bg)'
+                          : 'color-mix(in srgb, var(--accent-primary) 10%, var(--card-bg))',
+                      }}
+                    >
+                      {privacyLabel}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      aria-pressed={isPrivate}
+                      onClick={() => setIsPrivate(true)}
+                      className="rounded border-2 border-dotted px-3 py-2 text-xs font-bold transition min-h-[44px]"
+                      style={{
+                        backgroundColor: isPrivate
+                          ? 'color-mix(in srgb, var(--accent-primary) 14%, var(--card-bg))'
+                          : 'var(--card-bg)',
+                        borderColor: isPrivate ? 'var(--accent-primary)' : 'var(--border-primary)',
+                        color: isPrivate ? 'var(--accent-primary)' : 'var(--text-body)',
+                        fontFamily: 'var(--title-font)',
+                      }}
+                    >
+                      private
+                    </button>
+                    <button
+                      type="button"
+                      aria-pressed={!isPrivate}
+                      onClick={() => setIsPrivate(false)}
+                      className="rounded border-2 border-dotted px-3 py-2 text-xs font-bold transition min-h-[44px]"
+                      style={{
+                        backgroundColor: !isPrivate
+                          ? 'color-mix(in srgb, var(--accent-primary) 14%, var(--card-bg))'
+                          : 'var(--card-bg)',
+                        borderColor: !isPrivate ? 'var(--accent-primary)' : 'var(--border-primary)',
+                        color: !isPrivate ? 'var(--accent-primary)' : 'var(--text-body)',
+                        fontFamily: 'var(--title-font)',
+                      }}
+                    >
+                      public
+                    </button>
+                  </div>
+                </div>
 
                 {/* Title */}
                 <div>

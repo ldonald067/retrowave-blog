@@ -1,64 +1,64 @@
-/**
- * Capacitor plugin integrations.
- *
- * All native-only calls are guarded by `Capacitor.isNativePlatform()` so the
- * web build is never affected.  Plugins that already provide web fallbacks
- * (Browser, Haptics) are called unconditionally.
- */
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Browser } from '@capacitor/browser';
 import { SplashScreen } from '@capacitor/splash-screen';
+import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 
 const isNative = Capacitor.isNativePlatform();
 
-// ---------------------------------------------------------------------------
-// Boot-time initialization
-// ---------------------------------------------------------------------------
+async function nativeOnly(action: () => Promise<void> | void): Promise<void> {
+  if (!isNative) return;
+  try {
+    await action();
+  } catch {
+    // Native plugin calls can fail in previews/simulators; the web app still works.
+  }
+}
 
-/**
- * Set up native-only listeners. Call once from main.tsx.
- *
- * - Deep link listener for magic-link auth redirects
- */
+function setKeyboardInset(height = 0): void {
+  document.documentElement.style.setProperty('--keyboard-inset', `${height}px`);
+  document.body.classList.toggle('keyboard-open', height > 0);
+}
+
 export function initCapacitor(): void {
   if (!isNative) return;
 
-  try {
-    // Deep links: Supabase magic link redirects arrive here on iOS.
-    // The URL contains auth tokens in the hash fragment — setting
-    // window.location.hash lets the Supabase SDK pick them up via
-    // onAuthStateChange.
-    CapApp.addListener('appUrlOpen', ({ url }) => {
+  void nativeOnly(async () => {
+    await StatusBar.setOverlaysWebView({ overlay: true });
+  });
+
+  void nativeOnly(async () => {
+    await Keyboard.setResizeMode({ mode: KeyboardResize.None });
+    await Keyboard.setAccessoryBarVisible({ isVisible: true });
+    await Keyboard.addListener('keyboardWillShow', ({ keyboardHeight }) => {
+      setKeyboardInset(keyboardHeight);
+      window.setTimeout(() => {
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }
+      }, 60);
+    });
+    await Keyboard.addListener('keyboardWillHide', () => setKeyboardInset(0));
+    await Keyboard.addListener('keyboardDidHide', () => setKeyboardInset(0));
+  });
+
+  void nativeOnly(async () => {
+    await CapApp.addListener('appUrlOpen', ({ url }) => {
       const hashIndex = url.indexOf('#');
       if (hashIndex >= 0) {
         window.location.hash = url.substring(hashIndex);
       }
     });
-  } catch {
-    // Plugin may not be available — app still works without deep links
-  }
+  });
 }
 
-// ---------------------------------------------------------------------------
-// Splash screen
-// ---------------------------------------------------------------------------
-
-/** Hide the native splash screen. Call after auth session resolves. */
 export async function hideSplashScreen(): Promise<void> {
-  if (!isNative) return;
-  try {
+  await nativeOnly(async () => {
     await SplashScreen.hide({ fadeOutDuration: 300 });
-  } catch {
-    // Swallow — splash may already be hidden or unavailable on simulator
-  }
+  });
 }
-
-// ---------------------------------------------------------------------------
-// Status bar
-// ---------------------------------------------------------------------------
 
 const DARK_THEMES = new Set([
   'emo-dark',
@@ -69,43 +69,19 @@ const DARK_THEMES = new Set([
   'pastel-goth',
 ]);
 
-/**
- * Update the iOS status bar to match the current theme.
- * Dark backgrounds → light (white) text.  Light backgrounds → dark text.
- */
 export async function setStatusBarForTheme(themeId: string): Promise<void> {
-  if (!isNative) return;
-  try {
+  await nativeOnly(async () => {
     const isDark = DARK_THEMES.has(themeId);
-    // Style.Dark = light text on dark bg, Style.Light = dark text on light bg
     await StatusBar.setStyle({ style: isDark ? Style.Dark : Style.Light });
-  } catch {
-    // Swallow — status bar API may not be available
-  }
+  });
 }
 
-// ---------------------------------------------------------------------------
-// Haptics
-// ---------------------------------------------------------------------------
-
-/** Light haptic tap — used on reaction toggle. */
 export async function hapticImpact(): Promise<void> {
-  if (!isNative) return;
-  try {
+  await nativeOnly(async () => {
     await Haptics.impact({ style: ImpactStyle.Light });
-  } catch {
-    // Silently swallow — device may not support haptics
-  }
+  });
 }
 
-// ---------------------------------------------------------------------------
-// In-app browser
-// ---------------------------------------------------------------------------
-
-/**
- * Open a URL in SFSafariViewController (iOS) or the system browser.
- * Falls back to `window.open` on web.
- */
 export async function openUrl(url: string): Promise<void> {
   try {
     if (isNative) {
@@ -114,7 +90,6 @@ export async function openUrl(url: string): Promise<void> {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   } catch {
-    // Fallback: let the browser handle it directly
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 }

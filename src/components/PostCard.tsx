@@ -6,7 +6,8 @@ import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import { formatDate } from '../utils/formatDate';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
-import { BLOG_OWNER_EMAIL, FEED_EXCERPT_MAX } from '../lib/constants';
+import { FEED_EXCERPT_MAX } from '../lib/constants';
+import { buildReportEmailHref } from '../lib/reporting';
 import ReactionBar from './ui/ReactionBar';
 import YouTubeCard from './ui/YouTubeCard';
 import type { Post } from '../types/post';
@@ -57,7 +58,7 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => onView(post)}
-              className="text-left cursor-pointer transition hover:opacity-80 line-clamp-2 py-1 min-h-[44px] lg:min-h-0 flex items-center"
+              className="text-left cursor-pointer transition hover:opacity-80 line-clamp-2 break-words py-1 min-h-[44px] lg:min-h-0 flex items-center"
               style={{ color: 'inherit', textShadow: 'inherit' }}
               aria-label={`View post: ${post.title}`}
             >
@@ -137,19 +138,22 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
 
       {/* Post footer - author + actions row */}
       <div
-        className="px-4 pt-2 pb-1 border-t flex items-center justify-between text-xs"
+        className="px-4 pt-2 pb-1 border-t flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 text-xs"
         style={{
           backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
           borderColor: 'var(--border-primary)',
           color: 'var(--text-muted)',
         }}
       >
-        {post.author && <span className="font-semibold" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</span>}
+        {post.author && <span className="font-semibold min-w-0 max-w-full truncate" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</span>}
         {/* Apple Guideline 1.2: UGC apps must provide reporting + blocking */}
         {!isOwner && currentUserId && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 flex-shrink-0">
             <a
-              href={`mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(`Report: "${post.title}" (${post.id})`)}`}
+              href={buildReportEmailHref(
+                `Report: "${post.title}" (${post.id})`,
+                `Post id: ${post.id}\nUser id: ${post.user_id}\nTitle: ${post.title}`,
+              )}
               className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px]"
               style={{ color: 'var(--text-muted)' }}
               aria-label="Report this post"

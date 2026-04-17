@@ -8,14 +8,24 @@ vi.mock('framer-motion', () => ({
   motion: {
     article: ({
       children,
+      initial: _initial,
+      animate: _animate,
+      exit: _exit,
+      transition: _transition,
       ...props
-    }: React.PropsWithChildren<React.HTMLAttributes<HTMLElement>>) => (
+    }: React.PropsWithChildren<React.HTMLAttributes<HTMLElement> & {
+      initial?: unknown;
+      animate?: unknown;
+      exit?: unknown;
+      transition?: unknown;
+    }>) => (
       <article {...props}>{children}</article>
     ),
     button: ({
       children,
+      whileTap: _whileTap,
       ...props
-    }: React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement>>) => (
+    }: React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement> & { whileTap?: unknown }>) => (
       <button {...props}>{children}</button>
     ),
   },

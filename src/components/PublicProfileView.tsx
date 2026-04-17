@@ -5,9 +5,8 @@ import { applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { Avatar } from './ui';
 import { formatDate } from '../utils/formatDate';
 import LoadingSpinner from './LoadingSpinner';
+import { buildReportEmailHref } from '../lib/reporting';
 import type { PublicPost } from '../types/profile';
-
-const REACTION_EMOJIS = ['❤️', '🔥', '😂', '😢', '✨', '👀'];
 
 interface PublicProfileViewProps {
   username: string;
@@ -15,30 +14,12 @@ interface PublicProfileViewProps {
   onGoHome: () => void;
 }
 
-function ReactionDisplay({ reactions }: { reactions: Record<string, number> }) {
-  const entries = Object.entries(reactions).filter(([, count]) => count > 0);
-  if (entries.length === 0) return null;
-
-  return (
-    <div className="flex flex-wrap gap-1.5 mt-3">
-      {entries.map(([emoji, count]) => (
-        <span
-          key={emoji}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border"
-          style={{
-            borderColor: 'var(--border-primary)',
-            color: 'var(--text-muted)',
-            backgroundColor: 'color-mix(in srgb, var(--accent-primary) 8%, var(--card-bg))',
-          }}
-        >
-          {emoji} {count}
-        </span>
-      ))}
-    </div>
+function PublicPostCard({ post, username }: { post: PublicPost; username: string }) {
+  const reportHref = buildReportEmailHref(
+    `Report public entry: "${post.title}" (${post.id})`,
+    `Public page: @${username}\nEntry id: ${post.id}\nTitle: ${post.title}`,
   );
-}
 
-function PublicPostCard({ post, onReactClick }: { post: PublicPost; onReactClick: () => void }) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -53,7 +34,7 @@ function PublicPostCard({ post, onReactClick }: { post: PublicPost; onReactClick
           borderColor: 'var(--border-primary)',
         }}
       >
-        <h2 className="xanga-title text-lg sm:text-2xl mb-1">{post.title}</h2>
+        <h2 className="xanga-title text-lg sm:text-2xl mb-1 break-words">{post.title}</h2>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs min-h-[28px]" style={{ color: 'var(--text-muted)' }}>
           <span className="flex items-center gap-1">
             <span style={{ color: 'var(--accent-primary)' }}>📅</span>
@@ -81,20 +62,22 @@ function PublicPostCard({ post, onReactClick }: { post: PublicPost; onReactClick
             <span style={{ color: 'var(--text-muted)' }}> ...</span>
           )}
         </div>
+      </div>
 
-        {/* Reactions display */}
-        <ReactionDisplay reactions={post.reactions} />
-
-        {/* React prompt */}
-        <div className="mt-3 pt-3 border-t border-dotted" style={{ borderColor: 'var(--border-primary)' }}>
-          <button
-            onClick={onReactClick}
-            className="flex items-center gap-2 text-xs transition hover:opacity-80"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            {REACTION_EMOJIS.slice(0, 3).join(' ')} <span className="underline">sign up to react</span>
-          </button>
-        </div>
+      <div
+        className="px-4 py-2 border-t text-right"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
+          borderColor: 'var(--border-primary)',
+        }}
+      >
+        <a
+          href={reportHref}
+          className="xanga-link inline-flex items-center justify-end text-xs min-h-[44px]"
+          aria-label={`Report public entry: ${post.title}`}
+        >
+          ~ report entry ~
+        </a>
       </div>
     </motion.article>
   );
@@ -144,6 +127,10 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
   }
 
   const { profile, posts } = data;
+  const profileReportHref = buildReportEmailHref(
+    `Report public page: @${profile.username}`,
+    `Public page: @${profile.username}`,
+  );
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -172,12 +159,12 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
               fallbackSeed={username}
             />
             <div className="flex-1 min-w-0">
-              <h1 className="xanga-title text-2xl sm:text-3xl">
+              <h1 className="xanga-title text-2xl sm:text-3xl break-words">
                 {profile.display_name || profile.username}
               </h1>
               <p className="xanga-subtitle">@{profile.username}</p>
               {profile.bio && (
-                <p className="text-sm mt-2 italic" style={{ color: 'var(--text-body)' }}>
+                <p className="text-sm mt-2 italic break-words" style={{ color: 'var(--text-body)' }}>
                   {profile.bio}
                 </p>
               )}
@@ -206,7 +193,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
             </div>
           ) : (
             posts.map((post) => (
-              <PublicPostCard key={post.id} post={post} onReactClick={onSignUp} />
+              <PublicPostCard key={post.id} post={post} username={profile.username} />
             ))
           )}
         </div>
@@ -221,7 +208,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
           <div className="xanga-box p-6">
             <p className="xanga-title text-lg mb-2">✨ want your own journal? ✨</p>
             <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-              pick a theme, write your thoughts, share with friends
+              write privately, publish only what you choose
             </p>
             <button onClick={onSignUp} className="xanga-button text-sm px-6 py-2">
               start your journal
@@ -230,6 +217,13 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
           <p className="text-xs mt-4" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
             powered by ✨ YourJournal
           </p>
+          <a
+            href={profileReportHref}
+            className="xanga-link mt-2 inline-flex items-center justify-center text-xs min-h-[44px]"
+            aria-label={`Report public page: ${profile.username}`}
+          >
+            report public page
+          </a>
         </motion.div>
       </div>
     </div>
