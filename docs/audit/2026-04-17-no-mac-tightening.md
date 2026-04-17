@@ -11,9 +11,9 @@ This checklist tracks what can be tightened before real iPhone, Xcode, and App S
 - [x] 3. Add focused UX regression tests.
 - [x] 4. Prepare App Store privacy documentation.
 - [x] 5. Tighten public-content review safety.
-- [ ] 6. Audit accessibility and tap feel.
-- [ ] 7. Reduce duplicated UI/code where it lowers risk.
-- [ ] 8. Add backend privacy smoke checks.
+- [x] 6. Audit accessibility and tap feel.
+- [x] 7. Reduce duplicated UI/code where it lowers risk.
+- [x] 8. Add backend privacy smoke checks.
 
 ## Work Items
 
@@ -119,7 +119,7 @@ Validation:
 
 ### 6. Accessibility And Tap Feel
 
-Status: Not started.
+Status: Completed in this pass.
 
 Planned checks:
 
@@ -129,9 +129,15 @@ Planned checks:
 - Confirm reduced-motion handling still feels calm.
 - Confirm error messages appear close to the field or action that caused them.
 
+Implementation notes:
+
+- Profile settings tabs now wire tabs to tab panels with `aria-controls`, `aria-labelledby`, and roving tab focus.
+- Profile settings tabs now support ArrowLeft, ArrowRight, Home, and End keyboard navigation.
+- Existing shared button styling already enforces a 44px minimum tap target for `.xanga-button`.
+
 ### 7. Code Reduction And Reuse
 
-Status: Not started.
+Status: Completed in this pass.
 
 Planned checks:
 
@@ -140,9 +146,15 @@ Planned checks:
 - Remove old blog/feed naming where it no longer matches the product.
 - Avoid broad refactors that make review harder.
 
+Implementation notes:
+
+- Report mailto link construction now lives in `src/lib/reporting.ts`.
+- Feed post reporting and public profile reporting both use the shared helper.
+- Added a focused helper test instead of broad UI refactoring.
+
 ### 8. Backend Privacy Smoke Checks
 
-Status: Not started.
+Status: Completed in this pass.
 
 Planned checks:
 
@@ -152,6 +164,18 @@ Planned checks:
 - Verify public journal reads depend on explicit publishing and public entry state.
 - Verify migrations remove old public policy names instead of only adding replacement policies.
 
+Artifacts:
+
+- `supabase/tests/privacy_smoke.sql`
+- `docs/audit/backend-privacy-smoke-checks.md`
+
+Validation:
+
+- Passed locally: `npm.cmd run lint`.
+- Passed locally: `npm.cmd run typecheck`.
+- Passed locally: `npm.cmd test` with 211 tests.
+- Passed locally: `npm.cmd run build`.
+
 ## Activity Log
 
 - 2026-04-17: Started the no-Mac tightening checklist and added CI as the first completed track.
@@ -160,3 +184,5 @@ Planned checks:
 - 2026-04-17: Validated the second pass with lint, typecheck, 208 tests, and production build.
 - 2026-04-17: Added App Store privacy notes and lightweight public-page/public-entry reporting.
 - 2026-04-17: Validated the privacy/safety pass with lint, typecheck, 210 tests, and production build.
+- 2026-04-17: Added profile tab accessibility wiring, shared report-link generation, and backend privacy smoke checks.
+- 2026-04-17: Validated the final no-Mac pass with lint, typecheck, 211 tests, and production build.

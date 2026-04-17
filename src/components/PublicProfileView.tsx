@@ -5,7 +5,7 @@ import { applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { Avatar } from './ui';
 import { formatDate } from '../utils/formatDate';
 import LoadingSpinner from './LoadingSpinner';
-import { BLOG_OWNER_EMAIL } from '../lib/constants';
+import { buildReportEmailHref } from '../lib/reporting';
 import type { PublicPost } from '../types/profile';
 
 interface PublicProfileViewProps {
@@ -14,12 +14,8 @@ interface PublicProfileViewProps {
   onGoHome: () => void;
 }
 
-function buildReportHref(subject: string, body: string): string {
-  return `mailto:${BLOG_OWNER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
 function PublicPostCard({ post, username }: { post: PublicPost; username: string }) {
-  const reportHref = buildReportHref(
+  const reportHref = buildReportEmailHref(
     `Report public entry: "${post.title}" (${post.id})`,
     `Public page: @${username}\nEntry id: ${post.id}\nTitle: ${post.title}`,
   );
@@ -131,7 +127,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
   }
 
   const { profile, posts } = data;
-  const profileReportHref = buildReportHref(
+  const profileReportHref = buildReportEmailHref(
     `Report public page: @${profile.username}`,
     `Public page: @${profile.username}`,
   );

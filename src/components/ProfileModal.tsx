@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, FormEvent, useCallback, type ReactNode } from 'react';
+import { useState, useEffect, useRef, FormEvent, useCallback, type ReactNode, type KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Avatar, AvatarPicker, Input, Textarea, Select, StyledEmoji, Pepicon } from './ui';
@@ -38,15 +38,33 @@ const PROFILE_SECTIONS: Array<{ id: ProfileSection; label: string }> = [
   { id: 'safety', label: 'safety' },
 ];
 
+function getSectionTabId(section: ProfileSection): string {
+  return `profile-section-tab-${section}`;
+}
+
+function getSectionPanelId(section: ProfileSection): string {
+  return `profile-section-panel-${section}`;
+}
+
 function ProfileSectionPanel({
+  id,
+  tabbed,
   visible,
   children,
 }: {
+  id: ProfileSection;
+  tabbed: boolean;
   visible: boolean;
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-4" hidden={!visible}>
+    <div
+      id={tabbed ? getSectionPanelId(id) : undefined}
+      role={tabbed ? 'tabpanel' : undefined}
+      aria-labelledby={tabbed ? getSectionTabId(id) : undefined}
+      className="space-y-4"
+      hidden={!visible}
+    >
       {children}
     </div>
   );
@@ -203,9 +221,38 @@ export default function ProfileModal({
   const visibleSections = PROFILE_SECTIONS.filter(
     (section) => section.id !== 'safety' || blockedLoading || blockedUsers.length > 0,
   );
+  const useSectionTabs = !isInitialSetup;
   const showSection = (section: ProfileSection) =>
     isInitialSetup || activeSection === section;
   const modalChromeHeight = isInitialSetup ? MODAL_CHROME_HEIGHT : MODAL_CHROME_HEIGHT + 56;
+
+  const focusSection = useCallback((section: ProfileSection) => {
+    setActiveSection(section);
+    requestAnimationFrame(() => {
+      document.getElementById(getSectionTabId(section))?.focus();
+    });
+  }, []);
+
+  const handleSectionKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLButtonElement>, section: ProfileSection) => {
+      const currentIndex = visibleSections.findIndex((item) => item.id === section);
+      if (currentIndex < 0) return;
+
+      const lastIndex = visibleSections.length - 1;
+      let nextIndex = currentIndex;
+
+      if (event.key === 'ArrowRight') nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1;
+      else if (event.key === 'ArrowLeft') nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1;
+      else if (event.key === 'Home') nextIndex = 0;
+      else if (event.key === 'End') nextIndex = lastIndex;
+      else return;
+
+      event.preventDefault();
+      const nextSection = visibleSections[nextIndex]?.id;
+      if (nextSection) focusSection(nextSection);
+    },
+    [focusSection, visibleSections],
+  );
 
   const handleCopyPublicUrl = () => {
     if (!publicProfileUrl) return;
@@ -289,10 +336,14 @@ export default function ProfileModal({
                   return (
                     <button
                       key={section.id}
+                      id={getSectionTabId(section.id)}
                       type="button"
                       role="tab"
                       aria-selected={selected}
+                      aria-controls={getSectionPanelId(section.id)}
+                      tabIndex={selected ? 0 : -1}
                       onClick={() => setActiveSection(section.id)}
+                      onKeyDown={(event) => handleSectionKeyDown(event, section.id)}
                       className="rounded border-2 border-dotted px-3 py-2 text-xs font-bold transition min-h-[44px] whitespace-nowrap"
                       style={{
                         backgroundColor: selected
@@ -321,7 +372,7 @@ export default function ProfileModal({
           >
             <fieldset disabled={saving}>
             <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
-              <ProfileSectionPanel visible={showSection('profile')}>
+              <ProfileSectionPanel id="profile" tabbed={useSectionTabs} visible={showSection('profile')}>
               {/* Avatar Section */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
@@ -423,7 +474,7 @@ export default function ProfileModal({
               </div>
               </ProfileSectionPanel>
 
-              <ProfileSectionPanel visible={showSection('vibe')}>
+              <ProfileSectionPanel id="vibe" tabbed={useSectionTabs} visible={showSection('vibe')}>
               {/* Current Mood */}
               <div className="xanga-box p-4">
                 <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
@@ -563,7 +614,7 @@ export default function ProfileModal({
               </div>
               </ProfileSectionPanel>
 
-              <ProfileSectionPanel visible={showSection('public')}>
+              <ProfileSectionPanel id="public" tabbed={useSectionTabs} visible={showSection('public')}>
               {/* Public Page Settings */}
               {!isInitialSetup && (
                 <PublicPageSettings
@@ -581,7 +632,7 @@ export default function ProfileModal({
               )}
               </ProfileSectionPanel>
 
-              <ProfileSectionPanel visible={showSection('safety')}>
+              <ProfileSectionPanel id="safety" tabbed={useSectionTabs} visible={showSection('safety')}>
               {/* Blocked Users Section */}
               {!isInitialSetup && blockedUsers.length > 0 && (
                 <div className="xanga-box p-4">
