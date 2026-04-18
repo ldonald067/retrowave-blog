@@ -1,10 +1,20 @@
 import { motion, useReducedMotion } from 'framer-motion';
 
-export default function LoadingSpinner() {
+interface LoadingSpinnerProps {
+  fullScreen?: boolean;
+  className?: string;
+}
+
+export default function LoadingSpinner({ fullScreen = true, className = '' }: LoadingSpinnerProps) {
   const prefersReducedMotion = useReducedMotion();
+  const containerClassName = [
+    'flex flex-col items-center justify-center gap-3 text-center',
+    fullScreen ? 'min-h-screen safe-area-top safe-area-bottom px-4' : '',
+    className,
+  ].filter(Boolean).join(' ');
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-3" role="status" aria-live="polite">
+    <div className={containerClassName} role="status" aria-live="polite">
       <motion.div
         animate={{
           rotate: prefersReducedMotion ? 0 : 360,

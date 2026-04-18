@@ -38,6 +38,20 @@ Changed:
 - Post and profile modals no longer carry old hard `95vh`/`90vh` caps; the
   shared safe modal panel rule owns viewport sizing.
 
+## Pass 3: App Shell And Visual Viewport
+
+Changed:
+
+- Full-screen loading and app states now keep content inside top and bottom
+  safe-area padding without reacting to keyboard-height changes behind modals.
+- Lazy modal fallbacks no longer force a nested full-height loading screen; the
+  overlay owns the viewport and the spinner stays centered inside it.
+- The error boundary uses the same safe scrolling overlay rules as modals so a
+  crash card can still be reached on short screens.
+- The virtualized journal list now measures against `visualViewport` when
+  available and recalculates on orientation, visual viewport resize, and visual
+  viewport scroll events.
+
 Not done here:
 
 - Real browser screenshots for every checklist viewport.

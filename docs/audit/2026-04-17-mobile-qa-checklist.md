@@ -56,3 +56,6 @@ Record each issue with viewport, screen, steps, and a screenshot if available.
 - 2026-04-17: Continued the short-viewport pass. Auth, onboarding, age
   verification, public profile states, and modal viewport caps now lean on
   dynamic viewport and safe-area rules instead of older static `vh` assumptions.
+- 2026-04-17: Continued app-shell iOS readiness. Loading/error states now keep
+  safe-area padding, lazy fallbacks avoid nested full-screen spinners, and the
+  virtualized journal list reacts to mobile visual viewport changes.

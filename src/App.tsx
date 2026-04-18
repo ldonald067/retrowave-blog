@@ -52,8 +52,8 @@ function getPublicUsername(): string | null {
 /** Minimal fallback shown while lazy chunks load */
 function LazyFallback() {
   return (
-    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
-      <LoadingSpinner />
+    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex justify-center p-2 sm:p-4 modal-overlay-safe">
+      <LoadingSpinner fullScreen={false} />
     </div>
   );
 }
@@ -131,17 +131,22 @@ function PostList({
     const computeHeight = () => {
       if (!parentRef.current) return;
       const rect = parentRef.current.getBoundingClientRect();
-      const available = window.innerHeight - rect.top - 16; // 16px bottom breathing room
-      setContainerHeight(Math.max(300, available)); // never smaller than 300px
+      const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
+      const available = viewportHeight - rect.top - 16;
+      setContainerHeight(Math.max(300, available));
     };
-    // Initial measurement after layout settles
     requestAnimationFrame(() => requestAnimationFrame(computeHeight));
     window.addEventListener('resize', computeHeight);
-    // Recompute when sidebar collapses/expands (content above changes height)
+    window.addEventListener('orientationchange', computeHeight);
+    window.visualViewport?.addEventListener('resize', computeHeight);
+    window.visualViewport?.addEventListener('scroll', computeHeight);
     const observer = new ResizeObserver(computeHeight);
     if (parentRef.current?.parentElement) observer.observe(parentRef.current.parentElement);
     return () => {
       window.removeEventListener('resize', computeHeight);
+      window.removeEventListener('orientationchange', computeHeight);
+      window.visualViewport?.removeEventListener('resize', computeHeight);
+      window.visualViewport?.removeEventListener('scroll', computeHeight);
       observer.disconnect();
     };
   }, []);
@@ -542,8 +547,8 @@ function App() {
   // Show loading spinner during auth initialization
   if (authLoading) {
     return (
-      <div className="min-h-screen themed-bg flex items-center justify-center">
-        <LoadingSpinner />
+      <div className="min-h-screen themed-bg flex items-center justify-center safe-area-top safe-area-bottom px-4">
+        <LoadingSpinner fullScreen={false} />
       </div>
     );
   }
@@ -551,8 +556,8 @@ function App() {
   // Guard against age gate flash: profile fetch is async after session resolves.
   if (user && !profile && !profileError) {
     return (
-      <div className="min-h-screen themed-bg flex items-center justify-center">
-        <LoadingSpinner />
+      <div className="min-h-screen themed-bg flex items-center justify-center safe-area-top safe-area-bottom px-4">
+        <LoadingSpinner fullScreen={false} />
       </div>
     );
   }
@@ -603,7 +608,7 @@ function App() {
 
   if (postsLoading) {
     return (
-      <div className="min-h-screen themed-bg">
+      <div className="min-h-screen themed-bg page-safe-bottom">
         <Header
           onNewPost={handleNewPost}
           user={user}
@@ -627,7 +632,7 @@ function App() {
 
   if (error) {
     return (
-      <div className="min-h-screen themed-bg">
+      <div className="min-h-screen themed-bg page-safe-bottom">
         <Header
           onNewPost={handleNewPost}
           user={user}
@@ -645,7 +650,7 @@ function App() {
   return (
     <ErrorBoundary>
     <MotionConfig reducedMotion="user">
-    <div className="min-h-screen themed-bg">
+    <div className="min-h-screen themed-bg page-safe-bottom">
       <a href="#main-content" className="skip-link">Skip to main content</a>
       <CursorSparkle />
       <Header

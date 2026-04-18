@@ -1020,6 +1020,10 @@ a, button, [role='button'], input[type='submit'], .xanga-button, .xanga-link {
     padding-bottom: calc(1rem + var(--safe-area-bottom) + var(--keyboard-inset));
   }
 
+  .page-safe-bottom {
+    padding-bottom: calc(1rem + var(--safe-area-bottom));
+  }
+
   .safe-area-top {
     padding-top: max(0.5rem, var(--safe-area-top));
   }
