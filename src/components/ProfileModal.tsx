@@ -361,7 +361,7 @@ export default function ProfileModal({
           <div
             className="overflow-y-auto keyboard-safe-scroll"
             style={{
-              maxHeight: `calc(95vh - ${modalChromeHeight}px)`,
+              maxHeight: `calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - var(--keyboard-inset) - ${modalChromeHeight + 16}px)`,
               backgroundColor: 'var(--modal-bg)',
             }}
           >

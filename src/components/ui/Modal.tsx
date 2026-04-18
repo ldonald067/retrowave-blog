@@ -17,7 +17,7 @@ export function ModalOverlay({ children, className, ...props }: ModalOverlayProp
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className={joinClassNames(
-        'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4',
+        'fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex justify-center p-2 sm:p-4 modal-overlay-safe',
         className
       )}
       {...props}
@@ -41,7 +41,7 @@ export const ModalFrame = forwardRef<HTMLDivElement, ModalFrameProps>(function M
       initial={{ scale: 0.95, y: 20 }}
       animate={{ scale: 1, y: 0 }}
       exit={{ scale: 0.95, y: 20 }}
-      className={joinClassNames('rounded-xl shadow-2xl w-full overflow-hidden', className)}
+      className={joinClassNames('rounded-lg shadow-2xl w-full overflow-hidden modal-panel-safe', className)}
       style={{
         backgroundColor: 'var(--modal-bg)',
         border: '4px solid var(--modal-border)',

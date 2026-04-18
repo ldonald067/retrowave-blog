@@ -297,9 +297,12 @@ export default function PostModal({
         >
           <ModalHeader>
             <div className="flex items-center justify-between">
-              <h2 className="xanga-title glitter-text text-xl sm:text-2xl">
+              <h2 className="xanga-title glitter-text text-xl sm:text-2xl min-w-0 pr-2">
                 {isViewMode ? (
-                  <span className="flex items-center gap-2">✨ {post?.title}</span>
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span aria-hidden="true">✨</span>
+                    <span className="min-w-0 break-words">{post?.title}</span>
+                  </span>
                 ) : mode === 'edit' ? (
                   '✏️ ~ edit entry ~'
                 ) : (

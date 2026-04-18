@@ -2,10 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+  <meta name="theme-color" content="#ff66b3" />
   <title>Privacy Policy - My Journal</title>
   <style>
-    body { font-family: Georgia, serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; color: #333; line-height: 1.6; }
+    body { font-family: Georgia, serif; max-width: 640px; margin: 0 auto; padding: calc(2rem + env(safe-area-inset-top, 0px)) 1rem calc(2rem + env(safe-area-inset-bottom, 0px)); color: #333; line-height: 1.6; overflow-wrap: anywhere; }
     h1 { color: #ff1493; }
     h2 { color: #9932cc; margin-top: 1.5rem; }
     a { color: #ff1493; }
@@ -19,12 +21,12 @@
   <ul>
     <li><strong>Email address</strong> - for authentication (magic link login)</li>
     <li><strong>Birth year</strong> - for age verification (COPPA compliance), never displayed publicly</li>
-    <li><strong>Profile information</strong> - display name, bio, avatar, mood, music (all optional, all public)</li>
-    <li><strong>Posts and reactions</strong> - content you create on the platform</li>
+    <li><strong>Profile information</strong> - display name, bio, avatar, mood, music, and public-page settings</li>
+    <li><strong>Journal entries and reactions</strong> - private by default, with optional public sharing when you choose</li>
   </ul>
 
   <h2>How We Use It</h2>
-  <p>Your email is used only for authentication. Your birth year is used only to verify you are 13 or older. Profile information and posts are displayed on the platform as part of the service.</p>
+  <p>Your email is used only for authentication. Your birth year is used only to verify you are 13 or older. Journal entries stay private unless you intentionally make an entry public and publish your public page.</p>
 
   <h2>Data Storage</h2>
   <p>Data is stored securely on Supabase (hosted on AWS). We do not sell or share your data with third parties.</p>

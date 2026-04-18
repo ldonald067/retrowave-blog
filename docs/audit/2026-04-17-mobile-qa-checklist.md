@@ -1,6 +1,6 @@
 # No-Mac Mobile QA Checklist
 
-Branch: `fix/intentional-public-profile`
+Branch: `prep/ios-readiness`
 
 Use this checklist while a real iPhone and Xcode are unavailable. It does not replace device testing, but it catches the obvious mobile failures before App Store work starts.
 
@@ -49,3 +49,7 @@ Use this checklist while a real iPhone and Xcode are unavailable. It does not re
 Record each issue with viewport, screen, steps, and a screenshot if available.
 
 - 2026-04-17: Checklist created. First manual/automated viewport pass still pending.
+- 2026-04-17: Started targeted iOS-readiness cleanup from current `main`.
+  Covered app/legal-page viewport metadata, safe-area modal overlays,
+  keyboard-aware profile modal scrolling, wrapping toasts, stacked confirm
+  dialog actions, and long view-entry titles.

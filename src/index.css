@@ -51,6 +51,12 @@
   --keyboard-inset: 0px;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 /* Cute, playful animations */
 @keyframes sparkle {
   0%, 100% {
@@ -119,10 +125,12 @@
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
+  min-height: 100%;
 }
 
 /* Body background - themed */
 body {
+  min-height: 100%;
   overflow-x: hidden;
   background: var(--bg-primary);
   font-family: 'Verdana', 'Tahoma', sans-serif;
@@ -132,6 +140,10 @@ body {
   -webkit-tap-highlight-color: transparent;
   -webkit-text-size-adjust: 100%;
   touch-action: manipulation;
+}
+
+#root {
+  min-height: 100%;
 }
 
 /* Themed page background gradient */
@@ -145,6 +157,28 @@ body {
 
 .keyboard-open .keyboard-safe-scroll {
   padding-bottom: calc(var(--keyboard-inset) + var(--safe-area-bottom) + 1rem) !important;
+}
+
+.modal-overlay-safe {
+  align-items: flex-start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-top: calc(0.5rem + var(--safe-area-top));
+  padding-bottom: calc(0.5rem + var(--safe-area-bottom) + var(--keyboard-inset));
+}
+
+.modal-panel-safe {
+  max-height: calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - var(--keyboard-inset) - 1rem);
+}
+
+.toast-safe {
+  width: min(24rem, calc(100vw - 1rem));
+}
+
+@media (min-width: 640px) and (min-height: 700px) {
+  .modal-overlay-safe {
+    align-items: center;
+  }
 }
 
 /* Dotted borders everywhere - very 2005 */

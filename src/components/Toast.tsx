@@ -32,7 +32,7 @@ export default function Toast({ message, type = 'success', onClose, duration = 2
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15 } }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className="fixed left-1/2 z-[100] pointer-events-auto"
+      className="fixed left-1/2 z-[100] pointer-events-auto toast-safe"
       style={{
         bottom: `max(${1.5 + index * 2.75}rem, calc(env(safe-area-inset-bottom) + ${1.5 + index * 2.75}rem))`,
         transform: 'translateX(-50%)',
@@ -42,7 +42,7 @@ export default function Toast({ message, type = 'success', onClose, duration = 2
       aria-live={type === 'error' ? 'assertive' : 'polite'}
     >
       <div
-        className="flex items-center gap-1.5 px-4 py-2 rounded-full shadow-lg cursor-pointer select-none whitespace-nowrap"
+        className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg shadow-lg cursor-pointer select-none text-center break-words"
         style={{
           backgroundColor: 'var(--card-bg)',
           border: '1.5px solid var(--border-primary)',
@@ -52,8 +52,8 @@ export default function Toast({ message, type = 'success', onClose, duration = 2
           fontWeight: 700,
         }}
       >
-        <span className="text-sm">{ICONS[type]}</span>
-        {message}
+        <span className="text-sm flex-shrink-0">{ICONS[type]}</span>
+        <span>{message}</span>
       </div>
     </motion.div>
   );
