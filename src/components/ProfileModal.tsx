@@ -435,6 +435,7 @@ export default function ProfileModal({
                     <Input
                       type="text"
                       value={displayName}
+                      aria-label="Display name"
                       onChange={(e) => {
                         setDisplayName(e.target.value);
                         if (errors.displayName) {
@@ -458,6 +459,7 @@ export default function ProfileModal({
                     </h3>
                     <Textarea
                       value={bio}
+                      aria-label="About me"
                       onChange={(e) => {
                         setBio(e.target.value);
                         if (errors.bio) {
@@ -505,6 +507,7 @@ export default function ProfileModal({
                     <Input
                       type="text"
                       value={currentMusic}
+                      aria-label="Currently listening to"
                       onChange={(e) => setCurrentMusic(e.target.value)}
                       placeholder="song, artist, or youtube link..."
                       maxLength={200}

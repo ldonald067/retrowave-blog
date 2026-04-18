@@ -96,9 +96,41 @@ Not done here:
 - Signed-in mobile QA with real journal entries and hosted Supabase writes.
 - Safari/WebKit behavior, native keyboard movement, or App Store screenshots.
 
+## Pass 6: Signed-In Hosted Supabase Mobile Check
+
+Checked:
+
+- Created a disposable hosted Supabase QA account.
+- Verified password auth directly against the hosted project.
+- Ran the authenticated app shell in Chrome mobile emulation at `390 x 844`
+  with the confirmed session preloaded.
+- Created a private entry through the mobile editor and confirmed the hosted
+  row saved with `is_private = true`.
+- Edited the entry through the owner modal, switched it public, and confirmed
+  the hosted row saved with `is_private = false`.
+- Edited the profile display name through the mobile profile modal.
+- Confirmed and saved public profile publishing through the mobile profile
+  modal.
+- Confirmed `get_public_profile` returns data after publishing.
+
+Fixed:
+
+- Header settings/logout controls now keep a 44px minimum width on mobile.
+- Profile display name, bio, and current-music fields now have explicit
+  accessible names.
+- `mobile-web-app-capable` was added alongside the legacy Apple standalone meta
+  tag to clear Chrome's warning.
+
+Not done here:
+
+- Manual login-form click-through inside the browser. Password auth was
+  verified directly; the signed-in UI journey used a preloaded confirmed
+  session.
+- Entry delete and signed-in reaction persistence.
+- Safari/WebKit behavior, native keyboard movement, or App Store screenshots.
+
 ## Next Pass
 
-- Use a QA account/session to run the checklist viewports against the signed-in
-  journal list, entry editor, profile tabs, profile save, privacy/public
-  publish, long journal cards, and keyboard-constrained portrait.
+- Use the QA account/session to cover the remaining signed-in flows: delete,
+  reactions, and a keyboard-constrained portrait pass.
 - Turn any findings into small fixes with before/after notes.

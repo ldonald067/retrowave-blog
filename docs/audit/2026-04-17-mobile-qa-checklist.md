@@ -73,12 +73,53 @@ Found:
 - The earlier real-env smoke had already found narrow onboarding clipping; that
   was fixed in the previous pass with explicit panel width and wrapping rules.
 
+Still not covered by this lightweight pass:
+
+- Signed-in hosted Supabase flows. Most of this was covered in the later
+  signed-in pass below.
+- iOS Safari/WebKit keyboard behavior, text zoom, momentum scrolling, and
+  native safe-area/status-bar behavior.
+- App Store screenshot review on real device sizes.
+
+## Signed-In Hosted Supabase Pass - 2026-04-18
+
+This pass used a disposable hosted Supabase QA account and Chrome mobile
+emulation at `390 x 844`. The session was preloaded after password auth was
+verified directly against Supabase, so the app UI coverage starts from an
+authenticated session rather than a manual login tap.
+
+Verified:
+
+- Password auth succeeds for the disposable QA account.
+- Signed-in app shell renders with no horizontal page overflow at `390 x 844`.
+- A new entry can be created through the mobile editor and starts private.
+- Entry privacy is visible in the editor before title/content.
+- The created entry saved to hosted Supabase with `is_private = true`.
+- The owner edit flow can update that entry and switch it to public.
+- The edited entry saved to hosted Supabase with `is_private = false`.
+- Profile display name can be edited through the mobile profile modal.
+- Public profile publishing can be confirmed and saved through the mobile
+  profile modal.
+- `get_public_profile` returns data for the QA profile after publishing.
+
+Found and fixed:
+
+- Header settings/logout icon buttons were only about 24 CSS pixels wide on
+  mobile. They now keep a 44px minimum hit area.
+- Profile display name, bio, and current-music fields were visually grouped by
+  headings but lacked direct accessible names. They now have explicit
+  `aria-label` values.
+- Chrome warned that `apple-mobile-web-app-capable` is deprecated without the
+  modern companion meta tag. `mobile-web-app-capable` was added.
+
 Still not covered:
 
-- Signed-in journal list with real hosted Supabase data.
-- Create, edit, save, delete, privacy toggle, public publish, and profile-save
-  flows against the hosted project.
-- iOS Safari/WebKit keyboard behavior, text zoom, momentum scrolling, and
+- Manual DOM click-through of the login form. Password auth itself was verified,
+  but the Chrome automation used a preloaded confirmed session for the signed-in
+  app journey.
+- Entry delete.
+- Signed-in reaction tap/persistence.
+- Real iOS Safari/WebKit keyboard behavior, text zoom, momentum scrolling, and
   native safe-area/status-bar behavior.
 - App Store screenshot review on real device sizes.
 
@@ -109,3 +150,9 @@ Record each issue with viewport, screen, steps, and a screenshot if available.
   entry privacy placement, profile tabs, and signed-out public page reactions.
   No new obvious fix was found. The remaining checklist work needs a signed-in
   QA account/session and later real iPhone/WebKit testing.
+- 2026-04-18: Created a disposable hosted Supabase QA account and ran the
+  signed-in mobile journey at `390 x 844`. Verified private entry create,
+  privacy edit to public, profile edit, public page publish, and public profile
+  RPC state against hosted Supabase. Fixed the issues found during that pass:
+  narrow header icon hit areas, missing accessible names on profile fields, and
+  Chrome's deprecated mobile-web-app meta warning.

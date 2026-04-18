@@ -108,11 +108,11 @@ export default function Header({
           <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
             {user ? (
               <>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={onSettingsClick} className="transition min-h-[44px] flex items-center px-1" style={{ color: 'inherit' }} aria-label="Open settings">
+                <motion.button whileTap={{ scale: 0.95 }} onClick={onSettingsClick} className="transition min-h-[44px] min-w-[44px] flex items-center justify-center px-1" style={{ color: 'inherit' }} aria-label="Open settings">
                   <Pepicon name="gear" size={16} color="var(--text-muted)" />
                   <span className="hidden sm:inline ml-1">settings</span>
                 </motion.button>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={onSignOut} className="transition min-h-[44px] flex items-center px-1" style={{ color: 'inherit' }} aria-label="Sign out of your account">
+                <motion.button whileTap={{ scale: 0.95 }} onClick={onSignOut} className="transition min-h-[44px] min-w-[44px] flex items-center justify-center px-1" style={{ color: 'inherit' }} aria-label="Sign out of your account">
                   <Pepicon name="leave" size={16} color="var(--text-muted)" />
                   <span className="hidden sm:inline ml-1">logout</span>
                 </motion.button>
