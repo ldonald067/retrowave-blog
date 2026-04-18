@@ -76,9 +76,29 @@ Not done here:
 - Native iPhone keyboard verification.
 - Xcode/App Store screenshot validation.
 
+## Pass 5: Lightweight Chrome/Code Mobile Check
+
+Checked:
+
+- Chrome headless booted the app at `320 x 568`, `390 x 844`, and `844 x 390`
+  and rendered expected diary/auth/onboarding text.
+- Static review did not find a return of the old hard `95vh`/`90vh` modal caps
+  or unsafe full-height assumptions outside the shared dynamic viewport rules.
+- Onboarding, auth, age verification, entry editor, profile tabs, and public
+  profile code paths still use the safe-area/keyboard-aware containers added in
+  the earlier passes.
+- Entry privacy remains visible in the editor body before title/content.
+- Signed-out public pages remain read-only and do not ask visitors to react.
+
+Not done here:
+
+- Full visual approval for every checklist viewport.
+- Signed-in mobile QA with real journal entries and hosted Supabase writes.
+- Safari/WebKit behavior, native keyboard movement, or App Store screenshots.
+
 ## Next Pass
 
-- Run the checklist viewports against auth, onboarding, entry editor, profile
-  tabs, settings, public profile, long journal cards, and keyboard-constrained
-  portrait.
+- Use a QA account/session to run the checklist viewports against the signed-in
+  journal list, entry editor, profile tabs, profile save, privacy/public
+  publish, long journal cards, and keyboard-constrained portrait.
 - Turn any findings into small fixes with before/after notes.

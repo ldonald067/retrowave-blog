@@ -44,6 +44,44 @@ Use this checklist while a real iPhone and Xcode are unavailable. It does not re
 - Public page controls do not read like a feed or social network.
 - Signed-out public pages do not ask visitors to react.
 
+## Lightweight Chrome/Code Pass - 2026-04-18
+
+This pass used Chrome on Windows because it is the most useful local browser
+available for quick responsive checks. It is not a substitute for Safari,
+Capacitor, Xcode, or a real iPhone.
+
+Covered:
+
+- Headless Chrome boot smoke at `320 x 568`, `390 x 844`, and `844 x 390`.
+  The app mounted and rendered expected diary/auth/onboarding text at each
+  size.
+- Code/static scan for old fixed viewport assumptions, modal safe-area helpers,
+  keyboard-safe scroll containers, narrow fixed widths, reaction prompts, and
+  public/private wording.
+- Unauthenticated startup, onboarding, auth, and age-verification paths by code
+  review.
+- Entry editor mobile risks by code review, including the visible entry privacy
+  control before title/content.
+- Profile settings tabs by code review, including the mobile horizontal tab row
+  and keyboard-safe content area.
+- Public profile read-only positioning by code review. Signed-out public pages
+  still do not expose reaction prompts.
+
+Found:
+
+- No new obvious mobile layout bug in this lightweight pass.
+- The earlier real-env smoke had already found narrow onboarding clipping; that
+  was fixed in the previous pass with explicit panel width and wrapping rules.
+
+Still not covered:
+
+- Signed-in journal list with real hosted Supabase data.
+- Create, edit, save, delete, privacy toggle, public publish, and profile-save
+  flows against the hosted project.
+- iOS Safari/WebKit keyboard behavior, text zoom, momentum scrolling, and
+  native safe-area/status-bar behavior.
+- App Store screenshot review on real device sizes.
+
 ## Findings Log
 
 Record each issue with viewport, screen, steps, and a screenshot if available.
@@ -65,3 +103,9 @@ Record each issue with viewport, screen, steps, and a screenshot if available.
   at the checklist sizes. Found and tightened narrow-width onboarding clipping
   with explicit panel and copy wrapping rules. Signed-in journal screens still
   need a QA account/session before this checklist can be marked complete.
+- 2026-04-18: Ran a lightweight Chrome/code pass instead of pretending Windows
+  can certify an iPhone app. Chrome booted the app at `320 x 568`, `390 x 844`,
+  and `844 x 390`; static review covered safe areas, keyboard-aware containers,
+  entry privacy placement, profile tabs, and signed-out public page reactions.
+  No new obvious fix was found. The remaining checklist work needs a signed-in
+  QA account/session and later real iPhone/WebKit testing.
