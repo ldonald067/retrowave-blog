@@ -299,7 +299,7 @@ export default function ProfileModal({
               handleCancel();
             }
           }}
-          className="max-w-lg max-h-[95vh] sm:max-h-[90vh]"
+          className="max-w-lg"
         >
           <ModalHeader>
             <div className="flex items-center justify-between">

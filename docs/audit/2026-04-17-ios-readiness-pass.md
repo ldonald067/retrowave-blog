@@ -23,6 +23,21 @@ Changed:
 - Toasts have a constrained viewport width and can wrap long messages.
 - View-entry modal titles can wrap without pushing the close button off-screen.
 
+## Pass 2: Short Viewports And Public Page Edges
+
+Changed:
+
+- Auth content now keeps safe-area bottom padding even when the keyboard is not
+  open.
+- Onboarding and age verification scroll from the top on narrow/short
+  viewports, then center again on roomier screens.
+- Public profile loading, not-found, and main pages respect safe-area top and
+  bottom padding.
+- `min-h-screen` is normalized to `100dvh` so full-height fallback/public pages
+  track the dynamic mobile viewport more closely.
+- Post and profile modals no longer carry old hard `95vh`/`90vh` caps; the
+  shared safe modal panel rule owns viewport sizing.
+
 Not done here:
 
 - Real browser screenshots for every checklist viewport.

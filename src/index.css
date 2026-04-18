@@ -146,6 +146,10 @@ body {
   min-height: 100%;
 }
 
+.min-h-screen {
+  min-height: 100dvh;
+}
+
 /* Themed page background gradient */
 .themed-bg {
   background: linear-gradient(to bottom right, var(--bg-gradient-from), var(--bg-gradient-via), var(--bg-gradient-to));
@@ -175,9 +179,17 @@ body {
   width: min(24rem, calc(100vw - 1rem));
 }
 
+.short-viewport-start {
+  justify-content: flex-start;
+}
+
 @media (min-width: 640px) and (min-height: 700px) {
   .modal-overlay-safe {
     align-items: center;
+  }
+
+  .short-viewport-start {
+    justify-content: center;
   }
 }
 

@@ -293,7 +293,7 @@ export default function PostModal({
               handleClose();
             }
           }}
-          className="max-w-3xl max-h-[95vh] sm:max-h-[90vh] flex flex-col"
+          className="max-w-3xl flex flex-col"
         >
           <ModalHeader>
             <div className="flex items-center justify-between">

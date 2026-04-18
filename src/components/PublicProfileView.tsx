@@ -99,7 +99,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
+      <div className="min-h-screen safe-area-top safe-area-bottom flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
         <LoadingSpinner />
       </div>
     );
@@ -107,7 +107,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
 
   if (notFound || !data) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
+      <div className="min-h-screen safe-area-top safe-area-bottom flex flex-col items-center justify-center gap-4 p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
         <div className="xanga-box p-8 text-center max-w-md">
           <p className="xanga-title text-xl mb-2">~ profile not found ~</p>
           <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
@@ -133,7 +133,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
   );
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div className="min-h-screen safe-area-top safe-area-bottom" style={{ backgroundColor: 'var(--bg-primary)' }}>
       {/* Marquee banner */}
       <div
         className="overflow-hidden py-1 text-xs"

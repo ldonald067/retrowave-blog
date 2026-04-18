@@ -53,3 +53,6 @@ Record each issue with viewport, screen, steps, and a screenshot if available.
   Covered app/legal-page viewport metadata, safe-area modal overlays,
   keyboard-aware profile modal scrolling, wrapping toasts, stacked confirm
   dialog actions, and long view-entry titles.
+- 2026-04-17: Continued the short-viewport pass. Auth, onboarding, age
+  verification, public profile states, and modal viewport caps now lean on
+  dynamic viewport and safe-area rules instead of older static `vh` assumptions.
