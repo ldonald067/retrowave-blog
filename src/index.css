@@ -183,6 +183,30 @@ body {
   justify-content: flex-start;
 }
 
+.onboarding-panel {
+  width: calc(100vw - 2rem);
+  max-width: 28rem;
+  min-width: 0;
+}
+
+.onboarding-wrap {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.onboarding-panel .xanga-box {
+  width: 100%;
+}
+
+.onboarding-copy {
+  max-width: 16rem;
+  margin-inline: auto;
+}
+
 @media (min-width: 640px) and (min-height: 700px) {
   .modal-overlay-safe {
     align-items: center;

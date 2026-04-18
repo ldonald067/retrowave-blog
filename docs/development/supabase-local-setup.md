@@ -8,7 +8,8 @@ reports, and optional public journal pages.
 Safe in `.env.local`:
 
 - `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+- `VITE_SUPABASE_ANON_KEY` as a legacy fallback only
 
 The key can be a Supabase publishable key (`sb_publishable_...`) or the legacy
 `anon` key. Supabase currently supports both during the API-key transition.
@@ -35,7 +36,7 @@ Then create `.env.local`:
 
 ```env
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
-VITE_SUPABASE_ANON_KEY=sb_publishable_or_legacy_anon_key
+VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_key
 ```
 
 `.env.local` is ignored by git.
@@ -99,9 +100,10 @@ show up inside the running chat.
 
 ## Local QA Notes
 
-Without `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, the frontend fails
-during Supabase client initialization and browser screenshots render blank. Add
-`.env.local` before running mobile viewport QA against the real app.
+Without `VITE_SUPABASE_URL` and either `VITE_SUPABASE_PUBLISHABLE_KEY` or the
+legacy `VITE_SUPABASE_ANON_KEY`, the frontend fails during Supabase client
+initialization and browser screenshots render blank. Add `.env.local` before
+running mobile viewport QA against the real app.
 
 ## References
 

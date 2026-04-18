@@ -54,9 +54,25 @@ Changed:
 - Recovery and public-profile fallback actions stack on narrow screens instead
   of competing for horizontal space.
 
+## Pass 4: Real Supabase Env And First Viewport Smoke
+
+Changed:
+
+- Local ignored `.env` now uses the hosted Supabase project URL and publishable
+  key so the app can render against the real project during no-Mac QA.
+- The Supabase browser client accepts the current
+  `VITE_SUPABASE_PUBLISHABLE_KEY` name while keeping the legacy
+  `VITE_SUPABASE_ANON_KEY` fallback.
+- `@supabase/supabase-js` was refreshed through npm.
+- The first unauthenticated viewport smoke found the onboarding intro could
+  let long decorative/copy text exceed narrow iPhone widths.
+- Onboarding now uses an explicit mobile panel width and wrapping helpers for
+  its intro content.
+
 Not done here:
 
 - Real browser screenshots for every checklist viewport.
+- Signed-in mobile QA with a seeded/test journal account.
 - Native iPhone keyboard verification.
 - Xcode/App Store screenshot validation.
 

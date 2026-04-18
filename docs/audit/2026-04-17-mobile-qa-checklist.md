@@ -60,3 +60,8 @@ Record each issue with viewport, screen, steps, and a screenshot if available.
   safe-area padding, lazy fallbacks avoid nested full-screen spinners, and the
   virtualized journal list reacts to mobile visual viewport changes. Recovery
   and public-profile fallback actions now stack on narrow screens.
+- 2026-04-18: Added the real hosted Supabase frontend env locally using ignored
+  `.env` values. Ran a first unauthenticated viewport smoke against onboarding
+  at the checklist sizes. Found and tightened narrow-width onboarding clipping
+  with explicit panel and copy wrapping rules. Signed-in journal screens still
+  need a QA account/session before this checklist can be marked complete.
