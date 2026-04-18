@@ -9,7 +9,7 @@ export default function LoadingSpinner({ fullScreen = true, className = '' }: Lo
   const prefersReducedMotion = useReducedMotion();
   const containerClassName = [
     'flex flex-col items-center justify-center gap-3 text-center',
-    fullScreen ? 'min-h-screen safe-area-top safe-area-bottom px-4' : '',
+    fullScreen ? 'min-h-screen safe-area-top page-safe-bottom px-4' : '',
     className,
   ].filter(Boolean).join(' ');
 

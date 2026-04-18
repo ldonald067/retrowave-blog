@@ -58,4 +58,5 @@ Record each issue with viewport, screen, steps, and a screenshot if available.
   dynamic viewport and safe-area rules instead of older static `vh` assumptions.
 - 2026-04-17: Continued app-shell iOS readiness. Loading/error states now keep
   safe-area padding, lazy fallbacks avoid nested full-screen spinners, and the
-  virtualized journal list reacts to mobile visual viewport changes.
+  virtualized journal list reacts to mobile visual viewport changes. Recovery
+  and public-profile fallback actions now stack on narrow screens.

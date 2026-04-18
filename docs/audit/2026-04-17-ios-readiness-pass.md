@@ -51,6 +51,8 @@ Changed:
 - The virtualized journal list now measures against `visualViewport` when
   available and recalculates on orientation, visual viewport resize, and visual
   viewport scroll events.
+- Recovery and public-profile fallback actions stack on narrow screens instead
+  of competing for horizontal space.
 
 Not done here:
 

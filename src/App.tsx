@@ -547,7 +547,7 @@ function App() {
   // Show loading spinner during auth initialization
   if (authLoading) {
     return (
-      <div className="min-h-screen themed-bg flex items-center justify-center safe-area-top safe-area-bottom px-4">
+      <div className="min-h-screen themed-bg flex items-center justify-center safe-area-top page-safe-bottom px-4">
         <LoadingSpinner fullScreen={false} />
       </div>
     );
@@ -556,7 +556,7 @@ function App() {
   // Guard against age gate flash: profile fetch is async after session resolves.
   if (user && !profile && !profileError) {
     return (
-      <div className="min-h-screen themed-bg flex items-center justify-center safe-area-top safe-area-bottom px-4">
+      <div className="min-h-screen themed-bg flex items-center justify-center safe-area-top page-safe-bottom px-4">
         <LoadingSpinner fullScreen={false} />
       </div>
     );

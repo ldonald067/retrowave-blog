@@ -113,11 +113,11 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
           <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
             This profile doesn't exist or isn't public yet.
           </p>
-          <div className="flex gap-3 justify-center">
-            <button onClick={onGoHome} className="xanga-button text-sm px-4 py-2">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button onClick={onGoHome} className="xanga-button text-sm px-4 py-2 w-full sm:w-auto">
               go home
             </button>
-            <button onClick={onSignUp} className="xanga-link text-sm">
+            <button onClick={onSignUp} className="xanga-link text-sm w-full sm:w-auto justify-center">
               start your own journal ✨
             </button>
           </div>

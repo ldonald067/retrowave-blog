@@ -49,16 +49,16 @@ export default class ErrorBoundary extends Component<Props, State> {
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
             Something went wrong. Try refreshing the page.
           </p>
-          <div className="flex gap-3 justify-center pt-2">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
             <button
               onClick={this.handleReset}
-              className="xanga-button text-sm"
+              className="xanga-button text-sm w-full sm:w-auto"
             >
               Try Again
             </button>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 border-2 border-dotted rounded-lg text-sm transition min-h-[44px]"
+              className="px-4 py-2 border-2 border-dotted rounded-lg text-sm transition min-h-[44px] w-full sm:w-auto"
               style={{
                 borderColor: 'var(--border-primary)',
                 color: 'var(--accent-primary)',
