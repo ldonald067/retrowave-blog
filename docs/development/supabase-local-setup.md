@@ -63,6 +63,40 @@ npm run supabase -- link --project-ref your-project-ref
 That may ask for the database password. Enter it into the terminal prompt only;
 do not paste it into chat or commit it.
 
+## Codex MCP Setup
+
+Codex can connect to Supabase through the remote Supabase MCP server. This is a
+local machine/account setup, not a repo secret.
+
+For a new machine or fresh Codex profile:
+
+```powershell
+codex mcp add supabase --url https://mcp.supabase.com/mcp?project_ref=your-project-ref
+```
+
+Then ensure `~/.codex/config.toml` includes:
+
+```toml
+[mcp]
+remote_mcp_client_enabled = true
+```
+
+Authenticate with:
+
+```powershell
+codex mcp login supabase
+```
+
+Verify with:
+
+```powershell
+codex mcp list
+codex mcp get supabase
+```
+
+New MCP servers may require a fresh Codex session before their tools/resources
+show up inside the running chat.
+
 ## Local QA Notes
 
 Without `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`, the frontend fails
