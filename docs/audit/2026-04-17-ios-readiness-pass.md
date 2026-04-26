@@ -128,9 +128,14 @@ Not done here:
   session.
 - Entry delete and signed-in reaction persistence.
 - Safari/WebKit behavior, native keyboard movement, or App Store screenshots.
+- On 2026-04-26, a follow-up hosted QA pass for delete/reactions/short-height
+  portrait was blocked because the configured hosted Supabase hostname
+  `vzrdnyvoxvjlmymnhbjv.supabase.co` returned NXDOMAIN.
 
 ## Next Pass
 
-- Use the QA account/session to cover the remaining signed-in flows: delete,
-  reactions, and a keyboard-constrained portrait pass.
+- Restore or replace the hosted Supabase frontend URL so the signed-in hosted
+  QA pass can run again.
+- Then use the QA account/session to cover the remaining signed-in flows:
+  delete, reactions, and a keyboard-constrained portrait pass.
 - Turn any findings into small fixes with before/after notes.

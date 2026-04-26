@@ -156,3 +156,9 @@ Record each issue with viewport, screen, steps, and a screenshot if available.
   RPC state against hosted Supabase. Fixed the issues found during that pass:
   narrow header icon hit areas, missing accessible names on profile fields, and
   Chrome's deprecated mobile-web-app meta warning.
+- 2026-04-26: Attempted the remaining hosted signed-in checks for entry delete,
+  signed-in reaction persistence, and a `390 x 500` keyboard-constrained
+  portrait pass. Blocked before app QA because the configured hosted Supabase
+  hostname `vzrdnyvoxvjlmymnhbjv.supabase.co` returned NXDOMAIN from this
+  machine. These remaining checks now depend on restoring that hosted project
+  URL or replacing the frontend Supabase URL with the current project host.
