@@ -28,6 +28,8 @@ interface PostModalProps {
   onSave: (postData: CreatePostInput) => Promise<void>;
   onClose: () => void;
   mode?: 'create' | 'edit' | 'view';
+  /** Current user id for account-scoped draft storage. */
+  draftUserId?: string | null;
   /** Fetches a post with full content for view/edit modes. */
   fetchFullPost?: (id: string) => Promise<Post | null>;
   /** Existing chapters for autocomplete — passed from App to avoid duplicate RPC calls. */
@@ -43,11 +45,13 @@ export default function PostModal({
   onSave,
   onClose,
   mode = 'create',
+  draftUserId,
   fetchFullPost,
   chapters = [],
   onDelete,
   isOwner,
 }: PostModalProps) {
+  const draftStorageKey = draftUserId ? `post-draft:${draftUserId}` : null;
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [author, setAuthor] = useState('');
@@ -113,9 +117,9 @@ export default function PostModal({
 
   // Restore draft on mount (create mode only)
   useEffect(() => {
-    if (mode === 'create') {
+    if (mode === 'create' && draftStorageKey) {
       try {
-        const raw = localStorage.getItem('post-draft');
+        const raw = localStorage.getItem(draftStorageKey);
         if (raw) {
           const draft = JSON.parse(raw) as Record<string, string>;
           if (draft.title) setTitle(draft.title);
@@ -135,7 +139,7 @@ export default function PostModal({
     return () => {
       if (draftRestoredTimerRef.current) clearTimeout(draftRestoredTimerRef.current);
     };
-  }, [mode]);
+  }, [draftStorageKey, mode]);
 
   useEffect(() => {
     if (post) {
@@ -188,25 +192,31 @@ export default function PostModal({
 
   // Auto-save draft (create mode only) — debounced 500ms
   useEffect(() => {
-    if (mode !== 'create') return;
+    if (mode !== 'create' || !draftStorageKey) return;
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     draftTimerRef.current = setTimeout(() => {
       // Only save if there's meaningful content
       if (title || content) {
         try {
           localStorage.setItem(
-            'post-draft',
+            draftStorageKey,
             JSON.stringify({ title, content, author, chapter, mood, music })
           );
         } catch {
           // Private browsing or storage quota exceeded — draft lives in React state
+        }
+      } else {
+        try {
+          localStorage.removeItem(draftStorageKey);
+        } catch {
+          // Ignore storage cleanup failures in restricted environments
         }
       }
     }, 500);
     return () => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
     };
-  }, [title, content, author, chapter, mood, music, mode]);
+  }, [title, content, author, chapter, mood, music, mode, draftStorageKey]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -237,6 +247,9 @@ export default function PostModal({
       await onSave(postData);
       // Clear draft on successful save
       try {
+        if (draftStorageKey) {
+          localStorage.removeItem(draftStorageKey);
+        }
         localStorage.removeItem('post-draft');
       } catch {
         // Private browsing — ignore

@@ -1,26 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 
-// Mock supabase — all variables must be inside the factory to avoid hoisting issues
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     rpc: vi.fn().mockResolvedValue({ data: [], error: null }),
   },
 }));
 
-// Mock withRetry to pass through the async fn
 vi.mock('../../lib/retry', () => ({
   withRetry: vi.fn((fn: () => Promise<unknown>) => fn()),
 }));
 
-// Mock requireAuth — default: logged in
-vi.mock('../../lib/auth-guard', () => ({
-  requireAuth: vi.fn(),
-}));
-
 import { useChapters } from '../useChapters';
 import { supabase } from '../../lib/supabase';
-import { requireAuth } from '../../lib/auth-guard';
 
 const mockUser = { id: 'user-1', email: 'test@test.com' };
 
@@ -32,14 +24,11 @@ const mockChapters = [
 describe('useChapters', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireAuth).mockResolvedValue({ user: mockUser, error: null } as never);
     vi.mocked(supabase.rpc).mockResolvedValue({ data: mockChapters, error: null } as never);
   });
 
-  // ── Fetch on mount ──────────────────────────────────────────────────────
-
-  it('fetches chapters on mount', async () => {
-    const { result } = renderHook(() => useChapters());
+  it('fetches chapters when a user is present on mount', async () => {
+    const { result } = renderHook(() => useChapters(mockUser.id));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -49,23 +38,44 @@ describe('useChapters', () => {
     expect(result.current.chapters[1]?.post_count).toBe(3);
   });
 
-  // ── Auth guard ──────────────────────────────────────────────────────────
-
   it('returns empty chapters when not logged in', async () => {
-    vi.mocked(requireAuth).mockResolvedValueOnce({
-      user: null,
-      error: 'You must be logged in.',
-    } as never);
-
-    const { result } = renderHook(() => useChapters());
+    const { result } = renderHook(() => useChapters(null));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 
-    expect(result.current.chapters).toHaveLength(0);
+    expect(result.current.chapters).toEqual([]);
     expect(supabase.rpc).not.toHaveBeenCalled();
   });
 
-  // ── RPC error ───────────────────────────────────────────────────────────
+  it('loads chapters when a user signs in after starting signed out', async () => {
+    const { result, rerender } = renderHook(({ userId }) => useChapters(userId), {
+      initialProps: { userId: null as string | null },
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.chapters).toEqual([]);
+    expect(supabase.rpc).not.toHaveBeenCalled();
+
+    rerender({ userId: mockUser.id });
+
+    await waitFor(() => expect(result.current.chapters).toHaveLength(2));
+    expect(supabase.rpc).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears chapters when the active user signs out', async () => {
+    const { result, rerender } = renderHook(({ userId }) => useChapters(userId), {
+      initialProps: { userId: mockUser.id as string | null },
+    });
+
+    await waitFor(() => expect(result.current.chapters).toHaveLength(2));
+
+    rerender({ userId: null });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+      expect(result.current.chapters).toEqual([]);
+    });
+  });
 
   it('returns empty chapters on RPC error (silent fail)', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
@@ -75,7 +85,7 @@ describe('useChapters', () => {
     } as never);
 
     try {
-      const { result } = renderHook(() => useChapters());
+      const { result } = renderHook(() => useChapters(mockUser.id));
 
       await waitFor(() => expect(result.current.loading).toBe(false));
 
@@ -89,10 +99,8 @@ describe('useChapters', () => {
     }
   });
 
-  // ── Refetch ─────────────────────────────────────────────────────────────
-
   it('refetch re-fetches chapters', async () => {
-    const { result } = renderHook(() => useChapters());
+    const { result } = renderHook(() => useChapters(mockUser.id));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(supabase.rpc).toHaveBeenCalledTimes(1);
@@ -115,15 +123,13 @@ describe('useChapters', () => {
     expect(result.current.chapters[2]?.chapter).toBe('new chapter');
   });
 
-  // ── Null data ───────────────────────────────────────────────────────────
-
   it('handles null data gracefully (defaults to empty array)', async () => {
     vi.mocked(supabase.rpc).mockResolvedValueOnce({
       data: null,
       error: null,
     } as never);
 
-    const { result } = renderHook(() => useChapters());
+    const { result } = renderHook(() => useChapters(mockUser.id));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
 

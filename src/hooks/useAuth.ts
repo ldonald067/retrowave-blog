@@ -46,8 +46,100 @@ export function useAuth(): UseAuthReturn {
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchingProfileFor = useRef<string | null>(null);
-  const lastFetchTime = useRef<number>(0);
+  const activeAuthUserIdRef = useRef<string | null>(null);
+  const lastFetchRef = useRef<{ userId: string | null; time: number }>({
+    userId: null,
+    time: 0,
+  });
+  const profileIdRef = useRef<string | null>(null);
   const FETCH_COOLDOWN_MS = 2000;
+
+  const setProfileState = (nextProfile: Profile | null): void => {
+    profileIdRef.current = nextProfile?.id ?? null;
+    setProfile(nextProfile);
+  };
+
+  const fetchProfile = async (
+    userId: string,
+    options: { force?: boolean } = {}
+  ): Promise<void> => {
+    if (fetchingProfileFor.current === userId) return;
+
+    const now = Date.now();
+    if (
+      !options.force &&
+      lastFetchRef.current.userId === userId &&
+      now - lastFetchRef.current.time < FETCH_COOLDOWN_MS &&
+      profileIdRef.current === userId
+    ) {
+      return;
+    }
+
+    lastFetchRef.current = { userId, time: now };
+    fetchingProfileFor.current = userId;
+
+    try {
+      const { data, error } = await withRetry(async () =>
+        supabase.from('profiles').select('*').eq('id', userId).single()
+      );
+
+      if (activeAuthUserIdRef.current !== userId) return;
+
+      if (error) {
+        const err = error as { code?: string };
+        if (err.code === 'PGRST116') {
+          const newProfile = await createProfileForUser(userId);
+          if (activeAuthUserIdRef.current !== userId) return;
+          if (newProfile) {
+            setProfileState(newProfile);
+            setProfileError(null);
+            applyTheme(newProfile.theme ?? DEFAULT_THEME);
+          }
+          return;
+        }
+        throw error;
+      }
+
+      const profileData = data as Profile;
+      setProfileState(profileData);
+      setProfileError(null);
+      applyTheme(profileData.theme ?? DEFAULT_THEME);
+    } catch (err) {
+      if (activeAuthUserIdRef.current !== userId) return;
+      console.error('Error fetching profile:', toUserMessage(err));
+      setProfileState(null);
+      setProfileError('~ couldnt load ur profile :( try refreshing ~');
+    } finally {
+      if (fetchingProfileFor.current === userId) {
+        fetchingProfileFor.current = null;
+        setLoading(false);
+      }
+    }
+  };
+
+  const syncAuthState = (nextUser: User | null): void => {
+    activeAuthUserIdRef.current = nextUser?.id ?? null;
+    setUser(nextUser);
+    setProfileError(null);
+
+    if (!nextUser) {
+      lastFetchRef.current = { userId: null, time: 0 };
+      fetchingProfileFor.current = null;
+      setProfileState(null);
+      applyTheme(DEFAULT_THEME);
+      setLoading(false);
+      return;
+    }
+
+    const needsFreshProfile = profileIdRef.current !== nextUser.id;
+    if (needsFreshProfile) {
+      setLoading(true);
+      setProfileState(null);
+      applyTheme(DEFAULT_THEME);
+    }
+
+    void fetchProfile(nextUser.id);
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -58,23 +150,13 @@ export function useAuth(): UseAuthReturn {
       if (cancelled) return;
       if (event === 'INITIAL_SESSION') return;
 
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        void fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-        setLoading(false);
-      }
+      syncAuthState(session?.user ?? null);
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (cancelled) return;
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        void fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
+
+      syncAuthState(session?.user ?? null);
     });
 
     return () => {
@@ -82,47 +164,6 @@ export function useAuth(): UseAuthReturn {
       subscription.unsubscribe();
     };
   }, []);
-
-  const fetchProfile = async (userId: string): Promise<void> => {
-    if (fetchingProfileFor.current === userId) return;
-
-    const now = Date.now();
-    if (now - lastFetchTime.current < FETCH_COOLDOWN_MS && profile) return;
-    lastFetchTime.current = now;
-    fetchingProfileFor.current = userId;
-
-    try {
-      const { data, error } = await withRetry(async () =>
-        supabase.from('profiles').select('*').eq('id', userId).single()
-      );
-
-      if (error) {
-        const err = error as { code?: string };
-        if (err.code === 'PGRST116') {
-          const newProfile = await createProfileForUser(userId);
-          if (newProfile) {
-            setProfile(newProfile);
-            setProfileError(null);
-            applyTheme(newProfile.theme ?? DEFAULT_THEME);
-          }
-          return;
-        }
-        throw error;
-      }
-
-      const profileData = data as Profile;
-      setProfile(profileData);
-      setProfileError(null);
-      applyTheme(profileData.theme ?? DEFAULT_THEME);
-    } catch (err) {
-      console.error('Error fetching profile:', toUserMessage(err));
-      setProfile(null);
-      setProfileError('~ couldnt load ur profile :( try refreshing ~');
-    } finally {
-      fetchingProfileFor.current = null;
-      setLoading(false);
-    }
-  };
 
   const createProfileForUser = async (userId: string): Promise<Profile | null> => {
     const MAX_ATTEMPTS = 3;
@@ -175,7 +216,9 @@ export function useAuth(): UseAuthReturn {
             continue;
           }
           console.error('Error creating profile after retries:', toUserMessage(error));
-          setProfileError('~ couldnt set up ur profile :( try refreshing ~');
+          if (activeAuthUserIdRef.current === userId) {
+            setProfileError('~ couldnt set up ur profile :( try refreshing ~');
+          }
           return null;
         }
 
@@ -186,7 +229,9 @@ export function useAuth(): UseAuthReturn {
           continue;
         }
         console.error('Error creating profile:', toUserMessage(err));
-        setProfileError('~ couldnt set up ur profile :( try refreshing ~');
+        if (activeAuthUserIdRef.current === userId) {
+          setProfileError('~ couldnt set up ur profile :( try refreshing ~');
+        }
         return null;
       }
     }
@@ -302,7 +347,7 @@ export function useAuth(): UseAuthReturn {
       if (!data) throw new Error('Profile update did not return a row.');
 
       const profileData = data as Profile;
-      setProfile(profileData);
+      setProfileState(profileData);
       setProfileError(null);
       applyTheme(profileData.theme ?? DEFAULT_THEME);
       return { error: null };
@@ -330,7 +375,7 @@ export function useAuth(): UseAuthReturn {
             tos_accepted: tosAccepted,
           },
         });
-        await fetchProfile(data.user.id);
+        await fetchProfile(data.user.id, { force: true });
       }
 
       return { error: null };
@@ -340,7 +385,9 @@ export function useAuth(): UseAuthReturn {
   };
 
   const refetchProfile = async (): Promise<void> => {
-    if (user) await fetchProfile(user.id);
+    if (!user) return;
+    setLoading(true);
+    await fetchProfile(user.id, { force: true });
   };
 
   return {

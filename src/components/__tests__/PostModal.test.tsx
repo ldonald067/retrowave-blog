@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import PostModal from '../PostModal';
 import type { Post } from '../../types/post';
@@ -62,6 +62,10 @@ const mockPost: Post = {
   reactions: {},
   user_reactions: [],
 };
+
+beforeEach(() => {
+  localStorage.clear();
+});
 
 describe('PostModal ⋮ Menu', () => {
   const defaultProps = {
@@ -219,5 +223,38 @@ describe('PostModal Footer', () => {
     render(<PostModal {...defaultProps} mode="view" />);
     expect(screen.queryByText('cancel')).not.toBeInTheDocument();
     expect(screen.queryByText('~ save entry ~')).not.toBeInTheDocument();
+  });
+});
+
+describe('PostModal Draft Storage', () => {
+  const createModeProps = {
+    post: null,
+    onSave: vi.fn().mockResolvedValue(undefined),
+    onClose: vi.fn(),
+    mode: 'create' as const,
+  };
+
+  it('restores drafts for the matching user only', () => {
+    localStorage.setItem(
+      'post-draft:user-1',
+      JSON.stringify({ title: 'User One Draft', content: 'Private draft body' })
+    );
+
+    render(<PostModal {...createModeProps} draftUserId="user-1" />);
+
+    expect(screen.getByLabelText(/entry title/i)).toHaveValue('User One Draft');
+    expect(screen.getByLabelText(/ur thoughts/i)).toHaveValue('Private draft body');
+  });
+
+  it('does not restore another user’s draft', () => {
+    localStorage.setItem(
+      'post-draft:user-1',
+      JSON.stringify({ title: 'User One Draft', content: 'Private draft body' })
+    );
+
+    render(<PostModal {...createModeProps} draftUserId="user-2" />);
+
+    expect(screen.getByLabelText(/entry title/i)).toHaveValue('');
+    expect(screen.getByLabelText(/ur thoughts/i)).toHaveValue('');
   });
 });

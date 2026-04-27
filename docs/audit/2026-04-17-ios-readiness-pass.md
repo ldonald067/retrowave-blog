@@ -132,6 +132,22 @@ Not done here:
   portrait was blocked because the configured hosted Supabase hostname
   `vzrdnyvoxvjlmymnhbjv.supabase.co` returned NXDOMAIN.
 
+## Post-Pass Follow-Up - 2026-04-27
+
+Changed:
+
+- Fixed a cross-user profile cooldown edge case so rapid account switches do
+  not reuse the previous user's profile/theme state.
+- Scoped composer draft restore/save to the active user instead of a single
+  global browser-storage key.
+- Made chapter loading follow auth state so signed-out startup does not leave
+  chapter data empty after a later login.
+- Hardened public-profile loading so thrown Supabase/network failures resolve
+  cleanly instead of leaving the page on an endless spinner.
+- Refreshed stale repo docs: README setup/env guidance, App Store checklist
+  evidence wording, and the older branch-inventory note so it reads as
+  historical context instead of current state.
+
 ## Next Pass
 
 - Restore or replace the hosted Supabase frontend URL so the signed-in hosted

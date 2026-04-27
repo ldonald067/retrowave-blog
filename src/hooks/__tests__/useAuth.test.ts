@@ -177,4 +177,38 @@ describe('useAuth', () => {
     expect(result.current.profile).toEqual(savedProfile);
     expect(result.current.profileError).toBeNull();
   });
+
+  it('refetchProfile bypasses the cooldown for the current user', async () => {
+    const initialProfile: Profile = { ...savedProfile, display_name: 'Old Name' };
+    const updatedProfile: Profile = { ...savedProfile, display_name: 'Updated Name' };
+
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: { user: mockUser } },
+    } as never);
+
+    let nextProfile = initialProfile;
+    const query = {
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockImplementation(() =>
+        Promise.resolve({ data: nextProfile, error: null })
+      ),
+    };
+    vi.mocked(supabase.from).mockReturnValue(query as never);
+
+    const { result } = renderHook(() => useAuth());
+
+    await waitFor(() => {
+      expect(result.current.profile?.display_name).toBe('Old Name');
+    });
+
+    nextProfile = updatedProfile;
+
+    await act(async () => {
+      await result.current.refetchProfile();
+    });
+
+    expect(query.single).toHaveBeenCalledTimes(2);
+    expect(result.current.profile?.display_name).toBe('Updated Name');
+  });
 });

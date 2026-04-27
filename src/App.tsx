@@ -253,7 +253,7 @@ function App() {
     onOptimisticUpdate: applyOptimisticReaction,
   });
 
-  const { chapters, refetch: refetchChapters } = useChapters();
+  const { chapters, refetch: refetchChapters } = useChapters(user?.id ?? null);
   const LOOSE_ENTRIES = '__loose__';
   const [chapterFilter, setChapterFilter] = useState<string | null>(null);
 
@@ -793,6 +793,7 @@ function App() {
             mode={modalMode}
             onSave={handleSavePost}
             onClose={() => setShowModal(false)}
+            draftUserId={user?.id ?? null}
             fetchFullPost={fetchPost}
             chapters={chapters}
             onDelete={handleDeletePost}

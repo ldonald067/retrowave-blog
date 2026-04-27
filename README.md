@@ -1,102 +1,75 @@
 # Retrowave Blog
 
-A minimal, self-running blog platform with Xanga/LiveJournal nostalgia. Built with React 19, TypeScript, Tailwind CSS 4, and Supabase.
+A private-first journal app with Xanga/LiveJournal nostalgia. Built with
+React 19, TypeScript 5.9, Vite 7, Tailwind CSS 4, Supabase, and Capacitor.
 
 ## Features
 
-- **Magic Link & Password Auth** - Email authentication with optional password
-- **Age Verification** - COPPA compliant (13+ only)
-- **User Profiles** - Display names, bios, avatars, mood & music
-- **8 Themes** - Classic Xanga, Emo Dark, Scene Kid, MySpace Blue, Y2K Cyber, Cottage Core, Grunge, Pastel Goth
-- **Emoji Reactions** - React to posts with various emojis
-- **YouTube Integration** - Paste links to show thumbnails
-- **Rich Post Creation** - Mood tracking and music integration
+- Magic link and password auth
+- COPPA age verification
+- Private-by-default journal entries with chapters, mood, music, and YouTube cards
+- Optional public profile pages with read-only public journals
+- User blocking, emoji reactions, themes, offline handling, and mobile-safe modal flows
 
 ## Quick Setup
 
 ### 1. Install Dependencies
+
 ```bash
 npm install
 ```
 
-### 2. Set Up Supabase
+### 2. Configure Supabase
 
-1. Create a Supabase project at https://supabase.com
-2. Run the SQL migrations in `supabase/migrations/` in order
-3. Enable Email provider in Authentication settings
+Follow `docs/development/supabase-local-setup.md` for the current local setup
+flow.
 
-### 3. Configure Environment
+Create `.env.local` with:
 
-Create `.env.local`:
-```
-VITE_SUPABASE_URL=your-project-url
-VITE_SUPABASE_ANON_KEY=your-anon-key
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 ```
 
-### 4. Run
+`VITE_SUPABASE_ANON_KEY` is still supported as a legacy fallback if your
+project has not moved to publishable keys yet.
+
+### 3. Apply Backend Setup
+
+- Run the SQL migrations in `supabase/migrations/`
+- Enable the email auth provider in Supabase
+- Deploy `supabase/functions/moderate-content` when you want hosted AI moderation
+
+### 4. Run The App
+
 ```bash
 npm run dev
 ```
 
 ## Project Structure
 
-```
-src/
-├── components/     # React components
-│   ├── ui/        # Reusable UI components (Button, Input, etc.)
-│   ├── Header.tsx
-│   ├── Sidebar.tsx
-│   ├── PostCard.tsx
-│   ├── PostModal.tsx
-│   ├── ProfileModal.tsx
-│   └── ...
-├── hooks/          # Custom React hooks
-│   ├── useAuth.ts      # Authentication
-│   ├── usePosts.ts     # Post CRUD
-│   ├── useLikes.ts     # Like/unlike
-│   ├── useReactions.ts # Emoji reactions
-│   └── useToast.ts     # Toast notifications
-├── lib/            # Core utilities
-│   ├── supabase.ts     # Supabase client
-│   ├── themes.ts       # Theme definitions
-│   ├── constants.ts    # App constants (MOODS, validation, etc.)
-│   └── linkPreview.ts  # YouTube/Spotify embeds
-├── types/          # TypeScript definitions
-│   ├── database.ts     # Supabase table types
-│   ├── post.ts
-│   ├── profile.ts
-│   └── ...
-└── utils/          # Helper functions
-    ├── formatDate.ts
-    └── parseYouTube.ts
-```
-
-## Design System
-
-### CSS Variables
-All theming is done via CSS custom properties in `src/index.css` and `src/lib/themes.ts`:
-- `--bg-primary`, `--bg-secondary` - Background colors
-- `--text-title`, `--text-body`, `--text-muted` - Text colors
-- `--accent-primary`, `--accent-secondary` - Accent colors
-- `--border-primary`, `--border-accent` - Border colors
-- `--button-gradient-from`, `--button-gradient-to` - Button gradients
-
-### Theme System
-Themes are applied via `data-theme` attribute on `<html>`. See `src/lib/themes.ts` for all theme definitions.
-
-## Tech Stack
-
-- **Frontend:** React 19 + TypeScript 5.9 + Vite 7
-- **Styling:** Tailwind CSS 4 + Framer Motion
-- **Backend:** Supabase (PostgreSQL + Auth)
-- **Icons:** Lucide React
+- `src/components` UI building blocks and feature components
+- `src/hooks` auth, posts, reactions, blocks, chapters, and public-profile hooks
+- `src/lib` Supabase client, validation, moderation, theming, retry, and caching helpers
+- `docs` setup notes and audit history
+- `supabase` migrations, edge functions, local config, and SQL smoke tests
 
 ## Scripts
 
-- `npm run dev` - Development server
-- `npm run build` - Production build
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
+- `npm run dev` - development server
+- `npm run build` - production build
+- `npm run preview` - preview the production build
+- `npm run lint` - ESLint
+- `npm run typecheck` - TypeScript checks
+- `npm run test` - Vitest
+- `npm run format` - Prettier for source files
+- `npm run supabase -- --version` - local Supabase CLI version check
+
+## Notes
+
+- `APP_STORE_TODO.md` tracks App Store submission work.
+- `docs/audit/` contains dated audit snapshots and branch history.
+- `.env.example` mirrors the current frontend Supabase environment shape.
 
 ## License
 

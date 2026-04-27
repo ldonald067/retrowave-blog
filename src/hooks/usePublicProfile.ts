@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { withRetry } from '../lib/retry';
 import type { PublicProfileData } from '../types/profile';
@@ -17,30 +17,44 @@ export function usePublicProfile(username: string | null): UsePublicProfileRetur
   const [data, setData] = useState<PublicProfileData | null>(null);
   const [loading, setLoading] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const requestIdRef = useRef(0);
 
   const fetchProfile = useCallback(async (name: string) => {
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     setNotFound(false);
+    try {
+      const { data: result, error } = await withRetry(async () =>
+        supabase.rpc('get_public_profile', { p_username: name })
+      );
 
-    const { data: result, error } = await withRetry(async () =>
-      supabase.rpc('get_public_profile', { p_username: name }),
-    );
-
-    if (error || !result) {
+      if (requestId !== requestIdRef.current) return;
+      if (error || !result) {
+        setData(null);
+        setNotFound(true);
+      } else {
+        setData(result as unknown as PublicProfileData);
+      }
+    } catch (err) {
+      if (requestId !== requestIdRef.current) return;
+      console.warn('[usePublicProfile] fetch failed:', err);
       setData(null);
       setNotFound(true);
-    } else {
-      setData(result as unknown as PublicProfileData);
+    } finally {
+      if (requestId === requestIdRef.current) {
+        setLoading(false);
+      }
     }
-    setLoading(false);
   }, []);
 
   useEffect(() => {
     if (username) {
       void fetchProfile(username);
     } else {
+      requestIdRef.current += 1;
       setData(null);
       setNotFound(false);
+      setLoading(false);
     }
   }, [username, fetchProfile]);
 
