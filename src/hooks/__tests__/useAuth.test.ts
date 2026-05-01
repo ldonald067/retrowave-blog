@@ -44,6 +44,7 @@ const savedProfile: Profile = {
   theme: 'default',
   current_mood: null,
   current_music: null,
+  status_message: null,
   is_admin: false,
   is_public: false,
   private_chapters: [],

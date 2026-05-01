@@ -148,6 +148,33 @@ Changed:
   evidence wording, and the older branch-inventory note so it reads as
   historical context instead of current state.
 
+## UX Polish Follow-Up - 2026-05-01
+
+Changed:
+
+- Shared public profile links now bypass the intro/onboarding path and land
+  directly on the intended public journal.
+- First-run setup now focuses on the essentials first, then hands the user
+  straight into writing the first entry instead of splitting setup across a
+  separate intro plus a denser profile modal.
+- Owner entry clicks now open the normal read view first, with editing kept as
+  an explicit follow-up action.
+- AIM-style profile status is now account-backed instead of device-local, so it
+  follows the user across browsers/devices once the migration is applied.
+- Archive browsing now keeps practical filters and sort choice sticky, shows
+  active filter chips, and explains empty states in plain language.
+- Composer save/publish feedback is more specific about private vs public
+  posting, and local draft recovery/autosave copy is clearer.
+- Public profile pages now set page metadata from the viewed profile and expose
+  cleaner guest actions for browsing home or starting a journal.
+
+Validation:
+
+- `npm.cmd run typecheck`
+- `npm.cmd run lint`
+- `npm.cmd test` with 227 passing tests
+- `npm.cmd run build`
+
 ## Next Pass
 
 - Restore or replace the hosted Supabase frontend URL so the signed-in hosted

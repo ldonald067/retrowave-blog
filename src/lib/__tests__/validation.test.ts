@@ -123,6 +123,13 @@ describe('validateProfileInput', () => {
     expect(errors.bio).toContain(`${PROFILE_LIMITS.bio.max}`);
   });
 
+  it('rejects status_message exceeding max', () => {
+    const errors = validateProfileInput({
+      status_message: 'x'.repeat(PROFILE_LIMITS.status_message.max + 1),
+    });
+    expect(errors.status_message).toContain(`${PROFILE_LIMITS.status_message.max}`);
+  });
+
   it('rejects empty username', () => {
     const errors = validateProfileInput({ username: '' });
     expect(errors.username).toBe('Username is required');

@@ -97,6 +97,42 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
     };
   }, [data?.profile.theme]);
 
+  useEffect(() => {
+    if (!data) return;
+
+    const pageTitle = `${data.profile.display_name || data.profile.username} | My Journal`;
+    const pageDescription =
+      data.profile.status_message?.trim() ||
+      data.profile.bio?.trim() ||
+      `${data.posts.length} public ${data.posts.length === 1 ? 'entry' : 'entries'} from @${data.profile.username}`;
+    const originalTitle = document.title;
+    const metaUpdates = [
+      { selector: 'meta[name="title"]', content: pageTitle },
+      { selector: 'meta[name="description"]', content: pageDescription },
+      { selector: 'meta[property="og:title"]', content: pageTitle },
+      { selector: 'meta[property="og:description"]', content: pageDescription },
+      { selector: 'meta[name="twitter:title"]', content: pageTitle },
+      { selector: 'meta[name="twitter:description"]', content: pageDescription },
+    ].map(({ selector, content }) => {
+      const element = document.head.querySelector<HTMLMetaElement>(selector);
+      return { element, previous: element?.content ?? null, content };
+    });
+
+    document.title = pageTitle;
+    metaUpdates.forEach(({ element, content }) => {
+      if (element) element.content = content;
+    });
+
+    return () => {
+      document.title = originalTitle;
+      metaUpdates.forEach(({ element, previous }) => {
+        if (element && previous !== null) {
+          element.content = previous;
+        }
+      });
+    };
+  }, [data]);
+
   if (loading) {
     return (
       <div className="min-h-screen safe-area-top page-safe-bottom flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -127,6 +163,8 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
   }
 
   const { profile, posts } = data;
+  const publicEntryLabel = `${posts.length} public ${posts.length === 1 ? 'entry' : 'entries'}`;
+  const joinedYear = new Date(profile.created_at).getFullYear();
   const profileReportHref = buildReportEmailHref(
     `Report public page: @${profile.username}`,
     `Public page: @${profile.username}`,
@@ -163,6 +201,9 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
                 {profile.display_name || profile.username}
               </h1>
               <p className="xanga-subtitle">@{profile.username}</p>
+              {profile.status_message && (
+                <p className="aim-status mt-2">ðŸ“Ÿ ~ {profile.status_message} ~</p>
+              )}
               {profile.bio && (
                 <p className="text-sm mt-2 italic break-words" style={{ color: 'var(--text-body)' }}>
                   {profile.bio}
@@ -178,6 +219,42 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
                   ♫ listening to: {profile.current_music}
                 </p>
               )}
+              <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                <span
+                  className="inline-flex items-center rounded-full border px-3 py-2 font-bold"
+                  style={{
+                    borderColor: 'var(--border-primary)',
+                    backgroundColor: 'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
+                    color: 'var(--text-body)',
+                  }}
+                >
+                  {publicEntryLabel}
+                </span>
+                <span
+                  className="inline-flex items-center rounded-full border px-3 py-2"
+                  style={{
+                    borderColor: 'var(--border-primary)',
+                    backgroundColor: 'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
+                    color: 'var(--text-muted)',
+                  }}
+                >
+                  writing since {joinedYear}
+                </span>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  onClick={onGoHome}
+                  className="xanga-link inline-flex items-center justify-center text-xs min-h-[44px] px-3"
+                >
+                  browse home
+                </button>
+                <button
+                  onClick={onSignUp}
+                  className="xanga-button text-xs px-4 py-2 min-h-[44px]"
+                >
+                  start your own journal
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -208,7 +285,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
           <div className="xanga-box p-6">
             <p className="xanga-title text-lg mb-2">✨ want your own journal? ✨</p>
             <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
-              write privately, publish only what you choose
+              write privately, then share only the pieces that feel ready
             </p>
             <button onClick={onSignUp} className="xanga-button text-sm px-6 py-2">
               start your journal

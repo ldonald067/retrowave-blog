@@ -19,6 +19,7 @@ import Toast from './components/Toast';
 import ConfirmDialog from './components/ConfirmDialog';
 import ErrorBoundary from './components/ErrorBoundary';
 import type { Post, CreatePostInput } from './types/post';
+import type { Profile } from './types/profile';
 import { useEmojiStyle, getEmojiAttribution } from './lib/emojiStyles';
 import { moderateContent } from './lib/moderation';
 import { toUserMessage } from './lib/errors';
@@ -27,7 +28,7 @@ import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
 import { sparkleBurst, emojiRain } from './lib/celebrations';
-import { Windows95MyComputer } from './components/ui';
+import { Input, Select, Windows95MyComputer, Windows95Notepad } from './components/ui';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useChapters } from './hooks/useChapters';
 
@@ -37,10 +38,67 @@ const ProfileModal = lazy(() => import('./components/ProfileModal'));
 const SettingsModal = lazy(() => import('./components/SettingsModal'));
 const AuthModal = lazy(() => import('./components/AuthModal'));
 const AgeVerification = lazy(() => import('./components/AgeVerification'));
-const OnboardingFlow = lazy(() => import('./components/OnboardingFlow'));
 const PublicProfileView = lazy(() => import('./components/PublicProfileView'));
 
 type ModalMode = 'create' | 'edit' | 'view';
+type VisibilityFilter = 'all' | 'private' | 'public';
+type MusicFilter = 'all' | 'with-music';
+type SortFilter = 'newest' | 'recently-edited';
+
+const VISIBILITY_FILTER_OPTIONS = [
+  { value: 'all', label: 'all entries' },
+  { value: 'private', label: 'private only' },
+  { value: 'public', label: 'public only' },
+] as const;
+
+const MUSIC_FILTER_OPTIONS = [
+  { value: 'all', label: 'all music states' },
+  { value: 'with-music', label: 'with music' },
+] as const;
+
+const SORT_FILTER_OPTIONS = [
+  { value: 'newest', label: 'newest first' },
+  { value: 'recently-edited', label: 'recently edited' },
+] as const;
+
+type FeedPreferenceState = {
+  visibilityFilter: VisibilityFilter;
+  musicFilter: MusicFilter;
+  moodFilter: string;
+  sortFilter: SortFilter;
+};
+
+type ActiveFeedFilterKey =
+  | 'search'
+  | 'chapter'
+  | 'visibility'
+  | 'music'
+  | 'mood'
+  | 'sort';
+
+const FEED_PREFERENCES_KEY = 'feed-preferences';
+
+function loadFeedPreferences(): Partial<FeedPreferenceState> {
+  if (typeof window === 'undefined') return {};
+
+  try {
+    const raw = window.localStorage.getItem(FEED_PREFERENCES_KEY);
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw) as Partial<FeedPreferenceState>;
+    return {
+      visibilityFilter:
+        parsed.visibilityFilter === 'private' || parsed.visibilityFilter === 'public'
+          ? parsed.visibilityFilter
+          : 'all',
+      musicFilter: parsed.musicFilter === 'with-music' ? 'with-music' : 'all',
+      moodFilter: typeof parsed.moodFilter === 'string' ? parsed.moodFilter : '',
+      sortFilter: parsed.sortFilter === 'recently-edited' ? 'recently-edited' : 'newest',
+    };
+  } catch {
+    return {};
+  }
+}
 
 /** Parse #/u/username from URL hash */
 function getPublicUsername(): string | null {
@@ -267,13 +325,22 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('signup');
-  const [showOnboarding, setShowOnboarding] = useState(() => {
-    try { return !localStorage.getItem('hasCompletedOnboarding'); } catch { return false; }
-  });
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>(
+    () => loadFeedPreferences().visibilityFilter ?? 'all',
+  );
+  const [musicFilter, setMusicFilter] = useState<MusicFilter>(
+    () => loadFeedPreferences().musicFilter ?? 'all',
+  );
+  const [moodFilter, setMoodFilter] = useState(() => loadFeedPreferences().moodFilter ?? '');
+  const [sortFilter, setSortFilter] = useState<SortFilter>(
+    () => loadFeedPreferences().sortFilter ?? 'newest',
+  );
+  const [openComposerAfterProfileSetup, setOpenComposerAfterProfileSetup] = useState(false);
   // Subscribe to emoji style changes for footer attribution
   const emojiStyle = useEmojiStyle();
   const isOnline = useOnlineStatus();
@@ -302,7 +369,7 @@ function App() {
 
   // Filter posts by chapter (client-side) — memoized to avoid re-filtering on every render
   const looseCount = useMemo(() => posts.filter((p) => !p.chapter).length, [posts]);
-  const filteredPosts = useMemo(() =>
+  const chapterFilteredPosts = useMemo(() =>
     chapterFilter === LOOSE_ENTRIES
       ? posts.filter((p) => !p.chapter)
       : chapterFilter
@@ -310,10 +377,185 @@ function App() {
         : posts,
     [posts, chapterFilter, LOOSE_ENTRIES],
   );
+  const moodOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          posts
+            .map((post) => post.mood?.trim())
+            .filter((mood): mood is string => Boolean(mood))
+        )
+      )
+        .sort((a, b) => a.localeCompare(b))
+        .map((mood) => ({ value: mood, label: mood })),
+    [posts],
+  );
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        FEED_PREFERENCES_KEY,
+        JSON.stringify({
+          visibilityFilter,
+          musicFilter,
+          moodFilter,
+          sortFilter,
+        } satisfies FeedPreferenceState),
+      );
+    } catch {
+      // Private browsing or storage restrictions — ignore.
+    }
+  }, [visibilityFilter, musicFilter, moodFilter, sortFilter]);
+
+  useEffect(() => {
+    if (!moodFilter) return;
+    if (!moodOptions.some((option) => option.value === moodFilter)) {
+      setMoodFilter('');
+    }
+  }, [moodFilter, moodOptions]);
+
+  const visiblePosts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    const nextPosts = chapterFilteredPosts.filter((post) => {
+      if (visibilityFilter === 'private' && !post.is_private) return false;
+      if (visibilityFilter === 'public' && post.is_private) return false;
+      if (musicFilter === 'with-music' && !post.music?.trim()) return false;
+      if (moodFilter && post.mood !== moodFilter) return false;
+      if (!query) return true;
+
+      const haystack = [
+        post.title,
+        post.content,
+        post.author,
+        post.chapter,
+        post.mood,
+        post.music,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(query);
+    });
+
+    return [...nextPosts].sort((left, right) => {
+      if (sortFilter === 'recently-edited') {
+        return (
+          new Date(right.updated_at).getTime() - new Date(left.updated_at).getTime() ||
+          new Date(right.created_at).getTime() - new Date(left.created_at).getTime()
+        );
+      }
+      return new Date(right.created_at).getTime() - new Date(left.created_at).getTime();
+    });
+  }, [chapterFilteredPosts, searchQuery, visibilityFilter, musicFilter, moodFilter, sortFilter]);
+  const hasFeedFilters = Boolean(
+    searchQuery.trim() ||
+      visibilityFilter !== 'all' ||
+      musicFilter !== 'all' ||
+      moodFilter ||
+      sortFilter !== 'newest'
+  );
 
   const handleChapterClick = useCallback((chapter: string) => {
     setChapterFilter((prev) => (prev === chapter ? null : chapter));
   }, []);
+
+  const clearFeedFilters = useCallback(() => {
+    setSearchQuery('');
+    setVisibilityFilter('all');
+    setMusicFilter('all');
+    setMoodFilter('');
+    setSortFilter('newest');
+  }, []);
+
+  const clearAllFilters = useCallback(() => {
+    setChapterFilter(null);
+    clearFeedFilters();
+  }, [clearFeedFilters]);
+
+  const activeFeedFilters = useMemo(() => {
+    const nextFilters: Array<{ key: ActiveFeedFilterKey; label: string }> = [];
+
+    if (chapterFilter) {
+      nextFilters.push({
+        key: 'chapter',
+        label:
+          chapterFilter === LOOSE_ENTRIES ? 'loose entries' : `chapter: ${chapterFilter}`,
+      });
+    }
+
+    if (searchQuery.trim()) {
+      nextFilters.push({ key: 'search', label: `search: "${searchQuery.trim()}"` });
+    }
+
+    if (visibilityFilter === 'private') {
+      nextFilters.push({ key: 'visibility', label: 'private only' });
+    } else if (visibilityFilter === 'public') {
+      nextFilters.push({ key: 'visibility', label: 'public only' });
+    }
+
+    if (musicFilter === 'with-music') {
+      nextFilters.push({ key: 'music', label: 'with music' });
+    }
+
+    if (moodFilter) {
+      nextFilters.push({ key: 'mood', label: `mood: ${moodFilter}` });
+    }
+
+    if (sortFilter === 'recently-edited') {
+      nextFilters.push({ key: 'sort', label: 'recently edited' });
+    }
+
+    return nextFilters;
+  }, [
+    chapterFilter,
+    searchQuery,
+    visibilityFilter,
+    musicFilter,
+    moodFilter,
+    sortFilter,
+    LOOSE_ENTRIES,
+  ]);
+
+  const clearSingleFeedFilter = useCallback((key: ActiveFeedFilterKey) => {
+    switch (key) {
+      case 'chapter':
+        setChapterFilter(null);
+        return;
+      case 'search':
+        setSearchQuery('');
+        return;
+      case 'visibility':
+        setVisibilityFilter('all');
+        return;
+      case 'music':
+        setMusicFilter('all');
+        return;
+      case 'mood':
+        setMoodFilter('');
+        return;
+      case 'sort':
+        setSortFilter('newest');
+        return;
+      default:
+        return;
+    }
+  }, []);
+
+  const activeFeedSummaryText = useMemo(() => {
+    if (activeFeedFilters.length === 0) {
+      return 'showing your full archive';
+    }
+
+    return `filtered by ${activeFeedFilters.map((filter) => filter.label).join(' + ')}`;
+  }, [activeFeedFilters]);
+
+  const archiveEmptyStateText = useMemo(() => {
+    if (activeFeedFilters.length === 0) {
+      return 'no entries match this view yet';
+    }
+
+    return `nothing matches ${activeFeedFilters.map((filter) => filter.label).join(' + ')}`;
+  }, [activeFeedFilters]);
 
   const toggleChapterPrivacy = useCallback(async (chapter: string) => {
     if (!profile) return;
@@ -362,10 +604,15 @@ function App() {
 
   const handleViewPost = useCallback((post: Post) => {
     setSelectedPost(post);
-    // Owner clicks → edit directly (saves a click). Non-owner → view-only.
-    setModalMode(user && user.id === post.user_id ? 'edit' : 'view');
+    setModalMode('view');
     setShowModal(true);
-  }, [user]);
+  }, []);
+
+  const handleEditPost = useCallback((post: Post) => {
+    setSelectedPost(post);
+    setModalMode('edit');
+    setShowModal(true);
+  }, []);
 
   const handleDeletePost = useCallback((post: Post) => {
     if (!user) {
@@ -420,7 +667,7 @@ function App() {
         return;
       }
       void hapticImpact();
-      success(SUCCESS_MESSAGES.post.updated);
+      success(postData.is_private ? '~ private changes saved ~' : SUCCESS_MESSAGES.post.updated);
     } else {
       const { error } = await createPost(postData);
       if (error) {
@@ -432,7 +679,17 @@ function App() {
       const isMobile = window.innerWidth < 640;
       sparkleBurst(undefined, undefined, isMobile ? 6 : 12);
       emojiRain(['✨', '💕', '📝', '⭐'], isMobile ? 6 : 12);
-      success(SUCCESS_MESSAGES.post.created);
+      const entryMightBeHiddenByCurrentView = chapterFilter !== null || hasFeedFilters;
+      success(
+        postData.is_private
+          ? entryMightBeHiddenByCurrentView
+            ? '~ private entry saved. clear filters if u dont see it ~'
+            : '~ private entry saved just for you ~'
+          : entryMightBeHiddenByCurrentView
+            ? '✨ ur entry is live! clear filters if u dont see it ✨'
+            : SUCCESS_MESSAGES.post.created,
+      );
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       // Also update profile mood/music if provided in the post
       if (postData.mood || postData.music) {
@@ -501,11 +758,6 @@ function App() {
     setUserToBlock(null);
   }, [userToBlock, toggleBlock, showError, success, refetch, refetchChapters]);
 
-  const handleOnboardingComplete = () => {
-    try { localStorage.setItem('hasCompletedOnboarding', 'true'); } catch { /* private browsing */ }
-    setShowOnboarding(false);
-  };
-
   const handleProfileClick = () => {
     if (!user) {
       showError('~ sign in 2 edit ur profile! ~');
@@ -515,14 +767,38 @@ function App() {
     setShowProfileModal(true);
   };
 
-  // Show onboarding flow for first-time users
-  if (showOnboarding) {
-    return (
-      <Suspense fallback={<LoadingSpinner />}>
-        <OnboardingFlow onComplete={handleOnboardingComplete} />
-      </Suspense>
-    );
-  }
+  const needsProfileSetup = !!(user && profile && !profile.display_name);
+
+  const handleSaveStatus = useCallback(
+    async (statusMessage: string | null) => {
+      const { error } = await updateProfile({ status_message: statusMessage });
+      if (error) {
+        showError(error.startsWith('~') ? error : `~ ${error} ~`);
+      }
+      return { error };
+    },
+    [updateProfile, showError],
+  );
+
+  const handleSaveProfile = useCallback(
+    async (updates: Partial<Profile>) => {
+      const { error } = await updateProfile(updates);
+      if (!error && needsProfileSetup) {
+        setOpenComposerAfterProfileSetup(true);
+        setShowProfileModal(false);
+      }
+      return { error };
+    },
+    [updateProfile, needsProfileSetup],
+  );
+
+  useEffect(() => {
+    if (!openComposerAfterProfileSetup || needsProfileSetup || !user) return;
+    setSelectedPost(null);
+    setModalMode('create');
+    setShowModal(true);
+    setOpenComposerAfterProfileSetup(false);
+  }, [openComposerAfterProfileSetup, needsProfileSetup, user]);
 
   // Public profile view — no auth required, show read-only journal
   if (publicUsername && (!user || profile?.username !== publicUsername)) {
@@ -603,9 +879,6 @@ function App() {
     );
   }
 
-  // Check if user needs to complete profile setup (new user with no display name)
-  const needsProfileSetup = !!(user && profile && !profile.display_name);
-
   if (postsLoading) {
     return (
       <div className="min-h-screen themed-bg page-safe-bottom">
@@ -617,6 +890,7 @@ function App() {
           onAuthClick={() => setShowAuthModal(true)}
           onProfileClick={handleProfileClick}
           onSettingsClick={() => setShowSettingsModal(true)}
+          onSaveStatus={handleSaveStatus}
         />
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col lg:flex-row gap-6">
@@ -641,6 +915,7 @@ function App() {
           onAuthClick={() => setShowAuthModal(true)}
           onProfileClick={handleProfileClick}
           onSettingsClick={() => setShowSettingsModal(true)}
+          onSaveStatus={handleSaveStatus}
         />
         <ErrorMessage error={error} onRetry={refetch} />
       </div>
@@ -661,6 +936,7 @@ function App() {
         onAuthClick={() => setShowAuthModal(true)}
         onProfileClick={handleProfileClick}
         onSettingsClick={() => setShowSettingsModal(true)}
+        onSaveStatus={handleSaveStatus}
       />
 
       {/* Offline banner */}
@@ -725,7 +1001,7 @@ function App() {
                   <span className="text-xs font-bold min-w-0 w-full sm:w-auto truncate" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
                     {chapterFilter === LOOSE_ENTRIES ? '🍃 loose entries' : `${isChapterPrivate ? '🔒' : '📖'} ${chapterFilter}`}
                     <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
-                      ({filteredPosts.length} {filteredPosts.length === 1 ? 'entry' : 'entries'})
+                      ({visiblePosts.length} {visiblePosts.length === 1 ? 'entry' : 'entries'})
                     </span>
                   </span>
                   <div className="flex items-center justify-end gap-1 flex-wrap w-full sm:w-auto sm:flex-shrink-0">
@@ -753,23 +1029,146 @@ function App() {
               );
             })()}
 
+            {posts.length > 0 && (
+              <motion.section
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="xanga-box p-4 mb-4"
+              >
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2
+                      className="xanga-title text-base sm:text-lg flex items-center gap-2"
+                      style={{ color: 'var(--text-title)' }}
+                    >
+                      <Windows95MyComputer size={18} alt="" />
+                      find old entries
+                    </h2>
+                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                      search your archive by text, privacy, mood, music, or last edit
+                    </p>
+                  </div>
+                  <p
+                    className="text-xs font-bold"
+                    aria-live="polite"
+                    style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
+                  >
+                    showing {visiblePosts.length} of {chapterFilteredPosts.length}{' '}
+                    {chapterFilteredPosts.length === 1 ? 'entry' : 'entries'}
+                  </p>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                  <Input
+                    label="search"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="title, chapter, mood..."
+                    icon={<Windows95Notepad size={16} alt="" />}
+                    aria-label="Search entries"
+                  />
+                  <Select
+                    label="visibility"
+                    value={visibilityFilter}
+                    onChange={(e) => setVisibilityFilter(e.target.value as VisibilityFilter)}
+                    options={[...VISIBILITY_FILTER_OPTIONS]}
+                    aria-label="Filter by visibility"
+                  />
+                  <Select
+                    label="music"
+                    value={musicFilter}
+                    onChange={(e) => setMusicFilter(e.target.value as MusicFilter)}
+                    options={[...MUSIC_FILTER_OPTIONS]}
+                    aria-label="Filter by music"
+                  />
+                  <Select
+                    label="mood"
+                    value={moodFilter}
+                    onChange={(e) => setMoodFilter(e.target.value)}
+                    placeholder="any mood"
+                    options={moodOptions}
+                    aria-label="Filter by mood"
+                  />
+                  <Select
+                    label="sort"
+                    value={sortFilter}
+                    onChange={(e) => setSortFilter(e.target.value as SortFilter)}
+                    options={[...SORT_FILTER_OPTIONS]}
+                    aria-label="Sort entries"
+                  />
+                </div>
+
+                <div className="mt-3 flex flex-col gap-2 text-xs">
+                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <span style={{ color: 'var(--text-muted)' }}>{activeFeedSummaryText}</span>
+                    {hasFeedFilters && (
+                      <button onClick={clearFeedFilters} className="xanga-link text-xs min-h-[44px]">
+                        ~ clear search + filters ~
+                      </button>
+                    )}
+                    {(hasFeedFilters || chapterFilter) && (
+                      <button onClick={clearAllFilters} className="xanga-link text-xs min-h-[44px]">
+                        ~ reset everything ~
+                      </button>
+                    )}
+                  </div>
+
+                  {activeFeedFilters.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {activeFeedFilters.map((filter) => (
+                        <button
+                          key={filter.key}
+                          type="button"
+                          onClick={() => clearSingleFeedFilter(filter.key)}
+                          className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition hover:opacity-80 min-h-[44px]"
+                          style={{
+                            borderColor: 'var(--border-primary)',
+                            backgroundColor:
+                              'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
+                            color: 'var(--text-body)',
+                            fontFamily: 'var(--title-font)',
+                          }}
+                          aria-label={`Clear filter ${filter.label}`}
+                        >
+                          <span>{filter.label}</span>
+                          <span aria-hidden="true">×</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.section>
+            )}
+
             {posts.length === 0 ? (
               <EmptyState onCreatePost={handleNewPost} />
-            ) : filteredPosts.length === 0 ? (
+            ) : visiblePosts.length === 0 ? (
               <div className="xanga-box p-6 text-center">
                 <p className="text-sm" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
-                  no entries in this chapter yet ✨
+                  {archiveEmptyStateText} ✨
                 </p>
-                <button
-                  onClick={() => setChapterFilter(null)}
-                  className="xanga-link text-xs mt-2"
-                >
-                  ~ show all entries ~
-                </button>
+                <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+                  {chapterFilter && (
+                    <button
+                      onClick={() => setChapterFilter(null)}
+                      className="xanga-link text-xs"
+                    >
+                      ~ clear chapter ~
+                    </button>
+                  )}
+                  {hasFeedFilters && (
+                    <button onClick={clearFeedFilters} className="xanga-link text-xs">
+                      ~ clear search + filters ~
+                    </button>
+                  )}
+                  <button onClick={clearAllFilters} className="xanga-link text-xs">
+                    ~ show everything ~
+                  </button>
+                </div>
               </div>
             ) : (
               <PostList
-                posts={filteredPosts}
+                posts={visiblePosts}
                 onView={handleViewPost}
                 onReaction={handleReaction}
                 onBlock={handleBlock}
@@ -797,6 +1196,7 @@ function App() {
             fetchFullPost={fetchPost}
             chapters={chapters}
             onDelete={handleDeletePost}
+            onEdit={handleEditPost}
             isOwner={!!user && !!selectedPost && user.id === selectedPost.user_id}
           />
         </Suspense>
@@ -808,7 +1208,7 @@ function App() {
           <ProfileModal
             profile={profile}
             userId={user?.id}
-            onSave={updateProfile}
+            onSave={handleSaveProfile}
             onClose={() => {
               // Only allow closing if profile setup is complete
               if (!needsProfileSetup) {
@@ -820,6 +1220,24 @@ function App() {
             isInitialSetup={needsProfileSetup}
           />
         </Suspense>
+      )}
+
+      {user &&
+        !needsProfileSetup &&
+        !showModal &&
+        !showProfileModal &&
+        !showSettingsModal &&
+        !showAuthModal && (
+        <button
+          type="button"
+          onClick={handleNewPost}
+          className="lg:hidden fixed right-4 z-30 xanga-button flex items-center gap-2 px-4 py-3 shadow-lg"
+          style={{ bottom: 'calc(1rem + var(--safe-area-bottom))' }}
+          aria-label="Create a new entry"
+        >
+          <Windows95Notepad size={18} alt="" />
+          <span>new entry</span>
+        </button>
       )}
 
       {/* Settings Modal */}

@@ -140,6 +140,7 @@ export const PROFILE_LIMITS = {
   bio: { max: 500 },
   current_mood: { max: 100 },
   current_music: { max: 200 },
+  status_message: { max: 100 },
   username: { min: 1, max: 50 },
 } as const;
 
@@ -154,6 +155,7 @@ interface ProfileValidationErrors {
   bio?: string;
   current_mood?: string;
   current_music?: string;
+  status_message?: string;
   username?: string;
 }
 
@@ -197,6 +199,17 @@ export function validateProfileInput(
   if ('current_music' in input && typeof input.current_music === 'string') {
     if (input.current_music.length > PROFILE_LIMITS.current_music.max) {
       errors.current_music = `Music field must be ${PROFILE_LIMITS.current_music.max} characters or fewer`;
+    }
+  }
+
+  if ('status_message' in input && typeof input.status_message === 'string') {
+    if (input.status_message.length > PROFILE_LIMITS.status_message.max) {
+      errors.status_message = `Status message must be ${PROFILE_LIMITS.status_message.max} characters or fewer`;
+    } else if (input.status_message.length > 0) {
+      const mod = quickContentCheck(input.status_message);
+      if (!mod.allowed) {
+        errors.status_message = 'Status message contains inappropriate content';
+      }
     }
   }
 

@@ -23,6 +23,7 @@ const mockPublicProfile = {
     theme: null,
     current_mood: null,
     current_music: null,
+    status_message: 'away writing again',
     created_at: '2026-04-17T00:00:00Z',
   },
   posts: [],

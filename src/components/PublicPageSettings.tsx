@@ -5,6 +5,7 @@ interface PublicPageSettingsProps {
   savedEnabled: boolean;
   publicUrl: string | null;
   copied: boolean;
+  shareSupported?: boolean;
   onRequestPublish: () => void;
   onUnpublish: () => void;
   onCopy: () => void;
@@ -15,6 +16,7 @@ export default function PublicPageSettings({
   savedEnabled,
   publicUrl,
   copied,
+  shareSupported = false,
   onRequestPublish,
   onUnpublish,
   onCopy,
@@ -84,11 +86,19 @@ export default function PublicPageSettings({
               className="xanga-button text-xs min-h-[44px]"
               aria-live="polite"
             >
-              {copied ? 'copied' : 'copy public link'}
+              {copied
+                ? shareSupported
+                  ? 'shared'
+                  : 'copied'
+                : shareSupported
+                  ? 'share public page'
+                  : 'copy public link'}
             </button>
             <a
               href={publicUrl}
               className="xanga-button text-xs min-h-[44px] inline-flex items-center justify-center"
+              target="_blank"
+              rel="noreferrer"
             >
               view public page
             </a>

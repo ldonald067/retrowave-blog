@@ -12,6 +12,7 @@ export interface Profile {
   theme: string | null;
   current_mood: string | null;
   current_music: string | null;
+  status_message: string | null;
   is_admin: boolean;
   is_public: boolean;
   private_chapters: string[];
@@ -28,6 +29,7 @@ export interface PublicProfile {
   theme: string | null;
   current_mood: string | null;
   current_music: string | null;
+  status_message: string | null;
   created_at: string;
 }
 

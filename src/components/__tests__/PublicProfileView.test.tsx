@@ -41,6 +41,7 @@ const publicData: PublicProfileData = {
     theme: null,
     current_mood: null,
     current_music: null,
+    status_message: 'still up at 2am',
     created_at: '2026-04-17T00:00:00Z',
   },
   posts: [
@@ -61,6 +62,15 @@ const publicData: PublicProfileData = {
 
 describe('PublicProfileView', () => {
   beforeEach(() => {
+    document.title = 'My Journal | Private Retro Journal';
+    document.head.innerHTML = `
+      <meta name="title" content="My Journal | Private Retro Journal" />
+      <meta name="description" content="Default description" />
+      <meta property="og:title" content="My Journal | Private Retro Journal" />
+      <meta property="og:description" content="Default description" />
+      <meta name="twitter:title" content="My Journal | Private Retro Journal" />
+      <meta name="twitter:description" content="Default description" />
+    `;
     vi.mocked(usePublicProfile).mockReturnValue({
       data: publicData,
       loading: false,
@@ -86,5 +96,22 @@ describe('PublicProfileView', () => {
 
     expect(screen.queryByText(/sign up to react/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/react/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the profile status message when present', () => {
+    render(<PublicProfileView username="jane" onSignUp={vi.fn()} onGoHome={vi.fn()} />);
+
+    expect(screen.getByText(/still up at 2am/i)).toBeInTheDocument();
+  });
+
+  it('updates the document title and share description for the public page', () => {
+    render(<PublicProfileView username="jane" onSignUp={vi.fn()} onGoHome={vi.fn()} />);
+
+    expect(document.title).toBe('Jane | My Journal');
+    expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
+      'content',
+      'still up at 2am',
+    );
+    expect(screen.getByRole('button', { name: /browse home/i })).toBeInTheDocument();
   });
 });

@@ -74,6 +74,7 @@ export interface Database {
           theme: string | null;
           current_mood: string | null;
           current_music: string | null;
+          status_message: string | null;
           is_admin: boolean;
           is_public: boolean;
           private_chapters: string[];
@@ -92,6 +93,7 @@ export interface Database {
           theme?: string | null;
           current_mood?: string | null;
           current_music?: string | null;
+          status_message?: string | null;
           is_admin?: boolean;
           is_public?: boolean;
           private_chapters?: string[];
@@ -110,6 +112,7 @@ export interface Database {
           theme?: string | null;
           current_mood?: string | null;
           current_music?: string | null;
+          status_message?: string | null;
           is_admin?: boolean;
           is_public?: boolean;
           private_chapters?: string[];

@@ -1,107 +1,110 @@
-# App Store Submission - TODO Checklist
+# App Store Submission Handoff
 
-Last reviewed: 2026-04-27.
+Last updated: 2026-05-01.
 
-This checklist mixes long-lived App Store work with point-in-time audit notes.
-Reconfirm exact counts such as test totals, lazy-loaded component counts, and
-build timing from the current branch or CI before submission.
+This is the practical handoff version, not a compliance doc.
 
-Current no-Mac blocker:
+- The app is in decent shape for iPhone/App Store prep.
+- Submission is still blocked by two real-world constraints: no Mac/Xcode access
+  yet, and the last hosted signed-in mobile QA pass is blocked until the
+  frontend Supabase host is restored or replaced after the 2026-04-26 NXDOMAIN
+  failure.
+- I am intentionally not freezing exact build times or test counts here. Re-run
+  the final branch or CI right before submission and record whatever is current
+  then.
 
-- The remaining hosted signed-in mobile QA depends on restoring or replacing the
-  frontend Supabase host after the 2026-04-26 NXDOMAIN failure documented in
-  `docs/audit/2026-04-17-ios-readiness-pass.md`.
+## Where Things Stand
 
-## How To Use This Doc
+- The no-Mac mobile hardening work is on `prep/ios-readiness`.
+- Safe-area, keyboard-space, narrow-width, and public-page viewport fixes were
+  already audited in `docs/audit/2026-04-17-ios-readiness-pass.md`.
+- The latest UX pass also tightened first-run setup, public-link entry,
+  archive browsing, account-backed status, native sharing, and calmer draft
+  recovery/saving language without needing a visual redesign.
+- The remaining hosted signed-in QA still needs entry delete.
+- The remaining hosted signed-in QA still needs signed-in reaction persistence.
+- The remaining hosted signed-in QA still needs a short-height portrait pass
+  around `390 x 500`.
 
-Work through the sections in order.
+## Best Next Moves
 
-- **Blockers** must all be resolved before submission.
-- **High Risk** items are likely rejection points.
-- **Before Submit** items are smaller code or checklist confirmations.
-- **Post-Launch** is optional.
+1. Restore or replace the frontend Supabase host used for hosted QA.
+2. Re-run the remaining signed-in mobile pass with the QA account/session.
+3. When a Mac is available, do the first real Xcode build and signing setup.
+4. After that, finish the App Store metadata, screenshots, and reviewer account.
 
-## 1. Blockers
+## Still Blocking Submission
 
-These are manual steps that still require Apple tooling, hosted setup, or
-public URLs.
+### Hosted/App Setup
+
+- [ ] Restore or replace the frontend Supabase host so hosted signed-in QA can
+  run again.
+- [ ] Configure the Supabase auth redirect URL for
+  `com.retrowave.journal://`.
+- [ ] Deploy the `moderate-content` edge function.
+- [ ] Set `OPENAI_API_KEY` in Supabase secrets for the hosted moderation path.
+- [ ] Host `privacy.html` and `terms.html` at public `https://` URLs.
+- [ ] Review `terms.html` and `privacy.html` for legal accuracy and real contact
+  info.
+- [ ] Confirm `BLOG_OWNER_EMAIL` is correct and actively monitored.
+
+### Apple/Mac Work
 
 - [ ] Enroll in the Apple Developer Program.
 - [ ] Build the iOS app on a Mac in Xcode for the first time.
 - [ ] Set up code signing in Xcode.
 - [ ] Register bundle ID `com.retrowave.journal`.
 - [ ] Create the App Store Connect listing.
-- [ ] Host `privacy.html` and `terms.html` at public `https://` URLs.
 - [ ] Capture App Store screenshots on Apple simulators/devices.
 - [ ] Write the App Store description.
-- [ ] Deploy the `moderate-content` edge function and set `OPENAI_API_KEY` in Supabase secrets.
 - [ ] Create a real reviewer/demo account for Apple.
 
-## 2. High Risk
+## What Already Looks Good
 
-### Code/Product Work Already Done
-
-- [x] User blocking for Guideline 1.2.
-- [x] Deep link URL scheme added to `Info.plist`.
-- [x] Private-by-default entry flow with visible privacy controls.
+- [x] User blocking exists for App Review Guideline 1.2 concerns.
+- [x] Deep link URL scheme is already in `Info.plist`.
+- [x] Entry creation is private by default and makes privacy state visible.
+- [x] Profile status and public-sharing behavior now feel account-backed instead
+  of device-fake.
 - [x] Public profile pages stay read-only for signed-out visitors.
-
-### Manual Follow-Up Still Needed
-
-- [ ] Configure the Supabase auth redirect URL for `com.retrowave.journal://`.
-- [ ] Review `terms.html` and `privacy.html` for legal accuracy and real contact info.
-- [ ] Confirm `BLOG_OWNER_EMAIL` is correct and actively monitored.
-- [ ] Test on a real iPhone or Apple simulator for safe areas, deep links, haptics, share sheet, status bar theming, and Safari/WebKit behavior.
-- [ ] Finish the remaining hosted signed-in mobile QA once the frontend Supabase host works again:
-  - entry delete
-  - signed-in reaction persistence
-  - short-height portrait pass around `390 x 500`
-
-## 3. Before Submit
-
-- [x] Browser storage access is guarded in user-facing flows so private browsing or quota failures degrade gracefully.
+- [x] Browser storage failures are handled defensively in user-facing flows.
 - [x] Focus restoration guards exist in `useFocusTrap`.
-- [x] Mobile touch targets and narrow-width fixes from the no-Mac passes are on the `prep/ios-readiness` branch.
-- [ ] Re-run `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run build` on the final submission branch.
-- [ ] Re-run the no-Mac mobile QA checklist after any further auth/public-profile/mobile changes.
+- [x] Mobile touch-target and narrow-width fixes from the no-Mac passes are on
+  `prep/ios-readiness`.
 
-## 4. Post-Launch
+## Real-Device Checks Still Worth Doing
+
+- [ ] Test on a real iPhone or Apple simulator for safe areas, deep links,
+  haptics, share sheet, status bar theming, and Safari/WebKit behavior.
+- [ ] Verify the remaining hosted signed-in flows once the frontend Supabase
+  host works again.
+- [ ] Re-run the no-Mac mobile QA checklist after any further
+  auth/public-profile/mobile changes.
+
+## Before You Actually Submit
+
+- [ ] Re-run `npm run lint`, `npm run typecheck`, `npm run test`, and
+  `npm run build` on the final submission branch.
+- [ ] Confirm the latest branch still matches the notes in the iOS readiness
+  audit and this handoff doc.
+- [ ] Make sure the reviewer/demo account is real, documented, and working.
+
+## Useful Evidence Pointers
+
+- `ios/App/App/Assets.xcassets/` for app icon and splash assets.
+- `public/manifest.json` and `public/` icon assets for the web install surface.
+- `Info.plist` for `ITSAppUsesNonExemptEncryption = NO` and deep-link URL
+  scheme wiring.
+- `AgeVerification.tsx` and `set_age_verification` for the COPPA gate.
+- `ErrorBoundary.tsx` and `useOnlineStatus` for crash/offline handling.
+- `docs/audit/2026-04-17-ios-readiness-pass.md` for the no-Mac viewport and
+  hosted-QA history.
+
+## Later, Not A Launch Blocker
 
 - [ ] Add error tracking.
-- [ ] Add push notifications if the product needs them later.
 - [ ] Add accessibility testing in CI.
-- [ ] Add deeper integration coverage for auth/posts/reactions/public-profile flows.
+- [ ] Add deeper integration coverage for auth/posts/reactions/public-profile
+  flows.
 - [ ] Consider VoiceOver manual testing before launch.
-
-## What Is Already In Place
-
-| Requirement | Status | Evidence |
-|---|---|---|
-| App icon and splash assets | Yes | `ios/App/App/Assets.xcassets/` |
-| PWA icons and manifest | Yes | `public/` assets and `public/manifest.json` |
-| Encryption declaration | Yes | `ITSAppUsesNonExemptEncryption = NO` in `Info.plist` |
-| COPPA age gate | Yes | `AgeVerification.tsx` plus `set_age_verification` RPC |
-| Content moderation layers | Yes | local checks plus hosted edge-function path |
-| Content reporting | Yes | report mailto links on entries/public pages |
-| Error boundary | Yes | `ErrorBoundary.tsx` |
-| Offline detection | Yes | `useOnlineStatus` plus offline banner |
-| Browser storage safeguards | Yes | user-facing localStorage access is wrapped defensively |
-| User blocking | Yes | `user_blocks`, block RPC, UI actions, feed filtering |
-| Deep link URL scheme | Yes | `CFBundleURLTypes` in `Info.plist` |
-| Code splitting | Yes | auth, onboarding, modal, and public-profile flows are lazy-loaded |
-| Capacitor plugins | Yes | app/browser/haptics/ios/keyboard/share/splash-screen/status-bar |
-| TypeScript strict mode | Yes | `tsconfig.json` enables `strict` and related safety flags |
-| Build status | Yes | current branch build passes; verify the latest local run or CI for exact timing |
-| Test status | Yes | current branch test suite passes; verify the latest local run or CI for the exact count |
-
-## Estimated Remaining Work
-
-| Phase | Time | Notes |
-|---|---|---|
-| Supabase redirect URL config | minutes | Dashboard-only task |
-| Apple Developer enrollment | 1-2 days | depends on Apple approval |
-| First Xcode build and fixes | 1-2 hours | Mac required |
-| Screenshots and App Store copy | about 1 hour | Apple simulator/device required |
-| Legal review | 1-3 days | depends on reviewer |
-| Edge function deploy | minutes | Supabase CLI/dashboard |
-| Submission and Apple review | several days | includes review wait time |
+- [ ] Add push notifications later only if the product actually needs them.

@@ -36,6 +36,8 @@ interface PostModalProps {
   chapters?: Chapter[];
   /** Owner-only: delete the current post. */
   onDelete?: (post: Post) => void;
+  /** Owner-only: switch the read modal into edit mode. */
+  onEdit?: (post: Post) => void;
   /** Whether the current user owns this post. */
   isOwner?: boolean;
 }
@@ -49,6 +51,7 @@ export default function PostModal({
   fetchFullPost,
   chapters = [],
   onDelete,
+  onEdit,
   isOwner,
 }: PostModalProps) {
   const draftStorageKey = draftUserId ? `post-draft:${draftUserId}` : null;
@@ -68,6 +71,8 @@ export default function PostModal({
   const [saving, setSaving] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
+  const [draftSaveState, setDraftSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [lastDraftSavedAt, setLastDraftSavedAt] = useState<Date | null>(null);
   // Full content is fetched only when the list row is truncated.
   const [fullContent, setFullContent] = useState<string | undefined>(undefined);
   const [loadingFullContent, setLoadingFullContent] = useState(false);
@@ -75,6 +80,7 @@ export default function PostModal({
   const dialogRef = useRef<HTMLDivElement>(null);
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const draftRestoredTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const hadDraftRef = useRef(false);
 
   // Check if the form has unsaved changes
   const isDirty = useCallback(() => {
@@ -115,6 +121,19 @@ export default function PostModal({
   }, [saving, isDirty, onClose]);
   useFocusTrap(dialogRef, true, handleClose);
 
+  useEffect(() => {
+    if (mode === 'view') return;
+
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isDirty()) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty, mode]);
+
   // Restore draft on mount (create mode only)
   useEffect(() => {
     if (mode === 'create' && draftStorageKey) {
@@ -129,6 +148,9 @@ export default function PostModal({
           if (draft.mood) setMood(draft.mood);
           if (draft.music) setMusic(draft.music);
           setDraftRestored(true);
+          hadDraftRef.current = true;
+          setDraftSaveState('saved');
+          setLastDraftSavedAt(new Date());
           // Auto-dismiss the restored banner after 3s (cleaned up on unmount)
           draftRestoredTimerRef.current = setTimeout(() => setDraftRestored(false), 3000);
         }
@@ -193,23 +215,31 @@ export default function PostModal({
   // Auto-save draft (create mode only) — debounced 500ms
   useEffect(() => {
     if (mode !== 'create' || !draftStorageKey) return;
+    const hasAnyDraftData = Boolean(title || content || author || chapter || mood || music);
+    if (!hasAnyDraftData && !hadDraftRef.current) return;
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current);
+    setDraftSaveState('saving');
     draftTimerRef.current = setTimeout(() => {
-      // Only save if there's meaningful content
-      if (title || content) {
+      if (hasAnyDraftData) {
         try {
           localStorage.setItem(
             draftStorageKey,
             JSON.stringify({ title, content, author, chapter, mood, music })
           );
+          hadDraftRef.current = true;
+          setLastDraftSavedAt(new Date());
+          setDraftSaveState('saved');
         } catch {
-          // Private browsing or storage quota exceeded — draft lives in React state
+          setDraftSaveState('idle');
         }
       } else {
         try {
           localStorage.removeItem(draftStorageKey);
+          hadDraftRef.current = false;
+          setLastDraftSavedAt(new Date());
+          setDraftSaveState('saved');
         } catch {
-          // Ignore storage cleanup failures in restricted environments
+          setDraftSaveState('idle');
         }
       }
     }, 500);
@@ -251,6 +281,9 @@ export default function PostModal({
           localStorage.removeItem(draftStorageKey);
         }
         localStorage.removeItem('post-draft');
+        hadDraftRef.current = false;
+        setDraftSaveState('idle');
+        setLastDraftSavedAt(null);
       } catch {
         // Private browsing — ignore
       }
@@ -267,6 +300,31 @@ export default function PostModal({
   const privacyDetail = isPrivate
     ? 'Only you can see this entry.'
     : 'Can appear on your public page.';
+  const draftStatusText =
+    draftSaveState === 'saving'
+      ? 'saving local draft...'
+      : draftSaveState === 'saved'
+        ? lastDraftSavedAt
+          ? `saved on this device at ${lastDraftSavedAt.toLocaleTimeString([], {
+              hour: 'numeric',
+              minute: '2-digit',
+            })}`
+          : 'saved on this device'
+        : 'draft autosaves privately on this device';
+  const submitButtonText =
+    mode === 'edit'
+      ? saving
+        ? 'saving changes...'
+        : '~ save changes ~'
+      : loadingFullContent
+        ? 'loading...'
+        : saving
+          ? isPrivate
+            ? 'saving private entry...'
+            : 'publishing...'
+          : isPrivate
+            ? '~ save private entry ~'
+            : '~ publish entry ~';
 
   // Close more menu on outside click
   useEffect(() => {
@@ -322,7 +380,20 @@ export default function PostModal({
                   '✨ ~ new entry ~'
                 )}
               </h2>
-              {isViewMode && <ModalCloseButton onClick={handleClose} label="Close modal" />}
+              {isViewMode && (
+                <div className="flex items-center gap-2">
+                  {isOwner && onEdit && post && (
+                    <button
+                      type="button"
+                      onClick={() => onEdit(post)}
+                      className="xanga-button text-xs px-3 py-2"
+                    >
+                      ~ edit entry ~
+                    </button>
+                  )}
+                  <ModalCloseButton onClick={handleClose} label="Close modal" />
+                </div>
+              )}
               {!isViewMode && (
                 <div className="relative" ref={moreMenuRef}>
                   <button
@@ -482,7 +553,7 @@ export default function PostModal({
                             fontFamily: 'var(--title-font)',
                           }}
                         >
-                          ✨ draft restored from last time!
+                          ✨ picked up your local draft from this device
                         </p>
                       </motion.div>
                     )}
@@ -882,8 +953,16 @@ export default function PostModal({
 
           {!isViewMode && (
             <ModalFooter className="flex items-center justify-between flex-shrink-0">
-              {/* Left: privacy indicator (read-only badge, toggle is in ⋮ menu) */}
-              <div className="flex items-center">
+              <div className="flex items-center gap-2 flex-wrap">
+                {mode === 'create' && (
+                  <span
+                    className="text-xs"
+                    style={{ color: 'var(--text-muted)' }}
+                    aria-live="polite"
+                  >
+                    {draftStatusText}
+                  </span>
+                )}
                 {isPrivate && (
                   <span
                     className="text-xs flex items-center gap-1 px-2 py-1 rounded-full"
@@ -925,9 +1004,7 @@ export default function PostModal({
                   className="xanga-button flex items-center gap-2 text-sm min-h-[44px]"
                 >
                   <Pepicon name="floppyDisk" size={14} />
-                  <span>
-                    {saving ? 'saving...' : loadingFullContent ? 'loading...' : '~ save entry ~'}
-                  </span>
+                  <span>{submitButtonText}</span>
                 </button>
               </div>
             </ModalFooter>

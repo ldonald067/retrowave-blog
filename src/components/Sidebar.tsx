@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -42,16 +42,8 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
       return true;
     }
   });
-  // Reactive AIM status — syncs when Header dispatches 'xanga-status-update'
-  const [aimStatus, setAimStatus] = useState(() => {
-    try { return localStorage.getItem('xanga-status') || ''; } catch { return ''; }
-  });
   const [shareCopied, setShareCopied] = useState(false);
-  useEffect(() => {
-    const handler = (e: Event) => setAimStatus((e as CustomEvent<string>).detail);
-    window.addEventListener('xanga-status-update', handler);
-    return () => window.removeEventListener('xanga-status-update', handler);
-  }, []);
+  const shareSupported = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   const handleToggleCollapsed = () => {
     setCollapsed((prev) => {
@@ -64,7 +56,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
   const userData = useMemo(
     () => ({
       username: profile?.username || user?.email?.split('@')[0] || 'guest',
-      displayName: profile?.display_name || '✨ New User ✨',
+      displayName: profile?.display_name || 'âœ¨ New User âœ¨',
       avatar:
         profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'guest'}`,
       bio: profile?.bio || 'Welcome to my journal!',
@@ -82,8 +74,38 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
   const publicProfileUrl = profile?.is_public && profile?.username
     ? buildPublicProfileUrl(profile.username)
     : null;
+  const statusMessage = profile?.status_message?.trim() ?? '';
 
-  // Full sidebar content — shared between mobile expanded and desktop
+  const flashShareState = () => {
+    setShareCopied(true);
+    setTimeout(() => setShareCopied(false), 2000);
+  };
+
+  const handleSharePublicPage = async () => {
+    if (!publicProfileUrl) return;
+    try {
+      if (shareSupported) {
+        await navigator.share({
+          title: `${userData.displayName}'s journal`,
+          text: `come read ${userData.displayName}'s journal`,
+          url: publicProfileUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(publicProfileUrl);
+      }
+      flashShareState();
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(publicProfileUrl);
+        flashShareState();
+      } catch {
+        // Ignore share/copy failures in restricted browsers.
+      }
+    }
+  };
+
+  // Full sidebar content â€” shared between mobile expanded and desktop
   const sidebarContent = (
     <>
       {/* Profile Card */}
@@ -121,22 +143,33 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
           <h2 className="xanga-title text-xl mb-1 break-words">{userData.displayName}</h2>
           <p className="xanga-subtitle break-words">@{userData.username}</p>
           {publicProfileUrl && (
-            <button
-              onClick={() => {
-                void navigator.clipboard.writeText(publicProfileUrl);
-                setShareCopied(true);
-                setTimeout(() => setShareCopied(false), 2000);
-              }}
-              className="xanga-link text-xs mt-1 inline-flex items-center gap-1"
-              title="Copy public page link"
-              aria-label="Copy public page link"
-            >
-              {shareCopied ? 'copied' : 'copy public page'}
-            </button>
+            <div className="mt-1 flex flex-wrap items-center justify-center gap-2">
+              <button
+                onClick={() => void handleSharePublicPage()}
+                className="xanga-link text-xs inline-flex items-center gap-1 min-h-[44px]"
+                title={shareSupported ? 'Share public page link' : 'Copy public page link'}
+                aria-label={shareSupported ? 'Share public page link' : 'Copy public page link'}
+              >
+                {shareCopied
+                  ? shareSupported
+                    ? 'shared'
+                    : 'copied'
+                  : shareSupported
+                    ? 'share public page'
+                    : 'copy public page'}
+              </button>
+              <a
+                href={publicProfileUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="xanga-link text-xs inline-flex items-center gap-1 min-h-[44px]"
+              >
+                open public page
+              </a>
+            </div>
           )}
-          {/* AIM-style status — reactive via custom event from Header */}
-          {aimStatus && (
-            <p className="aim-status mt-1">📟 ~ {aimStatus} ~</p>
+          {statusMessage && (
+            <p className="aim-status mt-1">ðŸ“Ÿ ~ {statusMessage} ~</p>
           )}
         </div>
 
@@ -174,11 +207,11 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                 <div className="winamp-progress-bar" />
               </div>
               <div className="winamp-controls" aria-hidden="true">
-                <button className="winamp-btn" tabIndex={-1}>⏮</button>
-                <button className="winamp-btn" tabIndex={-1}>▶</button>
-                <button className="winamp-btn" tabIndex={-1}>⏸</button>
-                <button className="winamp-btn" tabIndex={-1}>⏹</button>
-                <button className="winamp-btn" tabIndex={-1}>⏭</button>
+                <button className="winamp-btn" tabIndex={-1}>â®</button>
+                <button className="winamp-btn" tabIndex={-1}>â–¶</button>
+                <button className="winamp-btn" tabIndex={-1}>â¸</button>
+                <button className="winamp-btn" tabIndex={-1}>â¹</button>
+                <button className="winamp-btn" tabIndex={-1}>â­</button>
               </div>
               {ytInfo && (
                 <div className="px-1 pb-1">
@@ -234,12 +267,12 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               <Windows98DateTime size={14} alt="" />
               member since:
             </span>
-            <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince} ✨</span>
+            <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince} âœ¨</span>
           </div>
         </div>
       </motion.div>
 
-      {/* Chapters — desktop only; mobile uses ChapterChips above the feed */}
+      {/* Chapters â€” desktop only; mobile uses ChapterChips above the feed */}
       {chapters.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -251,7 +284,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
             className="xanga-title text-lg mb-2 border-b-2 border-dotted pb-1"
             style={{ borderColor: 'var(--border-primary)' }}
           >
-            📖 Chapters
+            ðŸ“– Chapters
           </h3>
           <div className="space-y-0.5">
             {/* "All entries" option */}
@@ -267,7 +300,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               aria-label={`Show all entries (${postCount})`}
               aria-pressed={activeChapter === null}
             >
-              <span>✨ all entries</span>
+              <span>âœ¨ all entries</span>
               <span className="text-xs font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{postCount}</span>
             </button>
             {looseCount > 0 && (
@@ -283,7 +316,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                 aria-label={`Show loose entries (${looseCount})`}
                 aria-pressed={activeChapter === looseKey}
               >
-                <span>🍃 loose entries</span>
+                <span>ðŸƒ loose entries</span>
                 <span className="text-xs font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{looseCount}</span>
               </button>
             )}
@@ -303,7 +336,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                     aria-pressed={activeChapter === ch.chapter}
                     aria-label={`Filter by chapter: ${ch.chapter} (${ch.post_count} ${ch.post_count === 1 ? 'entry' : 'entries'})`}
                   >
-                    <span className="truncate">{isPrivate ? '🔒' : '📖'} {ch.chapter}</span>
+                    <span className="truncate">{isPrivate ? 'ðŸ”’' : 'ðŸ“–'} {ch.chapter}</span>
                     <span className="text-xs font-normal flex-shrink-0" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{ch.post_count}</span>
                   </button>
                   {onToggleChapterPrivacy && (
@@ -314,7 +347,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                       aria-label={isPrivate ? `Make "${ch.chapter}" public` : `Make "${ch.chapter}" private`}
                       title={isPrivate ? 'Make public' : 'Make private'}
                     >
-                      <span className="text-sm">{isPrivate ? '🔓' : '🔒'}</span>
+                      <span className="text-sm">{isPrivate ? 'ðŸ”“' : 'ðŸ”’'}</span>
                     </button>
                   )}
                 </div>
@@ -324,7 +357,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
         </motion.div>
       )}
 
-      {/* Cursor Trail Picker — desktop only */}
+      {/* Cursor Trail Picker â€” desktop only */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -335,7 +368,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
           className="xanga-title text-lg mb-2 border-b-2 border-dotted pb-1"
           style={{ borderColor: 'var(--border-primary)' }}
         >
-          cursor trail ✦
+          cursor trail âœ¦
         </h3>
         <div className="flex flex-wrap gap-1">
           {TRAIL_MODE_OPTIONS.map((opt) => (

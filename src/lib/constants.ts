@@ -25,6 +25,9 @@ export const VALIDATION = {
   bio: {
     maxLength: PROFILE_LIMITS.bio.max,
   },
+  statusMessage: {
+    maxLength: PROFILE_LIMITS.status_message.max,
+  },
   email: {
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
   },
@@ -42,6 +45,7 @@ export const ERROR_MESSAGES = {
   profile: {
     displayNameTooLong: `~ ur display name is 2 long! ${VALIDATION.displayName.maxLength} chars max ~`,
     bioTooLong: `~ ur bio is 2 long! ${VALIDATION.bio.maxLength} chars max ~`,
+    statusMessageTooLong: `~ ur status is 2 long! ${VALIDATION.statusMessage.maxLength} chars max ~`,
   },
   generic: {
     somethingWrong: '~ uh oh! something glitched :( try again? ~',

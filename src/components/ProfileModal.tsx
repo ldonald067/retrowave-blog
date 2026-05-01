@@ -57,6 +57,8 @@ const PROFILE_SECTIONS: Array<{ id: ProfileSection; label: string }> = [
   { id: 'safety', label: 'safety' },
 ];
 
+const INITIAL_SETUP_SECTIONS: ProfileSection[] = ['profile', 'vibe'];
+
 function getSectionTabId(section: ProfileSection): string {
   return `profile-section-tab-${section}`;
 }
@@ -109,12 +111,13 @@ export default function ProfileModal({
   isInitialSetup = false,
 }: ProfileModalProps) {
   const [displayName, setDisplayName] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [currentMood, setCurrentMood] = useState('');
   const [currentMusic, setCurrentMusic] = useState('');
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<{ displayName?: string; bio?: string }>({});
+  const [errors, setErrors] = useState<{ displayName?: string; statusMessage?: string; bio?: string }>({});
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
@@ -152,6 +155,7 @@ export default function ProfileModal({
   useEffect(() => {
     if (profile) {
       setDisplayName(profile.display_name || '');
+      setStatusMessage(profile.status_message || '');
       setBio(profile.bio || '');
       setAvatarUrl(profile.avatar_url || '');
       setCurrentMood(profile.current_mood || '');
@@ -178,7 +182,7 @@ export default function ProfileModal({
   }, [activeSection, blockedLoading, blockedUsers.length]);
 
   const validate = (): boolean => {
-    const newErrors: { displayName?: string; bio?: string } = {};
+    const newErrors: { displayName?: string; statusMessage?: string; bio?: string } = {};
 
     // Require display name for initial setup
     if (isInitialSetup && !displayName.trim()) {
@@ -191,6 +195,10 @@ export default function ProfileModal({
 
     if (bio.length > VALIDATION.bio.maxLength) {
       newErrors.bio = ERROR_MESSAGES.profile.bioTooLong;
+    }
+
+    if (statusMessage.length > VALIDATION.statusMessage.maxLength) {
+      newErrors.statusMessage = ERROR_MESSAGES.profile.statusMessageTooLong;
     }
 
     setErrors(newErrors);
@@ -209,6 +217,7 @@ export default function ProfileModal({
 
     const updates: Partial<Profile> = {
       display_name: displayName.trim() || null,
+      status_message: statusMessage.trim() || null,
       bio: bio.trim() || null,
       avatar_url: avatarUrl.trim() || null,
       theme: selectedTheme,
@@ -239,11 +248,13 @@ export default function ProfileModal({
   const fallbackSeed = userId || 'guest';
   const savedIsPublic = profile?.is_public ?? false;
   const publicProfileUrl = profile?.username ? buildPublicProfileUrl(profile.username) : null;
+  const shareSupported = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
   const visibleSections = PROFILE_SECTIONS.filter(
     (section) => section.id !== 'safety' || blockedLoading || blockedUsers.length > 0
   );
   const useSectionTabs = !isInitialSetup;
-  const showSection = (section: ProfileSection) => isInitialSetup || activeSection === section;
+  const showSection = (section: ProfileSection) =>
+    isInitialSetup ? INITIAL_SETUP_SECTIONS.includes(section) : activeSection === section;
   const modalChromeHeight = isInitialSetup ? MODAL_CHROME_HEIGHT : MODAL_CHROME_HEIGHT + 56;
 
   const focusSection = useCallback((section: ProfileSection) => {
@@ -275,11 +286,33 @@ export default function ProfileModal({
     [focusSection, visibleSections]
   );
 
-  const handleCopyPublicUrl = () => {
-    if (!publicProfileUrl) return;
-    void navigator.clipboard.writeText(publicProfileUrl);
+  const flashCopiedUrl = () => {
     setCopiedUrl(true);
     setTimeout(() => setCopiedUrl(false), 2000);
+  };
+
+  const handleCopyPublicUrl = async () => {
+    if (!publicProfileUrl) return;
+    try {
+      if (shareSupported) {
+        await navigator.share({
+          title: `${displayName || profile?.username || 'My'} journal`,
+          text: 'come read my public journal',
+          url: publicProfileUrl,
+        });
+      } else {
+        await navigator.clipboard.writeText(publicProfileUrl);
+      }
+      flashCopiedUrl();
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(publicProfileUrl);
+        flashCopiedUrl();
+      } catch {
+        // Ignore share/copy failures in restricted browsers.
+      }
+    }
   };
 
   return (
@@ -309,7 +342,9 @@ export default function ProfileModal({
               {!isInitialSetup && <ModalCloseButton onClick={handleCancel} />}
             </div>
             <p className="xanga-subtitle mt-1">
-              {isInitialSetup ? '~ tell us a bit about urself ~' : '~ customize ur space ~'}
+              {isInitialSetup
+                ? '~ choose ur vibe, add a status, then write ur first entry ~'
+                : '~ customize ur space ~'}
             </p>
           </ModalHeader>
 
@@ -367,6 +402,19 @@ export default function ProfileModal({
           >
             <fieldset disabled={saving}>
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+                {isInitialSetup && (
+                  <div className="xanga-box p-4">
+                    <h3 className="xanga-title text-base sm:text-lg mb-2">
+                      ~ quick start ~
+                    </h3>
+                    <div className="space-y-1 text-xs" style={{ color: 'var(--text-muted)' }}>
+                      <p>step 1: pick a name, status, avatar, and theme</p>
+                      <p>step 2: save this setup and jump straight into your first entry</p>
+                      <p>you can come back later for bio, playlists, public page settings, and safety tools</p>
+                    </div>
+                  </div>
+                )}
+
                 <ProfileSectionPanel
                   id="profile"
                   tabbed={useSectionTabs}
@@ -436,6 +484,7 @@ export default function ProfileModal({
                       type="text"
                       value={displayName}
                       aria-label="Display name"
+                      autoFocus={isInitialSetup}
                       onChange={(e) => {
                         setDisplayName(e.target.value);
                         if (errors.displayName) {
@@ -447,32 +496,65 @@ export default function ProfileModal({
                       maxLength={VALIDATION.displayName.maxLength}
                     />
                     <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                      this is how u'll appear 2 others
+                      {isInitialSetup
+                        ? "this is the name people will see when they land on ur space"
+                        : "this is how u'll appear 2 others"}
                     </p>
                   </div>
 
-                  {/* Bio */}
+                  {/* Status Message */}
                   <div className="xanga-box p-4">
                     <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                      <Windows95WordPad size={20} alt="" />
-                      about me
+                      <Pepicon name="stars" size={14} color="var(--accent-primary)" />
+                      status message
                     </h3>
-                    <Textarea
-                      value={bio}
-                      aria-label="About me"
+                    <Input
+                      type="text"
+                      value={statusMessage}
+                      aria-label="Status message"
                       onChange={(e) => {
-                        setBio(e.target.value);
-                        if (errors.bio) {
-                          setErrors((prev) => ({ ...prev, bio: undefined }));
+                        setStatusMessage(e.target.value);
+                        if (errors.statusMessage) {
+                          setErrors((prev) => ({ ...prev, statusMessage: undefined }));
                         }
                       }}
-                      placeholder="tell the world about urself... ur interests, ur dreams, ur fav song lyrics..."
-                      rows={4}
-                      error={errors.bio}
-                      charCount={{ current: bio.length, max: VALIDATION.bio.maxLength }}
-                      hint="share a bit about urself"
+                      placeholder="what's on ur mind..."
+                      error={errors.statusMessage}
+                      maxLength={VALIDATION.statusMessage.maxLength}
                     />
+                    <div className="mt-2 flex items-center justify-between gap-3">
+                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        shows in ur header, sidebar, and public page
+                      </p>
+                      <p className="text-xs flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                        {statusMessage.length}/{VALIDATION.statusMessage.maxLength}
+                      </p>
+                    </div>
                   </div>
+
+                  {!isInitialSetup && (
+                    <div className="xanga-box p-4">
+                      <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                        <Windows95WordPad size={20} alt="" />
+                        about me
+                      </h3>
+                      <Textarea
+                        value={bio}
+                        aria-label="About me"
+                        onChange={(e) => {
+                          setBio(e.target.value);
+                          if (errors.bio) {
+                            setErrors((prev) => ({ ...prev, bio: undefined }));
+                          }
+                        }}
+                        placeholder="tell the world about urself... ur interests, ur dreams, ur fav song lyrics..."
+                        rows={4}
+                        error={errors.bio}
+                        charCount={{ current: bio.length, max: VALIDATION.bio.maxLength }}
+                        hint="share a bit about urself"
+                      />
+                    </div>
+                  )}
                 </ProfileSectionPanel>
 
                 <ProfileSectionPanel
@@ -480,42 +562,44 @@ export default function ProfileModal({
                   tabbed={useSectionTabs}
                   visible={showSection('vibe')}
                 >
-                  {/* Current Mood */}
-                  <div className="xanga-box p-4">
-                    <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                      <VisualStudioFace size={20} alt="" />
-                      current mood
-                    </h3>
-                    <Select
-                      value={currentMood}
-                      onChange={(e) => setCurrentMood(e.target.value)}
-                      placeholder="no mood set"
-                      options={MOOD_SELECT_OPTIONS}
-                      aria-label="Select your current mood"
-                    />
-                    <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                      shows on ur sidebar - update anytime!
-                    </p>
-                  </div>
+                  {!isInitialSetup && (
+                    <div className="xanga-box p-4">
+                      <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                        <VisualStudioFace size={20} alt="" />
+                        current mood
+                      </h3>
+                      <Select
+                        value={currentMood}
+                        onChange={(e) => setCurrentMood(e.target.value)}
+                        placeholder="no mood set"
+                        options={MOOD_SELECT_OPTIONS}
+                        aria-label="Select your current mood"
+                      />
+                      <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                        shows on ur sidebar - update anytime!
+                      </p>
+                    </div>
+                  )}
 
-                  {/* Currently Listening */}
-                  <div className="xanga-box p-4">
-                    <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                      <WinampIcon size={20} alt="" />
-                      currently listening 2
-                    </h3>
-                    <Input
-                      type="text"
-                      value={currentMusic}
-                      aria-label="Currently listening to"
-                      onChange={(e) => setCurrentMusic(e.target.value)}
-                      placeholder="song, artist, or youtube link..."
-                      maxLength={200}
-                    />
-                    <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                      what's on ur playlist rn?
-                    </p>
-                  </div>
+                  {!isInitialSetup && (
+                    <div className="xanga-box p-4">
+                      <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                        <WinampIcon size={20} alt="" />
+                        currently listening 2
+                      </h3>
+                      <Input
+                        type="text"
+                        value={currentMusic}
+                        aria-label="Currently listening to"
+                        onChange={(e) => setCurrentMusic(e.target.value)}
+                        placeholder="song, artist, or youtube link..."
+                        maxLength={200}
+                      />
+                      <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                        what's on ur playlist rn?
+                      </p>
+                    </div>
+                  )}
 
                   {/* Theme Picker */}
                   <div className="xanga-box p-4">
@@ -570,9 +654,14 @@ export default function ProfileModal({
                         </button>
                       ))}
                     </div>
+                    <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                      {isInitialSetup
+                        ? 'pick the vibe that should greet you every time you open the app'
+                        : 'change the whole room whenever you feel like it'}
+                    </p>
                   </div>
 
-                  {/* Emoji Style Picker */}
+                  {!isInitialSetup && (
                   <div className="xanga-box p-4">
                     <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
                       <Pepicon name="stars" size={14} color="var(--accent-primary)" />
@@ -626,6 +715,7 @@ export default function ProfileModal({
                       ))}
                     </div>
                   </div>
+                  )}
                 </ProfileSectionPanel>
 
                 <ProfileSectionPanel
@@ -640,12 +730,13 @@ export default function ProfileModal({
                       savedEnabled={savedIsPublic}
                       publicUrl={publicProfileUrl}
                       copied={copiedUrl}
+                      shareSupported={shareSupported}
                       onRequestPublish={() => setShowPublishConfirm(true)}
                       onUnpublish={() => {
                         setIsPublic(false);
                         setCopiedUrl(false);
                       }}
-                      onCopy={handleCopyPublicUrl}
+                      onCopy={() => void handleCopyPublicUrl()}
                     />
                   )}
                 </ProfileSectionPanel>
@@ -727,8 +818,11 @@ export default function ProfileModal({
                         className="text-xs mt-1 italic line-clamp-2"
                         style={{ color: 'var(--text-muted)' }}
                       >
-                        {bio || 'no bio yet...'}
+                        {bio || (isInitialSetup ? 'you can add a bio later...' : 'no bio yet...')}
                       </p>
+                      {statusMessage && (
+                        <p className="aim-status mt-2">ðŸ“Ÿ ~ {statusMessage} ~</p>
+                      )}
                       {currentMood && (
                         <p className="text-xs mt-1" style={{ color: 'var(--accent-primary)' }}>
                           mood: {currentMood}
@@ -746,7 +840,13 @@ export default function ProfileModal({
             </fieldset>
           </div>
 
-          <ModalFooter className="flex justify-end gap-2">
+          <ModalFooter className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            {isInitialSetup && (
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                save this setup, then we&apos;ll open ur first entry right away
+              </p>
+            )}
+            <div className="flex justify-end gap-2 w-full sm:w-auto">
             {!isInitialSetup && (
               <button
                 type="button"
@@ -770,8 +870,9 @@ export default function ProfileModal({
               className="xanga-button flex items-center gap-2 text-sm"
             >
               <Pepicon name="floppyDisk" size={14} />
-              {saving ? 'saving...' : isInitialSetup ? "~ let's go! ~" : '~ save changes ~'}
+              {saving ? 'saving...' : isInitialSetup ? '~ save + start writing ~' : '~ save changes ~'}
             </button>
+            </div>
           </ModalFooter>
         </ModalFrame>
 

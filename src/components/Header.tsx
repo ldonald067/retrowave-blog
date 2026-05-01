@@ -5,8 +5,6 @@ import type { Profile } from '../types/profile';
 import { Pepicon, Windows95Notepad, Windows95Password } from './ui';
 import { sparkleBurst } from '../lib/celebrations';
 
-const STATUS_KEY = 'xanga-status';
-
 interface HeaderProps {
   onNewPost: () => void;
   user: SupabaseUser | null;
@@ -15,6 +13,7 @@ interface HeaderProps {
   onAuthClick: () => void;
   onProfileClick?: () => void;
   onSettingsClick?: () => void;
+  onSaveStatus?: (statusMessage: string | null) => Promise<{ error: string | null }>;
 }
 
 export default function Header({
@@ -25,14 +24,14 @@ export default function Header({
   onAuthClick,
   onProfileClick,
   onSettingsClick,
+  onSaveStatus,
 }: HeaderProps) {
-  const [status, setStatus] = useState(() => {
-    try { return localStorage.getItem(STATUS_KEY) || ''; } catch { return ''; }
-  });
   const [editingStatus, setEditingStatus] = useState(false);
   const [draftStatus, setDraftStatus] = useState('');
   const [statusSaved, setStatusSaved] = useState(false);
+  const [statusSaving, setStatusSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const currentStatus = profile?.status_message?.trim() ?? '';
 
   useEffect(() => {
     if (editingStatus && inputRef.current) {
@@ -40,20 +39,35 @@ export default function Header({
     }
   }, [editingStatus]);
 
+  useEffect(() => {
+    if (!editingStatus) {
+      setDraftStatus(currentStatus);
+    }
+  }, [currentStatus, editingStatus]);
+
   const startEditing = () => {
     if (!user) return;
-    setDraftStatus(status);
+    setDraftStatus(currentStatus);
     setEditingStatus(true);
   };
 
-  const saveStatus = () => {
+  const saveStatus = async () => {
+    if (statusSaving) return;
     const trimmed = draftStatus.trim();
-    setStatus(trimmed);
-    try { localStorage.setItem(STATUS_KEY, trimmed); } catch { /* private browsing */ }
+    if (trimmed === currentStatus) {
+      setEditingStatus(false);
+      return;
+    }
+
+    setStatusSaving(true);
+    const { error } = (await onSaveStatus?.(trimmed || null)) ?? { error: null };
+    if (error) {
+      setStatusSaving(false);
+      return;
+    }
+
     setEditingStatus(false);
-    // Notify other components (e.g. Sidebar) that the status changed
-    window.dispatchEvent(new CustomEvent('xanga-status-update', { detail: trimmed }));
-    // Visual feedback: brief "saved!" flash + sparkle burst
+    setStatusSaving(false);
     if (trimmed) {
       setStatusSaved(true);
       sparkleBurst(undefined, undefined, 8);
@@ -78,7 +92,7 @@ export default function Header({
       {/* Marquee Banner */}
       <div className="marquee-banner" aria-hidden="true">
         <div className="marquee-banner-inner" style={{ color: 'var(--text-subtitle)', fontSize: '12px' }}>
-          ~ welcome to my xanga ~ ✨ ~ thanks 4 stopping by ~ ♥ ~ have a gr8 day ~ ☆ ~ xoxo ~ ✨ ~
+          ~ welcome to my xanga ~ âœ¨ ~ thanks 4 stopping by ~ â™¥ ~ have a gr8 day ~ â˜† ~ xoxo ~ âœ¨ ~
         </div>
       </div>
 
@@ -140,7 +154,7 @@ export default function Header({
           }}
         >
           <div className="max-w-7xl mx-auto flex items-center gap-2">
-            <span style={{ fontSize: '11px' }} aria-hidden="true">📟</span>
+            <span style={{ fontSize: '11px' }} aria-hidden="true">ðŸ“Ÿ</span>
             <span className="aim-status font-bold" style={{ color: 'var(--text-muted)', fontStyle: 'normal' }}>status:</span>
             <AnimatePresence mode="wait">
               {editingStatus ? (
@@ -158,10 +172,10 @@ export default function Header({
                     value={draftStatus}
                     onChange={(e) => setDraftStatus(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') saveStatus();
+                      if (e.key === 'Enter') void saveStatus();
                       if (e.key === 'Escape') cancelEdit();
                     }}
-                    onBlur={saveStatus}
+                    onBlur={() => void saveStatus()}
                     maxLength={100}
                     placeholder="what's on ur mind..."
                     aria-label="Set your status message"
@@ -179,7 +193,13 @@ export default function Header({
                   title="Click to edit your status"
                   aria-label="Edit your status"
                 >
-                  {statusSaved ? '✨ saved!' : status ? `~ ${status} ~` : '~ set your status ~'}
+                  {statusSaving
+                    ? '~ saving... ~'
+                    : statusSaved
+                      ? 'âœ¨ saved!'
+                      : currentStatus
+                        ? `~ ${currentStatus} ~`
+                        : '~ set your status ~'}
                 </motion.button>
               )}
             </AnimatePresence>
@@ -192,7 +212,7 @@ export default function Header({
         <div className="flex items-center justify-between gap-2">
           {/* Site title */}
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex-1 min-w-0">
-            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 truncate">✨ My Journal ✨</h1>
+            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 truncate">âœ¨ My Journal âœ¨</h1>
             <p className="xanga-subtitle hidden sm:block">~ where my thoughts come alive ~</p>
           </motion.div>
 

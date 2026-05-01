@@ -125,7 +125,7 @@ describe('PostModal ⋮ Menu', () => {
     fireEvent.change(screen.getByLabelText(/ur thoughts/i), {
       target: { value: 'This one starts private.' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /save entry/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save private entry/i }));
 
     await waitFor(() => {
       expect(onSave).toHaveBeenCalledWith(
@@ -209,7 +209,7 @@ describe('PostModal Footer', () => {
   it('shows cancel and save buttons in edit mode', () => {
     render(<PostModal {...defaultProps} />);
     expect(screen.getByText('cancel')).toBeInTheDocument();
-    expect(screen.getByText('~ save entry ~')).toBeInTheDocument();
+    expect(screen.getByText('~ save changes ~')).toBeInTheDocument();
   });
 
   it('shows private badge in footer when post is private', () => {
@@ -222,7 +222,26 @@ describe('PostModal Footer', () => {
   it('does not show footer in view mode', () => {
     render(<PostModal {...defaultProps} mode="view" />);
     expect(screen.queryByText('cancel')).not.toBeInTheDocument();
-    expect(screen.queryByText('~ save entry ~')).not.toBeInTheDocument();
+    expect(screen.queryByText('~ save changes ~')).not.toBeInTheDocument();
+  });
+
+  it('lets owners switch from read mode into edit mode explicitly', () => {
+    const onEdit = vi.fn();
+    render(<PostModal {...defaultProps} mode="view" onEdit={onEdit} />);
+
+    fireEvent.click(screen.getByRole('button', { name: /edit entry/i }));
+
+    expect(onEdit).toHaveBeenCalledWith(mockPost);
+  });
+
+  it('uses publish/save labels that match the entry privacy in create mode', () => {
+    render(<PostModal {...defaultProps} mode="create" post={null} />);
+
+    expect(screen.getByText('~ save private entry ~')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /^public$/i }));
+
+    expect(screen.getByText('~ publish entry ~')).toBeInTheDocument();
   });
 });
 
