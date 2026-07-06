@@ -152,7 +152,11 @@ export default function ProfileModal({
   }, [saving, isInitialSetup, showPublishConfirm, showAvatarPicker, handleCancel]);
   useFocusTrap(dialogRef, true, handleEscape);
 
-  useEffect(() => {
+  // Sync form fields from the profile — adjusted during render instead of
+  // in an effect so stale field values never paint.
+  const [prevProfile, setPrevProfile] = useState<Profile | null>(null);
+  if (profile !== prevProfile) {
+    setPrevProfile(profile);
     if (profile) {
       setDisplayName(profile.display_name || '');
       setStatusMessage(profile.status_message || '');
@@ -163,11 +167,12 @@ export default function ProfileModal({
       setSelectedTheme(profile.theme || DEFAULT_THEME);
       setIsPublic(profile.is_public ?? false);
     }
-  }, [profile]);
+  }
 
   // Fetch blocked users list when modal opens
   useEffect(() => {
     if (!userId) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- loading flag must flip synchronously with the fetch it guards
     setBlockedLoading(true);
     void fetchBlockedUsers().then(({ data }) => {
       setBlockedUsers(data);
@@ -175,11 +180,11 @@ export default function ProfileModal({
     });
   }, [userId, fetchBlockedUsers]);
 
-  useEffect(() => {
-    if (activeSection === 'safety' && !blockedLoading && blockedUsers.length === 0) {
-      setActiveSection('profile');
-    }
-  }, [activeSection, blockedLoading, blockedUsers.length]);
+  // If the safety section empties out (last user unblocked), bounce back to
+  // the profile section — guarded render adjustment, converges in one pass.
+  if (activeSection === 'safety' && !blockedLoading && blockedUsers.length === 0) {
+    setActiveSection('profile');
+  }
 
   const validate = (): boolean => {
     const newErrors: { displayName?: string; statusMessage?: string; bio?: string } = {};

@@ -34,9 +34,12 @@ export default function ReactionBar({
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
 
   useEffect(() => {
+    // The Set itself is stable; capture it so the cleanup doesn't re-read
+    // the ref after the component is gone.
+    const timers = timersRef.current;
     return () => {
       // Clear all pending float timers on unmount
-      timersRef.current.forEach((t) => clearTimeout(t));
+      timers.forEach((t) => clearTimeout(t));
     };
   }, []);
 

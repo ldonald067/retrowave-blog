@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { parseYouTubeUrl, fetchYouTubeTitle, type YouTubeInfo } from '../utils/parseYouTube';
 
 export type YouTubeInfoWithTitle = YouTubeInfo & { title?: string };
@@ -8,29 +8,20 @@ export type YouTubeInfoWithTitle = YouTubeInfo & { title?: string };
  * Deduplicates logic previously copy-pasted in PostCard and Sidebar.
  */
 export function useYouTubeInfo(url: string | null | undefined): YouTubeInfoWithTitle | null {
-  const [ytInfo, setYtInfo] = useState<YouTubeInfoWithTitle | null>(null);
+  // Parsing is pure — derive it instead of mirroring it into state.
+  const info = useMemo(() => (url ? parseYouTubeUrl(url) : null), [url]);
+  const videoId = info?.videoId;
+  // Only the async-fetched titles live in state, keyed by video id.
+  const [titles, setTitles] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    if (!url) {
-      setYtInfo(null);
-      return;
-    }
+    if (!videoId) return;
 
-    const info = parseYouTubeUrl(url);
-    if (!info) {
-      setYtInfo(null);
-      return;
-    }
-
-    // Set initial info without title
-    setYtInfo(info);
-
-    // Fetch title asynchronously
     let cancelled = false;
-    fetchYouTubeTitle(info.videoId)
+    fetchYouTubeTitle(videoId)
       .then((title) => {
         if (!cancelled && title) {
-          setYtInfo((prev) => (prev ? { ...prev, title } : null));
+          setTitles((prev) => (prev[videoId] === title ? prev : { ...prev, [videoId]: title }));
         }
       })
       .catch(() => {
@@ -40,7 +31,11 @@ export function useYouTubeInfo(url: string | null | undefined): YouTubeInfoWithT
     return () => {
       cancelled = true;
     };
-  }, [url]);
+  }, [videoId]);
 
-  return ytInfo;
+  return useMemo(() => {
+    if (!info) return null;
+    const title = titles[info.videoId];
+    return title ? { ...info, title } : info;
+  }, [info, titles]);
 }

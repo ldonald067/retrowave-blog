@@ -94,7 +94,6 @@ describe('validateEmbeddedLinks', () => {
   });
 
   it('rejects javascript: URLs (XSS prevention)', () => {
-    // eslint-disable-next-line no-script-url
     expect(validateEmbeddedLinks([{ url: 'javascript:alert(1)' }])).toContain('http or https');
   });
 

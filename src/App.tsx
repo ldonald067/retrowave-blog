@@ -156,6 +156,7 @@ function PostList({
     prevCountRef.current = posts.length;
   }, [posts.length]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library -- tanstack-virtual is not React Compiler compatible; this only skips compiler optimization here
   const virtualizer = useVirtualizer({
     count: posts.length,
     getScrollElement: () => parentRef.current,
@@ -359,13 +360,16 @@ function App() {
     if (!authLoading) void hideSplashScreen();
   }, [authLoading]);
 
-  // Show auth modal if not authenticated
-  useEffect(() => {
+  // Show auth modal if not authenticated — adjusted during render on auth
+  // transitions (not every render, so the user can still dismiss the modal).
+  const [prevAuth, setPrevAuth] = useState({ authLoading, user });
+  if (prevAuth.authLoading !== authLoading || prevAuth.user !== user) {
+    setPrevAuth({ authLoading, user });
     if (!authLoading && !user) {
       setShowAuthModal(true);
       setAuthModalTab('signup'); // Default to signup for new users
     }
-  }, [authLoading, user]);
+  }
 
   // Filter posts by chapter (client-side) — memoized to avoid re-filtering on every render
   const looseCount = useMemo(() => posts.filter((p) => !p.chapter).length, [posts]);
@@ -407,12 +411,11 @@ function App() {
     }
   }, [visibilityFilter, musicFilter, moodFilter, sortFilter]);
 
-  useEffect(() => {
-    if (!moodFilter) return;
-    if (!moodOptions.some((option) => option.value === moodFilter)) {
-      setMoodFilter('');
-    }
-  }, [moodFilter, moodOptions]);
+  // Clear a mood filter that no longer matches any post — guarded render
+  // adjustment, converges in one pass.
+  if (moodFilter && !moodOptions.some((option) => option.value === moodFilter)) {
+    setMoodFilter('');
+  }
 
   const visiblePosts = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -716,8 +719,12 @@ function App() {
 
   // Ref keeps current posts so handleReaction's identity stays stable
   // (no `posts` in deps → PostCard memo won't re-render on feed change).
+  // Written in an effect, not during render, so discarded concurrent
+  // renders never leak into the ref.
   const postsRef = useRef(posts);
-  postsRef.current = posts;
+  useEffect(() => {
+    postsRef.current = posts;
+  }, [posts]);
 
   // T4: Optimistic reactions — no more refetch() after toggle
   // Wrapped in useCallback so PostCard (React.memo) doesn't re-render on every App render
@@ -792,13 +799,22 @@ function App() {
     [updateProfile, needsProfileSetup],
   );
 
-  useEffect(() => {
-    if (!openComposerAfterProfileSetup || needsProfileSetup || !user) return;
+  // Open the composer once profile setup completes — guarded render
+  // adjustment; resetting the flag makes the guard converge in one pass.
+  if (openComposerAfterProfileSetup && !needsProfileSetup && user) {
     setSelectedPost(null);
     setModalMode('create');
     setShowModal(true);
     setOpenComposerAfterProfileSetup(false);
-  }, [openComposerAfterProfileSetup, needsProfileSetup, user]);
+  }
+
+  // If viewing own public profile, redirect to normal feed. An effect, not a
+  // render-phase mutation: the hashchange event it triggers is async either way.
+  useEffect(() => {
+    if (publicUsername && user && profile?.username === publicUsername) {
+      window.location.hash = '';
+    }
+  }, [publicUsername, user, profile?.username]);
 
   // Public profile view — no auth required, show read-only journal
   if (publicUsername && (!user || profile?.username !== publicUsername)) {
@@ -814,10 +830,6 @@ function App() {
         />
       </Suspense>
     );
-  }
-  // If viewing own public profile, redirect to normal feed
-  if (publicUsername && user && profile?.username === publicUsername) {
-    window.location.hash = '';
   }
 
   // Show loading spinner during auth initialization

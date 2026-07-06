@@ -26,12 +26,12 @@ export default function Header({
   onSettingsClick,
   onSaveStatus,
 }: HeaderProps) {
+  const currentStatus = profile?.status_message?.trim() ?? '';
   const [editingStatus, setEditingStatus] = useState(false);
-  const [draftStatus, setDraftStatus] = useState('');
+  const [draftStatus, setDraftStatus] = useState(currentStatus);
   const [statusSaved, setStatusSaved] = useState(false);
   const [statusSaving, setStatusSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const currentStatus = profile?.status_message?.trim() ?? '';
 
   useEffect(() => {
     if (editingStatus && inputRef.current) {
@@ -39,11 +39,15 @@ export default function Header({
     }
   }, [editingStatus]);
 
-  useEffect(() => {
+  // Keep the idle draft in sync with the saved status — adjusted during
+  // render instead of in an effect so a stale draft never paints.
+  const [prevSync, setPrevSync] = useState({ currentStatus, editingStatus });
+  if (prevSync.currentStatus !== currentStatus || prevSync.editingStatus !== editingStatus) {
+    setPrevSync({ currentStatus, editingStatus });
     if (!editingStatus) {
       setDraftStatus(currentStatus);
     }
-  }, [currentStatus, editingStatus]);
+  }
 
   const startEditing = () => {
     if (!user) return;
@@ -92,7 +96,7 @@ export default function Header({
       {/* Marquee Banner */}
       <div className="marquee-banner" aria-hidden="true">
         <div className="marquee-banner-inner" style={{ color: 'var(--text-subtitle)', fontSize: '12px' }}>
-          ~ welcome to my xanga ~ âœ¨ ~ thanks 4 stopping by ~ â™¥ ~ have a gr8 day ~ â˜† ~ xoxo ~ âœ¨ ~
+          ~ welcome to my xanga ~ ✨ ~ thanks 4 stopping by ~ ♥ ~ have a gr8 day ~ ☆ ~ xoxo ~ ✨ ~
         </div>
       </div>
 
@@ -196,7 +200,7 @@ export default function Header({
                   {statusSaving
                     ? '~ saving... ~'
                     : statusSaved
-                      ? 'âœ¨ saved!'
+                      ? '✨ saved!'
                       : currentStatus
                         ? `~ ${currentStatus} ~`
                         : '~ set your status ~'}
@@ -212,7 +216,7 @@ export default function Header({
         <div className="flex items-center justify-between gap-2">
           {/* Site title */}
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex-1 min-w-0">
-            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 truncate">âœ¨ My Journal âœ¨</h1>
+            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 truncate">✨ My Journal ✨</h1>
             <p className="xanga-subtitle hidden sm:block">~ where my thoughts come alive ~</p>
           </motion.div>
 

@@ -10,7 +10,7 @@
  * Fallback: StyledEmoji component falls back to native on img error.
  */
 
-import { useState, useEffect } from 'react';
+import { useSyncExternalStore } from 'react';
 
 // ── Style definitions ──────────────────────────────────────────────
 
@@ -102,22 +102,23 @@ export function setEmojiStyle(style: EmojiStyleId): void {
   _listeners.forEach((fn) => fn());
 }
 
+function subscribeToEmojiStyle(onStoreChange: () => void): () => void {
+  _listeners.add(onStoreChange);
+  return () => {
+    _listeners.delete(onStoreChange);
+  };
+}
+
+function getEmojiStyleSnapshot(): EmojiStyleId {
+  return _currentStyle;
+}
+
 /**
  * React hook — subscribes to emoji style changes.
  * Re-renders the component when setEmojiStyle() is called anywhere.
  */
 export function useEmojiStyle(): EmojiStyleId {
-  const [style, setStyle] = useState<EmojiStyleId>(_currentStyle);
-  useEffect(() => {
-    // Sync in case style changed between render and effect
-    setStyle(_currentStyle);
-    const listener = () => setStyle(_currentStyle);
-    _listeners.add(listener);
-    return () => {
-      _listeners.delete(listener);
-    };
-  }, []);
-  return style;
+  return useSyncExternalStore(subscribeToEmojiStyle, getEmojiStyleSnapshot);
 }
 
 // ── Emoji → codepoint conversion ───────────────────────────────────

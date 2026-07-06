@@ -163,6 +163,7 @@ export function useAuth(): UseAuthReturn {
       cancelled = true;
       subscription.unsubscribe();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only auth subscription; including syncAuthState (unmemoized) would resubscribe every render
   }, []);
 
   const createProfileForUser = async (userId: string): Promise<Profile | null> => {

@@ -210,6 +210,7 @@ export default function PostModal({
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- post.content is only a fallback snapshot; depending on it would re-run the fetch and clobber in-progress edits
   }, [mode, post?.id, post?.content_truncated, fetchFullPost]);
 
   // Auto-save draft (create mode only) — debounced 500ms

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { User } from 'lucide-react';
 
@@ -33,11 +33,14 @@ export default function Avatar({
   const [imgError, setImgError] = useState(false);
   const [fallbackError, setFallbackError] = useState(false);
 
-  // Reset error state when src changes
-  useEffect(() => {
+  // Reset error state when src changes — adjusted during render instead of
+  // in an effect so the stale error never paints.
+  const [prevSrc, setPrevSrc] = useState(src);
+  if (prevSrc !== src) {
+    setPrevSrc(src);
     setImgError(false);
     setFallbackError(false);
-  }, [src]);
+  }
 
   const fallbackUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${fallbackSeed}`;
   const imageSrc = imgError || !src ? fallbackUrl : src;

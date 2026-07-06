@@ -45,15 +45,6 @@ export default defineConfig([
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
-      // Pre-existing findings surfaced when TS linting was first enabled
-      // (2026-07-05); keep as warnings until triaged. rules-of-hooks stays
-      // at error — it catches real crashes.
-      'react-hooks/set-state-in-effect': 'warn',
-      'react-hooks/exhaustive-deps': 'warn',
-      'react-hooks/immutability': 'warn',
-      'react-hooks/preserve-manual-memoization': 'warn',
-      'react-hooks/incompatible-library': 'warn',
-      'react-refresh/only-export-components': 'warn',
     },
   },
 ])

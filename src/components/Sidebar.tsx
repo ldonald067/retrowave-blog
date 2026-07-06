@@ -12,7 +12,7 @@ import {
   Winamp as WinampIcon,
 } from './ui';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
-import { useTrailMode, TRAIL_MODE_OPTIONS } from './CursorSparkle';
+import { useTrailMode, TRAIL_MODE_OPTIONS } from '../lib/cursorTrail';
 import { buildPublicProfileUrl } from '../lib/publicProfile';
 import type { Chapter } from '../hooks/useChapters';
 
@@ -56,7 +56,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
   const userData = useMemo(
     () => ({
       username: profile?.username || user?.email?.split('@')[0] || 'guest',
-      displayName: profile?.display_name || 'âœ¨ New User âœ¨',
+      displayName: profile?.display_name || '✨ New User ✨',
       avatar:
         profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'guest'}`,
       bio: profile?.bio || 'Welcome to my journal!',
@@ -66,7 +66,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
         ? new Date(profile.created_at).getFullYear().toString()
         : '2026',
     }),
-    [user?.email, user?.id, profile?.username, profile?.display_name, profile?.avatar_url, profile?.bio, profile?.current_mood, profile?.current_music, profile?.created_at],
+    [user, profile],
   );
 
   const ytInfo = useYouTubeInfo(userData.music);
@@ -105,7 +105,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
     }
   };
 
-  // Full sidebar content â€” shared between mobile expanded and desktop
+  // Full sidebar content — shared between mobile expanded and desktop
   const sidebarContent = (
     <>
       {/* Profile Card */}
@@ -207,11 +207,11 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                 <div className="winamp-progress-bar" />
               </div>
               <div className="winamp-controls" aria-hidden="true">
-                <button className="winamp-btn" tabIndex={-1}>â®</button>
-                <button className="winamp-btn" tabIndex={-1}>â–¶</button>
-                <button className="winamp-btn" tabIndex={-1}>â¸</button>
-                <button className="winamp-btn" tabIndex={-1}>â¹</button>
-                <button className="winamp-btn" tabIndex={-1}>â­</button>
+                <button className="winamp-btn" tabIndex={-1}>⏮</button>
+                <button className="winamp-btn" tabIndex={-1}>▶</button>
+                <button className="winamp-btn" tabIndex={-1}>⏸</button>
+                <button className="winamp-btn" tabIndex={-1}>⏹</button>
+                <button className="winamp-btn" tabIndex={-1}>⏭</button>
               </div>
               {ytInfo && (
                 <div className="px-1 pb-1">
@@ -267,12 +267,12 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               <Windows98DateTime size={14} alt="" />
               member since:
             </span>
-            <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince} âœ¨</span>
+            <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince} ✨</span>
           </div>
         </div>
       </motion.div>
 
-      {/* Chapters â€” desktop only; mobile uses ChapterChips above the feed */}
+      {/* Chapters — desktop only; mobile uses ChapterChips above the feed */}
       {chapters.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -300,7 +300,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               aria-label={`Show all entries (${postCount})`}
               aria-pressed={activeChapter === null}
             >
-              <span>âœ¨ all entries</span>
+              <span>✨ all entries</span>
               <span className="text-xs font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{postCount}</span>
             </button>
             {looseCount > 0 && (
@@ -357,7 +357,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
         </motion.div>
       )}
 
-      {/* Cursor Trail Picker â€” desktop only */}
+      {/* Cursor Trail Picker — desktop only */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -368,7 +368,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
           className="xanga-title text-lg mb-2 border-b-2 border-dotted pb-1"
           style={{ borderColor: 'var(--border-primary)' }}
         >
-          cursor trail âœ¦
+          cursor trail ✦
         </h3>
         <div className="flex flex-wrap gap-1">
           {TRAIL_MODE_OPTIONS.map((opt) => (

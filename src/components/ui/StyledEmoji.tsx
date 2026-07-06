@@ -6,7 +6,7 @@
  * Use this anywhere you want theme-aware emoji rendering.
  */
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useEmojiStyle, getStyledEmojiUrl } from '../../lib/emojiStyles';
 import type { EmojiStyleId } from '../../lib/emojiStyles';
 
@@ -31,10 +31,13 @@ export default function StyledEmoji({
   const activeStyle = overrideStyle ?? globalStyle;
   const [imgError, setImgError] = useState(false);
 
-  // Reset error state when style changes
-  useEffect(() => {
+  // Reset error state when style or emoji changes — adjusted during render
+  // instead of in an effect so the stale fallback never paints.
+  const [prev, setPrev] = useState({ activeStyle, emoji });
+  if (prev.activeStyle !== activeStyle || prev.emoji !== emoji) {
+    setPrev({ activeStyle, emoji });
     setImgError(false);
-  }, [activeStyle, emoji]);
+  }
 
   const url = getStyledEmojiUrl(emoji, activeStyle);
 

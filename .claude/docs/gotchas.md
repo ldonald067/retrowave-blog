@@ -13,9 +13,11 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 - `ESTIMATED_POST_HEIGHT` (380px) must match real PostCard height or virtualizer overlaps.
 - WCAG AA: `--accent-primary` must hit 4.5:1 on `--card-bg`. `--text-title` only needs 3:1 (large text).
 - Input `font-size: 16px !important` at mobile breakpoint prevents iOS Safari auto-zoom. NEVER set input font below 16px on mobile.
-- [2026-07-05 /mobile] RESOLVED: Mojibake (double-encoded UTF-8 emoji, e.g. `ðŸ”’`) in Sidebar, Header, ProfileModal, PublicProfileView — from Windows-era edits (`npm.cmd` in audit logs). Fixed 2026-07-05 (10 occurrences, cp1252 round-trip reversed). If editing on Windows again, keep files UTF-8 and grep `ðŸ` before committing.
+- [2026-07-05 /mobile] RESOLVED: Mojibake (double-encoded UTF-8, cp1252 round-trip) in Sidebar, Header, ProfileModal, PublicProfileView — from Windows-era edits (`npm.cmd` in audit logs). Two waves fixed 2026-07-05: 10× 4-byte emoji (`ðŸ..`) and 20× 3-byte chars (`â..`: ✨ ♥ ☆ ⏮▶⏸⏹⏭, em-dashes). If editing on Windows again, keep files UTF-8 and grep `ðŸ\|â\|Ã\|Â` before committing.
 - [2026-07-05 /mobile] RESOLVED: ChapterChips.tsx conditional hook (early return before `useMemo`) crashed on first-chapter creation. Fixed 2026-07-05; regression test added ("survives the 0 → 1 chapters transition").
-- [2026-07-05 /mobile] `npm run lint` covered NOTHING until 2026-07-05 — eslint.config.js only matched `**/*.{js,jsx}` but all source is `.ts/.tsx`. Now fixed (typescript-eslint added). 19 pre-existing react-hooks/react-refresh findings were downgraded to warnings in eslint.config.js pending triage — don't silence them further; fix and re-promote to errors.
+- [2026-07-05 /mobile] `npm run lint` covered NOTHING until 2026-07-05 — eslint.config.js only matched `**/*.{js,jsx}` but all source is `.ts/.tsx`. Now fixed (typescript-eslint added); all findings triaged 2026-07-05 and rules run at full recommended strictness (0 problems). Keep it that way.
+- [2026-07-05 /mobile] For "reset/sync state when a prop changes" use the guarded adjust-during-render pattern (prev-value in useState, compare, set) — passes react-hooks v7 compiler rules and avoids a stale paint. Don't reintroduce reset-effects; see Avatar.tsx / Header.tsx / ProfileModal.tsx for house examples.
+- [2026-07-05 /mobile] react-hooks v7 compiler rules (set-state-in-effect, immutability, refs, …) report ONE bail-out per component at a time — fixing one can surface more on the next lint run. Keep re-running lint until stable.
 - [2026-07-05 /mobile] Sidebar chapter privacy toggle uses bare `min-h-[36px]` (Sidebar.tsx:345) — below 44px HIG on mobile; adjacent chapter button correctly uses `min-h-[44px] lg:min-h-[36px]`.
 
 ## UI Conventions
