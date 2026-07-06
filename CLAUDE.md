@@ -48,6 +48,7 @@ ios/               # Capacitor iOS app
 | `/migration` | SQL migrations, syncing database.ts + validation.ts |
 | `/test` | Vitest mock patterns, Supabase chain mocking |
 | `/preflight` | Pre-commit: tsc + build + tests, diagnose failures |
+| `/release` | iOS build, Capacitor sync, App Store submission checklist |
 
 ## Key Docs (Progressive Disclosure)
 
@@ -64,3 +65,9 @@ CLAUDE.md is the always-loaded layer. Deeper context lives in topic-specific doc
 | Skill | `.claude/commands/*.md` | Auto-loaded by `/skill` commands |
 | Code | `src/lib/validation.ts` | Field limits (POST_LIMITS, PROFILE_LIMITS) |
 | Code | `src/lib/themes.ts` | 8 theme definitions (42 CSS vars each) |
+
+# Compact instructions
+
+When compacting, preserve: the current task and its remaining steps, files
+changed this session, verification status (lint/tsc/build/tests), and any
+App Store submission checklist progress. Drop verbose tool output.
