@@ -10,7 +10,7 @@ interface ThemeDefinition {
   variables: Record<string, string>;
 }
 
-const THEME_IDS = [
+export const THEME_IDS = [
   'classic-xanga',
   'emo-dark',
   'scene-kid',

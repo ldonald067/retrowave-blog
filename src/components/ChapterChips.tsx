@@ -85,8 +85,6 @@ export default function ChapterChips({
     }
   }, []);
 
-  if (chapters.length === 0) return null;
-
   const allChips = useMemo(() => [
     { id: null as string | null, label: 'all entries', count: postCount, icon: '✨', isPrivate: false },
     ...(looseCount > 0 ? [{ id: looseKey as string | null, label: 'loose entries', count: looseCount, icon: '🍃', isPrivate: false }] : []),
@@ -95,6 +93,8 @@ export default function ChapterChips({
       return { id: ch.chapter as string | null, label: ch.chapter, count: ch.post_count, icon: priv ? '🔒' : '📖', isPrivate: priv };
     }),
   ], [chapters, postCount, looseCount, looseKey, privateChapters]);
+
+  if (chapters.length === 0) return null;
 
   return (
     <div className="chapter-chips-wrapper lg:hidden relative mb-4">

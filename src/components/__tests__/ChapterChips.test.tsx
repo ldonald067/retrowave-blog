@@ -68,6 +68,15 @@ describe('ChapterChips', () => {
     expect(container.innerHTML).toBe('');
   });
 
+  it('survives the 0 → 1 chapters transition without remounting', () => {
+    // Regression: an early return before useMemo made this rerender throw
+    // "Rendered more hooks than during the previous render" when the user
+    // created their first chapter.
+    const { rerender } = render(<ChapterChips {...defaultProps} chapters={[]} />);
+    rerender(<ChapterChips {...defaultProps} chapters={mockChapters} />);
+    expect(screen.getByText(/deep thoughts/)).toBeInTheDocument();
+  });
+
   // ── Interactions ──────────────────────────────────────────────────────
 
   it('calls onChapterSelect(null) when all entries chip is clicked', () => {

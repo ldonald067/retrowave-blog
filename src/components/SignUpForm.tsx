@@ -82,7 +82,7 @@ export default function SignUpForm() {
       }
 
       showToast('Account created! You are now signed in ✨', 'success');
-    } catch (err) {
+    } catch {
       showToast('Something went wrong. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
