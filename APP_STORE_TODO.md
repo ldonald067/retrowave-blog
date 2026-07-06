@@ -1,12 +1,14 @@
 # App Store Submission Handoff
 
-Last updated: 2026-05-01.
+Last updated: 2026-07-05.
 
 This is the practical handoff version, not a compliance doc.
 
 - The app is in decent shape for iPhone/App Store prep.
-- Submission is still blocked by two real-world constraints: no Mac/Xcode access
-  yet, and the last hosted signed-in mobile QA pass is blocked until the
+- The "no Mac" constraint is RESOLVED as of 2026-07-05: development now runs on
+  a Mac with Xcode 26.6, Node 24, the gh CLI (authed), and the TypeScript
+  language server. Remaining Mac work is actionable, not blocked.
+- Still genuinely blocked: the hosted signed-in mobile QA pass, until the
   frontend Supabase host is restored or replaced after the 2026-04-26 NXDOMAIN
   failure.
 - I am intentionally not freezing exact build times or test counts here. Re-run
@@ -15,7 +17,13 @@ This is the practical handoff version, not a compliance doc.
 
 ## Where Things Stand
 
-- The no-Mac mobile hardening work is on `prep/ios-readiness`.
+- 2026-07-05 code-health pass on `main`: fixed double-encoded emoji (mojibake)
+  across Sidebar/Header/ProfileModal/PublicProfileView, fixed a ChapterChips
+  hook-order crash on first-chapter creation, enabled TypeScript linting
+  (previously lint checked nothing) and cleared all findings — lint, tsc,
+  build, and the full test suite are green.
+- The no-Mac mobile hardening work from `prep/ios-readiness` is merged into
+  `main`.
 - Safe-area, keyboard-space, narrow-width, and public-page viewport fixes were
   already audited in `docs/audit/2026-04-17-ios-readiness-pass.md`.
 - The latest UX pass also tightened first-run setup, public-link entry,
@@ -28,24 +36,31 @@ This is the practical handoff version, not a compliance doc.
 
 ## Best Next Moves
 
-1. Restore or replace the frontend Supabase host used for hosted QA.
-2. Re-run the remaining signed-in mobile pass with the QA account/session.
-3. When a Mac is available, do the first real Xcode build and signing setup.
-4. After that, finish the App Store metadata, screenshots, and reviewer account.
+1. Enroll in the Apple Developer Program ($99/yr — takes a day or two, start
+   first).
+2. Download an iOS simulator runtime (`xcodebuild -downloadPlatform iOS` —
+   none installed yet).
+3. Create `.env` from `.env.example` with live Supabase credentials, then do
+   the first real build: `npm run build && npx cap sync ios && npx cap open
+ios` (see `/release` skill).
+4. Restore or replace the frontend Supabase host used for hosted QA, then
+   re-run the remaining signed-in mobile pass with the QA account/session.
+5. After that, finish the App Store metadata, screenshots, and reviewer
+   account.
 
 ## Still Blocking Submission
 
 ### Hosted/App Setup
 
 - [ ] Restore or replace the frontend Supabase host so hosted signed-in QA can
-  run again.
+      run again.
 - [ ] Configure the Supabase auth redirect URL for
-  `com.retrowave.journal://`.
+      `com.retrowave.journal://`.
 - [ ] Deploy the `moderate-content` edge function.
 - [ ] Set `OPENAI_API_KEY` in Supabase secrets for the hosted moderation path.
 - [ ] Host `privacy.html` and `terms.html` at public `https://` URLs.
 - [ ] Review `terms.html` and `privacy.html` for legal accuracy and real contact
-  info.
+      info.
 - [ ] Confirm `BLOG_OWNER_EMAIL` is correct and actively monitored.
 
 ### Apple/Mac Work
@@ -65,28 +80,28 @@ This is the practical handoff version, not a compliance doc.
 - [x] Deep link URL scheme is already in `Info.plist`.
 - [x] Entry creation is private by default and makes privacy state visible.
 - [x] Profile status and public-sharing behavior now feel account-backed instead
-  of device-fake.
+      of device-fake.
 - [x] Public profile pages stay read-only for signed-out visitors.
 - [x] Browser storage failures are handled defensively in user-facing flows.
 - [x] Focus restoration guards exist in `useFocusTrap`.
 - [x] Mobile touch-target and narrow-width fixes from the no-Mac passes are on
-  `prep/ios-readiness`.
+      `prep/ios-readiness`.
 
 ## Real-Device Checks Still Worth Doing
 
 - [ ] Test on a real iPhone or Apple simulator for safe areas, deep links,
-  haptics, share sheet, status bar theming, and Safari/WebKit behavior.
+      haptics, share sheet, status bar theming, and Safari/WebKit behavior.
 - [ ] Verify the remaining hosted signed-in flows once the frontend Supabase
-  host works again.
+      host works again.
 - [ ] Re-run the no-Mac mobile QA checklist after any further
-  auth/public-profile/mobile changes.
+      auth/public-profile/mobile changes.
 
 ## Before You Actually Submit
 
 - [ ] Re-run `npm run lint`, `npm run typecheck`, `npm run test`, and
-  `npm run build` on the final submission branch.
+      `npm run build` on the final submission branch.
 - [ ] Confirm the latest branch still matches the notes in the iOS readiness
-  audit and this handoff doc.
+      audit and this handoff doc.
 - [ ] Make sure the reviewer/demo account is real, documented, and working.
 
 ## Useful Evidence Pointers
@@ -105,6 +120,6 @@ This is the practical handoff version, not a compliance doc.
 - [ ] Add error tracking.
 - [ ] Add accessibility testing in CI.
 - [ ] Add deeper integration coverage for auth/posts/reactions/public-profile
-  flows.
+      flows.
 - [ ] Consider VoiceOver manual testing before launch.
 - [ ] Add push notifications later only if the product actually needs them.

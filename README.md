@@ -24,7 +24,7 @@ npm install
 Follow `docs/development/supabase-local-setup.md` for the current local setup
 flow.
 
-Create `.env.local` with:
+Copy `.env.example` to `.env` and fill in:
 
 ```env
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
