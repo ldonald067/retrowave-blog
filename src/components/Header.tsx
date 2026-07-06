@@ -154,7 +154,7 @@ export default function Header({
           }}
         >
           <div className="max-w-7xl mx-auto flex items-center gap-2">
-            <span style={{ fontSize: '11px' }} aria-hidden="true">ðŸ“Ÿ</span>
+            <span style={{ fontSize: '11px' }} aria-hidden="true">📟</span>
             <span className="aim-status font-bold" style={{ color: 'var(--text-muted)', fontStyle: 'normal' }}>status:</span>
             <AnimatePresence mode="wait">
               {editingStatus ? (

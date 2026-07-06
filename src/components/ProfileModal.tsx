@@ -821,7 +821,7 @@ export default function ProfileModal({
                         {bio || (isInitialSetup ? 'you can add a bio later...' : 'no bio yet...')}
                       </p>
                       {statusMessage && (
-                        <p className="aim-status mt-2">ðŸ“Ÿ ~ {statusMessage} ~</p>
+                        <p className="aim-status mt-2">📟 ~ {statusMessage} ~</p>
                       )}
                       {currentMood && (
                         <p className="text-xs mt-1" style={{ color: 'var(--accent-primary)' }}>

@@ -169,7 +169,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
             </div>
           )}
           {statusMessage && (
-            <p className="aim-status mt-1">ðŸ“Ÿ ~ {statusMessage} ~</p>
+            <p className="aim-status mt-1">📟 ~ {statusMessage} ~</p>
           )}
         </div>
 
@@ -284,7 +284,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
             className="xanga-title text-lg mb-2 border-b-2 border-dotted pb-1"
             style={{ borderColor: 'var(--border-primary)' }}
           >
-            ðŸ“– Chapters
+            📖 Chapters
           </h3>
           <div className="space-y-0.5">
             {/* "All entries" option */}
@@ -316,7 +316,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                 aria-label={`Show loose entries (${looseCount})`}
                 aria-pressed={activeChapter === looseKey}
               >
-                <span>ðŸƒ loose entries</span>
+                <span>🍃 loose entries</span>
                 <span className="text-xs font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{looseCount}</span>
               </button>
             )}
@@ -336,7 +336,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                     aria-pressed={activeChapter === ch.chapter}
                     aria-label={`Filter by chapter: ${ch.chapter} (${ch.post_count} ${ch.post_count === 1 ? 'entry' : 'entries'})`}
                   >
-                    <span className="truncate">{isPrivate ? 'ðŸ”’' : 'ðŸ“–'} {ch.chapter}</span>
+                    <span className="truncate">{isPrivate ? '🔒' : '📖'} {ch.chapter}</span>
                     <span className="text-xs font-normal flex-shrink-0" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{ch.post_count}</span>
                   </button>
                   {onToggleChapterPrivacy && (
@@ -347,7 +347,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                       aria-label={isPrivate ? `Make "${ch.chapter}" public` : `Make "${ch.chapter}" private`}
                       title={isPrivate ? 'Make public' : 'Make private'}
                     >
-                      <span className="text-sm">{isPrivate ? 'ðŸ”“' : 'ðŸ”’'}</span>
+                      <span className="text-sm">{isPrivate ? '🔓' : '🔒'}</span>
                     </button>
                   )}
                 </div>

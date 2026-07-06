@@ -202,7 +202,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
               </h1>
               <p className="xanga-subtitle">@{profile.username}</p>
               {profile.status_message && (
-                <p className="aim-status mt-2">ðŸ“Ÿ ~ {profile.status_message} ~</p>
+                <p className="aim-status mt-2">📟 ~ {profile.status_message} ~</p>
               )}
               {profile.bio && (
                 <p className="text-sm mt-2 italic break-words" style={{ color: 'var(--text-body)' }}>
