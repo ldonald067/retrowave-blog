@@ -7,7 +7,11 @@ interface AgeVerificationProps {
   loading?: boolean;
 }
 
-export default function AgeVerification({ onVerified, requireTOS = true, loading = false }: AgeVerificationProps) {
+export default function AgeVerification({
+  onVerified,
+  requireTOS = true,
+  loading = false,
+}: AgeVerificationProps) {
   const currentYear = new Date().getFullYear();
   const [birthYear, setBirthYear] = useState<string>('');
   const [tosAccepted, setTosAccepted] = useState(false);
@@ -76,15 +80,11 @@ export default function AgeVerification({ onVerified, requireTOS = true, loading
           >
             {/* Welcome Section */}
             <div className="xanga-box p-4 sm:p-6 mb-4 text-center">
-              <div className="text-3xl sm:text-5xl mb-3" aria-hidden="true">🛡️✨</div>
-              <h2
-                className="xanga-title text-lg sm:text-xl mb-2"
-              >
-                ~ verify ur age ~
-              </h2>
-              <p className="xanga-subtitle text-xs">
-                we need 2 confirm ur old enough 2 use this
-              </p>
+              <div className="text-3xl sm:text-5xl mb-3" aria-hidden="true">
+                🛡️✨
+              </div>
+              <h2 className="xanga-title text-lg sm:text-xl mb-2">~ verify ur age ~</h2>
+              <p className="xanga-subtitle text-xs">we need 2 confirm ur old enough 2 use this</p>
             </div>
 
             <div className="space-y-3 sm:space-y-4">

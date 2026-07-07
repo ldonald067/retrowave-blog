@@ -44,7 +44,11 @@ const SIZES = {
  * Centralizes the thumbnail + title + YouTube badge layout so changes
  * only need to happen in one place.
  */
-export default function YouTubeCard({ ytInfo, size = 'md', useNativeOpen = true }: YouTubeCardProps) {
+export default function YouTubeCard({
+  ytInfo,
+  size = 'md',
+  useNativeOpen = true,
+}: YouTubeCardProps) {
   const s = SIZES[size];
   const [thumbError, setThumbError] = useState(false);
 

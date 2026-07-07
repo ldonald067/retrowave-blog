@@ -15,7 +15,7 @@ describe('PublicPageSettings', () => {
         onRequestPublish={onRequestPublish}
         onUnpublish={vi.fn()}
         onCopy={vi.fn()}
-      />,
+      />
     );
 
     expect(screen.getByText('private by default')).toBeInTheDocument();
@@ -33,7 +33,7 @@ describe('PublicPageSettings', () => {
         onRequestPublish={vi.fn()}
         onUnpublish={vi.fn()}
         onCopy={vi.fn()}
-      />,
+      />
     );
 
     expect(screen.getByText('public page on')).toBeInTheDocument();
@@ -41,7 +41,7 @@ describe('PublicPageSettings', () => {
     expect(screen.getByRole('button', { name: /copy public link/i })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /view public page/i })).toHaveAttribute(
       'href',
-      'https://example.com/#/u/jane',
+      'https://example.com/#/u/jane'
     );
   });
 
@@ -55,7 +55,7 @@ describe('PublicPageSettings', () => {
         onRequestPublish={vi.fn()}
         onUnpublish={vi.fn()}
         onCopy={vi.fn()}
-      />,
+      />
     );
 
     expect(screen.getByText('Save changes to publish this page.')).toBeInTheDocument();

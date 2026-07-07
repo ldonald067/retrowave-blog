@@ -59,10 +59,7 @@ export function useAuth(): UseAuthReturn {
     setProfile(nextProfile);
   };
 
-  const fetchProfile = async (
-    userId: string,
-    options: { force?: boolean } = {}
-  ): Promise<void> => {
+  const fetchProfile = async (userId: string, options: { force?: boolean } = {}): Promise<void> => {
     if (fetchingProfileFor.current === userId) return;
 
     const now = Date.now();

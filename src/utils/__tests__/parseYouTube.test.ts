@@ -13,7 +13,7 @@ describe('extractYouTubeId', () => {
 
   it('extracts ID from watch URL with extra params', () => {
     expect(extractYouTubeId('https://www.youtube.com/watch?list=PLx&v=dQw4w9WgXcQ&t=42')).toBe(
-      'dQw4w9WgXcQ',
+      'dQw4w9WgXcQ'
     );
   });
 
@@ -30,9 +30,7 @@ describe('extractYouTubeId', () => {
   });
 
   it('extracts ID from YouTube Music URL', () => {
-    expect(extractYouTubeId('https://music.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(
-      'dQw4w9WgXcQ',
-    );
+    expect(extractYouTubeId('https://music.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
   });
 
   it('extracts ID from Shorts URL', () => {

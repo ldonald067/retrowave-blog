@@ -16,7 +16,7 @@ const FOCUSABLE_SELECTOR =
 export function useFocusTrap(
   containerRef: RefObject<HTMLElement | null>,
   active: boolean,
-  onEscape?: () => void,
+  onEscape?: () => void
 ) {
   const previousFocusRef = useRef<HTMLElement | null>(null);
 
@@ -55,7 +55,7 @@ export function useFocusTrap(
         }
       }
     },
-    [containerRef, onEscape],
+    [containerRef, onEscape]
   );
 
   useEffect(() => {

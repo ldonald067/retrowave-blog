@@ -9,12 +9,12 @@
 import { supabase } from './supabase';
 import type { User } from '@supabase/supabase-js';
 
-type AuthResult =
-  | { user: User; error: null }
-  | { user: null; error: string };
+type AuthResult = { user: User; error: null } | { user: null; error: string };
 
 export async function requireAuth(): Promise<AuthResult> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session?.user) {
     return { user: null, error: 'You must be logged in to do that.' };
   }

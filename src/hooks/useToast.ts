@@ -32,18 +32,21 @@ let nextToastId = 0;
 export function useToast(): UseToastReturn {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const showToast = useCallback((message: string, type: ToastType = 'success', duration?: number) => {
-    const id = ++nextToastId;
-    const resolvedDuration = duration ?? DEFAULT_DURATIONS[type];
-    setToasts((prev) => {
-      const next = [...prev, { id, message, type, duration: resolvedDuration }];
-      // Cap at max visible toasts — drop oldest
-      if (next.length > MAX_VISIBLE_TOASTS) {
-        return next.slice(next.length - MAX_VISIBLE_TOASTS);
-      }
-      return next;
-    });
-  }, []);
+  const showToast = useCallback(
+    (message: string, type: ToastType = 'success', duration?: number) => {
+      const id = ++nextToastId;
+      const resolvedDuration = duration ?? DEFAULT_DURATIONS[type];
+      setToasts((prev) => {
+        const next = [...prev, { id, message, type, duration: resolvedDuration }];
+        // Cap at max visible toasts — drop oldest
+        if (next.length > MAX_VISIBLE_TOASTS) {
+          return next.slice(next.length - MAX_VISIBLE_TOASTS);
+        }
+        return next;
+      });
+    },
+    []
+  );
 
   const hideToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));

@@ -48,10 +48,7 @@ export default function ConfirmDialog({
           className="xanga-box p-5 max-w-sm w-full overflow-y-auto modal-panel-safe"
           onClick={(e) => e.stopPropagation()}
         >
-          <h3
-            id="confirm-dialog-title"
-            className="xanga-title text-lg mb-2"
-          >
+          <h3 id="confirm-dialog-title" className="xanga-title text-lg mb-2">
             <span aria-hidden="true">⚠️</span> {title}
           </h3>
 
@@ -88,7 +85,8 @@ export default function ConfirmDialog({
               whileTap={{ scale: 0.95 }}
               className="w-full sm:w-auto px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110 min-h-[44px]"
               style={{
-                background: 'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, var(--bg-primary)))',
+                background:
+                  'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, var(--bg-primary)))',
                 color: 'var(--button-text, var(--text-title))',
                 borderColor: 'var(--accent-secondary)',
                 fontFamily: 'var(--title-font)',

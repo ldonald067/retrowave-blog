@@ -13,21 +13,21 @@ vi.mock('framer-motion', () => ({
       exit: _exit,
       transition: _transition,
       ...props
-    }: React.PropsWithChildren<React.HTMLAttributes<HTMLElement> & {
-      initial?: unknown;
-      animate?: unknown;
-      exit?: unknown;
-      transition?: unknown;
-    }>) => (
-      <article {...props}>{children}</article>
-    ),
+    }: React.PropsWithChildren<
+      React.HTMLAttributes<HTMLElement> & {
+        initial?: unknown;
+        animate?: unknown;
+        exit?: unknown;
+        transition?: unknown;
+      }
+    >) => <article {...props}>{children}</article>,
     button: ({
       children,
       whileTap: _whileTap,
       ...props
-    }: React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement> & { whileTap?: unknown }>) => (
-      <button {...props}>{children}</button>
-    ),
+    }: React.PropsWithChildren<
+      React.ButtonHTMLAttributes<HTMLButtonElement> & { whileTap?: unknown }
+    >) => <button {...props}>{children}</button>,
   },
   AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));

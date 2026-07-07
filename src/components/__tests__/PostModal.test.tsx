@@ -22,9 +22,9 @@ vi.mock('framer-motion', () => ({
       whileHover: _wh,
       whileTap: _wt,
       ...props
-    }: React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement> & Record<string, unknown>>) => (
-      <button {...props}>{children}</button>
-    ),
+    }: React.PropsWithChildren<
+      React.ButtonHTMLAttributes<HTMLButtonElement> & Record<string, unknown>
+    >) => <button {...props}>{children}</button>,
   },
   AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));
@@ -133,7 +133,7 @@ describe('PostModal ⋮ Menu', () => {
           title: 'Private draft',
           content: 'This one starts private.',
           is_private: true,
-        }),
+        })
       );
     });
   });

@@ -41,7 +41,10 @@ export const ModalFrame = forwardRef<HTMLDivElement, ModalFrameProps>(function M
       initial={{ scale: 0.95, y: 20 }}
       animate={{ scale: 1, y: 0 }}
       exit={{ scale: 0.95, y: 20 }}
-      className={joinClassNames('rounded-lg shadow-2xl w-full overflow-hidden modal-panel-safe', className)}
+      className={joinClassNames(
+        'rounded-lg shadow-2xl w-full overflow-hidden modal-panel-safe',
+        className
+      )}
       style={{
         backgroundColor: 'var(--modal-bg)',
         border: '4px solid var(--modal-border)',

@@ -21,7 +21,10 @@ export default function EmptyState({ onCreatePost }: EmptyStateProps) {
         className="xanga-box lined-paper px-4 py-6 sm:p-8 w-full max-w-lg"
       >
         {/* Journal header */}
-        <div className="mb-4 pb-3 border-b-2 border-dotted" style={{ borderColor: 'var(--border-primary)' }}>
+        <div
+          className="mb-4 pb-3 border-b-2 border-dotted"
+          style={{ borderColor: 'var(--border-primary)' }}
+        >
           <motion.div
             animate={prefersReducedMotion ? {} : { opacity: [1, 0.5, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}

@@ -16,11 +16,7 @@ function prefersReducedMotion(): boolean {
  * Sparkle Burst — radiates sparkle characters outward from a point.
  * Reuses the same character set as CursorSparkle for consistency.
  */
-export function sparkleBurst(
-  originX?: number,
-  originY?: number,
-  count = 12,
-): void {
+export function sparkleBurst(originX?: number, originY?: number, count = 12): void {
   if (prefersReducedMotion()) return;
 
   const x = originX ?? window.innerWidth / 2;
@@ -55,7 +51,7 @@ export function sparkleBurst(
 export function emojiRain(
   emojis: string[] = ['✨', '💕', '⭐', '🌈', '💫'],
   count = 15,
-  durationMs = 2000,
+  durationMs = 2000
 ): void {
   if (prefersReducedMotion()) return;
 

@@ -26,7 +26,14 @@ interface PostCardProps {
   currentUserId?: string;
 }
 
-const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onChapterClick, currentUserId }: PostCardProps) {
+const PostCard = memo(function PostCard({
+  post,
+  onView,
+  onReaction,
+  onBlock,
+  onChapterClick,
+  currentUserId,
+}: PostCardProps) {
   const isOwner = currentUserId === post.user_id;
   const ytInfo = useYouTubeInfo(post.music);
 
@@ -48,7 +55,8 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
       <div
         className="p-4 border-b-2 border-dotted"
         style={{
-          background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
+          background:
+            'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
           borderColor: 'var(--border-primary)',
         }}
       >
@@ -64,7 +72,10 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
               {post.title}
             </motion.button>
           </h2>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs min-h-[44px] lg:min-h-0" style={{ color: 'var(--text-muted)' }}>
+          <div
+            className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs min-h-[44px] lg:min-h-0"
+            style={{ color: 'var(--text-muted)' }}
+          >
             <span className="flex items-center gap-1">
               <span style={{ color: 'var(--accent-primary)' }}>📅</span>
               {formatDate(post.created_at, 'MMM dd, yyyy')}
@@ -73,7 +84,10 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
               <>
                 <span className="hidden sm:inline">•</span>
                 <button
-                  onClick={(e) => { e.stopPropagation(); onChapterClick?.(post.chapter!); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onChapterClick?.(post.chapter!);
+                  }}
                   className="flex items-center gap-1 transition hover:underline min-h-[44px] lg:min-h-0 max-w-[160px] sm:max-w-[220px]"
                   style={{ color: 'var(--accent-primary)' }}
                   aria-label={`Filter by chapter: ${post.chapter}`}
@@ -91,7 +105,9 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
         {/* Mood indicator if available */}
         {post.mood && (
           <div className="mb-3 pb-3 border-b" style={{ borderColor: 'var(--border-primary)' }}>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Current Mood: </span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              Current Mood:{' '}
+            </span>
             <span className="text-sm">{post.mood}</span>
           </div>
         )}
@@ -107,12 +123,16 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
           >
             <div className="flex items-center gap-1 mb-1">
               <WinampIcon size={14} alt="" />
-              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>Currently listening to:</span>
+              <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                Currently listening to:
+              </span>
             </div>
             {ytInfo ? (
               <YouTubeCard ytInfo={ytInfo} />
             ) : (
-              <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>{post.music}</span>
+              <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>
+                {post.music}
+              </span>
             )}
           </div>
         )}
@@ -126,10 +146,7 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
 
         {/* Read more link — prefer server truncation flag over length guess */}
         {(post.content_truncated || (post.content && post.content.length > FEED_EXCERPT_MAX)) && (
-          <button
-            onClick={() => onView(post)}
-            className="xanga-link text-xs"
-          >
+          <button onClick={() => onView(post)} className="xanga-link text-xs">
             ~ read more ~
           </button>
         )}
@@ -144,21 +161,27 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
           color: 'var(--text-muted)',
         }}
       >
-        {post.author && <span className="font-semibold min-w-0 max-w-full truncate" style={{ color: 'var(--accent-primary)' }}>~ {post.author}</span>}
+        {post.author && (
+          <span
+            className="font-semibold min-w-0 max-w-full truncate"
+            style={{ color: 'var(--accent-primary)' }}
+          >
+            ~ {post.author}
+          </span>
+        )}
         {/* Apple Guideline 1.2: UGC apps must provide reporting + blocking */}
         {!isOwner && currentUserId && (
           <div className="flex items-center gap-1 flex-shrink-0">
             <a
               href={buildReportEmailHref(
                 `Report: "${post.title}" (${post.id})`,
-                `Post id: ${post.id}\nUser id: ${post.user_id}\nTitle: ${post.title}`,
+                `Post id: ${post.id}\nUser id: ${post.user_id}\nTitle: ${post.title}`
               )}
               className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px]"
               style={{ color: 'var(--text-muted)' }}
               aria-label="Report this post"
             >
-              <Pepicon name="flag" size={12} />
-              ~ report ~
+              <Pepicon name="flag" size={12} />~ report ~
             </a>
             <motion.button
               whileTap={{ scale: 0.9 }}
@@ -167,8 +190,7 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
               style={{ color: 'var(--text-muted)' }}
               aria-label="Block this user"
             >
-              <Pepicon name="shield" size={12} />
-              ~ block ~
+              <Pepicon name="shield" size={12} />~ block ~
             </motion.button>
           </div>
         )}
@@ -193,7 +215,8 @@ const PostCard = memo(function PostCard({ post, onView, onReaction, onBlock, onC
       <div
         className="h-1"
         style={{
-          background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary), var(--border-primary))',
+          background:
+            'linear-gradient(to right, var(--accent-primary), var(--accent-secondary), var(--border-primary))',
         }}
       />
     </motion.article>

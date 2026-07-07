@@ -81,7 +81,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
 
   return (
-    <div ref={containerRef} className="fixed inset-0 xanga-auth-bg z-50 overflow-hidden flex flex-col">
+    <div
+      ref={containerRef}
+      className="fixed inset-0 xanga-auth-bg z-50 overflow-hidden flex flex-col"
+    >
       {/* Xanga-style header */}
       <div
         className="flex-shrink-0 border-b-2 border-dotted py-2 px-4 safe-area-top"
@@ -135,11 +138,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
       {/* Main Content */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden keyboard-safe-scroll px-3 sm:px-6 py-6 sm:py-8 flex flex-col items-center short-viewport-start">
-        <div
-          className="onboarding-panel"
-          aria-live="polite"
-          aria-atomic="true"
-        >
+        <div className="onboarding-panel" aria-live="polite" aria-atomic="true">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
               key={currentStep}
@@ -219,10 +218,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 « back
               </button>
             )}
-            <button
-              onClick={handleNext}
-              className="xanga-button py-2.5 text-sm flex-1"
-            >
+            <button onClick={handleNext} className="xanga-button py-2.5 text-sm flex-1">
               {isLastSlide ? '~ start writing!! ~' : 'next »'}
             </button>
           </div>
@@ -230,10 +226,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
           {/* Skip link */}
           {!isLastSlide && (
             <div className="text-center">
-              <button
-                onClick={onComplete}
-                className="xanga-link text-xs"
-              >
+              <button onClick={onComplete} className="xanga-link text-xs">
                 ~ skip intro ~
               </button>
             </div>

@@ -16,7 +16,13 @@ const ICONS: Record<ToastType, string> = {
   info: '✨',
 };
 
-export default function Toast({ message, type = 'success', onClose, duration = 2500, index = 0 }: ToastProps) {
+export default function Toast({
+  message,
+  type = 'success',
+  onClose,
+  duration = 2500,
+  index = 0,
+}: ToastProps) {
   // Auto-dismiss
   useEffect(() => {
     if (duration <= 0) return undefined;

@@ -14,7 +14,9 @@ export function SidebarSkeleton() {
         <div className="flex flex-col items-center gap-3">
           <div
             className="w-20 h-20 rounded-full animate-pulse"
-            style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 30%, transparent)' }}
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--border-primary) 30%, transparent)',
+            }}
           />
           {/* Display name */}
           <div className="h-5 rounded animate-pulse" style={barStyle(40, '60%')} />
@@ -23,22 +25,32 @@ export function SidebarSkeleton() {
         </div>
 
         {/* Bio lines */}
-        <div className="space-y-2 pt-2 border-t border-dotted" style={{ borderColor: 'var(--border-primary)' }}>
+        <div
+          className="space-y-2 pt-2 border-t border-dotted"
+          style={{ borderColor: 'var(--border-primary)' }}
+        >
           <div className="h-3 rounded w-full animate-pulse" style={barStyle(20, '100%')} />
           <div className="h-3 rounded animate-pulse" style={barStyle(20, '80%')} />
         </div>
 
         {/* Stats row */}
-        <div className="flex justify-around pt-2 border-t border-dotted" style={{ borderColor: 'var(--border-primary)' }}>
+        <div
+          className="flex justify-around pt-2 border-t border-dotted"
+          style={{ borderColor: 'var(--border-primary)' }}
+        >
           {[0, 1, 2].map((i) => (
             <div key={i} className="flex flex-col items-center gap-1">
               <div
                 className="h-4 w-8 rounded animate-pulse"
-                style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 30%, transparent)' }}
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--border-primary) 30%, transparent)',
+                }}
               />
               <div
                 className="h-2 w-12 rounded animate-pulse"
-                style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 15%, transparent)' }}
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--border-primary) 15%, transparent)',
+                }}
               />
             </div>
           ))}
@@ -56,28 +68,29 @@ export default function PostSkeleton() {
   return (
     <div className="space-y-4" aria-busy="true" aria-label="Loading posts">
       {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          className="xanga-box p-0 overflow-hidden"
-          style={{ opacity: 1 - i * 0.15 }}
-        >
+        <div key={i} className="xanga-box p-0 overflow-hidden" style={{ opacity: 1 - i * 0.15 }}>
           {/* Header skeleton */}
           <div
             className="p-4 border-b-2 border-dotted"
             style={{
-              background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
+              background:
+                'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
               borderColor: 'var(--border-primary)',
             }}
           >
             {/* Title bar */}
             <div
               className="h-6 rounded w-3/4 mb-2 animate-pulse"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 50%, transparent)' }}
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--border-primary) 50%, transparent)',
+              }}
             />
             {/* Date bar */}
             <div
               className="h-3 rounded w-1/3 animate-pulse"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 30%, transparent)' }}
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--border-primary) 30%, transparent)',
+              }}
             />
           </div>
 
@@ -86,19 +99,27 @@ export default function PostSkeleton() {
             {/* Content lines */}
             <div
               className="h-3 rounded w-full animate-pulse"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 25%, transparent)' }}
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--border-primary) 25%, transparent)',
+              }}
             />
             <div
               className="h-3 rounded w-5/6 animate-pulse"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 25%, transparent)' }}
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--border-primary) 25%, transparent)',
+              }}
             />
             <div
               className="h-3 rounded w-4/6 animate-pulse"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 25%, transparent)' }}
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--border-primary) 25%, transparent)',
+              }}
             />
             <div
               className="h-3 rounded w-2/3 animate-pulse"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 25%, transparent)' }}
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--border-primary) 25%, transparent)',
+              }}
             />
           </div>
 
@@ -113,7 +134,9 @@ export default function PostSkeleton() {
             {/* Author bar */}
             <div
               className="h-3 rounded w-20 animate-pulse"
-              style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 30%, transparent)' }}
+              style={{
+                backgroundColor: 'color-mix(in srgb, var(--border-primary) 30%, transparent)',
+              }}
             />
             {/* Reaction bar placeholder — 6 pills matching REACTION_EMOJIS count */}
             <div className="flex gap-1.5 flex-wrap">
@@ -121,7 +144,9 @@ export default function PostSkeleton() {
                 <div
                   key={j}
                   className="h-7 w-10 rounded-full animate-pulse"
-                  style={{ backgroundColor: 'color-mix(in srgb, var(--border-primary) 20%, transparent)' }}
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--border-primary) 20%, transparent)',
+                  }}
                 />
               ))}
             </div>
@@ -131,7 +156,8 @@ export default function PostSkeleton() {
           <div
             className="h-1"
             style={{
-              background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary), var(--border-primary))',
+              background:
+                'linear-gradient(to right, var(--accent-primary), var(--accent-secondary), var(--border-primary))',
               opacity: 0.3,
             }}
           />

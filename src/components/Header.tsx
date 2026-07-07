@@ -95,7 +95,10 @@ export default function Header({
     >
       {/* Marquee Banner */}
       <div className="marquee-banner" aria-hidden="true">
-        <div className="marquee-banner-inner" style={{ color: 'var(--text-subtitle)', fontSize: '12px' }}>
+        <div
+          className="marquee-banner-inner"
+          style={{ color: 'var(--text-subtitle)', fontSize: '12px' }}
+        >
           ~ welcome to my xanga ~ ✨ ~ thanks 4 stopping by ~ ♥ ~ have a gr8 day ~ ☆ ~ xoxo ~ ✨ ~
         </div>
       </div>
@@ -104,7 +107,8 @@ export default function Header({
       <div
         className="py-2 px-4"
         style={{
-          background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
+          background:
+            'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
           paddingTop: 'max(0.5rem, env(safe-area-inset-top))',
         }}
       >
@@ -119,18 +123,34 @@ export default function Header({
               </span>
             ) : (
               <span style={{ color: 'var(--text-muted)' }}>
-                <Pepicon name="starFilled" size={12} color="var(--accent-primary)" /> Welcome to My Journal
+                <Pepicon name="starFilled" size={12} color="var(--accent-primary)" /> Welcome to My
+                Journal
               </span>
             )}
           </div>
-          <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+          <div
+            className="flex items-center gap-1 sm:gap-3 flex-shrink-0"
+            style={{ color: 'var(--text-muted)' }}
+          >
             {user ? (
               <>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={onSettingsClick} className="transition min-h-[44px] min-w-[44px] flex items-center justify-center px-1" style={{ color: 'inherit' }} aria-label="Open settings">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onSettingsClick}
+                  className="transition min-h-[44px] min-w-[44px] flex items-center justify-center px-1"
+                  style={{ color: 'inherit' }}
+                  aria-label="Open settings"
+                >
                   <Pepicon name="gear" size={16} color="var(--text-muted)" />
                   <span className="hidden sm:inline ml-1">settings</span>
                 </motion.button>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={onSignOut} className="transition min-h-[44px] min-w-[44px] flex items-center justify-center px-1" style={{ color: 'inherit' }} aria-label="Sign out of your account">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onSignOut}
+                  className="transition min-h-[44px] min-w-[44px] flex items-center justify-center px-1"
+                  style={{ color: 'inherit' }}
+                  aria-label="Sign out of your account"
+                >
                   <Pepicon name="leave" size={16} color="var(--text-muted)" />
                   <span className="hidden sm:inline ml-1">logout</span>
                 </motion.button>
@@ -158,8 +178,15 @@ export default function Header({
           }}
         >
           <div className="max-w-7xl mx-auto flex items-center gap-2">
-            <span style={{ fontSize: '11px' }} aria-hidden="true">📟</span>
-            <span className="aim-status font-bold" style={{ color: 'var(--text-muted)', fontStyle: 'normal' }}>status:</span>
+            <span style={{ fontSize: '11px' }} aria-hidden="true">
+              📟
+            </span>
+            <span
+              className="aim-status font-bold"
+              style={{ color: 'var(--text-muted)', fontStyle: 'normal' }}
+            >
+              status:
+            </span>
             <AnimatePresence mode="wait">
               {editingStatus ? (
                 <motion.div
@@ -216,7 +243,9 @@ export default function Header({
         <div className="flex items-center justify-between gap-2">
           {/* Site title */}
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex-1 min-w-0">
-            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 truncate">✨ My Journal ✨</h1>
+            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 truncate">
+              ✨ My Journal ✨
+            </h1>
             <p className="xanga-subtitle hidden sm:block">~ where my thoughts come alive ~</p>
           </motion.div>
 
@@ -235,7 +264,13 @@ export default function Header({
 
             {user ? (
               <>
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={onProfileClick} className="xanga-button flex items-center gap-1" aria-label="Edit profile">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onProfileClick}
+                  className="xanga-button flex items-center gap-1"
+                  aria-label="Edit profile"
+                >
                   <Pepicon name="person" size={14} />
                   <span className="hidden lg:inline">Profile</span>
                 </motion.button>
@@ -270,7 +305,8 @@ export default function Header({
       <div
         className="h-1"
         style={{
-          background: 'linear-gradient(to right, var(--accent-primary), var(--accent-secondary), var(--border-primary))',
+          background:
+            'linear-gradient(to right, var(--accent-primary), var(--accent-secondary), var(--border-primary))',
         }}
       />
     </motion.header>

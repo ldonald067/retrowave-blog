@@ -39,11 +39,21 @@ export default function Textarea({
         className={`w-full px-3 py-2.5 rounded-lg text-sm border-2 border-dotted transition resize-none focus:outline-none ${className}`}
         style={{
           backgroundColor: 'var(--input-bg, var(--card-bg))',
-          borderColor: error ? 'var(--accent-secondary)' : 'var(--input-border, var(--border-primary))',
+          borderColor: error
+            ? 'var(--accent-secondary)'
+            : 'var(--input-border, var(--border-primary))',
           color: 'var(--text-body)',
         }}
         aria-invalid={error ? true : undefined}
-        aria-describedby={[error ? `${textareaId}-error` : '', charCount ? `${textareaId}-count` : '', hint && !error ? `${textareaId}-hint` : ''].filter(Boolean).join(' ') || undefined}
+        aria-describedby={
+          [
+            error ? `${textareaId}-error` : '',
+            charCount ? `${textareaId}-count` : '',
+            hint && !error ? `${textareaId}-hint` : '',
+          ]
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
         {...props}
       />
       <div className="mt-1 flex justify-between items-start">

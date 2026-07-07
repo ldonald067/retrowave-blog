@@ -99,7 +99,7 @@ describe('validateEmbeddedLinks', () => {
 
   it('rejects data: URLs', () => {
     expect(validateEmbeddedLinks([{ url: 'data:text/html,<h1>hi</h1>' }])).toContain(
-      'http or https',
+      'http or https'
     );
   });
 });

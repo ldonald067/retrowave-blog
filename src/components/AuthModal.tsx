@@ -82,7 +82,8 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
                 className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition min-h-[44px] hover:brightness-95 active:brightness-90"
                 style={{
                   fontFamily: 'var(--title-font)',
-                  backgroundColor: activeTab === 'login' ? 'var(--button-gradient-from)' : 'var(--card-bg)',
+                  backgroundColor:
+                    activeTab === 'login' ? 'var(--button-gradient-from)' : 'var(--card-bg)',
                   color: activeTab === 'login' ? 'var(--text-title)' : 'var(--text-muted)',
                 }}
               >
@@ -98,7 +99,8 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
                 style={{
                   fontFamily: 'var(--title-font)',
                   borderColor: 'var(--border-primary)',
-                  backgroundColor: activeTab === 'signup' ? 'var(--button-gradient-from)' : 'var(--card-bg)',
+                  backgroundColor:
+                    activeTab === 'signup' ? 'var(--button-gradient-from)' : 'var(--card-bg)',
                   color: activeTab === 'signup' ? 'var(--text-title)' : 'var(--text-muted)',
                 }}
               >

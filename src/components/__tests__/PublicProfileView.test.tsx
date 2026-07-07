@@ -83,11 +83,11 @@ describe('PublicProfileView', () => {
 
     expect(screen.getByRole('link', { name: /report public entry/i })).toHaveAttribute(
       'href',
-      expect.stringContaining('mailto:'),
+      expect.stringContaining('mailto:')
     );
     expect(screen.getByRole('link', { name: /report public page/i })).toHaveAttribute(
       'href',
-      expect.stringContaining('mailto:'),
+      expect.stringContaining('mailto:')
     );
   });
 
@@ -110,7 +110,7 @@ describe('PublicProfileView', () => {
     expect(document.title).toBe('Jane | My Journal');
     expect(document.querySelector('meta[name="description"]')).toHaveAttribute(
       'content',
-      'still up at 2am',
+      'still up at 2am'
     );
     expect(screen.getByRole('button', { name: /browse home/i })).toBeInTheDocument();
   });

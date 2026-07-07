@@ -75,19 +75,16 @@ interface AvatarPickerProps {
   onCancel?: () => void;
 }
 
-export default function AvatarPicker({
-  userId,
-  onSelect,
-  onCancel,
-}: AvatarPickerProps) {
+export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPickerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStyle, setSelectedStyle] = useState<string>('bottts');
   const [selectedSeed, setSelectedSeed] = useState<string>(userId || 'sparkle');
 
   // Filter styles by category
-  const filteredStyles = selectedCategory === 'all'
-    ? AVATAR_STYLES
-    : AVATAR_STYLES.filter(s => s.category === selectedCategory);
+  const filteredStyles =
+    selectedCategory === 'all'
+      ? AVATAR_STYLES
+      : AVATAR_STYLES.filter((s) => s.category === selectedCategory);
 
   const generateAvatarUrl = (style: string, seed: string) => {
     return `https://api.dicebear.com/7.x/${encodeURIComponent(style)}/svg?seed=${encodeURIComponent(seed)}`;
@@ -110,8 +107,7 @@ export default function AvatarPicker({
           onClick={onCancel}
           className="xanga-link flex items-center gap-1 text-xs"
         >
-          <ChevronLeft size={14} />
-          ~ go back ~
+          <ChevronLeft size={14} />~ go back ~
         </button>
       )}
 
@@ -140,8 +136,7 @@ export default function AvatarPicker({
             onClick={() => onSelect(currentSelection)}
             className="xanga-button text-xs flex items-center gap-1"
           >
-            <Check size={12} />
-            ~ use this ~
+            <Check size={12} />~ use this ~
           </button>
         </div>
       </div>
@@ -161,22 +156,21 @@ export default function AvatarPicker({
               type="button"
               onClick={() => {
                 setSelectedCategory(cat.id);
-                const firstInCategory = cat.id === 'all'
-                  ? AVATAR_STYLES[0]
-                  : AVATAR_STYLES.find(s => s.category === cat.id);
+                const firstInCategory =
+                  cat.id === 'all'
+                    ? AVATAR_STYLES[0]
+                    : AVATAR_STYLES.find((s) => s.category === cat.id);
                 if (firstInCategory) setSelectedStyle(firstInCategory.id);
               }}
               className="px-3 py-2 text-xs rounded-lg border-2 border-dotted transition font-bold min-h-[44px] lg:min-h-0"
               style={{
-                backgroundColor: selectedCategory === cat.id
-                  ? 'color-mix(in srgb, var(--accent-primary) 20%, var(--card-bg))'
-                  : 'var(--card-bg)',
-                borderColor: selectedCategory === cat.id
-                  ? 'var(--accent-primary)'
-                  : 'var(--border-primary)',
-                color: selectedCategory === cat.id
-                  ? 'var(--accent-primary)'
-                  : 'var(--text-body)',
+                backgroundColor:
+                  selectedCategory === cat.id
+                    ? 'color-mix(in srgb, var(--accent-primary) 20%, var(--card-bg))'
+                    : 'var(--card-bg)',
+                borderColor:
+                  selectedCategory === cat.id ? 'var(--accent-primary)' : 'var(--border-primary)',
+                color: selectedCategory === cat.id ? 'var(--accent-primary)' : 'var(--text-body)',
                 fontFamily: 'var(--title-font)',
               }}
             >
@@ -202,15 +196,13 @@ export default function AvatarPicker({
               onClick={() => setSelectedStyle(style.id)}
               className="px-3 py-2 text-xs rounded-lg border-2 border-dotted transition min-h-[44px] lg:min-h-0"
               style={{
-                backgroundColor: selectedStyle === style.id
-                  ? 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))'
-                  : 'var(--card-bg)',
-                borderColor: selectedStyle === style.id
-                  ? 'var(--accent-secondary)'
-                  : 'var(--border-primary)',
-                color: selectedStyle === style.id
-                  ? 'var(--accent-secondary)'
-                  : 'var(--text-body)',
+                backgroundColor:
+                  selectedStyle === style.id
+                    ? 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))'
+                    : 'var(--card-bg)',
+                borderColor:
+                  selectedStyle === style.id ? 'var(--accent-secondary)' : 'var(--border-primary)',
+                color: selectedStyle === style.id ? 'var(--accent-secondary)' : 'var(--text-body)',
                 fontFamily: 'var(--title-font)',
               }}
             >

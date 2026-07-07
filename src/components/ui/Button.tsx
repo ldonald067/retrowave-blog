@@ -72,10 +72,7 @@ export default function Button({
             : variant === 'ghost'
               ? 'transparent'
               : 'var(--border-primary)',
-        color:
-          variant === 'danger'
-            ? 'var(--accent-secondary)'
-            : 'var(--text-body)',
+        color: variant === 'danger' ? 'var(--accent-secondary)' : 'var(--text-body)',
         fontFamily: 'var(--title-font)',
       }}
       disabled={disabled || loading}

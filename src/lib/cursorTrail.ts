@@ -30,12 +30,18 @@ export function getTrailMode(): TrailMode {
   try {
     const stored = localStorage.getItem(TRAIL_KEY);
     if (stored && stored in TRAIL_MODES) return stored as TrailMode;
-  } catch { /* private browsing */ }
+  } catch {
+    /* private browsing */
+  }
   return 'sparkle';
 }
 
 export function setTrailMode(mode: TrailMode): void {
-  try { localStorage.setItem(TRAIL_KEY, mode); } catch { /* private browsing */ }
+  try {
+    localStorage.setItem(TRAIL_KEY, mode);
+  } catch {
+    /* private browsing */
+  }
   window.dispatchEvent(new CustomEvent('cursor-trail-change', { detail: mode }));
 }
 

@@ -74,10 +74,7 @@ describe('usePublicProfile', () => {
 
       expect(result.current.data).toBeNull();
       expect(result.current.notFound).toBe(true);
-      expect(warnSpy).toHaveBeenCalledWith(
-        '[usePublicProfile] fetch failed:',
-        expect.any(Error)
-      );
+      expect(warnSpy).toHaveBeenCalledWith('[usePublicProfile] fetch failed:', expect.any(Error));
     } finally {
       warnSpy.mockRestore();
     }

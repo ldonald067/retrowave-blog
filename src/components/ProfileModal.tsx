@@ -117,7 +117,11 @@ export default function ProfileModal({
   const [currentMood, setCurrentMood] = useState('');
   const [currentMusic, setCurrentMusic] = useState('');
   const [saving, setSaving] = useState(false);
-  const [errors, setErrors] = useState<{ displayName?: string; statusMessage?: string; bio?: string }>({});
+  const [errors, setErrors] = useState<{
+    displayName?: string;
+    statusMessage?: string;
+    bio?: string;
+  }>({});
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
@@ -409,13 +413,14 @@ export default function ProfileModal({
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
                 {isInitialSetup && (
                   <div className="xanga-box p-4">
-                    <h3 className="xanga-title text-base sm:text-lg mb-2">
-                      ~ quick start ~
-                    </h3>
+                    <h3 className="xanga-title text-base sm:text-lg mb-2">~ quick start ~</h3>
                     <div className="space-y-1 text-xs" style={{ color: 'var(--text-muted)' }}>
                       <p>step 1: pick a name, status, avatar, and theme</p>
                       <p>step 2: save this setup and jump straight into your first entry</p>
-                      <p>you can come back later for bio, playlists, public page settings, and safety tools</p>
+                      <p>
+                        you can come back later for bio, playlists, public page settings, and safety
+                        tools
+                      </p>
                     </div>
                   </div>
                 )}
@@ -502,7 +507,7 @@ export default function ProfileModal({
                     />
                     <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
                       {isInitialSetup
-                        ? "this is the name people will see when they land on ur space"
+                        ? 'this is the name people will see when they land on ur space'
                         : "this is how u'll appear 2 others"}
                     </p>
                   </div>
@@ -667,59 +672,59 @@ export default function ProfileModal({
                   </div>
 
                   {!isInitialSetup && (
-                  <div className="xanga-box p-4">
-                    <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                      <Pepicon name="stars" size={14} color="var(--accent-primary)" />
-                      emoji style
-                    </h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {EMOJI_STYLES.map((emojiStyle) => (
-                        <button
-                          key={emojiStyle.id}
-                          type="button"
-                          onClick={() => {
-                            setSelectedEmojiStyle(emojiStyle.id);
-                            setEmojiStyle(emojiStyle.id);
-                          }}
-                          aria-pressed={selectedEmojiStyle === emojiStyle.id}
-                          className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
-                          style={{
-                            backgroundColor:
-                              selectedEmojiStyle === emojiStyle.id
-                                ? 'color-mix(in srgb, var(--accent-primary) 15%, var(--card-bg))'
-                                : 'var(--card-bg)',
-                            borderColor:
-                              selectedEmojiStyle === emojiStyle.id
-                                ? 'var(--accent-primary)'
-                                : 'var(--border-primary)',
-                            transform:
-                              selectedEmojiStyle === emojiStyle.id ? 'scale(1.02)' : 'scale(1)',
-                          }}
-                        >
-                          {/* Preview row showing 3 sample emoji */}
-                          <div className="flex items-center gap-1 mb-1">
-                            {['❤️', '🔥', '😂'].map((emoji) => (
-                              <StyledEmoji
-                                key={emoji}
-                                emoji={emoji}
-                                size={18}
-                                overrideStyle={emojiStyle.id}
-                              />
-                            ))}
-                          </div>
-                          <p
-                            className="text-xs font-bold"
-                            style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
+                    <div className="xanga-box p-4">
+                      <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                        <Pepicon name="stars" size={14} color="var(--accent-primary)" />
+                        emoji style
+                      </h3>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {EMOJI_STYLES.map((emojiStyle) => (
+                          <button
+                            key={emojiStyle.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedEmojiStyle(emojiStyle.id);
+                              setEmojiStyle(emojiStyle.id);
+                            }}
+                            aria-pressed={selectedEmojiStyle === emojiStyle.id}
+                            className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
+                            style={{
+                              backgroundColor:
+                                selectedEmojiStyle === emojiStyle.id
+                                  ? 'color-mix(in srgb, var(--accent-primary) 15%, var(--card-bg))'
+                                  : 'var(--card-bg)',
+                              borderColor:
+                                selectedEmojiStyle === emojiStyle.id
+                                  ? 'var(--accent-primary)'
+                                  : 'var(--border-primary)',
+                              transform:
+                                selectedEmojiStyle === emojiStyle.id ? 'scale(1.02)' : 'scale(1)',
+                            }}
                           >
-                            {emojiStyle.name}
-                          </p>
-                          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                            {emojiStyle.description}
-                          </p>
-                        </button>
-                      ))}
+                            {/* Preview row showing 3 sample emoji */}
+                            <div className="flex items-center gap-1 mb-1">
+                              {['❤️', '🔥', '😂'].map((emoji) => (
+                                <StyledEmoji
+                                  key={emoji}
+                                  emoji={emoji}
+                                  size={18}
+                                  overrideStyle={emojiStyle.id}
+                                />
+                              ))}
+                            </div>
+                            <p
+                              className="text-xs font-bold"
+                              style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
+                            >
+                              {emojiStyle.name}
+                            </p>
+                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                              {emojiStyle.description}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
                   )}
                 </ProfileSectionPanel>
 
@@ -825,9 +830,7 @@ export default function ProfileModal({
                       >
                         {bio || (isInitialSetup ? 'you can add a bio later...' : 'no bio yet...')}
                       </p>
-                      {statusMessage && (
-                        <p className="aim-status mt-2">📟 ~ {statusMessage} ~</p>
-                      )}
+                      {statusMessage && <p className="aim-status mt-2">📟 ~ {statusMessage} ~</p>}
                       {currentMood && (
                         <p className="text-xs mt-1" style={{ color: 'var(--accent-primary)' }}>
                           mood: {currentMood}
@@ -852,31 +855,35 @@ export default function ProfileModal({
               </p>
             )}
             <div className="flex justify-end gap-2 w-full sm:w-auto">
-            {!isInitialSetup && (
+              {!isInitialSetup && (
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  disabled={saving}
+                  className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted min-h-[44px]"
+                  style={{
+                    backgroundColor: 'var(--card-bg)',
+                    color: 'var(--text-body)',
+                    borderColor: 'var(--border-primary)',
+                    fontFamily: 'var(--title-font)',
+                  }}
+                >
+                  cancel
+                </button>
+              )}
               <button
                 type="button"
-                onClick={handleCancel}
                 disabled={saving}
-                className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted min-h-[44px]"
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  color: 'var(--text-body)',
-                  borderColor: 'var(--border-primary)',
-                  fontFamily: 'var(--title-font)',
-                }}
+                onClick={handleSubmit}
+                className="xanga-button flex items-center gap-2 text-sm"
               >
-                cancel
+                <Pepicon name="floppyDisk" size={14} />
+                {saving
+                  ? 'saving...'
+                  : isInitialSetup
+                    ? '~ save + start writing ~'
+                    : '~ save changes ~'}
               </button>
-            )}
-            <button
-              type="button"
-              disabled={saving}
-              onClick={handleSubmit}
-              className="xanga-button flex items-center gap-2 text-sm"
-            >
-              <Pepicon name="floppyDisk" size={14} />
-              {saving ? 'saving...' : isInitialSetup ? '~ save + start writing ~' : '~ save changes ~'}
-            </button>
             </div>
           </ModalFooter>
         </ModalFrame>

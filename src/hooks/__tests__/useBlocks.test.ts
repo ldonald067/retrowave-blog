@@ -44,7 +44,10 @@ describe('useBlocks', () => {
 
     const { result } = renderHook(() => useBlocks());
 
-    let response: { is_blocked: boolean; error: string | null } = { is_blocked: false, error: null };
+    let response: { is_blocked: boolean; error: string | null } = {
+      is_blocked: false,
+      error: null,
+    };
     await act(async () => {
       response = await result.current.toggleBlock('user-123');
     });
@@ -81,7 +84,10 @@ describe('useBlocks', () => {
 
     const { result } = renderHook(() => useBlocks());
 
-    let response: { is_blocked: boolean; error: string | null } = { is_blocked: false, error: null };
+    let response: { is_blocked: boolean; error: string | null } = {
+      is_blocked: false,
+      error: null,
+    };
     await act(async () => {
       response = await result.current.toggleBlock('user-789');
     });
@@ -91,11 +97,17 @@ describe('useBlocks', () => {
   });
 
   it('toggleBlock returns auth error when not logged in', async () => {
-    vi.mocked(requireAuth).mockResolvedValueOnce({ user: null, error: 'You must be logged in.' } as never);
+    vi.mocked(requireAuth).mockResolvedValueOnce({
+      user: null,
+      error: 'You must be logged in.',
+    } as never);
 
     const { result } = renderHook(() => useBlocks());
 
-    let response: { is_blocked: boolean; error: string | null } = { is_blocked: false, error: null };
+    let response: { is_blocked: boolean; error: string | null } = {
+      is_blocked: false,
+      error: null,
+    };
     await act(async () => {
       response = await result.current.toggleBlock('user-123');
     });
@@ -131,7 +143,10 @@ describe('useBlocks', () => {
   });
 
   it('fetchBlockedUsers returns auth error when not logged in', async () => {
-    vi.mocked(requireAuth).mockResolvedValueOnce({ user: null, error: 'You must be logged in.' } as never);
+    vi.mocked(requireAuth).mockResolvedValueOnce({
+      user: null,
+      error: 'You must be logged in.',
+    } as never);
 
     const { result } = renderHook(() => useBlocks());
 

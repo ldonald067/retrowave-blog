@@ -24,7 +24,7 @@ export function useBlocks(): UseBlocksReturn {
         if (auth.error) return { is_blocked: false, error: auth.error };
 
         const { data, error } = await withRetry(async () =>
-          supabase.rpc('toggle_user_block', { p_target_user_id: targetUserId }),
+          supabase.rpc('toggle_user_block', { p_target_user_id: targetUserId })
         );
         if (error) throw error;
         const result = data as { is_blocked: boolean } | null;
@@ -33,10 +33,13 @@ export function useBlocks(): UseBlocksReturn {
         return { is_blocked: false, error: toUserMessage(err) };
       }
     },
-    [],
+    []
   );
 
-  const fetchBlockedUsers = useCallback(async (): Promise<{ data: BlockedUser[]; error: string | null }> => {
+  const fetchBlockedUsers = useCallback(async (): Promise<{
+    data: BlockedUser[];
+    error: string | null;
+  }> => {
     try {
       const auth = await requireAuth();
       if (auth.error) return { data: [], error: auth.error };
@@ -45,7 +48,7 @@ export function useBlocks(): UseBlocksReturn {
         supabase
           .from('user_blocks')
           .select('blocked_id, created_at')
-          .order('created_at', { ascending: false }),
+          .order('created_at', { ascending: false })
       );
       if (error) throw error;
       return { data: (data as BlockedUser[]) ?? [], error: null };

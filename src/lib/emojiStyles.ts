@@ -85,7 +85,11 @@ export function getEmojiStyle(): EmojiStyleId {
 
 export function setEmojiStyle(style: EmojiStyleId): void {
   _currentStyle = style;
-  try { localStorage.setItem(STORAGE_KEY, style); } catch { /* private browsing */ }
+  try {
+    localStorage.setItem(STORAGE_KEY, style);
+  } catch {
+    /* private browsing */
+  }
 
   // Preload the 6 reaction emoji for instant display
   if (style !== 'native') {

@@ -19,11 +19,7 @@ function createContainer(): HTMLDivElement {
   return container;
 }
 
-function dispatchKeyDown(
-  target: HTMLElement,
-  key: string,
-  shiftKey = false,
-): void {
+function dispatchKeyDown(target: HTMLElement, key: string, shiftKey = false): void {
   const event = new KeyboardEvent('keydown', {
     key,
     shiftKey,

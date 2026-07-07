@@ -191,9 +191,7 @@ describe('useAuth', () => {
     const query = {
       select: vi.fn().mockReturnThis(),
       eq: vi.fn().mockReturnThis(),
-      single: vi.fn().mockImplementation(() =>
-        Promise.resolve({ data: nextProfile, error: null })
-      ),
+      single: vi.fn().mockImplementation(() => Promise.resolve({ data: nextProfile, error: null })),
     };
     vi.mocked(supabase.from).mockReturnValue(query as never);
 

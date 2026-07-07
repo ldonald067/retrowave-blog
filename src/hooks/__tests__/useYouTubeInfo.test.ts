@@ -46,9 +46,7 @@ describe('useYouTubeInfo', () => {
     vi.mocked(parseYouTubeUrl).mockReturnValue(mockInfo);
     vi.mocked(fetchYouTubeTitle).mockResolvedValue(null);
 
-    const { result } = renderHook(() =>
-      useYouTubeInfo('https://www.youtube.com/watch?v=abc123'),
-    );
+    const { result } = renderHook(() => useYouTubeInfo('https://www.youtube.com/watch?v=abc123'));
 
     await waitFor(() => {
       expect(result.current).not.toBeNull();
@@ -67,9 +65,7 @@ describe('useYouTubeInfo', () => {
     vi.mocked(parseYouTubeUrl).mockReturnValue(mockInfo);
     vi.mocked(fetchYouTubeTitle).mockResolvedValue('My Cool Video');
 
-    const { result } = renderHook(() =>
-      useYouTubeInfo('https://youtu.be/xyz789'),
-    );
+    const { result } = renderHook(() => useYouTubeInfo('https://youtu.be/xyz789'));
 
     // Wait for async title fetch
     await waitFor(() => {
@@ -95,9 +91,7 @@ describe('useYouTubeInfo', () => {
     });
     vi.mocked(fetchYouTubeTitle).mockReturnValue(titlePromise);
 
-    const { result, unmount } = renderHook(() =>
-      useYouTubeInfo('https://youtu.be/cleanup1'),
-    );
+    const { result, unmount } = renderHook(() => useYouTubeInfo('https://youtu.be/cleanup1'));
 
     await waitFor(() => {
       expect(result.current).not.toBeNull();

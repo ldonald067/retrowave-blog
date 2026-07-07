@@ -7,6 +7,8 @@ describe('publicProfile helpers', () => {
   });
 
   it('builds absolute public profile urls from an origin', () => {
-    expect(buildPublicProfileUrl('jane', 'https://example.com')).toBe('https://example.com/#/u/jane');
+    expect(buildPublicProfileUrl('jane', 'https://example.com')).toBe(
+      'https://example.com/#/u/jane'
+    );
   });
 });

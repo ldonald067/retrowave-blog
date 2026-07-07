@@ -100,7 +100,7 @@ describe('Chapter Privacy', () => {
 
   it('filters out posts in private chapters for public view', () => {
     const publicPosts = mockPosts.filter(
-      (p) => !p.is_private && (p.chapter === null || !privateChapters.includes(p.chapter!)),
+      (p) => !p.is_private && (p.chapter === null || !privateChapters.includes(p.chapter!))
     );
     expect(publicPosts).toHaveLength(3); // loose public + deep thoughts + daily vibes
     expect(publicPosts.find((p) => p.chapter === 'secret diary')).toBeUndefined();
@@ -108,7 +108,7 @@ describe('Chapter Privacy', () => {
 
   it('filters out individually private posts for public view', () => {
     const publicPosts = mockPosts.filter(
-      (p) => !p.is_private && (p.chapter === null || !privateChapters.includes(p.chapter!)),
+      (p) => !p.is_private && (p.chapter === null || !privateChapters.includes(p.chapter!))
     );
     expect(publicPosts.find((p) => p.title === 'Private loose post')).toBeUndefined();
   });
@@ -120,7 +120,7 @@ describe('Chapter Privacy', () => {
       { id: '6', title: 'Double private', chapter: 'secret diary', is_private: true },
     ];
     const publicPosts = postsWithBoth.filter(
-      (p) => !p.is_private && (p.chapter === null || !privateChapters.includes(p.chapter!)),
+      (p) => !p.is_private && (p.chapter === null || !privateChapters.includes(p.chapter!))
     );
     expect(publicPosts).toHaveLength(3);
     expect(publicPosts.find((p) => p.title === 'Double private')).toBeUndefined();
@@ -129,7 +129,7 @@ describe('Chapter Privacy', () => {
   it('empty private chapters array hides nothing', () => {
     const noPrivate: string[] = [];
     const publicPosts = mockPosts.filter(
-      (p) => !p.is_private && (p.chapter === null || !noPrivate.includes(p.chapter!)),
+      (p) => !p.is_private && (p.chapter === null || !noPrivate.includes(p.chapter!))
     );
     expect(publicPosts).toHaveLength(4); // all except the individually private post
   });

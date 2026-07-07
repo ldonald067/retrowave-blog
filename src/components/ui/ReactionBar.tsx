@@ -60,7 +60,7 @@ export default function ReactionBar({
       }, 850);
       timersRef.current.add(timer);
     },
-    [onToggle, disabled],
+    [onToggle, disabled]
   );
 
   return (
@@ -84,7 +84,9 @@ export default function ReactionBar({
               backgroundColor: isActive
                 ? 'color-mix(in srgb, var(--accent-primary) 20%, var(--card-bg))'
                 : 'var(--card-bg)',
-              boxShadow: isActive ? '0 1px 3px color-mix(in srgb, var(--accent-primary) 30%, transparent)' : 'none',
+              boxShadow: isActive
+                ? '0 1px 3px color-mix(in srgb, var(--accent-primary) 30%, transparent)'
+                : 'none',
             }}
             aria-label={`${isActive ? 'Remove' : 'Add'} ${emoji} reaction${disabled ? ' (sign in required)' : ''}`}
             aria-pressed={isActive}

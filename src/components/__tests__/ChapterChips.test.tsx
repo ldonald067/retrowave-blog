@@ -13,9 +13,9 @@ vi.mock('framer-motion', () => ({
       children,
       whileTap: _whileTap,
       ...props
-    }: React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement> & { whileTap?: unknown }>) => (
-      <button {...props}>{children}</button>
-    ),
+    }: React.PropsWithChildren<
+      React.ButtonHTMLAttributes<HTMLButtonElement> & { whileTap?: unknown }
+    >) => <button {...props}>{children}</button>,
   },
 }));
 
@@ -62,9 +62,7 @@ describe('ChapterChips', () => {
   });
 
   it('returns null when no chapters exist', () => {
-    const { container } = render(
-      <ChapterChips {...defaultProps} chapters={[]} />,
-    );
+    const { container } = render(<ChapterChips {...defaultProps} chapters={[]} />);
     expect(container.innerHTML).toBe('');
   });
 

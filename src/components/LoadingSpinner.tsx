@@ -11,7 +11,9 @@ export default function LoadingSpinner({ fullScreen = true, className = '' }: Lo
     'flex flex-col items-center justify-center gap-3 text-center',
     fullScreen ? 'min-h-screen safe-area-top page-safe-bottom px-4' : '',
     className,
-  ].filter(Boolean).join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <div className={containerClassName} role="status" aria-live="polite">

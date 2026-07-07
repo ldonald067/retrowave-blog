@@ -17,7 +17,7 @@ interface PublicProfileViewProps {
 function PublicPostCard({ post, username }: { post: PublicPost; username: string }) {
   const reportHref = buildReportEmailHref(
     `Report public entry: "${post.title}" (${post.id})`,
-    `Public page: @${username}\nEntry id: ${post.id}\nTitle: ${post.title}`,
+    `Public page: @${username}\nEntry id: ${post.id}\nTitle: ${post.title}`
   );
 
   return (
@@ -30,12 +30,16 @@ function PublicPostCard({ post, username }: { post: PublicPost; username: string
       <div
         className="p-4 border-b-2 border-dotted"
         style={{
-          background: 'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
+          background:
+            'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
           borderColor: 'var(--border-primary)',
         }}
       >
         <h2 className="xanga-title text-lg sm:text-2xl mb-1 break-words">{post.title}</h2>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs min-h-[28px]" style={{ color: 'var(--text-muted)' }}>
+        <div
+          className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs min-h-[28px]"
+          style={{ color: 'var(--text-muted)' }}
+        >
           <span className="flex items-center gap-1">
             <span style={{ color: 'var(--accent-primary)' }}>📅</span>
             {formatDate(post.created_at, 'MMM dd, yyyy')}
@@ -58,9 +62,7 @@ function PublicPostCard({ post, username }: { post: PublicPost; username: string
           style={{ color: 'var(--text-body)' }}
         >
           {post.content}
-          {post.content_truncated && (
-            <span style={{ color: 'var(--text-muted)' }}> ...</span>
-          )}
+          {post.content_truncated && <span style={{ color: 'var(--text-muted)' }}> ...</span>}
         </div>
       </div>
 
@@ -83,7 +85,11 @@ function PublicPostCard({ post, username }: { post: PublicPost; username: string
   );
 }
 
-export default function PublicProfileView({ username, onSignUp, onGoHome }: PublicProfileViewProps) {
+export default function PublicProfileView({
+  username,
+  onSignUp,
+  onGoHome,
+}: PublicProfileViewProps) {
   const { data, loading, notFound } = usePublicProfile(username);
 
   // Apply the profile owner's theme
@@ -135,7 +141,10 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
 
   if (loading) {
     return (
-      <div className="min-h-screen safe-area-top page-safe-bottom flex items-center justify-center" style={{ backgroundColor: 'var(--bg-primary)' }}>
+      <div
+        className="min-h-screen safe-area-top page-safe-bottom flex items-center justify-center"
+        style={{ backgroundColor: 'var(--bg-primary)' }}
+      >
         <LoadingSpinner fullScreen={false} />
       </div>
     );
@@ -143,7 +152,10 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
 
   if (notFound || !data) {
     return (
-      <div className="min-h-screen safe-area-top page-safe-bottom flex flex-col items-center justify-center gap-4 p-4" style={{ backgroundColor: 'var(--bg-primary)' }}>
+      <div
+        className="min-h-screen safe-area-top page-safe-bottom flex flex-col items-center justify-center gap-4 p-4"
+        style={{ backgroundColor: 'var(--bg-primary)' }}
+      >
         <div className="xanga-box p-8 text-center max-w-md">
           <p className="xanga-title text-xl mb-2">~ profile not found ~</p>
           <p className="text-sm mb-4" style={{ color: 'var(--text-muted)' }}>
@@ -153,7 +165,10 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
             <button onClick={onGoHome} className="xanga-button text-sm px-4 py-2 w-full sm:w-auto">
               go home
             </button>
-            <button onClick={onSignUp} className="xanga-link text-sm w-full sm:w-auto justify-center">
+            <button
+              onClick={onSignUp}
+              className="xanga-link text-sm w-full sm:w-auto justify-center"
+            >
               start your own journal ✨
             </button>
           </div>
@@ -167,18 +182,22 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
   const joinedYear = new Date(profile.created_at).getFullYear();
   const profileReportHref = buildReportEmailHref(
     `Report public page: @${profile.username}`,
-    `Public page: @${profile.username}`,
+    `Public page: @${profile.username}`
   );
 
   return (
-    <div className="min-h-screen safe-area-top page-safe-bottom" style={{ backgroundColor: 'var(--bg-primary)' }}>
+    <div
+      className="min-h-screen safe-area-top page-safe-bottom"
+      style={{ backgroundColor: 'var(--bg-primary)' }}
+    >
       {/* Marquee banner */}
       <div
         className="overflow-hidden py-1 text-xs"
         style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-muted)' }}
       >
         <div className="marquee">
-          ~ welcome to {profile.display_name || profile.username}'s journal ~ ♥ ~ thx 4 stopping by ~ ☆ ~ xoxo ~
+          ~ welcome to {profile.display_name || profile.username}'s journal ~ ♥ ~ thx 4 stopping by
+          ~ ☆ ~ xoxo ~
         </div>
       </div>
 
@@ -205,7 +224,10 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
                 <p className="aim-status mt-2">📟 ~ {profile.status_message} ~</p>
               )}
               {profile.bio && (
-                <p className="text-sm mt-2 italic break-words" style={{ color: 'var(--text-body)' }}>
+                <p
+                  className="text-sm mt-2 italic break-words"
+                  style={{ color: 'var(--text-body)' }}
+                >
                   {profile.bio}
                 </p>
               )}
@@ -248,10 +270,7 @@ export default function PublicProfileView({ username, onSignUp, onGoHome }: Publ
                 >
                   browse home
                 </button>
-                <button
-                  onClick={onSignUp}
-                  className="xanga-button text-xs px-4 py-2 min-h-[44px]"
-                >
+                <button onClick={onSignUp} className="xanga-button text-xs px-4 py-2 min-h-[44px]">
                   start your own journal
                 </button>
               </div>

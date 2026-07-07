@@ -2,7 +2,13 @@ import { useEffect, useRef } from 'react';
 import { TRAIL_MODES, getTrailMode, type TrailMode } from '../lib/cursorTrail';
 
 const RAINBOW_COLORS = [
-  '#ff0000', '#ff8800', '#ffff00', '#00cc00', '#0088ff', '#8800ff', '#ff00ff',
+  '#ff0000',
+  '#ff8800',
+  '#ffff00',
+  '#00cc00',
+  '#0088ff',
+  '#8800ff',
+  '#ff00ff',
 ];
 
 const MAX_SPARKLES = 20;
@@ -53,7 +59,8 @@ export default function CursorSparkle() {
       sparkle.style.fontSize = `${size}px`;
 
       if (mode === 'rainbow') {
-        sparkle.style.color = RAINBOW_COLORS[rainbowIndex.current % RAINBOW_COLORS.length] ?? '#ff0000';
+        sparkle.style.color =
+          RAINBOW_COLORS[rainbowIndex.current % RAINBOW_COLORS.length] ?? '#ff0000';
         rainbowIndex.current++;
       } else {
         sparkle.style.color = config.color;
@@ -72,5 +79,11 @@ export default function CursorSparkle() {
     return () => document.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  return <div ref={containerRef} aria-hidden="true" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999 }} />;
+  return (
+    <div
+      ref={containerRef}
+      aria-hidden="true"
+      style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9999 }}
+    />
+  );
 }

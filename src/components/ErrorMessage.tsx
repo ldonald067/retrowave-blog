@@ -17,9 +17,7 @@ export default function ErrorMessage({ error, onRetry }: ErrorMessageProps) {
       <div className="text-5xl mb-4">😵‍💫</div>
 
       <div className="xanga-box p-6 max-w-md w-full mb-6">
-        <h2 className="xanga-title text-xl mb-3">
-          ~ oops! something went wrong ~
-        </h2>
+        <h2 className="xanga-title text-xl mb-3">~ oops! something went wrong ~</h2>
 
         <div
           className="xanga-box p-3 mb-4 text-left"
@@ -43,8 +41,7 @@ export default function ErrorMessage({ error, onRetry }: ErrorMessageProps) {
             onClick={onRetry}
             className="xanga-button w-full py-2.5 text-sm flex items-center justify-center gap-2"
           >
-            <Pepicon name="loop" size={14} />
-            ~ try again ~
+            <Pepicon name="loop" size={14} />~ try again ~
           </motion.button>
         )}
       </div>
