@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import type { Chapter } from '../hooks/useChapters';
 
@@ -85,14 +85,36 @@ export default function ChapterChips({
     }
   }, []);
 
-  const allChips = useMemo(() => [
-    { id: null as string | null, label: 'all entries', count: postCount, icon: '✨', isPrivate: false },
-    ...(looseCount > 0 ? [{ id: looseKey as string | null, label: 'loose entries', count: looseCount, icon: '🍃', isPrivate: false }] : []),
+  const allChips = [
+    {
+      id: null as string | null,
+      label: 'all entries',
+      count: postCount,
+      icon: '✨',
+      isPrivate: false,
+    },
+    ...(looseCount > 0
+      ? [
+          {
+            id: looseKey as string | null,
+            label: 'loose entries',
+            count: looseCount,
+            icon: '🍃',
+            isPrivate: false,
+          },
+        ]
+      : []),
     ...chapters.map((ch) => {
       const priv = privateChapters.includes(ch.chapter);
-      return { id: ch.chapter as string | null, label: ch.chapter, count: ch.post_count, icon: priv ? '🔒' : '📖', isPrivate: priv };
+      return {
+        id: ch.chapter as string | null,
+        label: ch.chapter,
+        count: ch.post_count,
+        icon: priv ? '🔒' : '📖',
+        isPrivate: priv,
+      };
     }),
-  ], [chapters, postCount, looseCount, looseKey, privateChapters]);
+  ];
 
   if (chapters.length === 0) return null;
 
@@ -131,15 +153,9 @@ export default function ChapterChips({
               data-active={isActive}
               className="chapter-chip"
               style={{
-                backgroundColor: isActive
-                  ? 'var(--accent-primary)'
-                  : 'var(--card-bg)',
-                color: isActive
-                  ? 'var(--card-bg)'
-                  : 'var(--text-body)',
-                borderColor: isActive
-                  ? 'var(--accent-primary)'
-                  : 'var(--border-primary)',
+                backgroundColor: isActive ? 'var(--accent-primary)' : 'var(--card-bg)',
+                color: isActive ? 'var(--card-bg)' : 'var(--text-body)',
+                borderColor: isActive ? 'var(--accent-primary)' : 'var(--border-primary)',
               }}
             >
               <span className="truncate max-w-[140px]">
@@ -151,9 +167,7 @@ export default function ChapterChips({
                   backgroundColor: isActive
                     ? 'rgba(255,255,255,0.25)'
                     : 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
-                  color: isActive
-                    ? 'var(--card-bg)'
-                    : 'var(--text-muted)',
+                  color: isActive ? 'var(--card-bg)' : 'var(--text-muted)',
                 }}
               >
                 {chip.count}

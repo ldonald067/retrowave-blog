@@ -10,51 +10,40 @@ interface UseReactionsOptions {
    * Called BEFORE the server round-trip with the predicted new state.
    * Called AGAIN with opposite values on server error (rollback).
    */
-  onOptimisticUpdate?: (
-    postId: string,
-    emoji: string,
-    userId: string,
-    wasActive: boolean,
-  ) => void;
+  onOptimisticUpdate?: (postId: string, emoji: string, userId: string, wasActive: boolean) => void;
 }
 
 interface UseReactionsReturn {
   toggleReaction: (
     postId: string,
     emoji: string,
-    currentUserReactions: string[],
+    currentUserReactions: string[]
   ) => Promise<{ error: string | null }>;
 }
 
-// F2 FIX: Cooldown prevents rapid double-taps from firing competing
-// insert + delete requests. 400ms covers iPhone's fast touch events.
+// Prevents rapid double-taps from firing competing insert + delete
+// requests. 400ms covers iPhone's fast touch events.
 const REACTION_COOLDOWN_MS = 400;
 
-export function useReactions(
-  options: UseReactionsOptions = {},
-): UseReactionsReturn {
+export function useReactions(options: UseReactionsOptions = {}): UseReactionsReturn {
   const { onOptimisticUpdate } = options;
 
-  // F2 FIX: Track in-flight reactions to prevent race conditions.
-  // Key format: "postId:emoji" — one guard per post+emoji combination.
+  // Both keyed by "postId:emoji" — one guard per post+emoji combination.
   const inFlightRef = useRef<Set<string>>(new Set());
-  // F2 FIX: Per-reaction cooldown timestamps for debounce (iPhone touch).
   const cooldownRef = useRef<Map<string, number>>(new Map());
 
   const toggleReaction = useCallback(
     async (
       postId: string,
       emoji: string,
-      currentUserReactions: string[],
+      currentUserReactions: string[]
     ): Promise<{ error: string | null }> => {
       const key = `${postId}:${emoji}`;
 
-      // F2 FIX: If this exact reaction is already in-flight, silently ignore
       if (inFlightRef.current.has(key)) {
         return { error: null };
       }
 
-      // F2 FIX: Cooldown guard — prevents rapid double-taps on iPhone
       const lastTime = cooldownRef.current.get(key);
       if (lastTime && Date.now() - lastTime < REACTION_COOLDOWN_MS) {
         return { error: null };
@@ -71,10 +60,7 @@ export function useReactions(
       inFlightRef.current.add(key);
       cooldownRef.current.set(key, Date.now());
 
-      // T4: Optimistic update — update the UI immediately
       onOptimisticUpdate?.(postId, emoji, user.id, wasActive);
-
-      // Tactile feedback on iOS
       void hapticImpact();
 
       try {
@@ -85,7 +71,7 @@ export function useReactions(
               .delete()
               .eq('post_id', postId)
               .eq('user_id', user.id)
-              .eq('reaction_type', emoji),
+              .eq('reaction_type', emoji)
           );
           if (error) throw error;
         } else {
@@ -94,7 +80,7 @@ export function useReactions(
               post_id: postId,
               user_id: user.id,
               reaction_type: emoji,
-            }),
+            })
           );
           if (error) throw error;
         }
@@ -108,7 +94,7 @@ export function useReactions(
         inFlightRef.current.delete(key);
       }
     },
-    [onOptimisticUpdate],
+    [onOptimisticUpdate]
   );
 
   return { toggleReaction };

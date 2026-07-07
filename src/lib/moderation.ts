@@ -119,16 +119,16 @@ const ADULT_URL_KEYWORDS = [
   'fetish',
   'bdsm',
   'milf',
-  // L11 FIX: Removed 'teen' and 'gay' — extremely high false-positive rate
+  // 'teen' and 'gay' deliberately omitted — extremely high false-positive rate
   // for legitimate content (e.g., "teenager", "gay rights", "teen vogue").
-  // These terms in URLs are caught by the domain blocklist when actually adult.
+  // Actually-adult URLs with these terms are caught by the domain blocklist.
   'fuck',
   'pussy',
   'cock',
   'dick',
   'boob',
   'tits',
-  // 'ass' removed — matches 'class', 'massachusetts', 'bass', etc.
+  // 'ass' deliberately omitted — matches 'class', 'massachusetts', 'bass', etc.
   'anal',
   'blowjob',
   'creampie',
@@ -146,15 +146,7 @@ const ADULT_URL_KEYWORDS = [
 ];
 
 // Words that are concerning but need context
-const WARNING_WORDS = [
-  'hate',
-  'kill',
-  'die',
-  'death',
-  'murder',
-  'attack',
-  'destroy',
-];
+const WARNING_WORDS = ['hate', 'kill', 'die', 'death', 'murder', 'attack', 'destroy'];
 
 export interface ModerationResult {
   allowed: boolean;
@@ -182,7 +174,7 @@ function isBlockedUrl(url: string): { blocked: boolean; reason?: string } {
     if (lowerUrl.includes(domain)) {
       return {
         blocked: true,
-        reason: 'Links to adult or inappropriate websites are not allowed.'
+        reason: 'Links to adult or inappropriate websites are not allowed.',
       };
     }
   }
@@ -197,14 +189,14 @@ function isBlockedUrl(url: string): { blocked: boolean; reason?: string } {
       if (pathAndQuery.includes(keyword)) {
         return {
           blocked: true,
-          reason: 'Links containing adult content are not allowed.'
+          reason: 'Links containing adult content are not allowed.',
         };
       }
       // Also check subdomain
       if (urlObj.hostname.includes(keyword)) {
         return {
           blocked: true,
-          reason: 'Links to adult websites are not allowed.'
+          reason: 'Links to adult websites are not allowed.',
         };
       }
     } catch {
@@ -212,7 +204,7 @@ function isBlockedUrl(url: string): { blocked: boolean; reason?: string } {
       if (lowerUrl.includes(keyword)) {
         return {
           blocked: true,
-          reason: 'Links containing adult content are not allowed.'
+          reason: 'Links containing adult content are not allowed.',
         };
       }
     }
@@ -272,7 +264,7 @@ export function quickContentCheck(text: string): ModerationResult {
 
   // Check for warning words (just flag, don't block)
   const lowerText = text.toLowerCase();
-  const foundWarnings = WARNING_WORDS.filter(word => lowerText.includes(word));
+  const foundWarnings = WARNING_WORDS.filter((word) => lowerText.includes(word));
   if (foundWarnings.length >= 3) {
     // Multiple warning words might indicate problematic content
     return {
@@ -290,9 +282,9 @@ export function quickContentCheck(text: string): ModerationResult {
  * Requires the caller to supply a function that resolves the user's JWT
  * so the edge function can authenticate the request.
  *
- * C4 FIX: Now accepts embedded_links and forwards them to the edge function
- * for server-side URL validation. Previously URL checking was client-only
- * and could be bypassed by calling the REST API directly.
+ * Embedded links are forwarded to the edge function so URL validation also
+ * happens server-side — client-only checking can be bypassed by calling the
+ * REST API directly.
  *
  * @param title - Post title
  * @param content - Post body
@@ -305,7 +297,7 @@ export async function moderateContent(
   content: string,
   embeddedLinks: Array<{ url: string }> | null | undefined,
   supabaseUrl: string,
-  getAuthToken: () => Promise<string | null>,
+  getAuthToken: () => Promise<string | null>
 ): Promise<ModerationResult> {
   // First, do a quick local check (text patterns + client-side URL check)
   const quickCheck = quickContentCheck(`${title} ${content}`);
@@ -323,11 +315,9 @@ export async function moderateContent(
     }
   }
 
-  // M5 FIX: Always send to AI moderation regardless of content length.
-  // The previous 500-char threshold allowed short harmful content that
-  // evaded regex patterns to skip AI review entirely. OpenAI's moderation
-  // endpoint is free, so there's no cost concern.
-
+  // Everything goes to AI moderation regardless of length — a length threshold
+  // would let short harmful content that evades the regex patterns skip AI
+  // review, and OpenAI's moderation endpoint is free.
   try {
     const token = await getAuthToken();
     if (!token) {
@@ -342,7 +332,6 @@ export async function moderateContent(
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      // C4 FIX: Pass embedded_links for server-side URL validation
       body: JSON.stringify({
         title,
         content,
@@ -351,12 +340,11 @@ export async function moderateContent(
     });
 
     if (!response.ok) {
-      // L3 DESIGN NOTE: Intentional fail-open. If the moderation service is
-      // unavailable, we allow the post through because the local regex check
-      // already passed. This prevents the moderation service from becoming a
-      // single point of failure that blocks all posts. The trade-off is that
-      // subtle harmful content may slip through during outages, but blocking
-      // all posting is worse for UX. See also: edge function index.ts.
+      // Intentional fail-open. If the moderation service is unavailable, the
+      // post is allowed through because the local regex check already passed —
+      // otherwise the service becomes a single point of failure that blocks
+      // all posting. Subtle harmful content may slip through during outages,
+      // but blocking all posts is worse. Mirrored in the edge function.
       console.warn('Moderation service unavailable, using local check only');
       return { allowed: true, severity: 'clean' };
     }
@@ -364,13 +352,9 @@ export async function moderateContent(
     const result = await response.json();
     return result as ModerationResult;
   } catch (error) {
-    // L3 DESIGN NOTE: Same fail-open reasoning as above — network errors,
-    // timeouts, etc. don't block post creation. Local checks still apply.
+    // Same fail-open reasoning as above — network errors, timeouts, etc.
+    // don't block post creation. Local checks still apply.
     console.warn('Moderation check failed:', error);
     return { allowed: true, severity: 'clean' };
   }
 }
-
-// F5 FIX: sanitizeContent() was dead code — never called anywhere.
-// The render-time sanitization via rehype-sanitize + DOMPurify is the
-// correct approach and is already wired into PostCard.tsx. Removed.

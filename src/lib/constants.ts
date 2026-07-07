@@ -11,8 +11,6 @@ export const BLOG_OWNER_EMAIL = 'retrowave.blog.app@gmail.com';
 
 // Age Verification
 export const MIN_AGE = 13; // COPPA compliance
-export const CURRENT_YEAR = new Date().getFullYear();
-// MIN_BIRTH_YEAR and MAX_AGE removed — unused by any consumer
 
 // Validation Rules — derived from PROFILE_LIMITS in validation.ts (single source of truth)
 import { PROFILE_LIMITS } from './validation';
@@ -75,8 +73,6 @@ export const SUCCESS_MESSAGES = {
 
 // Feed — content truncation thresholds
 export const FEED_EXCERPT_MAX = 300; // characters before "read more" appears
-
-// UI.toast.duration removed — useToast.ts owns DEFAULT_DURATIONS (per-type)
 
 // Mood options for posts - Xanga/LiveJournal style!
 export const MOODS = [

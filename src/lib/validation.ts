@@ -35,16 +35,13 @@ interface PostValidationErrors {
   embedded_links?: string;
 }
 
-export function validatePostInput(
-  input: Partial<CreatePostInput>,
-): PostValidationErrors {
+export function validatePostInput(input: Partial<CreatePostInput>): PostValidationErrors {
   const errors: PostValidationErrors = {};
 
-  // M1 FIX: Only validate fields that are present in the input.
-  // Previously, missing fields defaulted to '' via ?? '', which
-  // failed min-length checks. A partial update changing only
-  // `mood` would be rejected with "Title is required."
-  // Uses the same 'field' in input pattern as validateProfileInput.
+  // Only validate fields present in the input — defaulting missing fields
+  // to '' would fail min-length checks, rejecting a partial update that
+  // changes only `mood` with "Title is required." Same 'field' in input
+  // pattern as validateProfileInput.
 
   if ('title' in input) {
     const title = (input.title ?? '').trim();
@@ -100,9 +97,7 @@ export function validatePostInput(
   return errors;
 }
 
-export function validateEmbeddedLinks(
-  value: Json | null | undefined,
-): string | null {
+export function validateEmbeddedLinks(value: Json | null | undefined): string | null {
   if (value == null) return null;
   if (!Array.isArray(value)) {
     return 'embedded_links must be an array of link objects';
@@ -116,12 +111,9 @@ export function validateEmbeddedLinks(
     if (typeof link.url !== 'string' || !link.url) {
       return `embedded_links[${i}].url is required and must be a string`;
     }
-    // M2 FIX: Reject non-http(s) schemes to prevent stored XSS via
+    // Reject non-http(s) schemes to prevent stored XSS via
     // javascript: or data: URLs rendered as href attributes.
-    if (
-      !link.url.startsWith('http://') &&
-      !link.url.startsWith('https://')
-    ) {
+    if (!link.url.startsWith('http://') && !link.url.startsWith('https://')) {
       return `embedded_links[${i}].url must use http or https`;
     }
   }
@@ -129,7 +121,7 @@ export function validateEmbeddedLinks(
 }
 
 export function hasValidationErrors(
-  errors: PostValidationErrors | ProfileValidationErrors,
+  errors: PostValidationErrors | ProfileValidationErrors
 ): boolean {
   return Object.keys(errors).length > 0;
 }
@@ -163,9 +155,7 @@ interface ProfileValidationErrors {
  * Validate profile update fields. Only checks fields that are present
  * in the input (partial updates are valid).
  */
-export function validateProfileInput(
-  input: Record<string, unknown>,
-): ProfileValidationErrors {
+export function validateProfileInput(input: Record<string, unknown>): ProfileValidationErrors {
   const errors: ProfileValidationErrors = {};
 
   if ('display_name' in input && typeof input.display_name === 'string') {

@@ -52,6 +52,3 @@ export interface PublicProfileData {
   profile: PublicProfile;
   posts: PublicPost[];
 }
-
-// L8 FIX: Removed unused UserStats, UpdateProfileInput, SignupData interfaces
-// — nothing imports them. If needed later, re-create here.

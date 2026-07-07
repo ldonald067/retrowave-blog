@@ -1,14 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { MIN_AGE, CURRENT_YEAR, VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants';
+import { MIN_AGE, VALIDATION, ERROR_MESSAGES, SUCCESS_MESSAGES } from '../constants';
 
 describe('constants', () => {
   it('MIN_AGE is 13 for COPPA compliance', () => {
     expect(MIN_AGE).toBe(13);
-  });
-
-  it('CURRENT_YEAR is a reasonable year', () => {
-    expect(CURRENT_YEAR).toBeGreaterThanOrEqual(2024);
-    expect(CURRENT_YEAR).toBeLessThanOrEqual(2100);
   });
 
   it('VALIDATION has correct display name limits', () => {

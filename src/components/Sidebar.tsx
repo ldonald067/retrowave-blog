@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
@@ -30,7 +30,19 @@ interface SidebarProps {
   onToggleChapterPrivacy?: (chapter: string) => void;
 }
 
-export default function Sidebar({ user, profile, onEditProfile, postCount = 0, chapters = [], activeChapter = null, onChapterSelect, looseCount = 0, looseKey = '__loose__', privateChapters = [], onToggleChapterPrivacy }: SidebarProps) {
+export default function Sidebar({
+  user,
+  profile,
+  onEditProfile,
+  postCount = 0,
+  chapters = [],
+  activeChapter = null,
+  onChapterSelect,
+  looseCount = 0,
+  looseKey = '__loose__',
+  privateChapters = [],
+  onToggleChapterPrivacy,
+}: SidebarProps) {
   const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
   const [collapsed, setCollapsed] = useState(() => {
     try {
@@ -48,32 +60,32 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
   const handleToggleCollapsed = () => {
     setCollapsed((prev) => {
       const next = !prev;
-      try { localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next)); } catch { /* private browsing */ }
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
+      } catch {
+        /* private browsing */
+      }
       return next;
     });
   };
 
-  const userData = useMemo(
-    () => ({
-      username: profile?.username || user?.email?.split('@')[0] || 'guest',
-      displayName: profile?.display_name || '✨ New User ✨',
-      avatar:
-        profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'guest'}`,
-      bio: profile?.bio || 'Welcome to my journal!',
-      mood: profile?.current_mood || null,
-      music: profile?.current_music || null,
-      memberSince: profile?.created_at
-        ? new Date(profile.created_at).getFullYear().toString()
-        : '2026',
-    }),
-    [user, profile],
-  );
+  const userData = {
+    username: profile?.username || user?.email?.split('@')[0] || 'guest',
+    displayName: profile?.display_name || '✨ New User ✨',
+    avatar:
+      profile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${user?.id || 'guest'}`,
+    bio: profile?.bio || 'Welcome to my journal!',
+    mood: profile?.current_mood || null,
+    music: profile?.current_music || null,
+    memberSince: profile?.created_at
+      ? new Date(profile.created_at).getFullYear().toString()
+      : '2026',
+  };
 
   const ytInfo = useYouTubeInfo(userData.music);
   const [trailMode, setTrail] = useTrailMode();
-  const publicProfileUrl = profile?.is_public && profile?.username
-    ? buildPublicProfileUrl(profile.username)
-    : null;
+  const publicProfileUrl =
+    profile?.is_public && profile?.username ? buildPublicProfileUrl(profile.username) : null;
   const statusMessage = profile?.status_message?.trim() ?? '';
 
   const flashShareState = () => {
@@ -168,9 +180,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               </a>
             </div>
           )}
-          {statusMessage && (
-            <p className="aim-status mt-1">📟 ~ {statusMessage} ~</p>
-          )}
+          {statusMessage && <p className="aim-status mt-1">📟 ~ {statusMessage} ~</p>}
         </div>
 
         <div className="mt-4 space-y-2 text-sm">
@@ -185,7 +195,9 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
             >
               <div className="flex items-center gap-2">
                 <Pepicon name="heartFilled" size={14} color="var(--accent-primary)" />
-                <span className="font-bold" style={{ color: 'var(--text-body)' }}>Current Mood:</span>
+                <span className="font-bold" style={{ color: 'var(--text-body)' }}>
+                  Current Mood:
+                </span>
               </div>
               <div className="ml-6 mt-1" style={{ color: 'var(--text-muted)' }}>
                 {userData.mood}
@@ -197,21 +209,31 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
           {userData.music && (
             <div className="winamp-player">
               <div className="winamp-titlebar">
-                <span className="flex items-center gap-1"><WinampIcon size={12} alt="" /> WINAMP</span>
+                <span className="flex items-center gap-1">
+                  <WinampIcon size={12} alt="" /> WINAMP
+                </span>
                 <span style={{ fontSize: '7px', opacity: 0.7 }}>v2.91</span>
               </div>
-              <div className="winamp-display">
-                {ytInfo?.title || userData.music}
-              </div>
+              <div className="winamp-display">{ytInfo?.title || userData.music}</div>
               <div className="winamp-progress">
                 <div className="winamp-progress-bar" />
               </div>
               <div className="winamp-controls" aria-hidden="true">
-                <button className="winamp-btn" tabIndex={-1}>⏮</button>
-                <button className="winamp-btn" tabIndex={-1}>▶</button>
-                <button className="winamp-btn" tabIndex={-1}>⏸</button>
-                <button className="winamp-btn" tabIndex={-1}>⏹</button>
-                <button className="winamp-btn" tabIndex={-1}>⏭</button>
+                <button className="winamp-btn" tabIndex={-1}>
+                  ⏮
+                </button>
+                <button className="winamp-btn" tabIndex={-1}>
+                  ▶
+                </button>
+                <button className="winamp-btn" tabIndex={-1}>
+                  ⏸
+                </button>
+                <button className="winamp-btn" tabIndex={-1}>
+                  ⏹
+                </button>
+                <button className="winamp-btn" tabIndex={-1}>
+                  ⏭
+                </button>
               </div>
               {ytInfo && (
                 <div className="px-1 pb-1">
@@ -236,7 +258,12 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
         >
           About Me
         </h3>
-        <p className="text-xs leading-relaxed italic break-words" style={{ color: 'var(--text-body)' }}>{userData.bio}</p>
+        <p
+          className="text-xs leading-relaxed italic break-words"
+          style={{ color: 'var(--text-body)' }}
+        >
+          {userData.bio}
+        </p>
       </motion.div>
 
       {/* Stats */}
@@ -259,7 +286,9 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               <Windows95Notepad size={14} alt="" />
               Entries:
             </span>
-            <span className="font-bold" style={{ color: 'var(--accent-primary)' }}>{postCount}</span>
+            <span className="font-bold" style={{ color: 'var(--accent-primary)' }}>
+              {postCount}
+            </span>
           </div>
 
           <div className="flex justify-between items-center">
@@ -267,7 +296,9 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               <Windows98DateTime size={14} alt="" />
               member since:
             </span>
-            <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>{userData.memberSince} ✨</span>
+            <span className="font-bold" style={{ color: 'var(--accent-secondary)' }}>
+              {userData.memberSince} ✨
+            </span>
           </div>
         </div>
       </motion.div>
@@ -295,13 +326,21 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                 color: activeChapter === null ? 'var(--accent-primary)' : 'var(--text-body)',
                 fontWeight: activeChapter === null ? 700 : 400,
                 fontFamily: 'var(--title-font)',
-                backgroundColor: activeChapter === null ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'transparent',
+                backgroundColor:
+                  activeChapter === null
+                    ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                    : 'transparent',
               }}
               aria-label={`Show all entries (${postCount})`}
               aria-pressed={activeChapter === null}
             >
               <span>✨ all entries</span>
-              <span className="text-xs font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{postCount}</span>
+              <span
+                className="text-xs font-normal"
+                style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}
+              >
+                {postCount}
+              </span>
             </button>
             {looseCount > 0 && (
               <button
@@ -311,13 +350,21 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
                   color: activeChapter === looseKey ? 'var(--accent-primary)' : 'var(--text-body)',
                   fontWeight: activeChapter === looseKey ? 700 : 400,
                   fontFamily: 'var(--title-font)',
-                  backgroundColor: activeChapter === looseKey ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'transparent',
+                  backgroundColor:
+                    activeChapter === looseKey
+                      ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                      : 'transparent',
                 }}
                 aria-label={`Show loose entries (${looseCount})`}
                 aria-pressed={activeChapter === looseKey}
               >
                 <span>🍃 loose entries</span>
-                <span className="text-xs font-normal" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{looseCount}</span>
+                <span
+                  className="text-xs font-normal"
+                  style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}
+                >
+                  {looseCount}
+                </span>
               </button>
             )}
             {chapters.map((ch) => {
@@ -325,26 +372,44 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
               return (
                 <div key={ch.chapter} className="flex items-center gap-1">
                   <button
-                    onClick={() => onChapterSelect?.(activeChapter === ch.chapter ? null : ch.chapter)}
+                    onClick={() =>
+                      onChapterSelect?.(activeChapter === ch.chapter ? null : ch.chapter)
+                    }
                     className="flex-1 text-left px-2 py-1.5 rounded text-[13px] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2 min-w-0"
                     style={{
-                      color: activeChapter === ch.chapter ? 'var(--accent-primary)' : 'var(--text-body)',
+                      color:
+                        activeChapter === ch.chapter ? 'var(--accent-primary)' : 'var(--text-body)',
                       fontWeight: activeChapter === ch.chapter ? 700 : 400,
                       fontFamily: 'var(--title-font)',
-                      backgroundColor: activeChapter === ch.chapter ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)' : 'transparent',
+                      backgroundColor:
+                        activeChapter === ch.chapter
+                          ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                          : 'transparent',
                     }}
                     aria-pressed={activeChapter === ch.chapter}
                     aria-label={`Filter by chapter: ${ch.chapter} (${ch.post_count} ${ch.post_count === 1 ? 'entry' : 'entries'})`}
                   >
-                    <span className="truncate">{isPrivate ? '🔒' : '📖'} {ch.chapter}</span>
-                    <span className="text-xs font-normal flex-shrink-0" style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}>{ch.post_count}</span>
+                    <span className="truncate">
+                      {isPrivate ? '🔒' : '📖'} {ch.chapter}
+                    </span>
+                    <span
+                      className="text-xs font-normal flex-shrink-0"
+                      style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}
+                    >
+                      {ch.post_count}
+                    </span>
                   </button>
                   {onToggleChapterPrivacy && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); onToggleChapterPrivacy(ch.chapter); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleChapterPrivacy(ch.chapter);
+                      }}
                       className="flex-shrink-0 min-h-[36px] min-w-[36px] flex items-center justify-center rounded transition hover:opacity-80"
                       style={{ color: 'var(--text-muted)' }}
-                      aria-label={isPrivate ? `Make "${ch.chapter}" public` : `Make "${ch.chapter}" private`}
+                      aria-label={
+                        isPrivate ? `Make "${ch.chapter}" public` : `Make "${ch.chapter}" private`
+                      }
                       title={isPrivate ? 'Make public' : 'Make private'}
                     >
                       <span className="text-sm">{isPrivate ? '🔓' : '🔒'}</span>
@@ -389,7 +454,6 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
           ))}
         </div>
       </motion.div>
-
     </>
   );
 
@@ -442,9 +506,7 @@ export default function Sidebar({ user, profile, onEditProfile, postCount = 0, c
       </div>
 
       {/* Desktop: always visible */}
-      <div className="hidden lg:block space-y-4">
-        {sidebarContent}
-      </div>
+      <div className="hidden lg:block space-y-4">{sidebarContent}</div>
     </aside>
   );
 }

@@ -201,12 +201,10 @@ export interface Database {
         ];
       };
     };
-    // H3 FIX: posts_with_details view removed — no migration ever created it.
-    // It was a ghost type from a prior architecture superseded by the
-    // get_posts_with_reactions RPC function.
+    // No views exist in the schema — reads go through RPC functions.
     Views: Record<string, never>;
     Functions: {
-      // C2 FIX: SECURITY DEFINER function to set COPPA fields.
+      // SECURITY DEFINER function to set COPPA fields.
       // Bypasses the protect_coppa_fields trigger via session variable.
       set_age_verification: {
         Args: {
@@ -310,4 +308,3 @@ export interface Database {
     CompositeTypes: Record<string, never>;
   };
 }
-

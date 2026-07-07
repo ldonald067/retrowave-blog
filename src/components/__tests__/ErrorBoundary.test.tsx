@@ -38,8 +38,8 @@ describe('ErrorBoundary', () => {
     );
 
     expect(screen.getByText('Oops! 😵')).toBeInTheDocument();
-    // Error message is now a static string (no raw error leakage)
-    expect(screen.getByText('Something went wrong. Try refreshing the page.')).toBeInTheDocument();
+    // Error message is a static string (no raw error leakage)
+    expect(screen.getByText('Something went wrong rendering this page.')).toBeInTheDocument();
     expect(screen.getByText('Try Again')).toBeInTheDocument();
     expect(screen.getByText('Reload Page')).toBeInTheDocument();
   });

@@ -28,7 +28,7 @@ function isRetryable(err: unknown): boolean {
   };
   if (supaErr.code && NON_RETRYABLE_CODES.has(supaErr.code)) return false;
   if (supaErr.message?.match(/permission|unauthorized|jwt|rls/i)) return false;
-  // L2 FIX: Don't retry rate-limited responses — retrying deepens the
+  // Don't retry rate-limited responses — retrying deepens the
   // rate limit hole, especially on flaky mobile connections where
   // bursts of retried requests compound the problem.
   if (supaErr.status === 429) return false;
@@ -48,10 +48,7 @@ function delay(ms: number): Promise<void> {
  * result has an error property and the error is retryable, it throws
  * to trigger a retry. Non-retryable errors are returned as-is.
  */
-export async function withRetry<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {},
-): Promise<T> {
+export async function withRetry<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const { maxAttempts = 3, baseDelayMs = 300, maxDelayMs = 5000 } = options;
 
   let lastError: unknown;

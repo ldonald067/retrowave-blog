@@ -68,13 +68,7 @@ type FeedPreferenceState = {
   sortFilter: SortFilter;
 };
 
-type ActiveFeedFilterKey =
-  | 'search'
-  | 'chapter'
-  | 'visibility'
-  | 'music'
-  | 'mood'
-  | 'sort';
+type ActiveFeedFilterKey = 'search' | 'chapter' | 'visibility' | 'music' | 'mood' | 'sort';
 
 const FEED_PREFERENCES_KEY = 'feed-preferences';
 
@@ -145,7 +139,6 @@ function PostList({
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  // Screen reader announcement for loaded posts
   const [srAnnouncement, setSrAnnouncement] = useState('');
   const prevCountRef = useRef(posts.length);
   useEffect(() => {
@@ -177,7 +170,7 @@ function PostList({
       (entries) => {
         if (entries[0]?.isIntersecting) handleLoadMore();
       },
-      { root: parentRef.current, rootMargin: '0px 0px 200px 0px' },
+      { root: parentRef.current, rootMargin: '0px 0px 200px 0px' }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
@@ -213,8 +206,17 @@ function PostList({
   return (
     <div>
       {/* Screen reader announcement for infinite scroll */}
-      <div className="sr-only" aria-live="polite" aria-atomic="true">{srAnnouncement}</div>
-      <div ref={parentRef} className="overflow-auto" style={{ maxHeight: containerHeight ? `${containerHeight}px` : 'calc(100dvh - 200px)', scrollbarWidth: 'thin' }}>
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {srAnnouncement}
+      </div>
+      <div
+        ref={parentRef}
+        className="overflow-auto"
+        style={{
+          maxHeight: containerHeight ? `${containerHeight}px` : 'calc(100dvh - 200px)',
+          scrollbarWidth: 'thin',
+        }}
+      >
         <div className="relative w-full" style={{ height: `${virtualizer.getTotalSize()}px` }}>
           {virtualizer.getVirtualItems().map((virtualRow) => {
             const post = posts[virtualRow.index];
@@ -243,7 +245,10 @@ function PostList({
         {/* Inline error for pagination failures */}
         {loadMoreError && (
           <div className="xanga-box p-3 mt-4 text-center">
-            <p className="text-xs" style={{ color: 'var(--accent-secondary)', fontFamily: 'var(--title-font)' }}>
+            <p
+              className="text-xs"
+              style={{ color: 'var(--accent-secondary)', fontFamily: 'var(--title-font)' }}
+            >
               ❌ {loadMoreError}
             </p>
             <button onClick={onLoadMore} className="xanga-link text-xs mt-2">
@@ -255,11 +260,7 @@ function PostList({
         {/* Infinite scroll sentinel + fallback manual button */}
         {hasMore && !loadMoreError && (
           <div ref={loadMoreRef} className="flex justify-center pt-4 pb-2">
-            <button
-              onClick={onLoadMore}
-              disabled={loadingMore}
-              className="xanga-button text-sm"
-            >
+            <button onClick={onLoadMore} disabled={loadingMore} className="xanga-button text-sm">
               {loadingMore ? 'Loading...' : '\u00AB Older Entries'}
             </button>
           </div>
@@ -268,7 +269,10 @@ function PostList({
         {/* End-of-list indicator */}
         {!hasMore && posts.length > 0 && (
           <div className="text-center py-3 sm:py-6">
-            <p className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
+            <p
+              className="text-xs"
+              style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
+            >
               ~ that's all for now! ~
             </p>
             <p className="text-xs mt-1" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
@@ -290,7 +294,15 @@ function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
-  const { user, profile, profileError, loading: authLoading, signOut, updateProfile, refetchProfile } = useAuth();
+  const {
+    user,
+    profile,
+    profileError,
+    loading: authLoading,
+    signOut,
+    updateProfile,
+    refetchProfile,
+  } = useAuth();
   const {
     posts,
     loading: postsLoading,
@@ -307,7 +319,6 @@ function App() {
     fetchPost,
   } = usePosts(user?.id ?? null);
   const { toasts, hideToast, success, error: showError } = useToast();
-  // T4: Pass optimistic update handler to useReactions
   const { toggleReaction } = useReactions({
     onOptimisticUpdate: applyOptimisticReaction,
   });
@@ -332,14 +343,14 @@ function App() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [visibilityFilter, setVisibilityFilter] = useState<VisibilityFilter>(
-    () => loadFeedPreferences().visibilityFilter ?? 'all',
+    () => loadFeedPreferences().visibilityFilter ?? 'all'
   );
   const [musicFilter, setMusicFilter] = useState<MusicFilter>(
-    () => loadFeedPreferences().musicFilter ?? 'all',
+    () => loadFeedPreferences().musicFilter ?? 'all'
   );
   const [moodFilter, setMoodFilter] = useState(() => loadFeedPreferences().moodFilter ?? '');
   const [sortFilter, setSortFilter] = useState<SortFilter>(
-    () => loadFeedPreferences().sortFilter ?? 'newest',
+    () => loadFeedPreferences().sortFilter ?? 'newest'
   );
   const [openComposerAfterProfileSetup, setOpenComposerAfterProfileSetup] = useState(false);
   // Subscribe to emoji style changes for footer attribution
@@ -373,26 +384,25 @@ function App() {
 
   // Filter posts by chapter (client-side) — memoized to avoid re-filtering on every render
   const looseCount = useMemo(() => posts.filter((p) => !p.chapter).length, [posts]);
-  const chapterFilteredPosts = useMemo(() =>
-    chapterFilter === LOOSE_ENTRIES
-      ? posts.filter((p) => !p.chapter)
-      : chapterFilter
-        ? posts.filter((p) => p.chapter === chapterFilter)
-        : posts,
-    [posts, chapterFilter, LOOSE_ENTRIES],
+  const chapterFilteredPosts = useMemo(
+    () =>
+      chapterFilter === LOOSE_ENTRIES
+        ? posts.filter((p) => !p.chapter)
+        : chapterFilter
+          ? posts.filter((p) => p.chapter === chapterFilter)
+          : posts,
+    [posts, chapterFilter, LOOSE_ENTRIES]
   );
   const moodOptions = useMemo(
     () =>
       Array.from(
         new Set(
-          posts
-            .map((post) => post.mood?.trim())
-            .filter((mood): mood is string => Boolean(mood))
+          posts.map((post) => post.mood?.trim()).filter((mood): mood is string => Boolean(mood))
         )
       )
         .sort((a, b) => a.localeCompare(b))
         .map((mood) => ({ value: mood, label: mood })),
-    [posts],
+    [posts]
   );
 
   useEffect(() => {
@@ -404,7 +414,7 @@ function App() {
           musicFilter,
           moodFilter,
           sortFilter,
-        } satisfies FeedPreferenceState),
+        } satisfies FeedPreferenceState)
       );
     } catch {
       // Private browsing or storage restrictions — ignore.
@@ -426,14 +436,7 @@ function App() {
       if (moodFilter && post.mood !== moodFilter) return false;
       if (!query) return true;
 
-      const haystack = [
-        post.title,
-        post.content,
-        post.author,
-        post.chapter,
-        post.mood,
-        post.music,
-      ]
+      const haystack = [post.title, post.content, post.author, post.chapter, post.mood, post.music]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
@@ -452,10 +455,10 @@ function App() {
   }, [chapterFilteredPosts, searchQuery, visibilityFilter, musicFilter, moodFilter, sortFilter]);
   const hasFeedFilters = Boolean(
     searchQuery.trim() ||
-      visibilityFilter !== 'all' ||
-      musicFilter !== 'all' ||
-      moodFilter ||
-      sortFilter !== 'newest'
+    visibilityFilter !== 'all' ||
+    musicFilter !== 'all' ||
+    moodFilter ||
+    sortFilter !== 'newest'
   );
 
   const handleChapterClick = useCallback((chapter: string) => {
@@ -481,8 +484,7 @@ function App() {
     if (chapterFilter) {
       nextFilters.push({
         key: 'chapter',
-        label:
-          chapterFilter === LOOSE_ENTRIES ? 'loose entries' : `chapter: ${chapterFilter}`,
+        label: chapterFilter === LOOSE_ENTRIES ? 'loose entries' : `chapter: ${chapterFilter}`,
       });
     }
 
@@ -560,20 +562,21 @@ function App() {
     return `nothing matches ${activeFeedFilters.map((filter) => filter.label).join(' + ')}`;
   }, [activeFeedFilters]);
 
-  const toggleChapterPrivacy = useCallback(async (chapter: string) => {
-    if (!profile) return;
-    const current = profile.private_chapters ?? [];
-    const isPrivate = current.includes(chapter);
-    const updated = isPrivate
-      ? current.filter((c) => c !== chapter)
-      : [...current, chapter];
-    const { error: err } = await updateProfile({ private_chapters: updated });
-    if (err) {
-      showError(`~ ${err} ~`);
-    } else {
-      success(isPrivate ? '📖 chapter is now public ~' : '🔒 chapter is now private ~');
-    }
-  }, [profile, updateProfile, showError, success]);
+  const toggleChapterPrivacy = useCallback(
+    async (chapter: string) => {
+      if (!profile) return;
+      const current = profile.private_chapters ?? [];
+      const isPrivate = current.includes(chapter);
+      const updated = isPrivate ? current.filter((c) => c !== chapter) : [...current, chapter];
+      const { error: err } = await updateProfile({ private_chapters: updated });
+      if (err) {
+        showError(`~ ${err} ~`);
+      } else {
+        success(isPrivate ? '📖 chapter is now public ~' : '🔒 chapter is now private ~');
+      }
+    },
+    [profile, updateProfile, showError, success]
+  );
 
   const handleNewPost = useCallback(() => {
     if (!user) {
@@ -617,15 +620,18 @@ function App() {
     setShowModal(true);
   }, []);
 
-  const handleDeletePost = useCallback((post: Post) => {
-    if (!user) {
-      showError('~ sign in 2 delete entries! ~');
-      setShowAuthModal(true);
-      return;
-    }
-    setPostToDelete(post);
-    setSelectedPost(null); // Close edit modal so confirm dialog is visible
-  }, [user, showError]);
+  const handleDeletePost = useCallback(
+    (post: Post) => {
+      if (!user) {
+        showError('~ sign in 2 delete entries! ~');
+        setShowAuthModal(true);
+        return;
+      }
+      setPostToDelete(post);
+      setSelectedPost(null); // Close edit modal so confirm dialog is visible
+    },
+    [user, showError]
+  );
 
   const confirmDeletePost = useCallback(async () => {
     if (!postToDelete) return;
@@ -643,7 +649,7 @@ function App() {
   }, [postToDelete, deletePost, showError, success, refetchChapters]);
 
   const handleSavePost = async (postData: CreatePostInput) => {
-    // C1 FIX: Run AI moderation before saving. quickContentCheck already ran
+    // Run AI moderation before saving. quickContentCheck already ran
     // in PostModal (instant local feedback), but this calls the edge function
     // for full OpenAI moderation. Fail-open: if the service is down, the post
     // goes through (local regex already passed).
@@ -656,7 +662,7 @@ function App() {
       async () => {
         const { data } = await supabase.auth.getSession();
         return data.session?.access_token ?? null;
-      },
+      }
     );
     if (!modResult.allowed) {
       showError(modResult.reason || '~ content violates community guidelines ~');
@@ -690,7 +696,7 @@ function App() {
             : '~ private entry saved just for you ~'
           : entryMightBeHiddenByCurrentView
             ? '✨ ur entry is live! clear filters if u dont see it ✨'
-            : SUCCESS_MESSAGES.post.created,
+            : SUCCESS_MESSAGES.post.created
       );
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -728,21 +734,24 @@ function App() {
 
   // T4: Optimistic reactions — no more refetch() after toggle
   // Wrapped in useCallback so PostCard (React.memo) doesn't re-render on every App render
-  const handleReaction = useCallback(async (postId: string, emoji: string) => {
-    if (!user) {
-      showError('~ sign in 2 react! ~');
-      setShowAuthModal(true);
-      return;
-    }
-    const post = postsRef.current.find((p) => p.id === postId);
-    const currentUserReactions = post?.user_reactions ?? [];
+  const handleReaction = useCallback(
+    async (postId: string, emoji: string) => {
+      if (!user) {
+        showError('~ sign in 2 react! ~');
+        setShowAuthModal(true);
+        return;
+      }
+      const post = postsRef.current.find((p) => p.id === postId);
+      const currentUserReactions = post?.user_reactions ?? [];
 
-    const { error } = await toggleReaction(postId, emoji, currentUserReactions);
-    if (error) {
-      showError(error);
-      // Note: useReactions already rolled back the optimistic update on error
-    }
-  }, [user, toggleReaction, showError]);
+      const { error } = await toggleReaction(postId, emoji, currentUserReactions);
+      if (error) {
+        showError(error);
+        // Note: useReactions already rolled back the optimistic update on error
+      }
+    },
+    [user, toggleReaction, showError]
+  );
 
   // Apple Guideline 1.2: Block user — shows confirm dialog, then blocks + refetches feed
   const handleBlock = useCallback((userId: string) => {
@@ -784,7 +793,7 @@ function App() {
       }
       return { error };
     },
-    [updateProfile, showError],
+    [updateProfile, showError]
   );
 
   const handleSaveProfile = useCallback(
@@ -796,7 +805,7 @@ function App() {
       }
       return { error };
     },
-    [updateProfile, needsProfileSetup],
+    [updateProfile, needsProfileSetup]
   );
 
   // Open the composer once profile setup completes — guarded render
@@ -826,7 +835,9 @@ function App() {
             window.location.hash = '';
             setShowAuthModal(true);
           }}
-          onGoHome={() => { window.location.hash = ''; }}
+          onGoHome={() => {
+            window.location.hash = '';
+          }}
         />
       </Suspense>
     );
@@ -869,13 +880,13 @@ function App() {
       <Suspense fallback={<LoadingSpinner />}>
         <AgeVerification
           onVerified={async (birthYear: number, tosAccepted: boolean) => {
-            // C2 FIX: Use RPC to set COPPA fields. Direct updateProfile()
-            // is now blocked by the protect_coppa_fields trigger.
+            // Set COPPA fields via RPC — direct updateProfile() is blocked
+            // by the protect_coppa_fields trigger.
             const { error } = await withRetry(async () =>
               supabase.rpc('set_age_verification', {
                 p_birth_year: birthYear,
                 p_tos_accepted: tosAccepted,
-              }),
+              })
             );
             if (error) {
               showError(`~ ${toUserMessage(error)} ~`);
@@ -936,407 +947,435 @@ function App() {
 
   return (
     <ErrorBoundary>
-    <MotionConfig reducedMotion="user">
-    <div className="min-h-screen themed-bg page-safe-bottom">
-      <a href="#main-content" className="skip-link">Skip to main content</a>
-      <CursorSparkle />
-      <Header
-        onNewPost={handleNewPost}
-        user={user}
-        profile={profile}
-        onSignOut={handleSignOut}
-        onAuthClick={() => setShowAuthModal(true)}
-        onProfileClick={handleProfileClick}
-        onSettingsClick={() => setShowSettingsModal(true)}
-        onSaveStatus={handleSaveStatus}
-      />
-
-      {/* Offline banner */}
-      <AnimatePresence>
-        {!isOnline && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="text-center text-xs py-2 font-bold overflow-hidden"
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 20%, var(--bg-primary))',
-              color: 'var(--accent-secondary)',
-            }}
-          >
-            📡 ~ ur offline rn ~ posts will load when u reconnect ✨
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Xanga-style sidebar layout */}
-      <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
-        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-          {/* Left Sidebar */}
-          <Sidebar
+      <MotionConfig reducedMotion="user">
+        <div className="min-h-screen themed-bg page-safe-bottom">
+          <a href="#main-content" className="skip-link">
+            Skip to main content
+          </a>
+          <CursorSparkle />
+          <Header
+            onNewPost={handleNewPost}
             user={user}
             profile={profile}
-            onEditProfile={handleProfileClick}
-            postCount={posts.length}
-            chapters={chapters}
-            activeChapter={chapterFilter}
-            onChapterSelect={setChapterFilter}
-            looseCount={looseCount}
-            looseKey={LOOSE_ENTRIES}
-            privateChapters={profile?.private_chapters ?? []}
-            onToggleChapterPrivacy={toggleChapterPrivacy}
+            onSignOut={handleSignOut}
+            onAuthClick={() => setShowAuthModal(true)}
+            onProfileClick={handleProfileClick}
+            onSettingsClick={() => setShowSettingsModal(true)}
+            onSaveStatus={handleSaveStatus}
           />
 
-          {/* Mobile: horizontal chapter chips above feed */}
-          <ChapterChips
-            chapters={chapters}
-            activeChapter={chapterFilter}
-            onChapterSelect={setChapterFilter}
-            postCount={posts.length}
-            looseCount={looseCount}
-            looseKey={LOOSE_ENTRIES}
-            privateChapters={profile?.private_chapters ?? []}
-          />
-
-          {/* Main Content Area */}
-          <main id="main-content" className="flex-1 min-w-0">
-            {/* Chapter filter banner */}
-            {chapterFilter && (() => {
-              const isRealChapter = chapterFilter !== LOOSE_ENTRIES;
-              const isChapterPrivate = isRealChapter && (profile?.private_chapters ?? []).includes(chapterFilter);
-              return (
-                <motion.div
-                  initial={{ opacity: 0, y: -8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="xanga-box p-3 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
-                >
-                  <span className="text-xs font-bold min-w-0 w-full sm:w-auto truncate" style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}>
-                    {chapterFilter === LOOSE_ENTRIES ? '🍃 loose entries' : `${isChapterPrivate ? '🔒' : '📖'} ${chapterFilter}`}
-                    <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
-                      ({visiblePosts.length} {visiblePosts.length === 1 ? 'entry' : 'entries'})
-                    </span>
-                  </span>
-                  <div className="flex items-center justify-end gap-1 flex-wrap w-full sm:w-auto sm:flex-shrink-0">
-                    {isRealChapter && (
-                      <button
-                        onClick={() => toggleChapterPrivacy(chapterFilter)}
-                        className="text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] lg:min-h-[28px]"
-                        style={{
-                          color: isChapterPrivate ? 'var(--accent-primary)' : 'var(--text-muted)',
-                          backgroundColor: 'color-mix(in srgb, var(--border-primary) 20%, transparent)',
-                        }}
-                        aria-label={isChapterPrivate ? 'Make chapter public' : 'Make chapter private'}
-                      >
-                        {isChapterPrivate ? '🔓 make public' : '🔒 make private'}
-                      </button>
-                    )}
-                    <button
-                      onClick={() => setChapterFilter(null)}
-                      className="xanga-link text-xs px-2"
-                    >
-                      ~ show all ~
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })()}
-
-            {posts.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="xanga-box p-4 mb-4"
+          {/* Offline banner */}
+          <AnimatePresence>
+            {!isOnline && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="text-center text-xs py-2 font-bold overflow-hidden"
+                style={{
+                  backgroundColor:
+                    'color-mix(in srgb, var(--accent-secondary) 20%, var(--bg-primary))',
+                  color: 'var(--accent-secondary)',
+                }}
               >
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h2
-                      className="xanga-title text-base sm:text-lg flex items-center gap-2"
-                      style={{ color: 'var(--text-title)' }}
-                    >
-                      <Windows95MyComputer size={18} alt="" />
-                      find old entries
-                    </h2>
-                    <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                      search your archive by text, privacy, mood, music, or last edit
-                    </p>
-                  </div>
-                  <p
-                    className="text-xs font-bold"
-                    aria-live="polite"
-                    style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
-                  >
-                    showing {visiblePosts.length} of {chapterFilteredPosts.length}{' '}
-                    {chapterFilteredPosts.length === 1 ? 'entry' : 'entries'}
-                  </p>
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
-                  <Input
-                    label="search"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="title, chapter, mood..."
-                    icon={<Windows95Notepad size={16} alt="" />}
-                    aria-label="Search entries"
-                  />
-                  <Select
-                    label="visibility"
-                    value={visibilityFilter}
-                    onChange={(e) => setVisibilityFilter(e.target.value as VisibilityFilter)}
-                    options={[...VISIBILITY_FILTER_OPTIONS]}
-                    aria-label="Filter by visibility"
-                  />
-                  <Select
-                    label="music"
-                    value={musicFilter}
-                    onChange={(e) => setMusicFilter(e.target.value as MusicFilter)}
-                    options={[...MUSIC_FILTER_OPTIONS]}
-                    aria-label="Filter by music"
-                  />
-                  <Select
-                    label="mood"
-                    value={moodFilter}
-                    onChange={(e) => setMoodFilter(e.target.value)}
-                    placeholder="any mood"
-                    options={moodOptions}
-                    aria-label="Filter by mood"
-                  />
-                  <Select
-                    label="sort"
-                    value={sortFilter}
-                    onChange={(e) => setSortFilter(e.target.value as SortFilter)}
-                    options={[...SORT_FILTER_OPTIONS]}
-                    aria-label="Sort entries"
-                  />
-                </div>
-
-                <div className="mt-3 flex flex-col gap-2 text-xs">
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                    <span style={{ color: 'var(--text-muted)' }}>{activeFeedSummaryText}</span>
-                    {hasFeedFilters && (
-                      <button onClick={clearFeedFilters} className="xanga-link text-xs min-h-[44px]">
-                        ~ clear search + filters ~
-                      </button>
-                    )}
-                    {(hasFeedFilters || chapterFilter) && (
-                      <button onClick={clearAllFilters} className="xanga-link text-xs min-h-[44px]">
-                        ~ reset everything ~
-                      </button>
-                    )}
-                  </div>
-
-                  {activeFeedFilters.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {activeFeedFilters.map((filter) => (
-                        <button
-                          key={filter.key}
-                          type="button"
-                          onClick={() => clearSingleFeedFilter(filter.key)}
-                          className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition hover:opacity-80 min-h-[44px]"
-                          style={{
-                            borderColor: 'var(--border-primary)',
-                            backgroundColor:
-                              'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
-                            color: 'var(--text-body)',
-                            fontFamily: 'var(--title-font)',
-                          }}
-                          aria-label={`Clear filter ${filter.label}`}
-                        >
-                          <span>{filter.label}</span>
-                          <span aria-hidden="true">×</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </motion.section>
+                📡 ~ ur offline rn ~ posts will load when u reconnect ✨
+              </motion.div>
             )}
+          </AnimatePresence>
 
-            {posts.length === 0 ? (
-              <EmptyState onCreatePost={handleNewPost} />
-            ) : visiblePosts.length === 0 ? (
-              <div className="xanga-box p-6 text-center">
-                <p className="text-sm" style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}>
-                  {archiveEmptyStateText} ✨
-                </p>
-                <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
-                  {chapterFilter && (
-                    <button
-                      onClick={() => setChapterFilter(null)}
-                      className="xanga-link text-xs"
-                    >
-                      ~ clear chapter ~
-                    </button>
-                  )}
-                  {hasFeedFilters && (
-                    <button onClick={clearFeedFilters} className="xanga-link text-xs">
-                      ~ clear search + filters ~
-                    </button>
-                  )}
-                  <button onClick={clearAllFilters} className="xanga-link text-xs">
-                    ~ show everything ~
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <PostList
-                posts={visiblePosts}
-                onView={handleViewPost}
-                onReaction={handleReaction}
-                onBlock={handleBlock}
-                onChapterClick={handleChapterClick}
-                currentUserId={user?.id}
-                onLoadMore={loadMore}
-                loadingMore={loadingMore}
-                hasMore={hasMore}
-                loadMoreError={loadMoreError}
+          {/* Xanga-style sidebar layout */}
+          <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
+            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+              {/* Left Sidebar */}
+              <Sidebar
+                user={user}
+                profile={profile}
+                onEditProfile={handleProfileClick}
+                postCount={posts.length}
+                chapters={chapters}
+                activeChapter={chapterFilter}
+                onChapterSelect={setChapterFilter}
+                looseCount={looseCount}
+                looseKey={LOOSE_ENTRIES}
+                privateChapters={profile?.private_chapters ?? []}
+                onToggleChapterPrivacy={toggleChapterPrivacy}
               />
-            )}
-          </main>
-        </div>
-      </div>
 
-      {/* Post Modal */}
-      {showModal && (
-        <Suspense fallback={<LazyFallback />}>
-          <PostModal
-            post={selectedPost}
-            mode={modalMode}
-            onSave={handleSavePost}
-            onClose={() => setShowModal(false)}
-            draftUserId={user?.id ?? null}
-            fetchFullPost={fetchPost}
-            chapters={chapters}
-            onDelete={handleDeletePost}
-            onEdit={handleEditPost}
-            isOwner={!!user && !!selectedPost && user.id === selectedPost.user_id}
-          />
-        </Suspense>
-      )}
+              {/* Mobile: horizontal chapter chips above feed */}
+              <ChapterChips
+                chapters={chapters}
+                activeChapter={chapterFilter}
+                onChapterSelect={setChapterFilter}
+                postCount={posts.length}
+                looseCount={looseCount}
+                looseKey={LOOSE_ENTRIES}
+                privateChapters={profile?.private_chapters ?? []}
+              />
 
-      {/* Profile Modal - also shows automatically for new users who need to set up their profile */}
-      {(showProfileModal || needsProfileSetup) && (
-        <Suspense fallback={<LazyFallback />}>
-          <ProfileModal
-            profile={profile}
-            userId={user?.id}
-            onSave={handleSaveProfile}
-            onClose={() => {
-              // Only allow closing if profile setup is complete
-              if (!needsProfileSetup) {
-                setShowProfileModal(false);
-              }
-            }}
-            onSuccess={success}
-            onError={showError}
-            isInitialSetup={needsProfileSetup}
-          />
-        </Suspense>
-      )}
+              {/* Main Content Area */}
+              <main id="main-content" className="flex-1 min-w-0">
+                {/* Chapter filter banner */}
+                {chapterFilter &&
+                  (() => {
+                    const isRealChapter = chapterFilter !== LOOSE_ENTRIES;
+                    const isChapterPrivate =
+                      isRealChapter && (profile?.private_chapters ?? []).includes(chapterFilter);
+                    return (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="xanga-box p-3 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                      >
+                        <span
+                          className="text-xs font-bold min-w-0 w-full sm:w-auto truncate"
+                          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+                        >
+                          {chapterFilter === LOOSE_ENTRIES
+                            ? '🍃 loose entries'
+                            : `${isChapterPrivate ? '🔒' : '📖'} ${chapterFilter}`}
+                          <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
+                            ({visiblePosts.length} {visiblePosts.length === 1 ? 'entry' : 'entries'}
+                            )
+                          </span>
+                        </span>
+                        <div className="flex items-center justify-end gap-1 flex-wrap w-full sm:w-auto sm:flex-shrink-0">
+                          {isRealChapter && (
+                            <button
+                              onClick={() => toggleChapterPrivacy(chapterFilter)}
+                              className="text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] lg:min-h-[28px]"
+                              style={{
+                                color: isChapterPrivate
+                                  ? 'var(--accent-primary)'
+                                  : 'var(--text-muted)',
+                                backgroundColor:
+                                  'color-mix(in srgb, var(--border-primary) 20%, transparent)',
+                              }}
+                              aria-label={
+                                isChapterPrivate ? 'Make chapter public' : 'Make chapter private'
+                              }
+                            >
+                              {isChapterPrivate ? '🔓 make public' : '🔒 make private'}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setChapterFilter(null)}
+                            className="xanga-link text-xs px-2"
+                          >
+                            ~ show all ~
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })()}
 
-      {user &&
-        !needsProfileSetup &&
-        !showModal &&
-        !showProfileModal &&
-        !showSettingsModal &&
-        !showAuthModal && (
-        <button
-          type="button"
-          onClick={handleNewPost}
-          className="lg:hidden fixed right-4 z-30 xanga-button flex items-center gap-2 px-4 py-3 shadow-lg"
-          style={{ bottom: 'calc(1rem + var(--safe-area-bottom))' }}
-          aria-label="Create a new entry"
-        >
-          <Windows95Notepad size={18} alt="" />
-          <span>new entry</span>
-        </button>
-      )}
+                {posts.length > 0 && (
+                  <motion.section
+                    initial={{ opacity: 0, y: -8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="xanga-box p-4 mb-4"
+                  >
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                      <div>
+                        <h2
+                          className="xanga-title text-base sm:text-lg flex items-center gap-2"
+                          style={{ color: 'var(--text-title)' }}
+                        >
+                          <Windows95MyComputer size={18} alt="" />
+                          find old entries
+                        </h2>
+                        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                          search your archive by text, privacy, mood, music, or last edit
+                        </p>
+                      </div>
+                      <p
+                        className="text-xs font-bold"
+                        aria-live="polite"
+                        style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
+                      >
+                        showing {visiblePosts.length} of {chapterFilteredPosts.length}{' '}
+                        {chapterFilteredPosts.length === 1 ? 'entry' : 'entries'}
+                      </p>
+                    </div>
 
-      {/* Settings Modal */}
-      {showSettingsModal && (
-        <Suspense fallback={<LazyFallback />}>
-          <SettingsModal
-            onClose={() => setShowSettingsModal(false)}
-            onSuccess={success}
-            onError={showError}
-          />
-        </Suspense>
-      )}
+                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                      <Input
+                        label="search"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="title, chapter, mood..."
+                        icon={<Windows95Notepad size={16} alt="" />}
+                        aria-label="Search entries"
+                      />
+                      <Select
+                        label="visibility"
+                        value={visibilityFilter}
+                        onChange={(e) => setVisibilityFilter(e.target.value as VisibilityFilter)}
+                        options={[...VISIBILITY_FILTER_OPTIONS]}
+                        aria-label="Filter by visibility"
+                      />
+                      <Select
+                        label="music"
+                        value={musicFilter}
+                        onChange={(e) => setMusicFilter(e.target.value as MusicFilter)}
+                        options={[...MUSIC_FILTER_OPTIONS]}
+                        aria-label="Filter by music"
+                      />
+                      <Select
+                        label="mood"
+                        value={moodFilter}
+                        onChange={(e) => setMoodFilter(e.target.value)}
+                        placeholder="any mood"
+                        options={moodOptions}
+                        aria-label="Filter by mood"
+                      />
+                      <Select
+                        label="sort"
+                        value={sortFilter}
+                        onChange={(e) => setSortFilter(e.target.value as SortFilter)}
+                        options={[...SORT_FILTER_OPTIONS]}
+                        aria-label="Sort entries"
+                      />
+                    </div>
 
-      {/* Delete Confirmation Dialog */}
-      {postToDelete && (
-        <ConfirmDialog
-          title="~ delete entry? ~"
-          message={`r u sure u want 2 delete "${postToDelete.title}"? this can't b undone!`}
-          confirmLabel="~ yes, delete ~"
-          loading={deleteLoading}
-          onConfirm={confirmDeletePost}
-          onCancel={() => setPostToDelete(null)}
-        />
-      )}
+                    <div className="mt-3 flex flex-col gap-2 text-xs">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <span style={{ color: 'var(--text-muted)' }}>{activeFeedSummaryText}</span>
+                        {hasFeedFilters && (
+                          <button
+                            onClick={clearFeedFilters}
+                            className="xanga-link text-xs min-h-[44px]"
+                          >
+                            ~ clear search + filters ~
+                          </button>
+                        )}
+                        {(hasFeedFilters || chapterFilter) && (
+                          <button
+                            onClick={clearAllFilters}
+                            className="xanga-link text-xs min-h-[44px]"
+                          >
+                            ~ reset everything ~
+                          </button>
+                        )}
+                      </div>
 
-      {/* Block Confirmation Dialog */}
-      {userToBlock && (
-        <ConfirmDialog
-          title="~ block user? ~"
-          message="r u sure u want 2 block this user? u wont see their posts anymore. u can unblock from ur profile."
-          confirmLabel="~ yes, block ~"
-          loading={blockLoading}
-          onConfirm={confirmBlockUser}
-          onCancel={() => setUserToBlock(null)}
-        />
-      )}
+                      {activeFeedFilters.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {activeFeedFilters.map((filter) => (
+                            <button
+                              key={filter.key}
+                              type="button"
+                              onClick={() => clearSingleFeedFilter(filter.key)}
+                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition hover:opacity-80 min-h-[44px]"
+                              style={{
+                                borderColor: 'var(--border-primary)',
+                                backgroundColor:
+                                  'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
+                                color: 'var(--text-body)',
+                                fontFamily: 'var(--title-font)',
+                              }}
+                              aria-label={`Clear filter ${filter.label}`}
+                            >
+                              <span>{filter.label}</span>
+                              <span aria-hidden="true">×</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </motion.section>
+                )}
 
-      {/* Toast Notifications */}
-      <AnimatePresence>
-        {toasts.map((toast, index) => (
-          <Toast
-            key={toast.id}
-            message={toast.message}
-            type={toast.type}
-            onClose={() => hideToast(toast.id)}
-            duration={toast.duration}
-            index={index}
-          />
-        ))}
-      </AnimatePresence>
-
-      {/* Footer - very Xanga! */}
-      <footer
-        className="mt-6 sm:mt-12 py-4 sm:py-6 border-t-2 border-dotted"
-        style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--footer-bg)' }}
-      >
-        <div className="max-w-7xl mx-auto px-4 text-center space-y-3">
-          {/* 88x31 pixel badges — the most iconic web 1.0 thing */}
-          <div className="badge-row">
-            <span className="pixel-badge badge-love">made w/ 💕</span>
-            <span className="pixel-badge badge-xanga">xanga revival</span>
-            <span className="pixel-badge badge-web2">web 2.0 ✓</span>
-            <span className="pixel-badge badge-powered">♻ nostalgia</span>
-            <span className="pixel-badge badge-800">800x600</span>
+                {posts.length === 0 ? (
+                  <EmptyState onCreatePost={handleNewPost} />
+                ) : visiblePosts.length === 0 ? (
+                  <div className="xanga-box p-6 text-center">
+                    <p
+                      className="text-sm"
+                      style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
+                    >
+                      {archiveEmptyStateText} ✨
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+                      {chapterFilter && (
+                        <button
+                          onClick={() => setChapterFilter(null)}
+                          className="xanga-link text-xs"
+                        >
+                          ~ clear chapter ~
+                        </button>
+                      )}
+                      {hasFeedFilters && (
+                        <button onClick={clearFeedFilters} className="xanga-link text-xs">
+                          ~ clear search + filters ~
+                        </button>
+                      )}
+                      <button onClick={clearAllFilters} className="xanga-link text-xs">
+                        ~ show everything ~
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <PostList
+                    posts={visiblePosts}
+                    onView={handleViewPost}
+                    onReaction={handleReaction}
+                    onBlock={handleBlock}
+                    onChapterClick={handleChapterClick}
+                    currentUserId={user?.id}
+                    onLoadMore={loadMore}
+                    loadingMore={loadingMore}
+                    hasMore={hasMore}
+                    loadMoreError={loadMoreError}
+                  />
+                )}
+              </main>
+            </div>
           </div>
-          <div className="flex items-center justify-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-            <span>powered by</span>
-            <Windows95MyComputer size={16} alt="" />
-            <span className="xanga-subtitle">
-              <span className="blink">✨</span> YourJournal <span className="blink">✨</span>
-            </span>
-          </div>
-          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-            © 2005-2026 My Journal • All rights reserved
-          </p>
-          <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
-            Made with <span style={{ color: 'var(--accent-primary)' }}>💕</span> and nostalgia
-          </p>
-          {emojiStyle !== 'native' && getEmojiAttribution() && (
-            <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
-              {getEmojiAttribution()}
-            </p>
+
+          {/* Post Modal */}
+          {showModal && (
+            <Suspense fallback={<LazyFallback />}>
+              <PostModal
+                post={selectedPost}
+                mode={modalMode}
+                onSave={handleSavePost}
+                onClose={() => setShowModal(false)}
+                draftUserId={user?.id ?? null}
+                fetchFullPost={fetchPost}
+                chapters={chapters}
+                onDelete={handleDeletePost}
+                onEdit={handleEditPost}
+                isOwner={!!user && !!selectedPost && user.id === selectedPost.user_id}
+              />
+            </Suspense>
           )}
+
+          {/* Profile Modal - also shows automatically for new users who need to set up their profile */}
+          {(showProfileModal || needsProfileSetup) && (
+            <Suspense fallback={<LazyFallback />}>
+              <ProfileModal
+                profile={profile}
+                userId={user?.id}
+                onSave={handleSaveProfile}
+                onClose={() => {
+                  // Only allow closing if profile setup is complete
+                  if (!needsProfileSetup) {
+                    setShowProfileModal(false);
+                  }
+                }}
+                onSuccess={success}
+                onError={showError}
+                isInitialSetup={needsProfileSetup}
+              />
+            </Suspense>
+          )}
+
+          {user &&
+            !needsProfileSetup &&
+            !showModal &&
+            !showProfileModal &&
+            !showSettingsModal &&
+            !showAuthModal && (
+              <button
+                type="button"
+                onClick={handleNewPost}
+                className="lg:hidden fixed right-4 z-30 xanga-button flex items-center gap-2 px-4 py-3 shadow-lg"
+                style={{ bottom: 'calc(1rem + var(--safe-area-bottom))' }}
+                aria-label="Create a new entry"
+              >
+                <Windows95Notepad size={18} alt="" />
+                <span>new entry</span>
+              </button>
+            )}
+
+          {/* Settings Modal */}
+          {showSettingsModal && (
+            <Suspense fallback={<LazyFallback />}>
+              <SettingsModal
+                onClose={() => setShowSettingsModal(false)}
+                onSuccess={success}
+                onError={showError}
+              />
+            </Suspense>
+          )}
+
+          {/* Delete Confirmation Dialog */}
+          {postToDelete && (
+            <ConfirmDialog
+              title="~ delete entry? ~"
+              message={`r u sure u want 2 delete "${postToDelete.title}"? this can't b undone!`}
+              confirmLabel="~ yes, delete ~"
+              loading={deleteLoading}
+              onConfirm={confirmDeletePost}
+              onCancel={() => setPostToDelete(null)}
+            />
+          )}
+
+          {/* Block Confirmation Dialog */}
+          {userToBlock && (
+            <ConfirmDialog
+              title="~ block user? ~"
+              message="r u sure u want 2 block this user? u wont see their posts anymore. u can unblock from ur profile."
+              confirmLabel="~ yes, block ~"
+              loading={blockLoading}
+              onConfirm={confirmBlockUser}
+              onCancel={() => setUserToBlock(null)}
+            />
+          )}
+
+          {/* Toast Notifications */}
+          <AnimatePresence>
+            {toasts.map((toast, index) => (
+              <Toast
+                key={toast.id}
+                message={toast.message}
+                type={toast.type}
+                onClose={() => hideToast(toast.id)}
+                duration={toast.duration}
+                index={index}
+              />
+            ))}
+          </AnimatePresence>
+
+          {/* Footer - very Xanga! */}
+          <footer
+            className="mt-6 sm:mt-12 py-4 sm:py-6 border-t-2 border-dotted"
+            style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--footer-bg)' }}
+          >
+            <div className="max-w-7xl mx-auto px-4 text-center space-y-3">
+              {/* 88x31 pixel badges — the most iconic web 1.0 thing */}
+              <div className="badge-row">
+                <span className="pixel-badge badge-love">made w/ 💕</span>
+                <span className="pixel-badge badge-xanga">xanga revival</span>
+                <span className="pixel-badge badge-web2">web 2.0 ✓</span>
+                <span className="pixel-badge badge-powered">♻ nostalgia</span>
+                <span className="pixel-badge badge-800">800x600</span>
+              </div>
+              <div
+                className="flex items-center justify-center gap-1.5 text-xs"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                <span>powered by</span>
+                <Windows95MyComputer size={16} alt="" />
+                <span className="xanga-subtitle">
+                  <span className="blink">✨</span> YourJournal <span className="blink">✨</span>
+                </span>
+              </div>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                © 2005-2026 My Journal • All rights reserved
+              </p>
+              <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
+                Made with <span style={{ color: 'var(--accent-primary)' }}>💕</span> and nostalgia
+              </p>
+              {emojiStyle !== 'native' && getEmojiAttribution() && (
+                <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+                  {getEmojiAttribution()}
+                </p>
+              )}
+            </div>
+          </footer>
         </div>
-      </footer>
-    </div>
-    </MotionConfig>
+      </MotionConfig>
     </ErrorBoundary>
   );
 }

@@ -17,8 +17,8 @@ interface CacheEntry<V> {
 class TTLCache<K, V> {
   private store = new Map<K, CacheEntry<V>>();
   private defaultTtl: number;
-  // L5 FIX: Cap maximum entries to prevent unbounded memory growth
-  // during deep pagination. When full, the oldest entry is evicted.
+  // Caps entries to prevent unbounded memory growth during deep
+  // pagination. When full, the oldest entry is evicted.
   private maxSize: number;
 
   constructor(defaultTtlMs: number, maxSize = 100) {
@@ -85,7 +85,4 @@ class TTLCache<K, V> {
 export const postsCache = new TTLCache<string, unknown[]>(5 * 60 * 1000, 50);
 
 /** YouTube oEmbed title cache. Key = video ID. TTL = 60 min. Max 200 entries. */
-export const youtubeTitleCache = new TTLCache<string, string | null>(
-  60 * 60 * 1000,
-  200,
-);
+export const youtubeTitleCache = new TTLCache<string, string | null>(60 * 60 * 1000, 200);

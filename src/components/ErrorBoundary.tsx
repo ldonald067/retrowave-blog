@@ -47,13 +47,10 @@ export default class ErrorBoundary extends Component<Props, State> {
           <h1 className="xanga-title text-2xl sm:text-3xl">Oops! 😵</h1>
           <p className="xanga-subtitle">Something went wrong rendering this page.</p>
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Something went wrong. Try refreshing the page.
+            Try again, or reload if it keeps happening.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
-            <button
-              onClick={this.handleReset}
-              className="xanga-button text-sm w-full sm:w-auto"
-            >
+            <button onClick={this.handleReset} className="xanga-button text-sm w-full sm:w-auto">
               Try Again
             </button>
             <button
