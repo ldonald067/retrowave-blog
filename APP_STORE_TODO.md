@@ -29,10 +29,14 @@ This is the practical handoff version, not a compliance doc.
 - The latest UX pass also tightened first-run setup, public-link entry,
   archive browsing, account-backed status, native sharing, and calmer draft
   recovery/saving language without needing a visual redesign.
-- The remaining hosted signed-in QA still needs entry delete.
-- The remaining hosted signed-in QA still needs signed-in reaction persistence.
-- The remaining hosted signed-in QA still needs a short-height portrait pass
-  around `390 x 500`.
+- 2026-07-09 signed-in QA pass (local dev frontend against the LIVE hosted
+  Supabase backend, real owner account): entry delete ✓ (survives reload),
+  reaction persistence ✓ (survives reload), short-height portrait `390 x 500`
+  ✓ (no horizontal overflow; entry modal fits with save button reachable and
+  83px tall). Sign-in error handling, age-verification gate, session
+  persistence across reloads, and profile-theme loading also verified.
+- The only QA gap left is re-running these flows on the production web host
+  once it exists — the flows themselves are proven against the real backend.
 
 ## Best Next Moves
 
