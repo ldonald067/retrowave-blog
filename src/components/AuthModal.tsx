@@ -84,7 +84,10 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
                   fontFamily: 'var(--title-font)',
                   backgroundColor:
                     activeTab === 'login' ? 'var(--button-gradient-from)' : 'var(--card-bg)',
-                  color: activeTab === 'login' ? 'var(--text-title)' : 'var(--text-muted)',
+                  color:
+                    activeTab === 'login'
+                      ? 'var(--button-text, var(--text-title))'
+                      : 'var(--text-muted)',
                 }}
               >
                 ~ Sign In ~
@@ -101,7 +104,10 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
                   borderColor: 'var(--border-primary)',
                   backgroundColor:
                     activeTab === 'signup' ? 'var(--button-gradient-from)' : 'var(--card-bg)',
-                  color: activeTab === 'signup' ? 'var(--text-title)' : 'var(--text-muted)',
+                  color:
+                    activeTab === 'signup'
+                      ? 'var(--button-text, var(--text-title))'
+                      : 'var(--text-muted)',
                 }}
               >
                 ~ Sign Up ~

@@ -18,3 +18,4 @@
 - Sidebar switches from collapsible to fixed at `lg:`.
 - Modals use `max-h-[95vh] sm:max-h-[90vh]` — 95% on mobile, 90% on desktop. Intentional.
 - Tablet 640-1023px is the known awkward zone — functional but not polished.
+- [2026-07-09 /frontend] Text on `--button-gradient-*` backgrounds must use `--button-text` (like `.xanga-button` does), never `--text-title` — text-title on button fills is as low as 1.03:1 (y2k-cyber). Found on AuthModal active tab.
