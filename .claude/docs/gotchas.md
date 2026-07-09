@@ -40,3 +40,4 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 - `refetchChapters()` called on post create, edit, delete, and block to keep counts in sync.
 - "Loose entries" filter (`__loose__` sentinel) shows posts with no chapter. 🍃 icon.
 - Chapter privacy: `private_chapters` text[] on profiles. Toggle via 🔒 button. Post-level `is_private` works independently — two privacy layers.
+- [2026-07-09 /release] `supabase migration list` fails without SUPABASE_DB_PASSWORD (CLI login-role creation hits permission denied on hosted project) — verify remote schema via REST probes with the publishable key instead.

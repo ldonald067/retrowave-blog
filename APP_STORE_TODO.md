@@ -1,6 +1,6 @@
 # App Store Submission Handoff
 
-Last updated: 2026-07-05.
+Last updated: 2026-07-09.
 
 This is the practical handoff version, not a compliance doc.
 
@@ -38,13 +38,14 @@ This is the practical handoff version, not a compliance doc.
 
 1. Enroll in the Apple Developer Program ($99/yr — takes a day or two, start
    first).
-2. Download an iOS simulator runtime (`xcodebuild -downloadPlatform iOS` —
-   none installed yet).
-3. Create `.env` from `.env.example` with live Supabase credentials, then do
-   the first real build: `npm run build && npx cap sync ios && npx cap open
-ios` (see `/release` skill).
-4. Restore or replace the frontend Supabase host used for hosted QA, then
-   re-run the remaining signed-in mobile pass with the QA account/session.
+2. DONE 2026-07-09: simulator runtime installed (iOS 26.5), `.env.local`
+   created, first simulator build succeeded, app boots and renders signup.
+3. Set `OPENAI_API_KEY` secret and the `com.retrowave.journal://` auth
+   redirect URL (see Hosted/App Setup below).
+4. Restore or replace the frontend web host used for hosted QA, then re-run
+   the remaining signed-in mobile pass with the QA account/session. (The
+   Supabase backend itself is confirmed live and reachable as of 2026-07-09 —
+   the outage was the web frontend hosting, not Supabase.)
 5. After that, finish the App Store metadata, screenshots, and reviewer
    account.
 
@@ -52,11 +53,12 @@ ios` (see `/release` skill).
 
 ### Hosted/App Setup
 
-- [ ] Restore or replace the frontend Supabase host so hosted signed-in QA can
-      run again.
+- [ ] Restore or replace the frontend web host so hosted signed-in QA can
+      run again (Supabase backend confirmed live 2026-07-09).
 - [ ] Configure the Supabase auth redirect URL for
       `com.retrowave.journal://`.
-- [ ] Deploy the `moderate-content` edge function.
+- [x] Deploy the `moderate-content` edge function (deployed 2026-07-09 via
+      linked CLI).
 - [ ] Set `OPENAI_API_KEY` in Supabase secrets for the hosted moderation path.
 - [ ] Host `privacy.html` and `terms.html` at public `https://` URLs.
 - [ ] Review `terms.html` and `privacy.html` for legal accuracy and real contact
@@ -66,7 +68,8 @@ ios` (see `/release` skill).
 ### Apple/Mac Work
 
 - [ ] Enroll in the Apple Developer Program.
-- [ ] Build the iOS app on a Mac in Xcode for the first time.
+- [x] Build the iOS app on a Mac in Xcode for the first time (2026-07-09:
+      simulator build succeeded, app boots on iPhone 17 Pro / iOS 26.5).
 - [ ] Set up code signing in Xcode.
 - [ ] Register bundle ID `com.retrowave.journal`.
 - [ ] Create the App Store Connect listing.
