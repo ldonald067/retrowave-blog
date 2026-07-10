@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Zap } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import AgeVerification from './AgeVerification';
 import { Input } from './ui';
 import Toast from './Toast';
@@ -8,19 +8,14 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/useToast';
 import { PASSWORD_MIN_LENGTH } from '../lib/validation';
 
-// Check if we're in development mode
-const isDev = import.meta.env.DEV;
-
 export default function SignUpForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [step, setStep] = useState<'email' | 'age' | 'success'>('email');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [savedBirthYear, setSavedBirthYear] = useState<number>(2000);
-  const [savedTosAccepted, setSavedTosAccepted] = useState<boolean>(true);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const { signUpWithPassword, devSignUp } = useAuth();
+  const { signUpWithPassword } = useAuth();
   const { toasts, showToast, hideToast } = useToast();
 
   const clearErrors = () => {
@@ -42,11 +37,17 @@ export default function SignUpForm() {
       hasError = true;
     }
 
+    // Mirrors the Supabase password policy: lower + upper + digit + symbol.
     if (!password || password.length < PASSWORD_MIN_LENGTH) {
       setPasswordError(`at least ${PASSWORD_MIN_LENGTH} characters plz`);
       hasError = true;
-    } else if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
-      setPasswordError('needs both letters & numbers');
+    } else if (
+      !/[a-z]/.test(password) ||
+      !/[A-Z]/.test(password) ||
+      !/\d/.test(password) ||
+      !/[^a-zA-Z0-9]/.test(password)
+    ) {
+      setPasswordError('needs UPPER & lower letters, a number & a symbol');
       hasError = true;
     }
 
@@ -55,24 +56,17 @@ export default function SignUpForm() {
   };
 
   const handleAgeVerified = async (birthYear: number, tosAccepted: boolean) => {
+    // Guard against lost form state (reload/remount between steps) — signing up
+    // with empty credentials would create an anonymous ghost account.
+    if (!email || !password) {
+      showToast('oops, ur info got reset — enter ur email & password again', 'error');
+      setStep('email');
+      return;
+    }
+
     setIsSubmitting(true);
-    setSavedBirthYear(birthYear);
-    setSavedTosAccepted(tosAccepted);
 
     try {
-      // DEV: Use anonymous auth to bypass email entirely
-      if (isDev && devSignUp) {
-        const { error } = await devSignUp(email, birthYear, tosAccepted);
-        if (error) {
-          showToast(error, 'error');
-          setIsSubmitting(false);
-          return;
-        }
-        showToast('Account created! Logging you in...', 'success');
-        return;
-      }
-
-      // PROD: Use password-based sign-up
       const { error } = await signUpWithPassword(email, password, birthYear, tosAccepted);
 
       if (error) {
@@ -86,20 +80,6 @@ export default function SignUpForm() {
       showToast('Something went wrong. Please try again.', 'error');
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  // DEV ONLY: Quick signup that bypasses magic link
-  const handleDevSignUp = async () => {
-    if (!devSignUp) return;
-    setIsSubmitting(true);
-    const { error } = await devSignUp(email, savedBirthYear, savedTosAccepted);
-
-    if (error) {
-      showToast(error, 'error');
-      setIsSubmitting(false);
-    } else {
-      showToast('Account created! Logging you in...', 'success');
     }
   };
 
@@ -145,23 +125,6 @@ export default function SignUpForm() {
               {email}
             </p>
           </div>
-
-          {/* DEV ONLY */}
-          {isDev && (
-            <div className="mb-4">
-              <button
-                onClick={handleDevSignUp}
-                disabled={isSubmitting}
-                className="w-full px-4 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold rounded-xl hover:from-amber-600 hover:to-orange-600 transition shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
-              >
-                <Zap size={18} />
-                {isSubmitting ? 'Creating Account...' : 'Dev: Create Account Now'}
-              </button>
-              <p className="text-xs mt-2 text-center" style={{ color: 'var(--text-muted)' }}>
-                (dev only - bypasses email verification)
-              </p>
-            </div>
-          )}
 
           <button
             onClick={handleStartOver}
@@ -209,7 +172,7 @@ export default function SignUpForm() {
               setPassword(e.target.value);
               setPasswordError('');
             }}
-            placeholder="8+ chars, letters & numbers..."
+            placeholder="8+ chars w/ Aa, 123 & !?*..."
             error={passwordError}
           />
 

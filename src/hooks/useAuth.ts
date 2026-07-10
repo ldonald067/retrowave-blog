@@ -32,11 +32,6 @@ interface UseAuthReturn {
   signOut: () => Promise<{ error: string | null }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: string | null }>;
   refetchProfile: () => Promise<void>;
-  devSignUp?: (
-    email: string,
-    birthYear: number,
-    tosAccepted: boolean
-  ) => Promise<{ error: string | null }>;
 }
 
 export function useAuth(): UseAuthReturn {
@@ -354,34 +349,6 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
-  const devSignUp = async (
-    _email: string,
-    birthYear: number,
-    tosAccepted: boolean
-  ): Promise<{ error: string | null }> => {
-    try {
-      const { data, error: anonError } = await supabase.auth.signInAnonymously();
-
-      if (anonError) {
-        return { error: toUserMessage(anonError) };
-      }
-
-      if (data.user) {
-        await supabase.auth.updateUser({
-          data: {
-            birth_year: birthYear,
-            tos_accepted: tosAccepted,
-          },
-        });
-        await fetchProfile(data.user.id, { force: true });
-      }
-
-      return { error: null };
-    } catch (err) {
-      return { error: toUserMessage(err) };
-    }
-  };
-
   const refetchProfile = async (): Promise<void> => {
     if (!user) return;
     setLoading(true);
@@ -400,6 +367,5 @@ export function useAuth(): UseAuthReturn {
     signOut,
     updateProfile,
     refetchProfile,
-    ...(import.meta.env.DEV ? { devSignUp } : {}),
   };
 }
