@@ -20,13 +20,17 @@ interface UseAuthReturn {
     birthYear: number,
     tosAccepted: boolean
   ) => Promise<{ error: string | null }>;
-  /** Password-based sign-up, with no email delivery needed. */
+  /**
+   * Password-based sign-up. `needsConfirmation` is true when the project
+   * requires email confirmation, so no session exists until the user clicks
+   * the link in their inbox.
+   */
   signUpWithPassword: (
     email: string,
     password: string,
     birthYear: number,
     tosAccepted: boolean
-  ) => Promise<{ error: string | null }>;
+  ) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
   signIn: (email: string) => Promise<{ error: string | null }>;
   signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<{ error: string | null }>;
@@ -261,9 +265,9 @@ export function useAuth(): UseAuthReturn {
     password: string,
     birthYear: number,
     tosAccepted: boolean
-  ): Promise<{ error: string | null }> => {
+  ): Promise<{ error: string | null; needsConfirmation?: boolean }> => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -275,7 +279,7 @@ export function useAuth(): UseAuthReturn {
       });
 
       if (error) throw error;
-      return { error: null };
+      return { error: null, needsConfirmation: !data.session };
     } catch (err) {
       return { error: toUserMessage(err) };
     }

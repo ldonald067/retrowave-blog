@@ -61,6 +61,11 @@ This is the practical handoff version, not a compliance doc.
       run again (Supabase backend confirmed live 2026-07-09).
 - [ ] Configure the Supabase auth redirect URL for
       `com.retrowave.journal://`.
+- [ ] Configure custom SMTP in Supabase (Authentication → SMTP; e.g. Resend
+      free tier). Email confirmation was enabled 2026-07-09, and the built-in
+      Supabase mailer is dev-only/rate-limited — signups fail with "Error
+      sending confirmation email" until real SMTP exists. Also set the Site
+      URL so confirmation links land somewhere real.
 - [x] Deploy the `moderate-content` edge function (deployed 2026-07-09 via
       linked CLI).
 - [ ] Set `OPENAI_API_KEY` in Supabase secrets for the hosted moderation path.

@@ -67,11 +67,21 @@ export default function SignUpForm() {
     setIsSubmitting(true);
 
     try {
-      const { error } = await signUpWithPassword(email, password, birthYear, tosAccepted);
+      const { error, needsConfirmation } = await signUpWithPassword(
+        email,
+        password,
+        birthYear,
+        tosAccepted
+      );
 
       if (error) {
         showToast(error, 'error');
         setIsSubmitting(false);
+        return;
+      }
+
+      if (needsConfirmation) {
+        setStep('success');
         return;
       }
 
@@ -118,11 +128,14 @@ export default function SignUpForm() {
           className="w-full text-center"
         >
           <div className="xanga-box p-6 mb-4">
-            <div className="text-3xl sm:text-4xl mb-3">✨🎉</div>
-            <h2 className="xanga-title text-xl mb-2">~ ur account is ready!! ~</h2>
-            <p className="xanga-subtitle mb-1">signed up as:</p>
+            <div className="text-3xl sm:text-4xl mb-3">💌✨</div>
+            <h2 className="xanga-title text-xl mb-2">~ almost there!! ~</h2>
+            <p className="xanga-subtitle mb-1">we emailed a confirmation link 2:</p>
             <p className="font-semibold text-sm mt-1" style={{ color: 'var(--accent-primary)' }}>
               {email}
+            </p>
+            <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
+              click it, then come back & sign in ✨
             </p>
           </div>
 

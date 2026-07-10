@@ -58,6 +58,18 @@ describe('SignUpForm', () => {
     expect(signUpWithPassword).toHaveBeenCalledOnce();
   });
 
+  it('shows the check-ur-email screen when confirmation is required', async () => {
+    signUpWithPassword.mockResolvedValueOnce({ error: null, needsConfirmation: true });
+    render(<SignUpForm />);
+
+    fillCredentials('journal@example.com', 'Hunter!2222');
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    fireEvent.click(await screen.findByRole('button', { name: 'stub-verify-age' }));
+
+    expect(await screen.findByText(/almost there/i)).toBeInTheDocument();
+    expect(screen.getByText('journal@example.com')).toBeInTheDocument();
+  });
+
   it('does not advance to the age step with empty credentials', () => {
     render(<SignUpForm />);
 
