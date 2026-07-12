@@ -57,8 +57,10 @@ This is the practical handoff version, not a compliance doc.
 
 ### Hosted/App Setup
 
-- [ ] Restore or replace the frontend web host so hosted signed-in QA can
-      run again (Supabase backend confirmed live 2026-07-09).
+- [x] Restore or replace the frontend web host (2026-07-12: deployed to
+      Cloudflare Workers at https://retrowave-blog.ldonald234.workers.dev —
+      auto-deploys from main, build variables verified baked into the
+      bundle).
 - [ ] Configure the Supabase auth redirect URL for
       `com.retrowave.journal://`.
 - [ ] Configure custom SMTP in Supabase (Authentication → SMTP; e.g. Resend
@@ -69,7 +71,8 @@ This is the practical handoff version, not a compliance doc.
 - [x] Deploy the `moderate-content` edge function (deployed 2026-07-09 via
       linked CLI).
 - [ ] Set `OPENAI_API_KEY` in Supabase secrets for the hosted moderation path.
-- [ ] Host `privacy.html` and `terms.html` at public `https://` URLs.
+- [x] Host `privacy.html` and `terms.html` at public `https://` URLs
+      (2026-07-12: live at /privacy and /terms on the workers.dev host).
 - [ ] Review `terms.html` and `privacy.html` for legal accuracy and real contact
       info.
 - [ ] Confirm `BLOG_OWNER_EMAIL` is correct and actively monitored.
