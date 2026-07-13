@@ -40,19 +40,19 @@ This is the practical handoff version, not a compliance doc.
 
 ## Best Next Moves
 
-(2026-07-12: web host is LIVE at https://retrowave-blog.ldonald234.workers.dev,
-auto-deploying from main. Email confirmation + password auth enabled;
+(2026-07-13: site is LIVE at https://retrowaveblog.com (+ www, + workers.dev
+alias), auto-deploying from main. Email confirmation + password auth enabled;
 anonymous sign-ins disabled; ghost accounts purged.)
 
 1. Enroll in the Apple Developer Program ($99/yr — takes a day or two, start
    first).
-2. Buy a domain (Cloudflare Registrar, ~$10/yr) — required for Resend SMTP
-   domain verification; also upgrades the site URL and App Store listing.
+2. DONE 2026-07-13: retrowaveblog.com bought (Cloudflare Registrar) and
+   attached to the Worker via wrangler.jsonc routes.
 3. Set up Resend SMTP (free tier): verify the domain in Resend, then wire
    Supabase Authentication → SMTP. Signups are BLOCKED until this is done
    (built-in mailer fails on confirmation sends).
 4. In Supabase URL Configuration: Site URL →
-   https://retrowave-blog.ldonald234.workers.dev (or the custom domain);
+   https://retrowaveblog.com;
    Redirect URLs → add the web host and `com.retrowave.journal://`.
 5. Run the full live signup chain end-to-end (sign up → confirmation email →
    confirm → sign in) on the hosted site.
