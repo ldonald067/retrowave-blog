@@ -7,4 +7,10 @@
     "directory": "./dist",
     "not_found_handling": "single-page-application",
   },
+  // Custom domains — the deploy attaches these and provisions DNS + certs
+  // automatically (domain is registered in the same Cloudflare account).
+  "routes": [
+    { "pattern": "retrowaveblog.com", "custom_domain": true },
+    { "pattern": "www.retrowaveblog.com", "custom_domain": true },
+  ],
 }
