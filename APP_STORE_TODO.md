@@ -56,7 +56,7 @@ anonymous sign-ins disabled; ghost accounts purged.)
 5. DONE 2026-07-15 (API-level). Optional: repeat once in the browser on
    retrowaveblog.com after fixing Site URL (was still localhost:5174 —
    confirmation links redirected wrong; verify Redirect URLs saved too).
-6. Set `OPENAI_API_KEY` secret for hosted moderation.
+6. DONE 2026-07-15: OPENAI_API_KEY set; moderation verified live.
 7. Then App Store metadata, screenshots (simulator ready), and the reviewer
    account (create pre-confirmed via admin API so it skips email).
 
@@ -75,7 +75,9 @@ anonymous sign-ins disabled; ghost accounts purged.)
       confirmation email → confirm → sign in. Rate limits raised).
 - [x] Deploy the `moderate-content` edge function (deployed 2026-07-09 via
       linked CLI).
-- [ ] Set `OPENAI_API_KEY` in Supabase secrets for the hosted moderation path.
+- [x] Set `OPENAI_API_KEY` in Supabase secrets (2026-07-15: verified live —
+      clean/harmful/blocked-URL all return correct verdicts with checked:true;
+      $5 OpenAI credit unblocked the 429s, auto-recharge off).
 - [x] Host `privacy.html` and `terms.html` at public `https://` URLs
       (2026-07-12: live at /privacy and /terms on the workers.dev host).
 - [ ] Review `terms.html` and `privacy.html` for legal accuracy and real contact
