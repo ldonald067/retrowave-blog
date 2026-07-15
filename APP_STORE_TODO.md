@@ -48,14 +48,14 @@ anonymous sign-ins disabled; ghost accounts purged.)
    first).
 2. DONE 2026-07-13: retrowaveblog.com bought (Cloudflare Registrar) and
    attached to the Worker via wrangler.jsonc routes.
-3. Set up Resend SMTP (free tier): verify the domain in Resend, then wire
-   Supabase Authentication → SMTP. Signups are BLOCKED until this is done
-   (built-in mailer fails on confirmation sends).
+3. DONE 2026-07-15: Resend SMTP live and the full signup chain verified
+   end-to-end on the hosted backend. Signups are UNBLOCKED.
 4. In Supabase URL Configuration: Site URL →
    https://retrowaveblog.com;
    Redirect URLs → add the web host and `com.retrowave.journal://`.
-5. Run the full live signup chain end-to-end (sign up → confirmation email →
-   confirm → sign in) on the hosted site.
+5. DONE 2026-07-15 (API-level). Optional: repeat once in the browser on
+   retrowaveblog.com after fixing Site URL (was still localhost:5174 —
+   confirmation links redirected wrong; verify Redirect URLs saved too).
 6. Set `OPENAI_API_KEY` secret for hosted moderation.
 7. Then App Store metadata, screenshots (simulator ready), and the reviewer
    account (create pre-confirmed via admin API so it skips email).
@@ -70,11 +70,9 @@ anonymous sign-ins disabled; ghost accounts purged.)
       bundle).
 - [ ] Configure the Supabase auth redirect URL for
       `com.retrowave.journal://`.
-- [ ] Configure custom SMTP in Supabase (Authentication → SMTP; e.g. Resend
-      free tier). Email confirmation was enabled 2026-07-09, and the built-in
-      Supabase mailer is dev-only/rate-limited — signups fail with "Error
-      sending confirmation email" until real SMTP exists. Also set the Site
-      URL so confirmation links land somewhere real.
+- [x] Configure custom SMTP in Supabase (2026-07-15: Resend wired via
+      verified retrowaveblog.com domain; full chain verified live — signup →
+      confirmation email → confirm → sign in. Rate limits raised).
 - [x] Deploy the `moderate-content` edge function (deployed 2026-07-09 via
       linked CLI).
 - [ ] Set `OPENAI_API_KEY` in Supabase secrets for the hosted moderation path.
