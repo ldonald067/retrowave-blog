@@ -23,12 +23,10 @@ const ALLOWED_ORIGINS = [
 ];
 
 function corsHeaders(origin: string | null) {
-  const allowed =
-    origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
   return {
     'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Headers':
-      'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     Vary: 'Origin',
   };
@@ -41,41 +39,120 @@ function corsHeaders(origin: string | null) {
 
 const BLOCKED_DOMAINS = [
   // Major porn sites
-  'pornhub', 'xvideos', 'xnxx', 'xhamster', 'redtube', 'youporn',
-  'tube8', 'spankbang', 'xozilla', 'eporner', 'pornone', 'thumbzilla',
-  'xtube', 'porn.com', 'porn', 'xxx', 'sex.com', 'brazzers', 'bangbros',
-  'realitykings', 'naughtyamerica', 'mofos', 'fakehub', 'teamskeet',
-  'blacked', 'tushy', 'vixen',
+  'pornhub',
+  'xvideos',
+  'xnxx',
+  'xhamster',
+  'redtube',
+  'youporn',
+  'tube8',
+  'spankbang',
+  'xozilla',
+  'eporner',
+  'pornone',
+  'thumbzilla',
+  'xtube',
+  'porn.com',
+  'porn',
+  'xxx',
+  'sex.com',
+  'brazzers',
+  'bangbros',
+  'realitykings',
+  'naughtyamerica',
+  'mofos',
+  'fakehub',
+  'teamskeet',
+  'blacked',
+  'tushy',
+  'vixen',
   // Cam sites
-  'chaturbate', 'stripchat', 'bongacams', 'livejasmin', 'cam4',
-  'camsoda', 'myfreecams', 'flirt4free',
+  'chaturbate',
+  'stripchat',
+  'bongacams',
+  'livejasmin',
+  'cam4',
+  'camsoda',
+  'myfreecams',
+  'flirt4free',
   // OnlyFans and similar
-  'onlyfans', 'fansly', 'fanvue', 'loyalfans', 'justforfans',
+  'onlyfans',
+  'fansly',
+  'fanvue',
+  'loyalfans',
+  'justforfans',
   // Hentai/animated
-  'hentai', 'nhentai', 'hanime', 'rule34', 'e621', 'gelbooru', 'danbooru',
+  'hentai',
+  'nhentai',
+  'hanime',
+  'rule34',
+  'e621',
+  'gelbooru',
+  'danbooru',
   // Image sharing adult
   'imgur.com/a/', // Imgur albums can contain NSFW
   'redgifs',
   'gfycat', // Often used for NSFW
   // Escort/hookup
-  'backpage', 'skipthegames', 'bedpage', 'escortdirectory',
+  'backpage',
+  'skipthegames',
+  'bedpage',
+  'escortdirectory',
   // Gore/shock
-  'liveleak', 'bestgore', 'rotten', 'theync', 'documenting', 'kaotic',
+  'liveleak',
+  'bestgore',
+  'rotten',
+  'theync',
+  'documenting',
+  'kaotic',
   // Piracy
-  'thepiratebay', 'kickass', '1337x', 'rarbg',
+  'thepiratebay',
+  'kickass',
+  '1337x',
+  'rarbg',
 ];
 
 // M4 FIX: Synced with client-side ADULT_URL_KEYWORDS in src/lib/moderation.ts.
 // Previously only 13 keywords; now matches the full client list so direct
 // API callers can't bypass URL filtering.
 const ADULT_URL_KEYWORDS = [
-  'porn', 'xxx', 'sex', 'nude', 'naked', 'nsfw', 'adult', 'escort',
-  'camgirl', 'onlyfan', 'hentai', 'erotic', 'fetish', 'bdsm', 'milf',
+  'porn',
+  'xxx',
+  'sex',
+  'nude',
+  'naked',
+  'nsfw',
+  'adult',
+  'escort',
+  'camgirl',
+  'onlyfan',
+  'hentai',
+  'erotic',
+  'fetish',
+  'bdsm',
+  'milf',
   // L11: 'teen' and 'gay' intentionally excluded (false-positive risk)
   // 'ass' removed — matches 'class', 'massachusetts', 'bass', etc.
-  'fuck', 'pussy', 'cock', 'dick', 'boob', 'tits', 'anal',
-  'blowjob', 'creampie', 'cumshot', 'gangbang', 'threesome', 'orgasm',
-  'masturbat', 'dildo', 'vibrator', 'stripper', 'hooker', 'whore', 'slut',
+  'fuck',
+  'pussy',
+  'cock',
+  'dick',
+  'boob',
+  'tits',
+  'anal',
+  'blowjob',
+  'creampie',
+  'cumshot',
+  'gangbang',
+  'threesome',
+  'orgasm',
+  'masturbat',
+  'dildo',
+  'vibrator',
+  'stripper',
+  'hooker',
+  'whore',
+  'slut',
 ];
 
 /** Check a single URL against the server-side blocklist */
@@ -120,13 +197,10 @@ function extractUrls(text: string): string[] {
 function checkAllUrls(
   title: string,
   content: string,
-  embeddedLinks?: Array<{ url?: string }>,
+  embeddedLinks?: Array<{ url?: string }>
 ): ModerationResult | null {
   // Collect all URLs: from text + from embedded_links
-  const urls = new Set<string>([
-    ...extractUrls(title),
-    ...extractUrls(content),
-  ]);
+  const urls = new Set<string>([...extractUrls(title), ...extractUrls(content)]);
 
   if (embeddedLinks) {
     for (const link of embeddedLinks) {
@@ -163,12 +237,14 @@ interface ModerationResult {
   reason?: string;
   flagged_content?: string;
   severity: 'blocked' | 'warning' | 'clean';
+  /** False when the AI check was skipped (fail-open) — missing key, timeout, or OpenAI error. */
+  checked?: boolean;
 }
 
 function jsonResponse(
   body: ModerationResult | { error: string },
   origin: string | null,
-  status = 200,
+  status = 200
 ) {
   return new Response(JSON.stringify(body), {
     status,
@@ -246,7 +322,7 @@ serve(async (req) => {
 
     if (!openaiKey) {
       console.warn('OPENAI_API_KEY not configured for content moderation');
-      return jsonResponse({ allowed: true, severity: 'clean' }, origin);
+      return jsonResponse({ allowed: true, severity: 'clean', checked: false }, origin);
     }
 
     // H7 FIX: Timeout on OpenAI fetch to prevent hung requests
@@ -255,32 +331,26 @@ serve(async (req) => {
 
     let moderationResponse: Response;
     try {
-      moderationResponse = await fetch(
-        'https://api.openai.com/v1/moderations',
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${openaiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ input: `${title}\n\n${content}` }),
-          signal: controller.signal,
+      moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${openaiKey}`,
+          'Content-Type': 'application/json',
         },
-      );
+        body: JSON.stringify({ input: `${title}\n\n${content}` }),
+        signal: controller.signal,
+      });
     } catch (fetchError) {
       // Timeout or network error — fail open (intentional design choice)
       console.error('OpenAI fetch error (timeout or network):', fetchError);
-      return jsonResponse({ allowed: true, severity: 'clean' }, origin);
+      return jsonResponse({ allowed: true, severity: 'clean', checked: false }, origin);
     } finally {
       clearTimeout(timeoutId);
     }
 
     if (!moderationResponse.ok) {
-      console.error(
-        'OpenAI moderation failed:',
-        await moderationResponse.text(),
-      );
-      return jsonResponse({ allowed: true, severity: 'clean' }, origin);
+      console.error('OpenAI moderation failed:', await moderationResponse.text());
+      return jsonResponse({ allowed: true, severity: 'clean', checked: false }, origin);
     }
 
     const moderationData = await moderationResponse.json();
@@ -288,13 +358,11 @@ serve(async (req) => {
 
     if (!result) {
       console.error('OpenAI returned unexpected response shape:', moderationData);
-      return jsonResponse({ allowed: true, severity: 'clean' }, origin);
+      return jsonResponse({ allowed: true, severity: 'clean', checked: false }, origin);
     }
 
     if (result.flagged) {
-      const flaggedCategories = Object.entries(
-        result.categories as Record<string, boolean>,
-      )
+      const flaggedCategories = Object.entries(result.categories as Record<string, boolean>)
         .filter(([, flagged]) => flagged)
         .map(([category]) => category);
 
@@ -306,9 +374,7 @@ serve(async (req) => {
         'sexual/minors',
         'violence/graphic',
       ];
-      const isSevere = flaggedCategories.some((cat) =>
-        severeCategories.includes(cat),
-      );
+      const isSevere = flaggedCategories.some((cat) => severeCategories.includes(cat));
 
       const response: ModerationResult = {
         allowed: false,
@@ -322,9 +388,9 @@ serve(async (req) => {
       return jsonResponse(response, origin);
     }
 
-    return jsonResponse({ allowed: true, severity: 'clean' }, origin);
+    return jsonResponse({ allowed: true, severity: 'clean', checked: true }, origin);
   } catch (error) {
     console.error('Moderation error:', error);
-    return jsonResponse({ allowed: true, severity: 'clean' }, origin);
+    return jsonResponse({ allowed: true, severity: 'clean', checked: false }, origin);
   }
 });
