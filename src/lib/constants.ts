@@ -7,7 +7,7 @@
 export const SWIPE_DISMISS_THRESHOLD = 80;
 
 // Contact — used for report links and privacy page
-export const BLOG_OWNER_EMAIL = 'retrowave.blog.app@gmail.com';
+export const BLOG_OWNER_EMAIL = 'support@retrowaveblog.com';
 
 // Age Verification
 export const MIN_AGE = 13; // COPPA compliance
