@@ -82,7 +82,9 @@ anonymous sign-ins disabled; ghost accounts purged.)
       (2026-07-12: live at /privacy and /terms on the workers.dev host).
 - [ ] Review `terms.html` and `privacy.html` for legal accuracy and real contact
       info.
-- [ ] Confirm `BLOG_OWNER_EMAIL` is correct and actively monitored.
+- [x] Confirm `BLOG_OWNER_EMAIL` (2026-07-15: switched to
+      support@retrowaveblog.com; Cloudflare Email Routing forwards to the
+      owner's Gmail — verified with a live forwarded test email).
 
 ### Apple/Mac Work
 
