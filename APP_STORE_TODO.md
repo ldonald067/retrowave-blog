@@ -1,6 +1,6 @@
 # App Store Submission Handoff
 
-Last updated: 2026-07-09.
+Last updated: 2026-07-15.
 
 This is the practical handoff version, not a compliance doc.
 
@@ -50,12 +50,9 @@ anonymous sign-ins disabled; ghost accounts purged.)
    attached to the Worker via wrangler.jsonc routes.
 3. DONE 2026-07-15: Resend SMTP live and the full signup chain verified
    end-to-end on the hosted backend. Signups are UNBLOCKED.
-4. In Supabase URL Configuration: Site URL →
-   https://retrowaveblog.com;
-   Redirect URLs → add the web host and `com.retrowave.journal://`.
-5. DONE 2026-07-15 (API-level). Optional: repeat once in the browser on
-   retrowaveblog.com after fixing Site URL (was still localhost:5174 —
-   confirmation links redirected wrong; verify Redirect URLs saved too).
+4. DONE 2026-07-15: Site URL + redirect URLs configured and verified.
+5. DONE 2026-07-15: full signup chain verified (signup → confirmation email
+   → confirm → sign in) against the hosted backend.
 6. DONE 2026-07-15: OPENAI_API_KEY set; moderation verified live.
 7. Then App Store metadata, screenshots (simulator ready), and the reviewer
    account (create pre-confirmed via admin API so it skips email).
@@ -68,8 +65,9 @@ anonymous sign-ins disabled; ghost accounts purged.)
       Cloudflare Workers at https://retrowave-blog.ldonald234.workers.dev —
       auto-deploys from main, build variables verified baked into the
       bundle).
-- [ ] Configure the Supabase auth redirect URL for
-      `com.retrowave.journal://`.
+- [x] Configure Supabase auth URLs (2026-07-15: Site URL →
+      https://retrowaveblog.com, redirect URLs include the web host and
+      `com.retrowave.journal://` — verified via admin generate_link).
 - [x] Configure custom SMTP in Supabase (2026-07-15: Resend wired via
       verified retrowaveblog.com domain; full chain verified live — signup →
       confirmation email → confirm → sign in. Rate limits raised).
