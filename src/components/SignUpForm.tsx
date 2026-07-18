@@ -67,7 +67,7 @@ export default function SignUpForm() {
     setIsSubmitting(true);
 
     try {
-      const { error, needsConfirmation } = await signUpWithPassword(
+      const { error, needsConfirmation, alreadyRegistered } = await signUpWithPassword(
         email,
         password,
         birthYear,
@@ -76,6 +76,13 @@ export default function SignUpForm() {
 
       if (error) {
         showToast(error, 'error');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (alreadyRegistered) {
+        showToast('u already have an account with this email — try signing in!', 'error');
+        setStep('email');
         setIsSubmitting(false);
         return;
       }

@@ -254,9 +254,10 @@ export default function PostModal({
     setModerationError(null);
     setSaving(true);
 
-    // Run content moderation check
+    // Run content moderation check. Include every user-authored field that can
+    // appear publicly (author name, music, chapter) — not just title/content.
     const moderationResult = quickContentCheck(
-      `${title} ${content}${chapter ? ` ${chapter}` : ''}`
+      [title, content, chapter, author, music].filter(Boolean).join(' ')
     );
     if (!moderationResult.allowed) {
       setModerationError(moderationResult.reason || 'Content violates community guidelines');

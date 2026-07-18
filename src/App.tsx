@@ -654,9 +654,14 @@ function App() {
     // for full OpenAI moderation. Fail-open: if the service is down, the post
     // goes through (local regex already passed).
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+    // Fold public user-authored fields (author name, music) into the moderated
+    // text so they can't bypass the AI check the way title/content can't.
+    const moderatedContent = [postData.content, postData.author, postData.music]
+      .filter(Boolean)
+      .join('\n');
     const modResult = await moderateContent(
       postData.title,
-      postData.content,
+      moderatedContent,
       null,
       supabaseUrl,
       async () => {
@@ -673,7 +678,9 @@ function App() {
       const { error } = await updatePost(selectedPost.id, postData);
       if (error) {
         showError('~ couldnt save that :( try again ~');
-        return;
+        // Throw so PostModal keeps the modal open and preserves the draft
+        // (it only clears the draft on a resolved save).
+        throw new Error(error);
       }
       void hapticImpact();
       success(postData.is_private ? '~ private changes saved ~' : SUCCESS_MESSAGES.post.updated);
@@ -681,7 +688,8 @@ function App() {
       const { error } = await createPost(postData);
       if (error) {
         showError('~ couldnt post that :( try again ~');
-        return;
+        // Throw so PostModal keeps the modal open and preserves the draft.
+        throw new Error(error);
       }
       void hapticImpact();
       // Fewer particles on mobile to avoid frame drops on older phones

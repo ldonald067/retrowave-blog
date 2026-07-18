@@ -23,14 +23,17 @@ interface UseAuthReturn {
   /**
    * Password-based sign-up. `needsConfirmation` is true when the project
    * requires email confirmation, so no session exists until the user clicks
-   * the link in their inbox.
+   * the link in their inbox. `alreadyRegistered` is true when the email
+   * already has an account (Supabase returns an obfuscated user with no
+   * identities and sends no email) — so the UI can point them at sign-in
+   * instead of a dead "check your inbox" screen.
    */
   signUpWithPassword: (
     email: string,
     password: string,
     birthYear: number,
     tosAccepted: boolean
-  ) => Promise<{ error: string | null; needsConfirmation?: boolean }>;
+  ) => Promise<{ error: string | null; needsConfirmation?: boolean; alreadyRegistered?: boolean }>;
   signIn: (email: string) => Promise<{ error: string | null }>;
   signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<{ error: string | null }>;
@@ -265,7 +268,11 @@ export function useAuth(): UseAuthReturn {
     password: string,
     birthYear: number,
     tosAccepted: boolean
-  ): Promise<{ error: string | null; needsConfirmation?: boolean }> => {
+  ): Promise<{
+    error: string | null;
+    needsConfirmation?: boolean;
+    alreadyRegistered?: boolean;
+  }> => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -279,7 +286,11 @@ export function useAuth(): UseAuthReturn {
       });
 
       if (error) throw error;
-      return { error: null, needsConfirmation: !data.session };
+      // With confirmations on, an existing email returns success with an
+      // obfuscated user (empty identities) and no email sent. Detect it.
+      const alreadyRegistered =
+        !!data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0;
+      return { error: null, needsConfirmation: !data.session, alreadyRegistered };
     } catch (err) {
       return { error: toUserMessage(err) };
     }

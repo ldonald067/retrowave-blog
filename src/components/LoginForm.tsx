@@ -46,7 +46,16 @@ export default function LoginForm() {
     if (mode === 'password') {
       const { error } = await signInWithPassword(email, password);
       if (error) {
-        setPasswordError('wrong email or password');
+        // Surface the real reason instead of always blaming credentials.
+        // With email confirmation on, an unconfirmed user has the RIGHT
+        // password — telling them it's wrong sends them into reset loops.
+        if (/verify your email|not confirmed/i.test(error)) {
+          setPasswordError('check ur inbox 4 the confirmation link first ✨');
+        } else if (/incorrect email or password/i.test(error)) {
+          setPasswordError('wrong email or password');
+        } else {
+          setPasswordError(error);
+        }
       }
     } else {
       const { error } = await signIn(email);
