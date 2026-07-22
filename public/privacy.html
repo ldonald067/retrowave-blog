@@ -6,7 +6,139 @@
     <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
     <meta name="theme-color" content="#ff66b3" />
     <title>Privacy Policy · Retrowave Journal</title>
-    <link rel="stylesheet" href="/legal.css" />
+    <style>
+      /* Retrowave Journal — support / privacy / terms pages.
+         2005 Xanga aesthetic, tuned for readability (WCAG AA contrast). */
+
+      :root {
+        --pink: #ff1493;
+        --pink-deep: #d6157e;
+        --purple: #9932cc;
+        --purple-deep: #6d1b96;
+        --border: #ff99cc;
+        --ink: #2a2a2a;
+        --card: #ffffff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        color: var(--ink);
+        line-height: 1.7;
+        background: linear-gradient(160deg, #ffe4ec 0%, #f3e8ff 45%, #e8f4ff 100%) fixed;
+        padding: calc(1.5rem + env(safe-area-inset-top, 0px)) 1rem
+          calc(2rem + env(safe-area-inset-bottom, 0px));
+      }
+
+      .card {
+        max-width: 620px;
+        margin: 0 auto;
+        background: var(--card);
+        border: 3px dotted var(--border);
+        border-radius: 24px;
+        box-shadow: 0 10px 34px rgba(255, 105, 180, 0.18);
+        padding: 1.75rem 1.5rem 2rem;
+        overflow-wrap: anywhere;
+      }
+
+      h1 {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Brush Script MT', cursive;
+        color: var(--pink);
+        text-shadow: 2px 2px 0 #ffd1e8;
+        text-align: center;
+        font-size: clamp(1.7rem, 6vw, 2.2rem);
+        margin: 0.25rem 0 0.15rem;
+      }
+
+      .tagline {
+        text-align: center;
+        color: var(--purple-deep);
+        font-style: italic;
+        margin: 0 0 1.25rem;
+      }
+
+      .updated {
+        text-align: center;
+        color: #5a4a66;
+        font-size: 0.9rem;
+        margin: 0 0 1.25rem;
+      }
+
+      h2 {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Brush Script MT', cursive;
+        color: var(--purple-deep);
+        font-size: 1.2rem;
+        margin: 1.6rem 0 0.4rem;
+        padding-bottom: 0.3rem;
+        border-bottom: 2px dotted var(--border);
+      }
+
+      p,
+      li {
+        font-size: 1.05rem;
+        margin: 0.5rem 0;
+      }
+
+      ul {
+        padding-left: 1.25rem;
+      }
+
+      li {
+        margin: 0.4rem 0;
+      }
+
+      strong {
+        color: var(--pink-deep);
+      }
+
+      a {
+        color: var(--pink-deep);
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .email-pill {
+        display: inline-block;
+        background: #fff0f5;
+        border: 2px dotted var(--border);
+        border-radius: 12px;
+        padding: 0.35rem 0.75rem;
+        color: var(--pink-deep);
+        font-weight: 700;
+        margin: 0.2rem 0;
+      }
+
+      .footer {
+        margin-top: 1.75rem;
+        padding-top: 1rem;
+        border-top: 2px dotted var(--border);
+        text-align: center;
+        font-size: 0.95rem;
+      }
+
+      .footer a {
+        margin: 0 0.35rem;
+      }
+
+      .made {
+        color: var(--purple);
+        margin-top: 0.75rem;
+        font-size: 0.85rem;
+      }
+    </style>
   </head>
   <body>
     <div class="card">
