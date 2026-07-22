@@ -65,6 +65,9 @@ anonymous sign-ins disabled; ghost accounts purged.)
       Cloudflare Workers at https://retrowave-blog.ldonald234.workers.dev —
       auto-deploys from main, build variables verified baked into the
       bundle).
+- [ ] Cloudflare: enable "Always Use HTTPS" (SSL/TLS → Edge Certificates) so
+      plain-http first visits redirect. HSTS (2yr, preload) already set via
+      public/_headers, which covers repeat visitors. One dashboard toggle.
 - [x] Configure Supabase auth URLs (2026-07-15: Site URL →
       https://retrowaveblog.com, redirect URLs include the web host and
       `com.retrowave.journal://` — verified via admin generate_link).
