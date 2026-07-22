@@ -836,7 +836,7 @@ export default function PostModal({
                         className="text-xs mb-2"
                         style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
                       >
-                        ⚠️ couldn't load ur full entry — editing now could cut it short. try again
+                        ⚠️ couldn't load ur full entry... editing now could cut it short. try again
                         b4 saving!
                       </p>
                       <button

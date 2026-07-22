@@ -62,7 +62,7 @@ If archive complains "Signing requires a development team," you missed step 2.
 **Description:**
 
 ```
-Remember 2005? Blinking cursors, glittery text, a song playing on every page, and a little box online where you could just... be yourself. Retrowave Journal brings that feeling back — a private place to write down your life, your way.
+Remember 2005? Blinking cursors, glittery text, a song playing on every page, and a little box online where you could just... be yourself. Retrowave Journal brings that feeling back. It's a private place to write down your life, your way.
 
 WRITE JUST FOR YOU
 Your entries are private by default. This is your diary, not a feed to perform for. Log what happened, how you felt, and what song was stuck in your head. Nobody reads it unless you decide to share.
@@ -71,13 +71,13 @@ SET THE MOOD
 Give every entry its own little vibe. Pick a mood from a huge emoji list, note the song you're currently listening to, and drop in a YouTube music embed so your soundtrack plays right where you wrote it.
 
 MAKE IT YOURS
-Choose from 8 hand-made themes — soft pastels, moody dark scene looks, cottage softness, neon y2k, grunge, and more. Turn on glitter text and sparkly cursor trails. Decorate your corner of the internet exactly the way you remember doing it.
+Choose from 8 hand-made themes: soft pastels, moody dark scene looks, cottage softness, neon y2k, grunge, and more. Turn on glitter text and sparkly cursor trails. Decorate your corner of the internet exactly the way you remember doing it.
 
 SHARE ONLY IF YOU WANT
 Keep everything locked to yourself, or opt in to a public profile page and let friends read the entries you choose to make public. Leave emoji reactions on posts. It's your call, every single time.
 
 SAFE BY DESIGN
-- Private by default — sharing is always opt-in
+- Private by default, so sharing is always opt-in
 - Block anyone you don't want to hear from
 - Report content in a tap
 - Automatic content filtering helps keep things kind
@@ -85,7 +85,7 @@ SAFE BY DESIGN
 - No ads. No trackers. No third-party analytics. We never sell your data.
 
 WE COLLECT THE BARE MINIMUM
-Just your email to sign in and your birth year to confirm you're old enough — and your birth year is never shown to anyone. That's it. Your journal belongs to you.
+Just your email to sign in and your birth year to confirm you're old enough, and your birth year is never shown to anyone. That's it. Your journal belongs to you.
 
 Pull up a chair, put on a song, and start writing. Your 2005 diary is waiting. ✨
 
@@ -99,7 +99,7 @@ Questions? support@retrowaveblog.com
 
 **What's New (v1.0):**
 
-> Welcome to Retrowave Journal 1.0! ✨ Your private little corner of 2005 is officially open. Start a journal, set your mood, add a song, and pick from 8 dreamy themes with glitter and sparkle cursors. Everything's private by default — share only what you want. Thanks for being here. More themes and surprises coming soon. 💕
+> Welcome to Retrowave Journal 1.0! ✨ Your private little corner of 2005 is officially open. Start a journal, set your mood, add a song, and pick from 8 dreamy themes with glitter and sparkle cursors. Everything's private by default, so share only what you want. Thanks for being here. More themes and surprises coming soon. 💕
 
 **Category:** Primary **Lifestyle**, Secondary **Social Networking**.
 
@@ -159,7 +159,7 @@ Retrowave Journal is a private, 2005-nostalgia personal journaling app. It's a
 Capacitor/WKWebView wrapper around our web app (https://retrowaveblog.com) with a
 Supabase backend.
 
-SIGN IN (demo account — already confirmed & age-verified, log in immediately):
+SIGN IN (demo account, already confirmed & age-verified, log in immediately):
   Email:    appreview@retrowaveblog.com
   Password: AppReview!2026rw
 On the auth screen tap "Sign In" (not Sign Up), enter the above, tap sign in.

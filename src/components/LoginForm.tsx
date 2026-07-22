@@ -128,7 +128,7 @@ export default function LoginForm() {
           ) : (
             <div className="text-center">
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                💌 we'll email u a link — just click it 2 sign in!
+                💌 we'll email u a link, just click it 2 sign in!
               </p>
               <button
                 type="button"

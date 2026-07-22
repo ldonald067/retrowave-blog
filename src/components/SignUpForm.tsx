@@ -58,7 +58,7 @@ export default function SignUpForm() {
     // Guard against lost form state (reload/remount between steps) — signing up
     // with empty credentials would create an anonymous ghost account.
     if (!email || !password) {
-      showToast('oops, ur info got reset — enter ur email & password again', 'error');
+      showToast('oops, ur info got reset... enter ur email & password again', 'error');
       setStep('email');
       return;
     }
@@ -80,7 +80,7 @@ export default function SignUpForm() {
       }
 
       if (alreadyRegistered) {
-        showToast('u already have an account with this email — try signing in!', 'error');
+        showToast('u already have an account with this email! try signing in instead', 'error');
         setStep('email');
         setIsSubmitting(false);
         return;

@@ -31,7 +31,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       emoji: '🎨✨🌈',
       title: '~ Make It Ur Own ~',
       description:
-        'choose from 8 unique themes 2 match ur vibe — emo dark, scene kid, cottage core & more. pick an emoji style 2. ur journal = ur rules.',
+        'choose from 8 unique themes 2 match ur vibe: emo dark, scene kid, cottage core & more. pick an emoji style 2. ur journal = ur rules.',
       decoration: '- - - ♥ - - - ♥ - - -',
     },
     {
