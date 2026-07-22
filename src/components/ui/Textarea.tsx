@@ -29,7 +29,7 @@ export default function Textarea({
         <label
           htmlFor={textareaId}
           className="block text-xs font-bold mb-1"
-          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
         >
           {label}
         </label>

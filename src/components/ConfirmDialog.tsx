@@ -84,9 +84,13 @@ export default function ConfirmDialog({
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
               className="w-full sm:w-auto px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110 min-h-[44px]"
+              // Fill uses --button-gradient + --button-text (the AA-guaranteed
+              // button contract) rather than --accent-secondary, which in some
+              // themes (grunge) equals --button-text and rendered invisible.
+              // An accent-secondary border keeps the distinct destructive look.
               style={{
                 background:
-                  'linear-gradient(135deg, var(--accent-secondary), color-mix(in srgb, var(--accent-secondary) 80%, var(--bg-primary)))',
+                  'linear-gradient(135deg, var(--button-gradient-from), var(--button-gradient-to))',
                 color: 'var(--button-text, var(--text-title))',
                 borderColor: 'var(--accent-secondary)',
                 fontFamily: 'var(--title-font)',

@@ -145,7 +145,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
       <div>
         <p
           className="text-xs font-bold mb-1"
-          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
         >
           category:
         </p>
@@ -184,7 +184,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
       <div>
         <p
           className="text-xs font-bold mb-1"
-          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
         >
           choose a style:
         </p>
@@ -216,7 +216,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
       <div>
         <p
           className="text-xs font-bold mb-1"
-          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
         >
           pick ur avatar:
         </p>
@@ -265,7 +265,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
         <label
           htmlFor="avatar-custom-seed"
           className="text-xs font-bold mb-1 block"
-          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
         >
           or type a custom word:
         </label>

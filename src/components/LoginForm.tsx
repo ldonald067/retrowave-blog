@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from './ui';
 import Toast from './Toast';
-import { useAuth } from '../hooks/useAuth';
+import { signInMagicLink, signInWithPassword } from '../lib/auth-actions';
 import { useToast } from '../hooks/useToast';
 
 export default function LoginForm() {
@@ -12,7 +12,6 @@ export default function LoginForm() {
   const [mode, setMode] = useState<'password' | 'magic'>('password');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const { signIn, signInWithPassword } = useAuth();
   const { toasts, showToast, hideToast } = useToast();
 
   const clearErrors = () => {
@@ -58,7 +57,7 @@ export default function LoginForm() {
         }
       }
     } else {
-      const { error } = await signIn(email);
+      const { error } = await signInMagicLink(email);
       if (error) {
         showToast(error, 'error');
       } else {

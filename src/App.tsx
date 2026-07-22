@@ -337,6 +337,7 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('signup');
+  const [ageVerifying, setAgeVerifying] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
@@ -833,6 +834,24 @@ function App() {
     }
   }, [publicUsername, user, profile?.username]);
 
+  // Shared toast layer — rendered in every branch (including the auth-modal
+  // and age-gate early returns) so toasts like "signed out" stay visible
+  // instead of unmounting with the main app tree.
+  const toastLayer = (
+    <AnimatePresence>
+      {toasts.map((toast, index) => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => hideToast(toast.id)}
+          duration={toast.duration}
+          index={index}
+        />
+      ))}
+    </AnimatePresence>
+  );
+
   // Public profile view — no auth required, show read-only journal
   if (publicUsername && (!user || profile?.username !== publicUsername)) {
     return (
@@ -878,6 +897,7 @@ function App() {
           defaultTab={authModalTab}
           onClose={() => setShowAuthModal(false)}
         />
+        {toastLayer}
       </Suspense>
     );
   }
@@ -887,25 +907,33 @@ function App() {
     return (
       <Suspense fallback={<LoadingSpinner />}>
         <AgeVerification
+          loading={ageVerifying}
           onVerified={async (birthYear: number, tosAccepted: boolean) => {
-            // Set COPPA fields via RPC — direct updateProfile() is blocked
-            // by the protect_coppa_fields trigger.
-            const { error } = await withRetry(async () =>
-              supabase.rpc('set_age_verification', {
-                p_birth_year: birthYear,
-                p_tos_accepted: tosAccepted,
-              })
-            );
-            if (error) {
-              showError(`~ ${toUserMessage(error)} ~`);
-            } else {
-              // Refresh profile to pick up the new COPPA values
-              await refetchProfile();
-              success('✨ verified! welcome 2 the club ~');
+            if (ageVerifying) return; // guard against double-submit
+            setAgeVerifying(true);
+            try {
+              // Set COPPA fields via RPC — direct updateProfile() is blocked
+              // by the protect_coppa_fields trigger.
+              const { error } = await withRetry(async () =>
+                supabase.rpc('set_age_verification', {
+                  p_birth_year: birthYear,
+                  p_tos_accepted: tosAccepted,
+                })
+              );
+              if (error) {
+                showError(`~ ${toUserMessage(error)} ~`);
+              } else {
+                // Refresh profile to pick up the new COPPA values
+                await refetchProfile();
+                success('✨ verified! welcome 2 the club ~');
+              }
+            } finally {
+              setAgeVerifying(false);
             }
           }}
           requireTOS={true}
         />
+        {toastLayer}
       </Suspense>
     );
   }
@@ -1332,18 +1360,7 @@ function App() {
           )}
 
           {/* Toast Notifications */}
-          <AnimatePresence>
-            {toasts.map((toast, index) => (
-              <Toast
-                key={toast.id}
-                message={toast.message}
-                type={toast.type}
-                onClose={() => hideToast(toast.id)}
-                duration={toast.duration}
-                index={index}
-              />
-            ))}
-          </AnimatePresence>
+          {toastLayer}
 
           {/* Footer - very Xanga! */}
           <footer

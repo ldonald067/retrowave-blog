@@ -4,6 +4,12 @@ import { applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
 import { requireAuth } from '../lib/auth-guard';
+import {
+  signUpMagicLink,
+  signUpWithPassword,
+  signInMagicLink,
+  signInWithPassword,
+} from '../lib/auth-actions';
 import { validateProfileInput, hasValidationErrors } from '../lib/validation';
 import { MIN_AGE } from '../lib/constants';
 import type { User } from '@supabase/supabase-js';
@@ -239,91 +245,9 @@ export function useAuth(): UseAuthReturn {
     return null;
   };
 
-  const signUp = async (
-    email: string,
-    birthYear: number,
-    tosAccepted: boolean
-  ): Promise<{ error: string | null }> => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          shouldCreateUser: true,
-          data: {
-            birth_year: birthYear,
-            tos_accepted: tosAccepted,
-          },
-        },
-      });
-
-      if (error) throw error;
-      return { error: null };
-    } catch (err) {
-      return { error: toUserMessage(err) };
-    }
-  };
-
-  const signUpWithPassword = async (
-    email: string,
-    password: string,
-    birthYear: number,
-    tosAccepted: boolean
-  ): Promise<{
-    error: string | null;
-    needsConfirmation?: boolean;
-    alreadyRegistered?: boolean;
-  }> => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            birth_year: birthYear,
-            tos_accepted: tosAccepted,
-          },
-        },
-      });
-
-      if (error) throw error;
-      // With confirmations on, an existing email returns success with an
-      // obfuscated user (empty identities) and no email sent. Detect it.
-      const alreadyRegistered =
-        !!data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0;
-      return { error: null, needsConfirmation: !data.session, alreadyRegistered };
-    } catch (err) {
-      return { error: toUserMessage(err) };
-    }
-  };
-
-  const signIn = async (email: string): Promise<{ error: string | null }> => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false },
-      });
-      if (error) throw error;
-      return { error: null };
-    } catch (err) {
-      return { error: toUserMessage(err) };
-    }
-  };
-
-  const signInWithPassword = async (
-    email: string,
-    password: string
-  ): Promise<{ error: string | null }> => {
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      return { error: null };
-    } catch (err) {
-      return { error: toUserMessage(err) };
-    }
-  };
+  // Auth actions live in ../lib/auth-actions (stateless) so form components can
+  // call them without spinning up a second useAuth subscription. Re-exposed
+  // here under the hook's historical names for App.tsx.
 
   const signOut = async (): Promise<{ error: string | null }> => {
     try {
@@ -375,9 +299,9 @@ export function useAuth(): UseAuthReturn {
     profile,
     profileError,
     loading,
-    signUp,
+    signUp: signUpMagicLink,
     signUpWithPassword,
-    signIn,
+    signIn: signInMagicLink,
     signInWithPassword,
     signOut,
     updateProfile,

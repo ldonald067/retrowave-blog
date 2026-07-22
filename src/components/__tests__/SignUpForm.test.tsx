@@ -1,16 +1,12 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 
-const signUpWithPassword = vi.fn().mockResolvedValue({ error: null });
+const { signUpWithPassword } = vi.hoisted(() => ({
+  signUpWithPassword: vi.fn().mockResolvedValue({ error: null }),
+}));
 
-vi.mock('../../hooks/useAuth', () => ({
-  useAuth: () => ({
-    user: null,
-    profile: null,
-    profileError: null,
-    loading: false,
-    signUpWithPassword,
-  }),
+vi.mock('../../lib/auth-actions', () => ({
+  signUpWithPassword,
 }));
 
 // Stub the age gate so tests can trigger onVerified directly, including the

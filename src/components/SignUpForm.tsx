@@ -4,7 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import AgeVerification from './AgeVerification';
 import { Input } from './ui';
 import Toast from './Toast';
-import { useAuth } from '../hooks/useAuth';
+import { signUpWithPassword } from '../lib/auth-actions';
 import { useToast } from '../hooks/useToast';
 import { PASSWORD_MIN_LENGTH } from '../lib/validation';
 
@@ -15,7 +15,6 @@ export default function SignUpForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const { signUpWithPassword } = useAuth();
   const { toasts, showToast, hideToast } = useToast();
 
   const clearErrors = () => {

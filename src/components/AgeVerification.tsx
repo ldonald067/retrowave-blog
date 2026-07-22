@@ -196,7 +196,7 @@ export default function AgeVerification({
                 aria-label="Continue with age verification"
                 className={`xanga-button w-full py-2.5 sm:py-3 text-sm ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                {loading ? '~ sending magic link... ~' : '~ continue ~'}
+                {loading ? '~ working... ~' : '~ continue ~'}
               </button>
 
               {/* Privacy Note */}

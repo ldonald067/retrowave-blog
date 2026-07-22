@@ -76,6 +76,8 @@ export default function PostModal({
   // Full content is fetched only when the list row is truncated.
   const [fullContent, setFullContent] = useState<string | undefined>(undefined);
   const [loadingFullContent, setLoadingFullContent] = useState(false);
+  const [fullContentError, setFullContentError] = useState(false);
+  const [fullContentReloadKey, setFullContentReloadKey] = useState(0);
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -184,6 +186,7 @@ export default function PostModal({
   useEffect(() => {
     let cancelled = false;
     setFullContent(undefined);
+    setFullContentError(false);
     if (mode !== 'create' && post?.content_truncated && fetchFullPost) {
       setLoadingFullContent(true);
       fetchFullPost(post.id)
@@ -195,12 +198,12 @@ export default function PostModal({
             if (mode === 'edit') {
               setContent(fullPost.content || '');
             }
-          } else {
-            // Fetch failed — fall back to truncated content so the user
-            // doesn't see an empty textarea and accidentally overwrite their post.
-            if (mode === 'edit') {
-              setContent(post.content || '');
-            }
+          } else if (mode === 'edit') {
+            // Fetch failed in EDIT mode. We must NOT fall back to the
+            // truncated feed snapshot — saving it would silently overwrite the
+            // real (longer) entry with its preview. Flag an error that blocks
+            // saving and offers a retry instead.
+            setFullContentError(true);
           }
         })
         .finally(() => {
@@ -210,8 +213,7 @@ export default function PostModal({
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- post.content is only a fallback snapshot; depending on it would re-run the fetch and clobber in-progress edits
-  }, [mode, post?.id, post?.content_truncated, fetchFullPost]);
+  }, [mode, post?.id, post?.content_truncated, fetchFullPost, fullContentReloadKey]);
 
   // Auto-save draft (create mode only) — debounced 500ms
   useEffect(() => {
@@ -251,6 +253,9 @@ export default function PostModal({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    // Never save while the full entry hasn't loaded — the textarea may hold
+    // only the truncated preview, and saving it would clobber the real entry.
+    if (fullContentError || loadingFullContent) return;
     setModerationError(null);
     setSaving(true);
 
@@ -821,6 +826,32 @@ export default function PostModal({
                     </div>
                   )}
 
+                  {fullContentError && (
+                    <div
+                      className="xanga-box p-3 text-center"
+                      style={{ borderColor: 'var(--accent-primary)' }}
+                      role="alert"
+                    >
+                      <p
+                        className="text-xs mb-2"
+                        style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
+                      >
+                        ⚠️ couldn't load ur full entry — editing now could cut it short. try again
+                        b4 saving!
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFullContentError(false);
+                          setFullContentReloadKey((k) => k + 1);
+                        }}
+                        className="xanga-button text-xs py-1.5 px-3"
+                      >
+                        ~ retry ~
+                      </button>
+                    </div>
+                  )}
+
                   {/* Content */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
@@ -1002,7 +1033,7 @@ export default function PostModal({
                 </motion.button>
                 <button
                   onClick={handleSubmit}
-                  disabled={saving || loadingFullContent}
+                  disabled={saving || loadingFullContent || fullContentError}
                   className="xanga-button flex items-center gap-2 text-sm min-h-[44px]"
                 >
                   <Pepicon name="floppyDisk" size={14} />
