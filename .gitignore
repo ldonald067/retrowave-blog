@@ -27,3 +27,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# App Store screenshot captures (regenerated via /release; not source)
+store-assets/

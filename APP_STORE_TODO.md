@@ -1,19 +1,54 @@
 # App Store Submission Handoff
 
-Last updated: 2026-07-15.
+Last updated: 2026-07-22.
 
 This is the practical handoff version, not a compliance doc.
 
-- The app is in decent shape for iPhone/App Store prep.
-- The "no Mac" constraint is RESOLVED as of 2026-07-05: development now runs on
-  a Mac with Xcode 26.6, Node 24, the gh CLI (authed), and the TypeScript
-  language server. Remaining Mac work is actionable, not blocked.
-- Still genuinely blocked: the hosted signed-in mobile QA pass, until the
-  frontend Supabase host is restored or replaced after the 2026-04-26 NXDOMAIN
-  failure.
-- I am intentionally not freezing exact build times or test counts here. Re-run
-  the final branch or CI right before submission and record whatever is current
-  then.
+**➡️ The master runbook for the Apple submission is
+[docs/app-store-submission-guide.md](docs/app-store-submission-guide.md)** —
+paste-ready listing copy, App Privacy answers, age rating, review notes with
+the live demo account, Xcode steps, and the screenshot plan. Start there.
+
+- The whole web + backend + security surface is DONE and live. What remains is
+  Apple-side (Xcode signing/archive/upload + App Store Connect listing) plus
+  capturing screenshots.
+- Live at https://retrowaveblog.com (custom domain, iPhone-only build). Auth,
+  email confirmation (Resend SMTP), AI moderation, RLS, security headers,
+  HTTPS redirect, and hosted legal/support pages are all verified in prod.
+- Dev runs on a Mac with Xcode 26.6, Node 24, iOS 26.5 simulator, gh CLI.
+
+## Session 2026-07-22 (what changed most recently)
+
+- **Full multi-agent review** run and fixed: closed a CRITICAL RLS leak
+  (anonymous could read all profiles — fixed via SQL editor, verified 0 rows
+  to anon for profiles/posts/reactions), plus contrast (all 8 themes now AA),
+  a post-truncation data-loss guard, duplicate-`useAuth` refactor
+  (`lib/auth-actions.ts`), a11y fixes, and security headers (`public/_headers`:
+  CSP/HSTS/etc., verified non-breaking live).
+- **HTTP→HTTPS** "Always Use HTTPS" enabled in Cloudflare; redirect verified.
+- **App Store prep:** app icon alpha channel stripped (was a silent-rejection
+  blocker); device family set to iPhone-only; reviewer demo account created
+  (`appreview@retrowaveblog.com` / `AppReview!2026rw`, pre-confirmed,
+  age-verified, 3 public seed entries); Support page added
+  (retrowaveblog.com/support); the submission guide written.
+- Legal/support pages redesigned to the app aesthetic and de-dashed; app's
+  5 user-facing em-dashes removed too.
+- Store name decided: **"Retrowave Journal"** (home-screen name stays
+  "My Journal"). Category: Lifestyle / Social Networking. Target rating 12+.
+
+## Remaining to submit (all Apple-side)
+
+1. Run `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer` (needs
+   the user's password) so the simulator control tool can drive tap/type — then
+   capture the remaining 5 App Store screenshots (plan in the guide, Part 6).
+   The signup screenshot is already captured; iPhone-only build compiles + runs.
+2. Confirm Apple Developer Program enrollment is active.
+3. Xcode: set signing Team → archive → upload (guide Part 1).
+4. App Store Connect: create the app record ("Retrowave Journal"), paste the
+   listing copy / App Privacy / age rating / review notes (guide Parts 2–5),
+   upload screenshots, submit.
+
+## Prior context (pre-2026-07-22)
 
 ## Where Things Stand
 
@@ -65,9 +100,9 @@ anonymous sign-ins disabled; ghost accounts purged.)
       Cloudflare Workers at https://retrowave-blog.ldonald234.workers.dev —
       auto-deploys from main, build variables verified baked into the
       bundle).
-- [ ] Cloudflare: enable "Always Use HTTPS" (SSL/TLS → Edge Certificates) so
-      plain-http first visits redirect. HSTS (2yr, preload) already set via
-      public/_headers, which covers repeat visitors. One dashboard toggle.
+- [x] Cloudflare "Always Use HTTPS" enabled (2026-07-22: http→https 301
+      verified, single redirect, no loop). HSTS (2yr, preload) via
+      public/\_headers. Security headers (CSP/X-Frame/etc.) live + non-breaking.
 - [x] Configure Supabase auth URLs (2026-07-15: Site URL →
       https://retrowaveblog.com, redirect URLs include the web host and
       `com.retrowave.journal://` — verified via admin generate_link).
@@ -81,23 +116,29 @@ anonymous sign-ins disabled; ghost accounts purged.)
       $5 OpenAI credit unblocked the 429s, auto-recharge off).
 - [x] Host `privacy.html` and `terms.html` at public `https://` URLs
       (2026-07-12: live at /privacy and /terms on the workers.dev host).
-- [ ] Review `terms.html` and `privacy.html` for legal accuracy and real contact
-      info.
+- [x] Review + redesign `privacy`/`terms`/`support` pages (2026-07-22: on-brand
+      restyle, contact = support@retrowaveblog.com, DiceBear added to processor
+      list, de-dashed, links verified live). A lawyer's eye is still worthwhile
+      but content is accurate to the app.
 - [x] Confirm `BLOG_OWNER_EMAIL` (2026-07-15: switched to
       support@retrowaveblog.com; Cloudflare Email Routing forwards to the
       owner's Gmail — verified with a live forwarded test email).
 
 ### Apple/Mac Work
 
-- [ ] Enroll in the Apple Developer Program.
-- [x] Build the iOS app on a Mac in Xcode for the first time (2026-07-09:
-      simulator build succeeded, app boots on iPhone 17 Pro / iOS 26.5).
-- [ ] Set up code signing in Xcode.
-- [ ] Register bundle ID `com.retrowave.journal`.
-- [ ] Create the App Store Connect listing.
-- [ ] Capture App Store screenshots on Apple simulators/devices.
-- [ ] Write the App Store description.
-- [ ] Create a real reviewer/demo account for Apple.
+- [ ] Confirm Apple Developer Program enrollment is active.
+- [x] Build the iOS app on a Mac in Xcode (2026-07-09 first build; 2026-07-22
+      iPhone-only build compiles + launches on iPhone 17 Pro Max sim).
+- [x] Icon App-Store-ready (2026-07-22: alpha channel stripped — was a silent
+      ITMS-90717 rejection risk).
+- [x] Bundle ID `com.retrowave.journal` set everywhere (auto-registers in
+      Xcode on Team select; no manual portal step needed).
+- [x] Write the App Store description + all listing metadata (in the guide).
+- [x] Create the reviewer/demo account (appreview@retrowaveblog.com /
+      AppReview!2026rw — pre-confirmed, age-verified, 3 public seed entries).
+- [ ] Set up code signing in Xcode (select Team — needs the Apple ID).
+- [ ] Capture the remaining 5 screenshots (needs `sudo xcode-select` first).
+- [ ] Create the App Store Connect app record + submit (paste from the guide).
 
 ## What Already Looks Good
 
