@@ -26,6 +26,7 @@
     "@capacitor/share": "^8.0.1",
     "@capacitor/splash-screen": "^8.0.1",
     "@capacitor/status-bar": "^8.0.1",
+    "@fontsource/comic-neue": "^5.3.0",
     "@supabase/supabase-js": "^2.103.3",
     "@tanstack/react-virtual": "^3.13.18",
     "date-fns": "^4.1.0",

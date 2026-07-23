@@ -47,7 +47,7 @@ export const THEMES: ThemeDefinition[] = [
       '--button-gradient-from': '#cc3388',
       '--button-gradient-to': '#aa2266',
       '--button-text': '#ffffff',
-      '--title-font': "'Comic Sans MS', 'Brush Script MT', cursive",
+      '--title-font': "'Comic Neue', 'Comic Sans MS', cursive",
       '--header-gradient-from': '#ffb6c1',
       '--header-gradient-via': '#dda0dd',
       '--header-gradient-to': '#add8e6',

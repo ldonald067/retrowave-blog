@@ -985,7 +985,7 @@ export default function PostModal({
           </div>
 
           {!isViewMode && (
-            <ModalFooter className="flex items-center justify-between flex-shrink-0">
+            <ModalFooter className="flex items-center justify-between flex-wrap gap-y-2 flex-shrink-0">
               <div className="flex items-center gap-2 flex-wrap">
                 {mode === 'create' && (
                   <span
@@ -1034,7 +1034,7 @@ export default function PostModal({
                 <button
                   onClick={handleSubmit}
                   disabled={saving || loadingFullContent || fullContentError}
-                  className="xanga-button flex items-center gap-2 text-sm min-h-[44px]"
+                  className="xanga-button flex items-center gap-2 text-sm min-h-[44px] whitespace-nowrap flex-shrink-0"
                 >
                   <Pepicon name="floppyDisk" size={14} />
                   <span>{submitButtonText}</span>
