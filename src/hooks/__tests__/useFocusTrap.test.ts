@@ -116,6 +116,53 @@ describe('useFocusTrap', () => {
     expect(onEscape).toHaveBeenCalledTimes(1);
   });
 
+  it('does not steal focus when onEscape changes identity', () => {
+    // Regression: PostModal re-creates its onEscape on every keystroke (its
+    // isDirty dep chain includes the field values). When the focus effect
+    // depended on the key handler, each character re-ran it and yanked focus
+    // to the first focusable element — so only one character could be typed.
+    const buttons = container.querySelectorAll('button');
+
+    const { rerender } = renderHook(
+      ({ onEscape }: { onEscape: () => void }) => {
+        const ref = useRef<HTMLElement>(container);
+        useFocusTrap(ref, true, onEscape);
+      },
+      { initialProps: { onEscape: () => {} } }
+    );
+
+    // User tabs/clicks to a field that is not the first focusable element
+    buttons[1]!.focus();
+    expect(document.activeElement).toBe(buttons[1]);
+
+    // A keystroke gives onEscape a brand-new identity
+    rerender({ onEscape: () => {} });
+
+    // Focus must stay where the user put it
+    expect(document.activeElement).toBe(buttons[1]);
+  });
+
+  it('still handles Escape after onEscape changes identity', () => {
+    // The listener must track the latest callback even though the focus
+    // effect no longer re-runs on identity changes.
+    const first = vi.fn();
+    const second = vi.fn();
+
+    const { rerender } = renderHook(
+      ({ onEscape }: { onEscape: () => void }) => {
+        const ref = useRef<HTMLElement>(container);
+        useFocusTrap(ref, true, onEscape);
+      },
+      { initialProps: { onEscape: first } }
+    );
+
+    rerender({ onEscape: second });
+    dispatchKeyDown(container, 'Escape');
+
+    expect(second).toHaveBeenCalledTimes(1);
+    expect(first).not.toHaveBeenCalled();
+  });
+
   it('restores previous focus on unmount', () => {
     // Create an external element to have focus before trap
     const externalButton = document.createElement('button');

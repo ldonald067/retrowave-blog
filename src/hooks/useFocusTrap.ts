@@ -58,6 +58,10 @@ export function useFocusTrap(
     [containerRef, onEscape]
   );
 
+  // Focus management runs ONLY when the trap opens or closes. It must not depend
+  // on handleKeyDown: PostModal's onEscape is re-created on every keystroke (its
+  // isDirty dep chain includes the field values), so re-running this effect would
+  // yank focus out of the input the user is typing in after a single character.
   useEffect(() => {
     if (!active) return;
 
@@ -73,14 +77,22 @@ export function useFocusTrap(
       focusableElements[0]!.focus();
     }
 
-    container.addEventListener('keydown', handleKeyDown);
-
     return () => {
-      container.removeEventListener('keydown', handleKeyDown);
       // Restore focus to the element that was focused before the trap
       if (previousFocusRef.current && typeof previousFocusRef.current.focus === 'function') {
         previousFocusRef.current.focus();
       }
     };
+  }, [containerRef, active]);
+
+  // Re-attaching the listener when the handler changes is safe — no focus side effect.
+  useEffect(() => {
+    if (!active) return;
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener('keydown', handleKeyDown);
+    return () => container.removeEventListener('keydown', handleKeyDown);
   }, [containerRef, active, handleKeyDown]);
 }
