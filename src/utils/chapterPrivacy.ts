@@ -9,7 +9,12 @@
  * If the two ever diverge, the UI padlock stops reflecting real visibility.
  */
 export function normalizeChapter(chapter: string | null | undefined): string {
-  return (chapter ?? '').trim().toLowerCase();
+  // Collapse every run of whitespace to one ASCII space, then trim and casefold.
+  // This must match public.normalize_chapter() in Postgres exactly. A previous
+  // version used only .trim(), which strips U+00A0 while Postgres btrim() does
+  // NOT — so a chapter ending in a non-breaking space (trivially pasted on an
+  // iPhone) showed as locked in the UI while the RPC published its entries.
+  return (chapter ?? '').replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
 /** True when two chapter names refer to the same chapter for privacy purposes. */

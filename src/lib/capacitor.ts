@@ -59,6 +59,15 @@ export async function saveTextFile(
     const message = err instanceof Error ? err.message : String(err);
     if (/cancel/i.test(message)) return false;
     throw err;
+  } finally {
+    // The export contains every private entry in plaintext. Once the share sheet
+    // has closed — completed, cancelled or failed — that copy must not sit in
+    // the app cache waiting for iOS to decide to purge it.
+    try {
+      await Filesystem.deleteFile({ path: filename, directory: Directory.Cache });
+    } catch {
+      // Best effort. A failed cleanup must not mask the share result.
+    }
   }
 }
 

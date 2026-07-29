@@ -635,13 +635,13 @@ function App() {
         setShowAuthModal(true);
         return;
       }
+      // Leave the composer mounted and selectedPost intact. ConfirmDialog is
+      // z-[60] against the modal overlay's z-50, so it renders above the
+      // composer without anything being closed — and cancelling therefore
+      // returns the user to their unsaved edits instead of discarding them.
+      // Edit-mode drafts are not persisted, so tearing the composer down here
+      // would silently destroy whatever they had just written.
       setPostToDelete(post);
-      // Close the composer outright. Nulling selectedPost alone is not enough:
-      // PostModal renders on `showModal`, so it stayed mounted in edit mode with
-      // post=null, and a later save fell through to createPost — re-creating the
-      // entry the user had just deleted.
-      setSelectedPost(null);
-      setShowModal(false);
     },
     [user, showError]
   );
@@ -652,11 +652,19 @@ function App() {
     const { error } = await deletePost(postToDelete.id);
     setDeleteLoading(false);
     if (error) {
+      // Leave the composer open on failure — the entry still exists, and any
+      // unsaved edits in it are still the user's only copy.
       showError('~ couldnt delete that :( try again ~');
     } else {
       void hapticImpact();
       success(SUCCESS_MESSAGES.post.deleted);
       void refetchChapters(); // Last post in a chapter may have been deleted
+      // Only now is it safe to tear the composer down: the entry is gone, so
+      // there is nothing left to save into. This also prevents the old bug where
+      // a still-mounted composer with post=null fell through to createPost and
+      // resurrected the deleted entry.
+      setSelectedPost(null);
+      setShowModal(false);
     }
     setPostToDelete(null);
   }, [postToDelete, deletePost, showError, success, refetchChapters]);
@@ -674,7 +682,14 @@ function App() {
     // it on a private entry would ship the user's diary to a third party for no
     // benefit. Public entries are moderated on create, and a private entry is
     // moderated the moment an edit makes it public (is_private flips to false).
-    if (!postData.is_private) {
+    // "Externally visible" is not is_private alone. An entry with is_private
+    // false that sits in a private chapter is hidden from the public page by
+    // get_public_profile — so treating it as public here would ship a chapter
+    // the user marked private to OpenAI. Mirror the server's rule.
+    const willBePubliclyVisible =
+      !postData.is_private && !isChapterPrivate(profile?.private_chapters, postData.chapter);
+
+    if (willBePubliclyVisible) {
       // Run AI moderation before saving. quickContentCheck already ran
       // in PostModal (instant local feedback), but this calls the edge function
       // for full OpenAI moderation. Fail-open: if the service is down, the post
@@ -739,7 +754,9 @@ function App() {
       // current_mood/current_music are rendered on the public profile page, so
       // copying them off a private entry would broadcast what the user just wrote
       // privately ("feeling: heartbroken") to anyone holding their public link.
-      if (!postData.is_private && (postData.mood || postData.music)) {
+      // Same rule as the moderation guard above: an entry hidden by its chapter
+      // must not push its mood/music onto the publicly rendered profile.
+      if (willBePubliclyVisible && (postData.mood || postData.music)) {
         const profileUpdates: Record<string, string | null> = {};
         if (postData.mood) profileUpdates.current_mood = postData.mood;
         if (postData.music) profileUpdates.current_music = postData.music;

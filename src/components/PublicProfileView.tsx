@@ -524,16 +524,12 @@ export default function PublicProfileView({
           <p className="text-xs mt-4" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
             powered by ✨ YourJournal
           </p>
-          {posts.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setReportingPost(posts[0]!)}
-              className="xanga-link mt-2 inline-flex items-center justify-center text-xs min-h-[44px]"
-              aria-label={`Report public page: ${profile.username}`}
-            >
-              report public page
-            </button>
-          )}
+          {/* No "report public page" control. It used to alias to posts[0], so
+              reporting a profile whose BIO was abusive filed a report against an
+              unrelated, innocent entry — an operator inspecting the reported
+              object would dismiss it and miss the actual violation. Every entry
+              carries its own working report button, and blocking covers the
+              person rather than the post. */}
         </motion.div>
       </div>
 

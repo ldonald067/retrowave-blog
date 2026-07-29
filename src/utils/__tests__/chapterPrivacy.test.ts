@@ -8,6 +8,19 @@ describe('chapterPrivacy', () => {
     expect(normalizeChapter(undefined)).toBe('');
   });
 
+  it('strips Unicode whitespace, matching public.normalize_chapter()', () => {
+    // A trailing non-breaking space is trivially introduced by pasting text on
+    // an iPhone. JS .trim() strips it but Postgres btrim() does NOT, so an
+    // earlier version of this pair disagreed: the UI showed the chapter locked
+    // while the RPC published its entries. Both sides now collapse all Unicode
+    // whitespace. Verified against the live database.
+    expect(normalizeChapter('Therapy ')).toBe('therapy'); // NBSP
+    expect(normalizeChapter(' Therapy ')).toBe('therapy'); // thin space
+    expect(normalizeChapter('The rapy')).toBe('the rapy'); // internal, collapsed
+    expect(normalizeChapter('a　 b')).toBe('a b'); // runs collapse to one
+    expect(isChapterPrivate(['Therapy'], 'Therapy ')).toBe(true);
+  });
+
   it('treats case and whitespace variants as the same chapter', () => {
     // The exposure this guards: chapters are free text typed per entry, so a
     // user retyping "Therapy" as "therapy" used to silently publish an entry
