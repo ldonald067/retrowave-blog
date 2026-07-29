@@ -69,6 +69,14 @@ export interface Database {
           bio: string | null;
           avatar_url: string | null;
           birth_year: number | null;
+          /**
+           * Legacy column, live in production but unused by the app — age
+           * verification uses birth_year. Predates the reconstructed migration
+           * history; captured 2026-07-29 (see
+           * 20260729010000_capture_undocumented_prod_state.sql). Listed here so
+           * the types match the real schema.
+           */
+          birthdate: string | null;
           age_verified: boolean;
           tos_accepted: boolean;
           theme: string | null;
