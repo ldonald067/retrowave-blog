@@ -880,6 +880,7 @@ function App() {
       <Suspense fallback={<LazyFallback />}>
         <PublicProfileView
           username={publicUsername}
+          isAuthenticated={!!user}
           onSignUp={() => {
             window.location.hash = '';
             setShowAuthModal(true);

@@ -1,25 +1,196 @@
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { usePublicProfile } from '../hooks/usePublicProfile';
 import { applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { Avatar } from './ui';
 import { formatDate } from '../utils/formatDate';
 import LoadingSpinner from './LoadingSpinner';
-import { buildReportEmailHref } from '../lib/reporting';
+import ConfirmDialog from './ConfirmDialog';
+import { useFocusTrap } from '../hooks/useFocusTrap';
+import {
+  REPORT_REASONS,
+  reportPublicPost,
+  blockUserByUsername,
+  type ReportReason,
+} from '../lib/reporting';
 import type { PublicPost } from '../types/profile';
 
 interface PublicProfileViewProps {
   username: string;
+  isAuthenticated: boolean;
   onSignUp: () => void;
   onGoHome: () => void;
 }
 
-function PublicPostCard({ post, username }: { post: PublicPost; username: string }) {
-  const reportHref = buildReportEmailHref(
-    `Report public entry: "${post.title}" (${post.id})`,
-    `Public page: @${username}\nEntry id: ${post.id}\nTitle: ${post.title}`
-  );
+/**
+ * In-app report flow (Apple Guideline 1.2).
+ *
+ * Deliberately self-contained: this view renders outside App's toast layer, so
+ * success and failure are shown inline rather than via a toast the user would
+ * never see. Works signed-out — the RPC accepts anonymous reporters.
+ */
+function ReportDialog({ post, onClose }: { post: PublicPost; onClose: () => void }) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const [reason, setReason] = useState<ReportReason | null>(null);
+  const [details, setDetails] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useFocusTrap(dialogRef, true, onClose);
 
+  async function handleSubmit() {
+    if (!reason) return;
+    setSubmitting(true);
+    setError(null);
+    const { error: err } = await reportPublicPost(post.id, reason, details);
+    setSubmitting(false);
+    if (err) {
+      setError(err);
+      return;
+    }
+    setSubmitted(true);
+  }
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex justify-center p-4 modal-overlay-safe"
+        onClick={onClose}
+      >
+        <motion.div
+          ref={dialogRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="report-dialog-title"
+          initial={{ scale: 0.9, y: 20 }}
+          animate={{ scale: 1, y: 0 }}
+          exit={{ scale: 0.9, y: 20 }}
+          className="xanga-box p-5 max-w-sm w-full overflow-y-auto modal-panel-safe"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {submitted ? (
+            <>
+              <h3 id="report-dialog-title" className="xanga-title text-lg mb-2">
+                ~ thanks, we got it ~
+              </h3>
+              <p className="text-sm mb-5" style={{ color: 'var(--text-body)' }}>
+                This entry has been sent to us for review. We remove content that breaks the rules
+                and can ban repeat offenders.
+              </p>
+              <button
+                type="button"
+                onClick={onClose}
+                className="xanga-button text-xs px-4 py-2 min-h-[44px] w-full"
+              >
+                ~ done ~
+              </button>
+            </>
+          ) : (
+            <>
+              <h3 id="report-dialog-title" className="xanga-title text-lg mb-1">
+                <span aria-hidden="true">🚩</span> ~ report this entry ~
+              </h3>
+              <p className="text-xs mb-3 break-words" style={{ color: 'var(--text-muted)' }}>
+                &ldquo;{post.title}&rdquo;
+              </p>
+
+              <fieldset className="mb-3">
+                <legend className="text-xs mb-2" style={{ color: 'var(--text-body)' }}>
+                  what&apos;s wrong with it?
+                </legend>
+                <div className="flex flex-col gap-2">
+                  {REPORT_REASONS.map((r) => (
+                    <button
+                      key={r.value}
+                      type="button"
+                      onClick={() => setReason(r.value)}
+                      aria-pressed={reason === r.value}
+                      className="text-left px-3 py-2 rounded-lg border-2 border-dotted text-xs min-h-[44px]"
+                      style={{
+                        borderColor: 'var(--border-primary)',
+                        backgroundColor:
+                          reason === r.value
+                            ? 'color-mix(in srgb, var(--accent-primary) 18%, var(--card-bg))'
+                            : 'var(--card-bg)',
+                        color: 'var(--text-body)',
+                      }}
+                    >
+                      {reason === r.value ? '● ' : '○ '}
+                      {r.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+
+              <label
+                htmlFor="report-details"
+                className="text-xs block mb-1"
+                style={{ color: 'var(--text-body)' }}
+              >
+                anything else? (optional)
+              </label>
+              <textarea
+                id="report-details"
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                maxLength={1000}
+                rows={3}
+                className="w-full rounded-lg border-2 border-dotted p-2 text-xs mb-3"
+                style={{
+                  borderColor: 'var(--border-primary)',
+                  backgroundColor: 'var(--card-bg)',
+                  color: 'var(--text-body)',
+                }}
+              />
+
+              {error && (
+                <p className="text-xs mb-3" style={{ color: 'var(--accent-primary)' }} role="alert">
+                  {error}
+                </p>
+              )}
+
+              <div className="flex flex-col-reverse sm:flex-row gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-lg text-xs font-bold border-2 border-dotted min-h-[44px]"
+                  style={{
+                    backgroundColor: 'var(--card-bg)',
+                    color: 'var(--text-muted)',
+                    borderColor: 'var(--border-primary)',
+                    fontFamily: 'var(--title-font)',
+                  }}
+                >
+                  cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={!reason || submitting}
+                  className="xanga-button text-xs px-4 py-2 min-h-[44px]"
+                  style={{ opacity: !reason || submitting ? 0.5 : 1 }}
+                >
+                  {submitting ? '~ sending... ~' : '~ send report ~'}
+                </button>
+              </div>
+            </>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
+function PublicPostCard({
+  post,
+  onReport,
+}: {
+  post: PublicPost;
+  onReport: (post: PublicPost) => void;
+}) {
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -73,13 +244,14 @@ function PublicPostCard({ post, username }: { post: PublicPost; username: string
           borderColor: 'var(--border-primary)',
         }}
       >
-        <a
-          href={reportHref}
+        <button
+          type="button"
+          onClick={() => onReport(post)}
           className="xanga-link inline-flex items-center justify-end text-xs min-h-[44px]"
           aria-label={`Report public entry: ${post.title}`}
         >
           ~ report entry ~
-        </a>
+        </button>
       </div>
     </motion.article>
   );
@@ -87,10 +259,29 @@ function PublicPostCard({ post, username }: { post: PublicPost; username: string
 
 export default function PublicProfileView({
   username,
+  isAuthenticated,
   onSignUp,
   onGoHome,
 }: PublicProfileViewProps) {
   const { data, loading, notFound } = usePublicProfile(username);
+  const [reportingPost, setReportingPost] = useState<PublicPost | null>(null);
+  const [confirmingBlock, setConfirmingBlock] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+  const [blocked, setBlocked] = useState(false);
+  const [blockError, setBlockError] = useState<string | null>(null);
+
+  async function handleBlock() {
+    setBlocking(true);
+    setBlockError(null);
+    const { error } = await blockUserByUsername(username);
+    setBlocking(false);
+    setConfirmingBlock(false);
+    if (error) {
+      setBlockError(error);
+      return;
+    }
+    setBlocked(true);
+  }
 
   // Apply the profile owner's theme
   useEffect(() => {
@@ -180,10 +371,6 @@ export default function PublicProfileView({
   const { profile, posts } = data;
   const publicEntryLabel = `${posts.length} public ${posts.length === 1 ? 'entry' : 'entries'}`;
   const joinedYear = new Date(profile.created_at).getFullYear();
-  const profileReportHref = buildReportEmailHref(
-    `Report public page: @${profile.username}`,
-    `Public page: @${profile.username}`
-  );
 
   return (
     <div
@@ -273,7 +460,31 @@ export default function PublicProfileView({
                 <button onClick={onSignUp} className="xanga-button text-xs px-4 py-2 min-h-[44px]">
                   start your own journal
                 </button>
+                {/* Guideline 1.2: blocking must be reachable where you actually
+                    encounter someone else's content. The PostCard block button
+                    can never render here — the feed RPC returns only own posts. */}
+                {blocked ? (
+                  <span
+                    className="inline-flex items-center text-xs min-h-[44px] px-3"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    ✓ blocked — their entries are hidden from your journal
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => (isAuthenticated ? setConfirmingBlock(true) : onSignUp())}
+                    className="xanga-link inline-flex items-center justify-center text-xs min-h-[44px] px-3"
+                    aria-label={`Block @${profile.username}`}
+                  >
+                    block @{profile.username}
+                  </button>
+                )}
               </div>
+              {blockError && (
+                <p className="text-xs mt-2" style={{ color: 'var(--accent-primary)' }} role="alert">
+                  {blockError}
+                </p>
+              )}
             </div>
           </div>
         </motion.div>
@@ -289,7 +500,7 @@ export default function PublicProfileView({
             </div>
           ) : (
             posts.map((post) => (
-              <PublicPostCard key={post.id} post={post} username={profile.username} />
+              <PublicPostCard key={post.id} post={post} onReport={setReportingPost} />
             ))
           )}
         </div>
@@ -313,15 +524,38 @@ export default function PublicProfileView({
           <p className="text-xs mt-4" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
             powered by ✨ YourJournal
           </p>
-          <a
-            href={profileReportHref}
-            className="xanga-link mt-2 inline-flex items-center justify-center text-xs min-h-[44px]"
-            aria-label={`Report public page: ${profile.username}`}
-          >
-            report public page
-          </a>
+          {posts.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setReportingPost(posts[0]!)}
+              className="xanga-link mt-2 inline-flex items-center justify-center text-xs min-h-[44px]"
+              aria-label={`Report public page: ${profile.username}`}
+            >
+              report public page
+            </button>
+          )}
         </motion.div>
       </div>
+
+      {reportingPost && (
+        <ReportDialog post={reportingPost} onClose={() => setReportingPost(null)} />
+      )}
+
+      {confirmingBlock && (
+        <ConfirmDialog
+          title={`~ block @${profile.username}? ~`}
+          message={
+            <>
+              You won&apos;t see their entries anywhere in your journal, and they won&apos;t be able
+              to react to yours. You can undo this later in settings.
+            </>
+          }
+          confirmLabel="~ yes, block ~"
+          loading={blocking}
+          onConfirm={handleBlock}
+          onCancel={() => setConfirmingBlock(false)}
+        />
+      )}
     </div>
   );
 }

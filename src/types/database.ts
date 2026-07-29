@@ -288,6 +288,24 @@ export interface Database {
         };
         Returns: { is_blocked: boolean };
       };
+      // Apple Guideline 1.2: file a report against a public entry. Callable by
+      // anon so a signed-out visitor on a shared link can still flag content.
+      report_public_post: {
+        Args: {
+          p_post_id: string;
+          p_reason: string;
+          p_details: string | null;
+        };
+        Returns: { reported: boolean };
+      };
+      // Apple Guideline 1.2: block a public page's owner. Resolves the username
+      // server-side because get_public_profile does not expose the user id.
+      block_user_by_username: {
+        Args: {
+          p_username: string;
+        };
+        Returns: { is_blocked: boolean };
+      };
       // Apple Guideline 5.1.1: Delete the authenticated user's account and all data.
       delete_user_account: {
         Args: Record<string, never>;
