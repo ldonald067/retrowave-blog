@@ -1,4 +1,5 @@
 import { Pepicon } from './ui';
+import { openUrl } from '../lib/capacitor';
 
 interface PublicPageSettingsProps {
   enabled: boolean;
@@ -94,11 +95,15 @@ export default function PublicPageSettings({
                   ? 'share public page'
                   : 'copy public link'}
             </button>
+            {/* openUrl, not target="_blank" — the latter is a no-op in the
+                Capacitor WebView, so this button did nothing on iOS. */}
             <a
               href={publicUrl}
+              onClick={(e) => {
+                e.preventDefault();
+                void openUrl(publicUrl);
+              }}
               className="xanga-button text-xs min-h-[44px] inline-flex items-center justify-center"
-              target="_blank"
-              rel="noreferrer"
             >
               view public page
             </a>

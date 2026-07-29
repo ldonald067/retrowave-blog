@@ -629,7 +629,12 @@ function App() {
         return;
       }
       setPostToDelete(post);
-      setSelectedPost(null); // Close edit modal so confirm dialog is visible
+      // Close the composer outright. Nulling selectedPost alone is not enough:
+      // PostModal renders on `showModal`, so it stayed mounted in edit mode with
+      // post=null, and a later save fell through to createPost — re-creating the
+      // entry the user had just deleted.
+      setSelectedPost(null);
+      setShowModal(false);
     },
     [user, showError]
   );
@@ -650,29 +655,43 @@ function App() {
   }, [postToDelete, deletePost, showError, success, refetchChapters]);
 
   const handleSavePost = async (postData: CreatePostInput) => {
-    // Run AI moderation before saving. quickContentCheck already ran
-    // in PostModal (instant local feedback), but this calls the edge function
-    // for full OpenAI moderation. Fail-open: if the service is down, the post
-    // goes through (local regex already passed).
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-    // Fold public user-authored fields (author name, music) into the moderated
-    // text so they can't bypass the AI check the way title/content can't.
-    const moderatedContent = [postData.content, postData.author, postData.music]
-      .filter(Boolean)
-      .join('\n');
-    const modResult = await moderateContent(
-      postData.title,
-      moderatedContent,
-      null,
-      supabaseUrl,
-      async () => {
-        const { data } = await supabase.auth.getSession();
-        return data.session?.access_token ?? null;
+    // Guard against a stale edit session: if the entry vanished (e.g. it was
+    // deleted from inside the composer), never silently fall through to create.
+    if (modalMode === 'edit' && !selectedPost) {
+      showError('~ that entry is gone ~');
+      throw new Error('stale edit session');
+    }
+
+    // Moderation exists to protect people who READ an entry. A private entry has
+    // no audience, and the edge function forwards the text to OpenAI — so running
+    // it on a private entry would ship the user's diary to a third party for no
+    // benefit. Public entries are moderated on create, and a private entry is
+    // moderated the moment an edit makes it public (is_private flips to false).
+    if (!postData.is_private) {
+      // Run AI moderation before saving. quickContentCheck already ran
+      // in PostModal (instant local feedback), but this calls the edge function
+      // for full OpenAI moderation. Fail-open: if the service is down, the post
+      // goes through (local regex already passed).
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+      // Fold public user-authored fields (author name, music) into the moderated
+      // text so they can't bypass the AI check the way title/content can't.
+      const moderatedContent = [postData.content, postData.author, postData.music]
+        .filter(Boolean)
+        .join('\n');
+      const modResult = await moderateContent(
+        postData.title,
+        moderatedContent,
+        null,
+        supabaseUrl,
+        async () => {
+          const { data } = await supabase.auth.getSession();
+          return data.session?.access_token ?? null;
+        }
+      );
+      if (!modResult.allowed) {
+        showError(modResult.reason || '~ content violates community guidelines ~');
+        throw new Error(modResult.reason || 'Content blocked by moderation');
       }
-    );
-    if (!modResult.allowed) {
-      showError(modResult.reason || '~ content violates community guidelines ~');
-      throw new Error(modResult.reason || 'Content blocked by moderation');
     }
 
     if (modalMode === 'edit' && selectedPost) {
@@ -709,8 +728,11 @@ function App() {
       );
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // Also update profile mood/music if provided in the post
-      if (postData.mood || postData.music) {
+      // Also update profile mood/music if provided — but only from a PUBLIC entry.
+      // current_mood/current_music are rendered on the public profile page, so
+      // copying them off a private entry would broadcast what the user just wrote
+      // privately ("feeling: heartbroken") to anyone holding their public link.
+      if (!postData.is_private && (postData.mood || postData.music)) {
         const profileUpdates: Record<string, string | null> = {};
         if (postData.mood) profileUpdates.current_mood = postData.mood;
         if (postData.music) profileUpdates.current_music = postData.music;

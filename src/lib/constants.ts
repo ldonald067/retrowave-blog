@@ -9,6 +9,13 @@ export const SWIPE_DISMISS_THRESHOLD = 80;
 // Contact — used for report links and privacy page
 export const BLOG_OWNER_EMAIL = 'support@retrowaveblog.com';
 
+// Canonical public origin. MUST be used instead of window.location.origin for any
+// URL a user sees, shares, or opens: inside the Capacitor WebView the origin is
+// `capacitor://localhost`, which produces links nobody can open.
+export const SITE_URL = 'https://retrowaveblog.com';
+export const TERMS_URL = `${SITE_URL}/terms`;
+export const PRIVACY_URL = `${SITE_URL}/privacy`;
+
 // Age Verification
 export const MIN_AGE = 13; // COPPA compliance
 

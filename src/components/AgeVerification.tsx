@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { TERMS_URL, PRIVACY_URL } from '../lib/constants';
+import { openUrl } from '../lib/capacitor';
 
 interface AgeVerificationProps {
   onVerified: (birthYear: number, tosAccepted: boolean) => void;
@@ -146,19 +148,27 @@ export default function AgeVerification({
                       style={{ color: 'var(--text-body)' }}
                     >
                       i accept the{' '}
+                      {/* openUrl, not target="_blank": in the Capacitor WebView a
+                          blank-target app-local link resolves to capacitor://…,
+                          which iOS cannot open — the tap did nothing, leaving the
+                          user unable to read what they were being asked to accept. */}
                       <a
-                        href="/terms.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href={TERMS_URL}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          void openUrl(TERMS_URL);
+                        }}
                         className="xanga-link"
                       >
                         Terms of Service
                       </a>{' '}
                       and{' '}
                       <a
-                        href="/privacy.html"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                        href={PRIVACY_URL}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          void openUrl(PRIVACY_URL);
+                        }}
                         className="xanga-link"
                       >
                         Privacy Policy

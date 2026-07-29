@@ -14,6 +14,7 @@ import {
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { useTrailMode, TRAIL_MODE_OPTIONS } from '../lib/cursorTrail';
 import { buildPublicProfileUrl } from '../lib/publicProfile';
+import { openUrl } from '../lib/capacitor';
 import type { Chapter } from '../hooks/useChapters';
 
 interface SidebarProps {
@@ -170,10 +171,13 @@ export default function Sidebar({
                     ? 'share public page'
                     : 'copy public page'}
               </button>
+              {/* openUrl, not target="_blank" — a no-op inside the Capacitor WebView. */}
               <a
                 href={publicProfileUrl}
-                target="_blank"
-                rel="noreferrer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  void openUrl(publicProfileUrl);
+                }}
                 className="xanga-link text-xs inline-flex items-center gap-1 min-h-[44px]"
               >
                 open public page
