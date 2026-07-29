@@ -145,10 +145,18 @@ Capability/context:
 
 **Guideline 1.2 (UGC safety) — all four present:**
 
-1. **Filter** — client + server slur/hate regex + adult-URL/domain blocklists, **plus live OpenAI moderation** on every entry (the `moderate-content` edge function; the API key is set and verified active in production).
-2. **Report** — a report button on every public post emails support@retrowaveblog.com with the post title + ID.
-3. **Block** — a block button on every post hides that author's content.
-4. **Policy + action** — Terms/Privacy published; solo operator monitors support@ and removes content / bans accounts.
+1. **Filter** — client + server slur/hate regex + adult-URL/domain blocklists, **plus live OpenAI moderation** on every **public** entry (the `moderate-content` edge function; the API key is set and verified active in production). Private entries are deliberately not sent to OpenAI — they have no audience to protect, and shipping a user's diary to a third party for no benefit would contradict the privacy promise in the listing.
+2. **Report** — an in-app report dialog on every public entry (5 reason categories + optional detail) writes a durable row to `content_reports` via the `report_public_post` RPC, and confirms to the user. Works signed-out, since a public page is reachable from a shared link. _(Was a `mailto:` link until 2026-07-29, which silently did nothing on any device without a configured Mail account.)_
+3. **Block** — a `block @username` control on the public profile page, via the `block_user_by_username` RPC. Blocked authors' content is excluded from the feed RPCs. _(The old block button lived only in PostCard, gated on `!isOwner`, which could never render once the feed was narrowed to a personal diary — so before 2026-07-29 there was no reachable block control at all.)_
+4. **Policy + action** — Terms/Privacy published and reachable in-app via SFSafariViewController; solo operator reviews `content_reports` and removes content / bans accounts.
+
+**Report queue operations.** Reports land in `public.content_reports` (`status` = `open` → `reviewed` / `actioned` / `dismissed`). RLS is enabled with **no policies**, so the table is unreadable via the API — review it in the dashboard, or with:
+
+```sql
+select id, reason, details, created_at from public.content_reports where status = 'open' order by created_at;
+```
+
+To avoid an unread queue (Apple asks about _timely_ responses), wire a notification — Dashboard → **Database → Webhooks → Create a new hook**: table `content_reports`, event `INSERT`, type **HTTP Request**, POST to an endpoint that emails support@retrowaveblog.com. No code required.
 
 ---
 

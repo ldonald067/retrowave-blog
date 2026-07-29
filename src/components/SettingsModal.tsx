@@ -17,7 +17,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
-import { hapticImpact } from '../lib/capacitor';
+import { hapticImpact, saveTextFile } from '../lib/capacitor';
 import { requireAuth } from '../lib/auth-guard';
 
 interface SettingsModalProps {
@@ -46,17 +46,17 @@ export default function SettingsModal({ onClose, onSuccess, onError }: SettingsM
       const { data, error } = await withRetry(async () => supabase.rpc('export_user_data'));
       if (error) throw error;
 
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `my-journal-data-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // saveTextFile throws if the write or share fails, so the success message
+      // below can never fire without a file actually reaching the user. The old
+      // code used an <a download> click, which is a no-op in the iOS WebView —
+      // it reported success while producing nothing.
+      const delivered = await saveTextFile(
+        `my-journal-data-${new Date().toISOString().split('T')[0]}.json`,
+        JSON.stringify(data, null, 2)
+      );
 
-      onSuccess?.('~ ur data has been exported! ~');
+      // Dismissing the iOS share sheet is not success and not an error — say nothing.
+      if (delivered) onSuccess?.('~ ur data has been exported! ~');
     } catch (err) {
       onError?.(toUserMessage(err));
     } finally {

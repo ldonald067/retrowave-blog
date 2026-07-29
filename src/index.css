@@ -456,9 +456,17 @@ body {
     box-shadow 0.2s;
 }
 
+/*
+ * Hover keeps the --button-gradient + --button-text pairing, which is the only
+ * combination guaranteed AA across all 8 themes (same contract ConfirmDialog
+ * documents). It previously swapped to the --accent-primary/--accent-secondary
+ * gradient with a hardcoded #ffffff, so on themes with light accents the label
+ * went white-on-light and effectively disappeared at the moment of interaction.
+ * The lift, glow and brightness still give the hover its pop without putting
+ * text on an unvetted background.
+ */
 .xanga-button:hover:not(:disabled) {
-  background: linear-gradient(180deg, var(--accent-primary), var(--accent-secondary));
-  color: #ffffff;
+  filter: brightness(1.12);
   transform: translateY(-1px);
   box-shadow:
     3px 3px 0px var(--shadow-color),

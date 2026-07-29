@@ -232,8 +232,17 @@ export default function ProfileModal({
       theme: selectedTheme,
       current_mood: currentMood.trim() || null,
       current_music: currentMusic.trim() || null,
-      is_public: isPublic,
     };
+
+    // Only write is_public when the user actually toggled it in this session.
+    // Sending the value loaded at open time could republish a journal that was
+    // unpublished elsewhere in the meantime: open the modal while public,
+    // unpublish on another device, then save an unrelated bio change here and
+    // the stale `true` goes back up. Publishing state is the one field where a
+    // last-write-wins blind update is a privacy problem, not just a lost edit.
+    if (isPublic !== (profile?.is_public ?? false)) {
+      updates.is_public = isPublic;
+    }
 
     const { error } = await onSave(updates);
 

@@ -87,7 +87,15 @@ export default function Header({
     <motion.header
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="border-b-4 shadow-md"
+      // safe-area-top is load-bearing on iOS, for two reasons. capacitor.config
+      // sets StatusBar.overlaysWebView and index.html uses viewport-fit=cover, so
+      // the WebView really does extend under the status bar: without this the
+      // marquee below rendered underneath the clock and Dynamic Island. It also
+      // fixes the status bar itself — setStatusBarForTheme switches to white text
+      // for the six dark themes, and with no padding the strip behind it stayed
+      // light, so the clock and signal icons vanished into white-on-white. The
+      // padding extends this header's themed --card-bg up behind the status bar.
+      className="border-b-4 shadow-md safe-area-top"
       style={{
         backgroundColor: 'var(--card-bg)',
         borderColor: 'var(--border-primary)',

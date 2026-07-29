@@ -5,8 +5,62 @@ import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Browser } from '@capacitor/browser';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 const isNative = Capacitor.isNativePlatform();
+
+export const isNativePlatform = isNative;
+
+/**
+ * Saves a text file so the user actually ends up with it.
+ *
+ * On the web an `<a download>` click is fine. Inside the Capacitor WKWebView it
+ * is a silent no-op — the anchor does nothing, no file is written, and no picker
+ * appears. The export button used to do exactly that and still report success,
+ * so on iOS it claimed to have exported data while producing nothing.
+ *
+ * On native we write to the app's Cache directory and hand the file to the iOS
+ * share sheet, which is what lets the user put it in Files, Mail, or anywhere
+ * else. Throws on failure so callers never report a success that did not happen.
+ */
+export async function saveTextFile(
+  filename: string,
+  contents: string,
+  mimeType = 'application/json'
+): Promise<boolean> {
+  if (!isNative) {
+    const blob = new Blob([contents], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return true;
+  }
+
+  // Cache, not Documents: this is a hand-off file, not something the app owns.
+  const written = await Filesystem.writeFile({
+    path: filename,
+    data: contents,
+    directory: Directory.Cache,
+    encoding: Encoding.UTF8,
+  });
+
+  try {
+    await Share.share({ title: filename, files: [written.uri] });
+    return true;
+  } catch (err) {
+    // Dismissing the share sheet rejects. That is not a failure — reporting an
+    // error for it would be as misleading as the old silent-success bug.
+    const message = err instanceof Error ? err.message : String(err);
+    if (/cancel/i.test(message)) return false;
+    throw err;
+  }
+}
 
 async function nativeOnly(action: () => Promise<void> | void): Promise<void> {
   if (!isNative) return;

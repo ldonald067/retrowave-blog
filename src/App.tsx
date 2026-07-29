@@ -31,6 +31,7 @@ import { sparkleBurst, emojiRain } from './lib/celebrations';
 import { Input, Select, Windows95MyComputer, Windows95Notepad } from './components/ui';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useChapters } from './hooks/useChapters';
+import { isSameChapter, isChapterPrivate } from './utils/chapterPrivacy';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
@@ -567,8 +568,14 @@ function App() {
     async (chapter: string) => {
       if (!profile) return;
       const current = profile.private_chapters ?? [];
-      const isPrivate = current.includes(chapter);
-      const updated = isPrivate ? current.filter((c) => c !== chapter) : [...current, chapter];
+      // Match the normalized comparison get_public_profile uses (see
+      // 20260729030000): "Therapy", "therapy" and " Therapy " are one chapter.
+      // Exact matching here would let a case variant silently unmark a chapter
+      // in the UI while the server still treated it as private, or vice versa.
+      const isPrivate = current.some((c) => isSameChapter(c, chapter));
+      const updated = isPrivate
+        ? current.filter((c) => !isSameChapter(c, chapter))
+        : [...current, chapter];
       const { error: err } = await updateProfile({ private_chapters: updated });
       if (err) {
         showError(`~ ${err} ~`);
@@ -1077,8 +1084,8 @@ function App() {
                 {chapterFilter &&
                   (() => {
                     const isRealChapter = chapterFilter !== LOOSE_ENTRIES;
-                    const isChapterPrivate =
-                      isRealChapter && (profile?.private_chapters ?? []).includes(chapterFilter);
+                    const chapterIsPrivate =
+                      isRealChapter && isChapterPrivate(profile?.private_chapters, chapterFilter);
                     return (
                       <motion.div
                         initial={{ opacity: 0, y: -8 }}
@@ -1091,7 +1098,7 @@ function App() {
                         >
                           {chapterFilter === LOOSE_ENTRIES
                             ? '🍃 loose entries'
-                            : `${isChapterPrivate ? '🔒' : '📖'} ${chapterFilter}`}
+                            : `${chapterIsPrivate ? '🔒' : '📖'} ${chapterFilter}`}
                           <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
                             ({visiblePosts.length} {visiblePosts.length === 1 ? 'entry' : 'entries'}
                             )
@@ -1103,17 +1110,17 @@ function App() {
                               onClick={() => toggleChapterPrivacy(chapterFilter)}
                               className="text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] lg:min-h-[28px]"
                               style={{
-                                color: isChapterPrivate
+                                color: chapterIsPrivate
                                   ? 'var(--accent-primary)'
                                   : 'var(--text-muted)',
                                 backgroundColor:
                                   'color-mix(in srgb, var(--border-primary) 20%, transparent)',
                               }}
                               aria-label={
-                                isChapterPrivate ? 'Make chapter public' : 'Make chapter private'
+                                chapterIsPrivate ? 'Make chapter public' : 'Make chapter private'
                               }
                             >
-                              {isChapterPrivate ? '🔓 make public' : '🔒 make private'}
+                              {chapterIsPrivate ? '🔓 make public' : '🔒 make private'}
                             </button>
                           )}
                           <button
