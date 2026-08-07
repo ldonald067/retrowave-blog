@@ -49,9 +49,15 @@ export default function Avatar({
   const interactiveClasses = onClick || editable ? 'cursor-pointer' : '';
 
   return (
+    // onClick sits here rather than on an overlay: the overlay that used to
+    // carry it was opacity-0 until :hover, so on iOS the avatar was tappable
+    // with nothing on screen saying so. Both call sites already render a
+    // visible control (the gear button in Sidebar, "~ choose avatar ~" in
+    // ProfileModal), so tapping the avatar is a shortcut, not the affordance.
     <motion.div
       className={`relative inline-block ${className}`}
       whileHover={onClick || editable ? { scale: 1.05 } : undefined}
+      onClick={onClick}
     >
       {fallbackError ? (
         <div
@@ -83,19 +89,6 @@ export default function Avatar({
             }
           }}
         />
-      )}
-      {editable && (
-        <div
-          className="absolute inset-0 rounded-full bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-          onClick={onClick}
-        >
-          <span
-            className="text-white text-xs font-bold"
-            style={{ fontFamily: 'var(--title-font)' }}
-          >
-            edit
-          </span>
-        </div>
       )}
     </motion.div>
   );

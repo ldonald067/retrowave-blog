@@ -414,7 +414,7 @@ export default function ProfileModal({
           <div
             className="overflow-y-auto keyboard-safe-scroll"
             style={{
-              maxHeight: `calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - var(--keyboard-inset) - ${modalChromeHeight + 16}px)`,
+              maxHeight: `calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - ${modalChromeHeight + 16}px)`,
               backgroundColor: 'var(--modal-bg)',
             }}
           >
@@ -857,13 +857,14 @@ export default function ProfileModal({
             </fieldset>
           </div>
 
-          <ModalFooter className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <ModalFooter className="flex flex-col items-center gap-2">
             {isInitialSetup && (
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
                 save this setup, then we&apos;ll open ur first entry right away
               </p>
             )}
-            <div className="flex justify-end gap-2 w-full sm:w-auto">
+            {/* centred as a pair, matching the composer footer */}
+            <div className="flex w-full justify-center gap-4">
               {!isInitialSetup && (
                 <button
                   type="button"

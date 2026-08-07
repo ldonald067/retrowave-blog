@@ -283,14 +283,19 @@ export default function PublicProfileView({
     setBlocked(true);
   }
 
-  // Apply the profile owner's theme
+  // Apply the profile owner's theme while viewing their page, then put back
+  // whatever was there before. Restoring DEFAULT_THEME instead would wipe the
+  // signed-in visitor's own theme: a user on emo-dark who opened someone's
+  // public page came back to Classic Xanga.
   useEffect(() => {
-    if (data?.profile.theme) {
-      applyTheme(data.profile.theme);
-    }
+    const ownerTheme = data?.profile.theme;
+    if (!ownerTheme) return;
+
+    const previousTheme = document.documentElement.getAttribute('data-theme') ?? DEFAULT_THEME;
+    applyTheme(ownerTheme);
+
     return () => {
-      // Restore default theme when leaving
-      applyTheme(DEFAULT_THEME);
+      applyTheme(previousTheme);
     };
   }, [data?.profile.theme]);
 

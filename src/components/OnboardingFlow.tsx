@@ -137,7 +137,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden keyboard-safe-scroll px-3 sm:px-6 py-6 sm:py-8 flex flex-col items-center short-viewport-start">
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden keyboard-safe-pad px-3 sm:px-6 py-6 sm:py-8 flex flex-col items-center short-viewport-start">
         <div className="onboarding-panel" aria-live="polite" aria-atomic="true">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div

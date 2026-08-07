@@ -985,8 +985,8 @@ export default function PostModal({
           </div>
 
           {!isViewMode && (
-            <ModalFooter className="flex items-center justify-between flex-wrap gap-y-2 flex-shrink-0">
-              <div className="flex items-center gap-2 flex-wrap">
+            <ModalFooter className="flex flex-col items-center gap-2 flex-shrink-0">
+              <div className="flex items-center justify-center gap-2 flex-wrap">
                 {mode === 'create' && (
                   <span
                     className="text-xs"
@@ -1008,8 +1008,8 @@ export default function PostModal({
                   </span>
                 )}
               </div>
-              {/* Right: cancel + save */}
-              <div className="flex gap-2">
+              {/* cancel + save, centred as a pair */}
+              <div className="flex w-full justify-center gap-4">
                 <motion.button
                   whileHover={{
                     y: -2,

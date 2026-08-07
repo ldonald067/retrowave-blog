@@ -12,8 +12,14 @@ const config: CapacitorConfig = {
     // url: 'http://localhost:5173',
   },
   ios: {
-    // Full-screen content extending behind status bar and home indicator
-    contentInset: 'automatic',
+    // 'never', not 'automatic': the app already pads for the notch and home
+    // indicator itself via env(safe-area-inset-*) plus viewport-fit=cover, and
+    // StatusBar.overlaysWebView is on. Letting WKWebView add its own inset on
+    // top of that left the scroll view resting at a negative offset after a
+    // full-page swap — a white band above the header with the status bar
+    // unreadable, which window.scrollTo(0, 0) cannot clear because the document
+    // is already at 0.
+    contentInset: 'never',
     // Use WKWebView (required for App Store)
     preferredContentMode: 'mobile',
   },

@@ -295,6 +295,15 @@ function App() {
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
+  // Entering or leaving the public view swaps the whole page; reset the scroll
+  // so the incoming page starts at the top rather than inheriting the outgoing
+  // one's offset. Runs after paint — at effect time the incoming page has not
+  // laid out, so the scroll is still clamped to the old document height.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo(0, 0)));
+    return () => cancelAnimationFrame(id);
+  }, [publicUsername]);
+
   const {
     user,
     profile,
@@ -1107,10 +1116,10 @@ function App() {
                       <motion.div
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="xanga-box p-3 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                        className="xanga-box p-3 mb-4 flex items-center justify-between gap-2"
                       >
                         <span
-                          className="text-xs font-bold min-w-0 w-full sm:w-auto truncate"
+                          className="text-xs font-bold min-w-0 flex-1 line-clamp-2"
                           style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
                         >
                           {chapterFilter === LOOSE_ENTRIES
@@ -1121,7 +1130,7 @@ function App() {
                             )
                           </span>
                         </span>
-                        <div className="flex items-center justify-end gap-1 flex-wrap w-full sm:w-auto sm:flex-shrink-0">
+                        <div className="flex items-center justify-end gap-1 flex-shrink-0">
                           {isRealChapter && (
                             <button
                               onClick={() => toggleChapterPrivacy(chapterFilter)}

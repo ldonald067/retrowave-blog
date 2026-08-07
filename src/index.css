@@ -14,7 +14,7 @@
   --border-primary: #ff99cc;
   --border-accent: #ff66b3;
   --shadow-color: #ffb3d9;
-  --text-title: #ff1493;
+  --text-title: #e5007c;
   --text-subtitle: #6d1b96;
   --text-body: #333333;
   --text-muted: #444444;
@@ -181,11 +181,29 @@ body {
   );
 }
 
+/* --keyboard-inset has exactly one owner per scroll context.
+   Modals: .modal-panel-safe shortens the panel, so everything inside it already
+   sits above the keyboard and must never apply the inset again.
+   Full-screen flows have no panel, so their own scroller owns it via
+   .keyboard-safe-pad.
+   This was previously applied at four levels of the same stack. The terms summed
+   to more than the panel, so the composer's textarea collapsed to zero height
+   the moment the iOS keyboard opened. Nothing caught it: initCapacitor() returns
+   early off-native, so --keyboard-inset is permanently 0px in jsdom and in
+   `npm run dev`. Only the simulator or a device can show this rule is right. */
+
+/* Modal bodies: the panel already excludes the keyboard, so this is scroll
+   margin only — no inset. */
 .keyboard-safe-scroll {
+  scroll-padding-bottom: 5rem;
+}
+
+/* Full-screen flows (no modal panel): this scroller owns the compensation. */
+.keyboard-safe-pad {
   scroll-padding-bottom: calc(var(--keyboard-inset) + var(--safe-area-bottom) + 5rem);
 }
 
-.keyboard-open .keyboard-safe-scroll {
+.keyboard-open .keyboard-safe-pad {
   padding-bottom: calc(var(--keyboard-inset) + var(--safe-area-bottom) + 1rem) !important;
 }
 
@@ -194,9 +212,19 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-top: calc(0.5rem + var(--safe-area-top));
-  padding-bottom: calc(0.5rem + var(--safe-area-bottom) + var(--keyboard-inset));
+  padding-bottom: calc(0.5rem + var(--safe-area-bottom));
 }
 
+/* Centre the panel at every width. Uses margin rather than align-items: center
+   so a panel taller than the overlay still scrolls from its top instead of
+   having the top clipped where it cannot be reached. Centring used to start at
+   640px wide, so every iPhone got a top-pinned modal with a screenful of dead
+   space under it. */
+.modal-overlay-safe > * {
+  margin-block: auto;
+}
+
+/* Sole owner of keyboard compensation for every modal. */
 .modal-panel-safe {
   max-height: calc(
     100dvh - var(--safe-area-top) - var(--safe-area-bottom) - var(--keyboard-inset) - 1rem
@@ -236,10 +264,6 @@ body {
 }
 
 @media (min-width: 640px) and (min-height: 700px) {
-  .modal-overlay-safe {
-    align-items: center;
-  }
-
   .short-viewport-start {
     justify-content: center;
   }
@@ -1123,12 +1147,15 @@ input[type='submit'],
 
 /* ===== Safe Area Insets (iPhone notch + home indicator) ===== */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
+  /* No keyboard inset here — the footer lives inside .modal-panel-safe, which
+     already excludes it. Adding it again made the footer taller than its own
+     panel, clipping the Save button. */
   .modal-footer-safe {
-    padding-bottom: calc(0.75rem + var(--safe-area-bottom) + var(--keyboard-inset));
+    padding-bottom: calc(0.75rem + var(--safe-area-bottom));
   }
 
   .safe-area-bottom {
-    padding-bottom: calc(1rem + var(--safe-area-bottom) + var(--keyboard-inset));
+    padding-bottom: calc(1rem + var(--safe-area-bottom));
   }
 
   .page-safe-bottom {

@@ -117,7 +117,6 @@ export default function Header({
         style={{
           background:
             'linear-gradient(to right, var(--header-gradient-from), var(--header-gradient-via), var(--header-gradient-to))',
-          paddingTop: 'max(0.5rem, env(safe-area-inset-top))',
         }}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between text-xs">
