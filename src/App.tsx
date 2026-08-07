@@ -1130,7 +1130,8 @@ function App() {
                             )
                           </span>
                         </span>
-                        <div className="flex items-center justify-end gap-1 flex-shrink-0">
+                        {/* gap-3: Apple asks for ~12pt between bezeled controls */}
+                        <div className="flex items-center justify-end gap-3 flex-shrink-0">
                           {isRealChapter && (
                             <button
                               onClick={() => toggleChapterPrivacy(chapterFilter)}
