@@ -46,10 +46,10 @@ describe('applyDynamicType', () => {
     expect(document.documentElement.style.fontSize).toBe('19.2px');
   });
 
-  it('caps growth at 1.5x rather than following iOS all the way to 3.12x', () => {
+  it('caps growth at 1.3x rather than following iOS all the way to 3.12x', () => {
     // 53px is the measured value at accessibility-extra-extra-extra-large.
     withBodyTextSize('53px', applyDynamicType);
-    expect(document.documentElement.style.fontSize).toBe('24px');
+    expect(document.documentElement.style.fontSize).toBe('20.8px');
   });
 
   it('never scales below the design base, so non-iOS builds are unaffected', () => {

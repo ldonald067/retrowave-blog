@@ -250,7 +250,10 @@ export default function Header({
         <div className="flex items-center justify-between gap-2">
           {/* Site title */}
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="flex-1 min-w-0">
-            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 truncate">
+            {/* Wraps rather than truncates: at larger text sizes "truncate" cut
+                the site title to "My Journa…". A second line is better than an
+                ellipsis. It still fits on one line at the default size. */}
+            <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 break-words">
               ✨ My Journal ✨
             </h1>
             <p className="xanga-subtitle hidden sm:block">~ where my thoughts come alive ~</p>

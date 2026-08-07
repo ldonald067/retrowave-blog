@@ -14,7 +14,8 @@
  * rem-based size in the app (which is all of Tailwind's text-* scale) follows
  * along. The ratio is capped: 3.12x would wrap every one-line label and stack
  * every row, which needs a second set of layout rules this app does not have
- * yet. MAX_SCALE is the honest boundary of what the current layouts survive.
+ * yet. MAX_SCALE is the largest ratio at which every label still renders in
+ * full — bigger text that gets truncated is not more readable.
  *
  * The floor of 1 means we only ever scale up, which also makes this a no-op on
  * platforms where `-apple-system-body` resolves to something small or is
@@ -27,8 +28,13 @@ const BODY_AT_DEFAULT_PX = 17;
 /** Root font size the design is authored against. */
 const ROOT_BASE_PX = 16;
 
-/** Ceiling on text growth. Raising this requires stacked layouts at large sizes. */
-const MAX_SCALE = 1.5;
+/**
+ * Ceiling on text growth. Set to the largest ratio at which every label still
+ * fits: at 1.5x the header title and the status placeholder truncated, which
+ * trades legibility for size. Raising this requires stacked layouts at large
+ * sizes so labels have somewhere to go.
+ */
+const MAX_SCALE = 1.3;
 
 function measureBodyTextSize(): number | null {
   const probe = document.createElement('span');
