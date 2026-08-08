@@ -60,7 +60,8 @@ the live demo account, Xcode steps, and the screenshot plan. Start there.
 - The no-Mac mobile hardening work from `prep/ios-readiness` is merged into
   `main`.
 - Safe-area, keyboard-space, narrow-width, and public-page viewport fixes were
-  already audited in `docs/audit/2026-04-17-ios-readiness-pass.md`.
+  audited during the `prep/ios-readiness` work and have since been re-verified
+  on the iOS simulator.
 - The latest UX pass also tightened first-run setup, public-link entry,
   archive browsing, account-backed status, native sharing, and calmer draft
   recovery/saving language without needing a visual redesign.
@@ -178,8 +179,8 @@ anonymous sign-ins disabled; ghost accounts purged.)
   scheme wiring.
 - `AgeVerification.tsx` and `set_age_verification` for the COPPA gate.
 - `ErrorBoundary.tsx` and `useOnlineStatus` for crash/offline handling.
-- `docs/audit/2026-04-17-ios-readiness-pass.md` for the no-Mac viewport and
-  hosted-QA history.
+- `docs/audit/backend-privacy-smoke-checks.md` for the privacy smoke checks to
+  run before shipping privacy-sensitive changes.
 
 ## Later, Not A Launch Blocker
 

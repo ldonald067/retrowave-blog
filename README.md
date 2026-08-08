@@ -68,7 +68,8 @@ npm run dev
 ## Notes
 
 - `APP_STORE_TODO.md` tracks App Store submission work.
-- `docs/audit/` contains dated audit snapshots and branch history.
+- `docs/audit/backend-privacy-smoke-checks.md` describes how to run
+  `supabase/tests/privacy_smoke.sql` before shipping privacy-sensitive changes.
 - `.env.example` mirrors the current frontend Supabase environment shape.
 
 ## License
