@@ -212,7 +212,15 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-top: calc(0.5rem + var(--safe-area-top));
-  padding-bottom: calc(0.5rem + var(--safe-area-bottom));
+  /* The keyboard inset belongs here as well as in .modal-panel-safe, and this
+     is not the double-count that collapsed the composer. These two agree by
+     construction: the overlay's content box and the panel's max-height reduce
+     to the same value, so the panel exactly fills the region above the
+     keyboard. Without it the panel is sized to clear the keyboard and then
+     centred in the whole viewport, which parks it behind the keyboard. The
+     original bug was the footer and body *adding* the inset on top of a panel
+     that had already subtracted it. */
+  padding-bottom: calc(0.5rem + var(--safe-area-bottom) + var(--keyboard-inset));
 }
 
 /* Centre the panel at every width. Uses margin rather than align-items: center

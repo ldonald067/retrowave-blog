@@ -45,9 +45,6 @@ import type { Profile } from '../types/profile';
 import ConfirmDialog from './ConfirmDialog';
 import PublicPageSettings from './PublicPageSettings';
 
-// Header (~70px) + Footer (~70px) + padding = ~180px of non-scrollable modal chrome
-const MODAL_CHROME_HEIGHT = 180;
-
 type ProfileSection = 'profile' | 'vibe' | 'public' | 'safety';
 
 const PROFILE_SECTIONS: Array<{ id: ProfileSection; label: string }> = [
@@ -273,7 +270,6 @@ export default function ProfileModal({
   const useSectionTabs = !isInitialSetup;
   const showSection = (section: ProfileSection) =>
     isInitialSetup ? INITIAL_SETUP_SECTIONS.includes(section) : activeSection === section;
-  const modalChromeHeight = isInitialSetup ? MODAL_CHROME_HEIGHT : MODAL_CHROME_HEIGHT + 56;
 
   const focusSection = useCallback((section: ProfileSection) => {
     setActiveSection(section);
@@ -350,7 +346,7 @@ export default function ProfileModal({
               handleCancel();
             }
           }}
-          className="max-w-lg"
+          className="max-w-lg flex flex-col"
         >
           <ModalHeader>
             <div className="flex items-center justify-between">
@@ -368,7 +364,7 @@ export default function ProfileModal({
 
           {!isInitialSetup && (
             <div
-              className="px-3 sm:px-4 py-2 border-b-2 border-dotted overflow-x-auto"
+              className="px-3 sm:px-4 py-2 border-b-2 border-dotted overflow-x-auto flex-shrink-0"
               style={{
                 backgroundColor: 'color-mix(in srgb, var(--bg-primary) 40%, var(--modal-bg))',
                 borderColor: 'var(--border-primary)',
@@ -410,13 +406,14 @@ export default function ProfileModal({
             </div>
           )}
 
-          {/* Content — maxHeight = viewport minus header + footer chrome */}
+          {/* Content takes whatever the panel has left. It must not compute its
+              own height: .modal-panel-safe already shortens the panel when the
+              keyboard opens, and a body that measured the viewport instead of
+              its parent stayed full-size, pushing the footer out of the
+              overflow-hidden panel and clipping Save. */}
           <div
-            className="overflow-y-auto keyboard-safe-scroll"
-            style={{
-              maxHeight: `calc(100dvh - var(--safe-area-top) - var(--safe-area-bottom) - ${modalChromeHeight + 16}px)`,
-              backgroundColor: 'var(--modal-bg)',
-            }}
+            className="overflow-y-auto keyboard-safe-scroll flex-1 min-h-0"
+            style={{ backgroundColor: 'var(--modal-bg)' }}
           >
             <fieldset disabled={saving}>
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
@@ -857,7 +854,7 @@ export default function ProfileModal({
             </fieldset>
           </div>
 
-          <ModalFooter className="flex flex-col items-center gap-2">
+          <ModalFooter className="flex flex-col items-center gap-2 flex-shrink-0">
             {isInitialSetup && (
               <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
                 save this setup, then we&apos;ll open ur first entry right away
