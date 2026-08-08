@@ -67,7 +67,8 @@ npm run dev
 
 ## Notes
 
-- `APP_STORE_TODO.md` tracks App Store submission work.
+- `docs/app-store-submission-guide.md` is the single source of truth for App
+  Store submission — status, listing copy, privacy answers, and what's left.
 - `docs/audit/backend-privacy-smoke-checks.md` describes how to run
   `supabase/tests/privacy_smoke.sql` before shipping privacy-sensitive changes.
 - `.env.example` mirrors the current frontend Supabase environment shape.

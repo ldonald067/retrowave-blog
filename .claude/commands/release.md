@@ -7,21 +7,22 @@ description: iOS App Store release workflow — build web bundle, Capacitor sync
 
 Drive the iOS build and App Store submission workflow.
 
-Read `CLAUDE.md` first. Read `APP_STORE_TODO.md` for the live submission
-checklist — it is the source of truth for what still blocks release. Update it
-as items complete.
+Read `CLAUDE.md` first. Read `docs/app-store-submission-guide.md` for the live
+submission checklist — it is the single source of truth for what still blocks
+release, and holds the paste-ready listing copy, App Privacy answers, age
+rating, review notes, and screenshot plan. Update it as items complete.
 
 ---
 
 ## Phase 1: Prerequisites (verify before building)
 
-| Check | Command | Fix if missing |
-|-------|---------|----------------|
-| Node | `node --version` | `brew install node` |
-| Xcode | `xcodebuild -version` | Install from App Store |
-| iOS simulator runtime | `xcrun simctl runtime list` | `xcodebuild -downloadPlatform iOS` |
+| Check                      | Command                              | Fix if missing                                |
+| -------------------------- | ------------------------------------ | --------------------------------------------- |
+| Node                       | `node --version`                     | `brew install node`                           |
+| Xcode                      | `xcodebuild -version`                | Install from App Store                        |
+| iOS simulator runtime      | `xcrun simctl runtime list`          | `xcodebuild -downloadPlatform iOS`            |
 | `.env` with Supabase creds | file exists (do NOT read or edit it) | Copy `.env.example` → `.env`, user fills keys |
-| Dependencies | `node_modules/` exists | `npm install` |
+| Dependencies               | `node_modules/` exists               | `npm install`                                 |
 
 ## Phase 2: Build & Sync
 
@@ -42,7 +43,7 @@ npx cap open ios                                     # open Xcode (user drives G
 
 ## Phase 4: Submission checklist
 
-Work from `APP_STORE_TODO.md`. The recurring gates:
+Work from `docs/app-store-submission-guide.md`. The recurring gates:
 
 - Signing: team selected in Xcode Signing & Capabilities; bundle ID `com.retrowave.journal` registered.
 - Supabase: auth redirect URL `com.retrowave.journal://` configured; `moderate-content` edge function deployed; `OPENAI_API_KEY` secret set.
@@ -59,6 +60,7 @@ Work from `APP_STORE_TODO.md`. The recurring gates:
 ## Learnings
 
 Append findings to `.claude/learnings.md` docs:
+
 ```
 - [YYYY-MM-DD /release] One-line finding
 ```

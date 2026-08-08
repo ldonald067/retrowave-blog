@@ -1,29 +1,41 @@
 # Retrowave Journal — App Store Submission Guide
 
-Everything needed to submit v1.0 (build 1) to the App Store. Generated 2026-07-22
-from a multi-agent prep pass, adversarially verified, and corrected against the
-live production state.
+The single source of truth for shipping v1.0 to the App Store. Paste-ready
+listing copy, App Privacy answers, age rating, review notes, Xcode steps, and
+the screenshot plan.
 
 - **Store name:** Retrowave Journal · **Home-screen name:** My Journal
 - **Bundle ID:** `com.retrowave.journal` · **Version:** 1.0 (1)
 - **iPhone-only, portrait.** · **Live web app:** https://retrowaveblog.com
+- Dev machine: Xcode 26.6, Node 24, iOS 26.5 simulator, `gh` CLI, `xcode-select`
+  pointed at `/Applications/Xcode.app/Contents/Developer`.
 
 ---
 
-## ✅ Already done for you (in code / backend)
+## Where things stand
 
-- App icon **alpha channel stripped** (App Store rejects icons with transparency). Now opaque 1024×1024.
+**The web app, backend, and security surface are done and live.** Auth, email
+confirmation (Resend SMTP), AI moderation, RLS, security headers, HTTPS
+redirect, and the hosted legal/support pages are all verified in production.
+
+**What remains is Apple-side only:** signing, archive/upload, the App Store
+Connect listing, and one last screenshot.
+
+Already handled in code and backend:
+
+- App icon **alpha channel stripped** (App Store rejects icons with transparency). Opaque 1024×1024.
 - `TARGETED_DEVICE_FAMILY = "1"` (iPhone-only), portrait-locked, iPad orientation key removed.
 - Bundle ID, version/build, launch screen, deep-link URL scheme, `ITSAppUsesNonExemptEncryption = NO`, deployment target (iOS 15) — all correct.
-- **Reviewer demo account created** (pre-confirmed, age-verified, 3 public sample entries). Credentials in Part 5.
+- **Reviewer demo account** created, pre-confirmed, age-verified, 3 public sample entries. Credentials in Part 5.
 - **Support page** live (App Store requires a support URL): https://retrowaveblog.com/support
 - Privacy + Terms pages live and current.
+- Cloudflare "Always Use HTTPS" enabled; http→https 301 verified, single redirect.
 
-## 👤 What only you can do (needs your Apple ID / GUI)
+## What only you can do (needs your Apple ID / GUI)
 
 1. Set the signing **Team** in Xcode and archive/upload the build.
 2. Create the app record + fill the listing in **App Store Connect** (all copy below is paste-ready).
-3. Capture/upload **screenshots** (plan in Part 6 — I can drive the simulator capture for you on request).
+3. Upload screenshots — 5 of 6 are already captured, see Part 6.
 
 ---
 
@@ -34,7 +46,7 @@ Prereq: confirm your **Apple Developer Program** enrollment is active for the Ap
 ```bash
 cd ~/Desktop/retrowave-blog
 npm run build && npx cap sync ios      # bundle latest web build + plugins
-npx cap open ios                        # opens App.xcworkspace in Xcode
+npx cap open ios                        # opens the iOS project in Xcode
 ```
 
 In Xcode:
@@ -146,8 +158,8 @@ Capability/context:
 **Guideline 1.2 (UGC safety) — all four present:**
 
 1. **Filter** — client + server slur/hate regex + adult-URL/domain blocklists, **plus live OpenAI moderation** on every **public** entry (the `moderate-content` edge function; the API key is set and verified active in production). Private entries are deliberately not sent to OpenAI — they have no audience to protect, and shipping a user's diary to a third party for no benefit would contradict the privacy promise in the listing.
-2. **Report** — an in-app report dialog on every public entry (5 reason categories + optional detail) writes a durable row to `content_reports` via the `report_public_post` RPC, and confirms to the user. Works signed-out, since a public page is reachable from a shared link. _(Was a `mailto:` link until 2026-07-29, which silently did nothing on any device without a configured Mail account.)_
-3. **Block** — a `block @username` control on the public profile page, via the `block_user_by_username` RPC. Blocked authors' content is excluded from the feed RPCs. _(The old block button lived only in PostCard, gated on `!isOwner`, which could never render once the feed was narrowed to a personal diary — so before 2026-07-29 there was no reachable block control at all.)_
+2. **Report** — an in-app report dialog on every public entry (5 reason categories + optional detail) writes a durable row to `content_reports` via the `report_public_post` RPC, and confirms to the user. Works signed-out, since a public page is reachable from a shared link. A database webhook fires the `notify-report` edge function, which emails support@retrowaveblog.com so the queue is not left unread.
+3. **Block** — a `block @username` control on the public profile page, via the `block_user_by_username` RPC. Blocked authors' content is excluded from the feed RPCs.
 4. **Policy + action** — Terms/Privacy published and reachable in-app via SFSafariViewController; solo operator reviews `content_reports` and removes content / bans accounts.
 
 **Report queue operations.** Reports land in `public.content_reports` (`status` = `open` → `reviewed` / `actioned` / `dismissed`). RLS is enabled with **no policies**, so the table is unreadable via the API — review it in the dashboard, or with:
@@ -155,8 +167,6 @@ Capability/context:
 ```sql
 select id, reason, details, created_at from public.content_reports where status = 'open' order by created_at;
 ```
-
-To avoid an unread queue (Apple asks about _timely_ responses), wire a notification — Dashboard → **Database → Webhooks → Create a new hook**: table `content_reports`, event `INSERT`, type **HTTP Request**, POST to an endpoint that emails support@retrowaveblog.com. No code required.
 
 ---
 
@@ -184,12 +194,14 @@ mood, music (YouTube link), chapter → save. Default is PRIVATE (padlock shows
 
 MAKE PUBLIC: in the editor, tap "🔓 make public" before saving.
 
-UGC SAFETY (Guideline 1.2): FILTER = automated moderation on every entry (client +
-server slur/hate + adult-URL blocklist, plus OpenAI moderation via a Supabase edge
-function). REPORT = a report button on every post emails support@retrowaveblog.com
-with the post title + ID. BLOCK = a block button hides that author. Policy: Terms
-https://retrowaveblog.com/terms, Privacy https://retrowaveblog.com/privacy. We
-monitor support@retrowaveblog.com and remove content / ban accounts as needed.
+UGC SAFETY (Guideline 1.2): FILTER = automated moderation on every public entry
+(client + server slur/hate + adult-URL blocklist, plus OpenAI moderation via a
+Supabase edge function). REPORT = a report dialog on every public entry writes a
+durable record, and a database webhook emails support@retrowaveblog.com so it is
+seen promptly. BLOCK = a "block @username" control on the public profile page hides
+that author's content. Policy: Terms https://retrowaveblog.com/terms, Privacy
+https://retrowaveblog.com/privacy. We monitor the report queue and remove content /
+ban accounts as needed.
 
 AGE GATE: signup collects birth year and blocks under-13 (COPPA). Birth year is
 used only for age verification and is never shown publicly.
@@ -203,11 +215,16 @@ _Keep the demo account (`appreview@retrowaveblog.com`) alive until the app is ap
 
 ## Part 6 — Screenshots (iPhone 6.9")
 
-- **Required size:** 1290 × 2796 px, portrait, PNG/JPEG, no alpha, no device frame.
-- **Capture device:** iPhone 17 Pro Max simulator (UDID `296A830B-AE5D-4123-9A94-5E676FEAD090`) — the only installed 6.9" device. _Do NOT use iPhone 17 Pro (6.3", wrong size)._
+**Five of six are already captured** in `store-assets/screenshots/`:
+`01-themes`, `02-feed`, `03-composer`, `04-signup`, `05-public-profile`.
+Only **06 — empty-journal first run** is missing.
+
+- **Capture device:** iPhone 17 Pro Max simulator (UDID `296A830B-AE5D-4123-9A94-5E676FEAD090`) — the 6.9" device. _Do NOT use iPhone 17 Pro (6.3", wrong size)._
 - **Count:** 1 min, 10 max — ship **6**.
 - Clean status bar before capturing: `xcrun simctl status_bar <UDID> override --time "9:41" --batteryLevel 100 --cellularBars 4 --wifiBars 3`
 - Capture: `xcrun simctl io <UDID> screenshot store-assets/screenshots/NN-name.png`
+
+**Size check before uploading.** The captured files are **1320 × 2868** (iPhone 17 Pro Max native). Earlier notes in this guide said 1290 × 2796, which is the older 6.9" size. Both have been valid 6.9" sizes at different points — confirm which App Store Connect accepts when you upload, and re-capture on a 1290 × 2796 device only if it rejects them. Do not assume.
 
 **Shot list (order sells the fantasy → proves it's real → privacy hook):**
 
@@ -222,12 +239,38 @@ Captions are optional and must be baked into the image (App Store Connect has no
 
 ---
 
+## Before you submit
+
+- [ ] Re-run `npx tsc --noEmit && npm run build && npm run test` and `npm run lint` on the submission commit.
+- [ ] Confirm the reviewer demo account still signs in and still has its public entries.
+- [ ] Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` if this is not the first upload — the build number must increase on every upload.
+
 ## Remaining human checklist
 
 - [ ] Confirm Apple Developer Program enrollment is active.
+- [ ] Capture screenshot 06 (empty-journal first run).
 - [ ] Xcode: set Team, archive, upload (Part 1).
 - [ ] App Store Connect: create the app record (name "Retrowave Journal"), paste Parts 2–4.
-- [ ] Upload screenshots (Part 6) — ask me to drive the simulator capture if you want.
+- [ ] Upload screenshots (Part 6).
 - [ ] Paste App Review notes (Part 5); confirm the demo account works.
-- [ ] Cloudflare: enable "Always Use HTTPS" (from the earlier checklist).
 - [ ] Submit for review.
+
+---
+
+## Evidence pointers
+
+- `ios/App/App/Assets.xcassets/` — app icon and splash assets.
+- `public/manifest.json` and `public/` icons — the web install surface.
+- `Info.plist` — `ITSAppUsesNonExemptEncryption = NO` and deep-link URL scheme.
+- `AgeVerification.tsx` and `set_age_verification` — the COPPA gate.
+- `ErrorBoundary.tsx` and `useOnlineStatus` — crash/offline handling.
+- `docs/audit/backend-privacy-smoke-checks.md` — privacy smoke checks to run
+  before shipping privacy-sensitive changes.
+
+## After launch, not blockers
+
+- [ ] Add error tracking.
+- [ ] Add accessibility testing in CI.
+- [ ] Deeper integration coverage for auth/posts/reactions/public-profile flows.
+- [ ] VoiceOver manual testing.
+- [ ] Push notifications only if the product actually needs them.
