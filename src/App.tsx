@@ -32,6 +32,7 @@ import { Input, Select, Windows95MyComputer, Windows95Notepad } from './componen
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useChapters } from './hooks/useChapters';
 import { isSameChapter, isChapterPrivate } from './utils/chapterPrivacy';
+import { computeFeedHeight } from './utils/feedHeight';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
@@ -185,8 +186,7 @@ function PostList({
       if (!parentRef.current) return;
       const rect = parentRef.current.getBoundingClientRect();
       const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
-      const available = viewportHeight - rect.top - 16;
-      setContainerHeight(Math.max(300, available));
+      setContainerHeight(computeFeedHeight(viewportHeight, rect.top));
     };
     requestAnimationFrame(() => requestAnimationFrame(computeHeight));
     window.addEventListener('resize', computeHeight);
