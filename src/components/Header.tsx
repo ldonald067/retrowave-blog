@@ -254,7 +254,14 @@ export default function Header({
                 the site title to "My Journa…". A second line is better than an
                 ellipsis. It still fits on one line at the default size. */}
             <h1 className="xanga-title glitter-text text-xl sm:text-3xl mb-0 sm:mb-1 break-words">
-              ✨ My Journal ✨
+              <span className="title-flourish" aria-hidden="true">
+                ✨{' '}
+              </span>
+              My Journal
+              <span className="title-flourish" aria-hidden="true">
+                {' '}
+                ✨
+              </span>
             </h1>
             <p className="xanga-subtitle hidden sm:block">~ where my thoughts come alive ~</p>
           </motion.div>

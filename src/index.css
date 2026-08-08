@@ -269,6 +269,13 @@ body {
   }
 }
 
+/* Decorative flourishes yield to the words once text is enlarged. At the
+   default size the sparkles stay; scaled up they are what pushes the site
+   title onto a second line, and a lone trailing ✨ reads as a mistake. */
+[data-text-scaled] .title-flourish {
+  display: none;
+}
+
 /* Dotted borders everywhere - very 2005 */
 .xanga-border {
   border: 2px dotted var(--border-primary);

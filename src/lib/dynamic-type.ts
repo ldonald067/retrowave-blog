@@ -55,6 +55,11 @@ export function applyDynamicType(): void {
 
   const scale = Math.min(Math.max(measured / BODY_AT_DEFAULT_PX, 1), MAX_SCALE);
   document.documentElement.style.fontSize = `${ROOT_BASE_PX * scale}px`;
+
+  // Lets CSS drop purely decorative elements once text has grown, so the space
+  // goes to the words instead. Someone who enlarged their text wants to read
+  // the title, not the sparkles around it.
+  document.documentElement.toggleAttribute('data-text-scaled', scale > 1);
 }
 
 export function initDynamicType(): void {
