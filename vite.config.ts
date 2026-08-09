@@ -48,5 +48,15 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: false,
+    // src/lib/supabase.ts throws at import time when these are missing — a
+    // deliberate production guard. Any test file that transitively imports it
+    // therefore failed to load anywhere the developer's .env.local was absent,
+    // which meant CI, and any fresh clone. Tests mock Supabase, so they need
+    // the variables to exist, not to be real. Placeholders here keep the
+    // production guard intact while making the suite self-contained.
+    env: {
+      VITE_SUPABASE_URL: 'http://127.0.0.1:54321',
+      VITE_SUPABASE_PUBLISHABLE_KEY: 'test-placeholder-not-a-real-credential',
+    },
   },
 });
