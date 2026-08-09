@@ -32,7 +32,7 @@ import { Input, Select, Windows95MyComputer, Windows95Notepad } from './componen
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useChapters } from './hooks/useChapters';
 import { isSameChapter, isChapterPrivate } from './utils/chapterPrivacy';
-import { computeFeedHeight } from './utils/feedHeight';
+import { computeFeedHeight, feedMaxHeight } from './utils/feedHeight';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
@@ -188,7 +188,23 @@ function PostList({
       const viewportHeight = window.visualViewport?.height ?? window.innerHeight;
       setContainerHeight(computeFeedHeight(viewportHeight, rect.top));
     };
-    requestAnimationFrame(() => requestAnimationFrame(computeHeight));
+
+    // The feed's top moves with ordinary document scrolling, and none of the
+    // other signals fire for that: resize/orientation do not, visualViewport
+    // scroll is unreliable for the layout viewport, and ResizeObserver reports
+    // size, not position. Without this the height measured at mount — when the
+    // feed usually starts below the fold — would never be corrected.
+    let queued = 0;
+    const scheduleCompute = () => {
+      if (queued) return;
+      queued = requestAnimationFrame(() => {
+        queued = 0;
+        computeHeight();
+      });
+    };
+
+    const initial = requestAnimationFrame(() => requestAnimationFrame(computeHeight));
+    window.addEventListener('scroll', scheduleCompute, { passive: true });
     window.addEventListener('resize', computeHeight);
     window.addEventListener('orientationchange', computeHeight);
     window.visualViewport?.addEventListener('resize', computeHeight);
@@ -196,6 +212,9 @@ function PostList({
     const observer = new ResizeObserver(computeHeight);
     if (parentRef.current?.parentElement) observer.observe(parentRef.current.parentElement);
     return () => {
+      cancelAnimationFrame(initial);
+      if (queued) cancelAnimationFrame(queued);
+      window.removeEventListener('scroll', scheduleCompute);
       window.removeEventListener('resize', computeHeight);
       window.removeEventListener('orientationchange', computeHeight);
       window.visualViewport?.removeEventListener('resize', computeHeight);
@@ -214,7 +233,7 @@ function PostList({
         ref={parentRef}
         className="overflow-auto"
         style={{
-          maxHeight: containerHeight ? `${containerHeight}px` : 'calc(100dvh - 200px)',
+          maxHeight: feedMaxHeight(containerHeight),
           scrollbarWidth: 'thin',
         }}
       >

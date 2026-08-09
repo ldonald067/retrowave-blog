@@ -27,3 +27,20 @@ export function computeFeedHeight(viewportHeight: number, feedTop: number): numb
   const mostThatFitsOnScreen = Math.max(0, viewportHeight - BOTTOM_GAP_PX);
   return Math.min(Math.max(available, 0), mostThatFitsOnScreen);
 }
+
+/** Used only until the first measurement lands. */
+const UNMEASURED_MAX_HEIGHT = 'calc(100dvh - 200px)';
+
+/**
+ * The `max-height` for the feed's scroll container.
+ *
+ * This exists as its own function because the interesting case is a falsy one.
+ * `computeFeedHeight` returns 0 when the feed starts below the fold, and the
+ * render site used to choose the fallback on truthiness — so the single value
+ * the clamp exists to produce was the one value it threw away, restoring the
+ * ~674px scroller. Testing the clamp alone could not catch that; the decision
+ * had to become testable too.
+ */
+export function feedMaxHeight(containerHeight: number | undefined): string {
+  return containerHeight !== undefined ? `${containerHeight}px` : UNMEASURED_MAX_HEIGHT;
+}

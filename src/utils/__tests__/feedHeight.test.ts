@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computeFeedHeight } from '../feedHeight';
+import { computeFeedHeight, feedMaxHeight } from '../feedHeight';
 
 // iPhone 17 is 874pt tall; landscape on the same device is 402pt.
 describe('computeFeedHeight', () => {
@@ -40,6 +40,31 @@ describe('computeFeedHeight', () => {
     for (const viewport of [402, 667, 874]) {
       for (const top of [0, 50, 200, 380]) {
         expect(computeFeedHeight(viewport, top)).toBeLessThanOrEqual(viewport - top);
+      }
+    }
+  });
+});
+
+describe('feedMaxHeight', () => {
+  it('renders a measured zero as 0px instead of falling back', () => {
+    // The regression: a truthiness check sent this to calc(100dvh - 200px),
+    // a ~674px scroller in exactly the case the clamp exists to prevent.
+    expect(feedMaxHeight(0)).toBe('0px');
+  });
+
+  it('only falls back before the first measurement lands', () => {
+    expect(feedMaxHeight(undefined)).toBe('calc(100dvh - 200px)');
+  });
+
+  it('renders ordinary measurements in px', () => {
+    expect(feedMaxHeight(558)).toBe('558px');
+    expect(feedMaxHeight(86)).toBe('86px');
+  });
+
+  it('never falls back for any height computeFeedHeight can produce', () => {
+    for (const viewport of [402, 538, 874]) {
+      for (const top of [-200, 0, 300, 900]) {
+        expect(feedMaxHeight(computeFeedHeight(viewport, top))).toMatch(/^\d+(\.\d+)?px$/);
       }
     }
   });
