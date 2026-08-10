@@ -41,6 +41,7 @@ const SettingsModal = lazy(() => import('./components/SettingsModal'));
 const AuthModal = lazy(() => import('./components/AuthModal'));
 const AgeVerification = lazy(() => import('./components/AgeVerification'));
 const PublicProfileView = lazy(() => import('./components/PublicProfileView'));
+const ModerationView = lazy(() => import('./components/ModerationView'));
 
 type ModalMode = 'create' | 'edit' | 'view';
 type VisibilityFilter = 'all' | 'private' | 'public';
@@ -100,6 +101,19 @@ function loadFeedPreferences(): Partial<FeedPreferenceState> {
 function getPublicUsername(): string | null {
   const hash = window.location.hash;
   const match = hash.match(/^#\/u\/([a-zA-Z0-9_-]+)$/);
+  return match?.[1] ?? null;
+}
+
+/**
+ * Parse #/report/<uuid> from the URL hash — the link in the report email.
+ *
+ * The id carries no authority: the screen it opens is gated on the signed-in
+ * profile's is_admin, and every RPC behind it re-checks is_admin() server-side.
+ * A prefetched or forwarded link therefore grants nothing, which is why this is
+ * a plain deep link rather than a signed action URL.
+ */
+function getReportRoute(): string | null {
+  const match = window.location.hash.match(/^#\/report\/([0-9a-fA-F-]{36})$/);
   return match?.[1] ?? null;
 }
 
@@ -308,8 +322,12 @@ function PostList({
 function App() {
   // ── Public profile routing via hash ──────────────────────────────────────
   const [publicUsername, setPublicUsername] = useState<string | null>(getPublicUsername);
+  const [reportRoute, setReportRoute] = useState<string | null>(getReportRoute);
   useEffect(() => {
-    const onHashChange = () => setPublicUsername(getPublicUsername());
+    const onHashChange = () => {
+      setPublicUsername(getPublicUsername());
+      setReportRoute(getReportRoute());
+    };
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
@@ -925,6 +943,23 @@ function App() {
       ))}
     </AnimatePresence>
   );
+
+  // Admin moderation queue — opened by the "Review in app" link in the report
+  // email. A non-admin who follows the link falls through to the normal app
+  // rather than seeing an error, so the route does not confirm it exists.
+  if (reportRoute && user && profile?.is_admin) {
+    return (
+      <Suspense fallback={<LazyFallback />}>
+        <ModerationView
+          focusReportId={reportRoute}
+          onGoHome={() => {
+            window.location.hash = '';
+          }}
+        />
+        {toastLayer}
+      </Suspense>
+    );
+  }
 
   // Public profile view — no auth required, show read-only journal
   if (publicUsername && (!user || profile?.username !== publicUsername)) {

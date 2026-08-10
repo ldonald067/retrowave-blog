@@ -306,6 +306,35 @@ export interface Database {
         };
         Returns: { reported: boolean };
       };
+      // Admin-only moderation. Both raise 'admin only' unless is_admin() is
+      // true for the caller, which is what keeps content_reports invisible to
+      // everyone else while still being actionable by the operator.
+      admin_list_reports: {
+        Args: {
+          p_status: string | null;
+        };
+        Returns: {
+          report_id: string;
+          reason: string;
+          details: string | null;
+          status: string;
+          created_at: string;
+          post_id: string;
+          post_title: string | null;
+          post_excerpt: string | null;
+          post_is_private: boolean | null;
+          author_username: string | null;
+          reporter_username: string | null;
+          report_count: number;
+        }[];
+      };
+      admin_resolve_report: {
+        Args: {
+          p_report_id: string;
+          p_action: 'remove' | 'dismiss';
+        };
+        Returns: string;
+      };
       // Apple Guideline 1.2: block a public page's owner. Resolves the username
       // server-side because get_public_profile does not expose the user id.
       block_user_by_username: {
