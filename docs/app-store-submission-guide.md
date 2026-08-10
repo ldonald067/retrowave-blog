@@ -162,7 +162,13 @@ Capability/context:
 3. **Block** — a `block @username` control on the public profile page, via the `block_user_by_username` RPC. Blocked authors' content is excluded from the feed RPCs.
 4. **Policy + action** — Terms/Privacy published and reachable in-app via SFSafariViewController; solo operator reviews `content_reports` and removes content / bans accounts.
 
-**Report queue operations.** Reports land in `public.content_reports` (`status` = `open` → `reviewed` / `actioned` / `dismissed`). RLS is enabled with **no policies**, so the table is unreadable via the API — review it in the dashboard, or with:
+**Report queue operations.** Reports land in `public.content_reports` (`status` = `open` → `actioned` / `dismissed`). RLS is enabled with **no policies**, so the table is unreadable via the API.
+
+The operator gets an email per report carrying the entry title, an excerpt, the author's and reporter's usernames, and how many reports the entry has — enough to judge it without opening anything. The email links to an in-app moderation queue (`#/report/<id>`), which lists open reports with **hide entry** (sets `is_private`, reversible) and **dismiss**.
+
+That link carries no authority: the screen only renders for a profile with `is_admin`, and `admin_list_reports` / `admin_resolve_report` are revoked from `anon` and re-check `is_admin()` server-side. Admin is held by the owner account only — **never the `appreview@` demo account**, since App Review signs into it.
+
+Dashboard fallback if you ever need it:
 
 ```sql
 select id, reason, details, created_at from public.content_reports where status = 'open' order by created_at;
