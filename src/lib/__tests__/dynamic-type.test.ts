@@ -29,15 +29,17 @@ function withBodyTextSize(px: string | null, run: () => void) {
 
 describe('applyDynamicType', () => {
   beforeEach(() => {
-    document.documentElement.style.fontSize = '';
+    document.documentElement.style.removeProperty('font-size');
+    document.documentElement.removeAttribute('data-text-scaled');
   });
   afterEach(() => {
-    document.documentElement.style.fontSize = '';
+    document.documentElement.style.removeProperty('font-size');
+    document.documentElement.removeAttribute('data-text-scaled');
   });
 
   it('leaves the root size alone at the default iOS body size', () => {
     withBodyTextSize('17px', applyDynamicType);
-    expect(document.documentElement.style.fontSize).toBe('16px');
+    expect(document.documentElement.style.fontSize).toBe('');
   });
 
   it('scales proportionally below the cap', () => {
@@ -54,7 +56,25 @@ describe('applyDynamicType', () => {
 
   it('never scales below the design base, so non-iOS builds are unaffected', () => {
     withBodyTextSize('13px', applyDynamicType);
-    expect(document.documentElement.style.fontSize).toBe('16px');
+    expect(document.documentElement.style.fontSize).toBe('');
+  });
+
+  it('writes no inline root size at all when there is nothing to scale', () => {
+    // A browser default is not an inline style, so the only way to leave it
+    // standing is to write nothing. The old code set 16px unconditionally,
+    // which reduced a reader who had chosen a 20px default.
+    withBodyTextSize('13px', applyDynamicType);
+    expect(document.documentElement.getAttribute('style')).not.toMatch(/font-size/);
+  });
+
+  it('undoes a previous scale-up when the content size returns to default', () => {
+    withBodyTextSize('53px', applyDynamicType);
+    expect(document.documentElement.style.fontSize).toBe('20.8px');
+    expect(document.documentElement.hasAttribute('data-text-scaled')).toBe(true);
+
+    withBodyTextSize('17px', applyDynamicType);
+    expect(document.documentElement.style.fontSize).toBe('');
+    expect(document.documentElement.hasAttribute('data-text-scaled')).toBe(false);
   });
 
   it('does nothing when the probe yields no usable size', () => {

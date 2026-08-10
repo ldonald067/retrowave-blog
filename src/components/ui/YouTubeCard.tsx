@@ -13,12 +13,16 @@ interface YouTubeCardProps {
   useNativeOpen?: boolean;
 }
 
-// Size presets — thumbnail, text, and icon sizes
+// Size presets — thumbnail, text, and icon sizes.
+// Text sizes are rem, not the px these used to be: Tailwind emits an arbitrary
+// `text-[10px]` as literal px, which ignores the root scaling that carries
+// Dynamic Type (see lib/dynamic-type.ts). The rem values are the same size at
+// the default root of 16px, and unlike the named scale they stay exact.
 const SIZES = {
   sm: {
     thumb: 'w-14 h-10',
-    title: 'text-[10px] leading-tight',
-    badge: 'text-[8px]',
+    title: 'text-[0.625rem] leading-tight',
+    badge: 'text-[0.5rem]',
     ytIcon: 8,
     extIcon: 6,
     gap: 'gap-2',
@@ -28,7 +32,7 @@ const SIZES = {
   md: {
     thumb: 'w-20 h-14',
     title: 'text-sm',
-    badge: 'text-[10px]',
+    badge: 'text-[0.625rem]',
     ytIcon: 12,
     extIcon: 8,
     gap: 'gap-3',

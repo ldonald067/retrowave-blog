@@ -325,7 +325,7 @@ export default function Sidebar({
             {/* "All entries" option */}
             <button
               onClick={() => onChapterSelect?.(null)}
-              className="w-full text-left px-2 py-1.5 rounded text-[13px] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
+              className="w-full text-left px-2 py-1.5 rounded text-[0.8125rem] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
               style={{
                 color: activeChapter === null ? 'var(--accent-primary)' : 'var(--text-body)',
                 fontWeight: activeChapter === null ? 700 : 400,
@@ -349,7 +349,7 @@ export default function Sidebar({
             {looseCount > 0 && (
               <button
                 onClick={() => onChapterSelect?.(activeChapter === looseKey ? null : looseKey)}
-                className="w-full text-left px-2 py-1.5 rounded text-[13px] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
+                className="w-full text-left px-2 py-1.5 rounded text-[0.8125rem] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
                 style={{
                   color: activeChapter === looseKey ? 'var(--accent-primary)' : 'var(--text-body)',
                   fontWeight: activeChapter === looseKey ? 700 : 400,
@@ -379,7 +379,7 @@ export default function Sidebar({
                     onClick={() =>
                       onChapterSelect?.(activeChapter === ch.chapter ? null : ch.chapter)
                     }
-                    className="flex-1 text-left px-2 py-1.5 rounded text-[13px] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2 min-w-0"
+                    className="flex-1 text-left px-2 py-1.5 rounded text-[0.8125rem] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2 min-w-0"
                     style={{
                       color:
                         activeChapter === ch.chapter ? 'var(--accent-primary)' : 'var(--text-body)',

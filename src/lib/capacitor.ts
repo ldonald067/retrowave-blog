@@ -92,9 +92,21 @@ export function initCapacitor(): void {
     await StatusBar.setOverlaysWebView({ overlay: true });
   });
 
+  // One nativeOnly per call, deliberately. These all shared a single block, and
+  // because nativeOnly swallows rejections, a failing setResizeMode silently
+  // skipped every addListener after it: `--keyboard-inset` stayed 0px and the
+  // composer sat behind the keyboard with nothing logged anywhere. The listeners
+  // are the load-bearing part and must not depend on the setup calls, or on each
+  // other — registering willShow without willHide would strand the inset open.
   void nativeOnly(async () => {
     await Keyboard.setResizeMode({ mode: KeyboardResize.None });
+  });
+
+  void nativeOnly(async () => {
     await Keyboard.setAccessoryBarVisible({ isVisible: true });
+  });
+
+  void nativeOnly(async () => {
     await Keyboard.addListener('keyboardWillShow', ({ keyboardHeight }) => {
       setKeyboardInset(keyboardHeight);
       window.setTimeout(() => {
@@ -103,7 +115,13 @@ export function initCapacitor(): void {
         }
       }, 60);
     });
+  });
+
+  void nativeOnly(async () => {
     await Keyboard.addListener('keyboardWillHide', () => setKeyboardInset(0));
+  });
+
+  void nativeOnly(async () => {
     await Keyboard.addListener('keyboardDidHide', () => setKeyboardInset(0));
   });
 

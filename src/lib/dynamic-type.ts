@@ -17,9 +17,10 @@
  * yet. MAX_SCALE is the largest ratio at which every label still renders in
  * full — bigger text that gets truncated is not more readable.
  *
- * The floor of 1 means we only ever scale up, which also makes this a no-op on
- * platforms where `-apple-system-body` resolves to something small or is
- * ignored entirely — the web build is unaffected.
+ * The floor of 1 means we only ever scale up, and at exactly 1x we clear the
+ * inline size rather than write the base value — see applyDynamicType for why
+ * that distinction is the difference between a no-op and overriding a
+ * preference the user set in their browser.
  */
 
 /** `-apple-system-body` at the default iOS content size. */
@@ -54,7 +55,17 @@ export function applyDynamicType(): void {
   if (measured === null) return;
 
   const scale = Math.min(Math.max(measured / BODY_AT_DEFAULT_PX, 1), MAX_SCALE);
-  document.documentElement.style.fontSize = `${ROOT_BASE_PX * scale}px`;
+
+  // At 1x there is nothing to add, and pinning the root to 16px anyway would
+  // quietly overrule the browser's own default: a web reader who set 20px got
+  // reduced to 16px by a feature meant to make text bigger. Clearing the
+  // property rather than skipping the write matters on the way back down too —
+  // returning to the default content size has to undo a previous scale-up.
+  if (scale === 1) {
+    document.documentElement.style.removeProperty('font-size');
+  } else {
+    document.documentElement.style.fontSize = `${ROOT_BASE_PX * scale}px`;
+  }
 
   // Lets CSS drop purely decorative elements once text has grown, so the space
   // goes to the words instead. Someone who enlarged their text wants to read

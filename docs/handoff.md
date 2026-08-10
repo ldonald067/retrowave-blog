@@ -33,28 +33,34 @@ CI is green. `main` is current; everything below is pushed.
 - Anonymous clients read **0 rows** from every table (verified by real anon
   requests, not policy inspection).
 
+Added 2026-08-10, on the iPhone 17 simulator unless noted:
+
+- **Root font size no longer clobbers a browser preference.**
+  `applyDynamicType` clears `font-size` at 1× rather than writing 16px, so a web
+  reader's own default stands; it still undoes a previous scale-up when the
+  setting comes back down. Verified in the browser pane — no `font-size` in the
+  `<html>` style attribute at all — plus two new unit tests (267 total, up from
+  265).
+- **The last 8 fixed-px labels now follow Dynamic Type.** Converted to arbitrary
+  rem, so they are pixel-identical at the default root (13/11/10/8px measured)
+  and scale exactly 1.3× at the cap (16.9/14.3/13/10.4px measured). On device at
+  `accessibility-extra-extra-extra-large` the theme descriptions and the Select
+  ▼ grow in step with the text around them, wrapping without truncation.
+- **Keyboard listeners are independent of resize-mode setup.** Each
+  `Keyboard.*` call now has its own `nativeOnly`. Round trip verified: focusing a
+  composer field shortens the panel (`keyboardWillShow` fired) and dismissing
+  restores it (`keyboardWillHide`/`DidHide` fired), with the accessory bar
+  proving `setAccessoryBarVisible` ran from its own block. Caveat: the hardware
+  keyboard was connected, so only the accessory-bar-height inset was exercised,
+  not a full software-keyboard height.
+
 ## Open work
 
-Three findings from the second adversarial review, in the order I would take
-them. None block submission.
+All three findings from the second adversarial review are **fixed and verified**
+(2026-08-10) — see "Verified working" below. Nothing from that review is
+outstanding.
 
-1. **Root font size clobbers a web user's preference.** `dynamic-type.ts` always
-   writes `documentElement.style.fontSize`, minimum 16px, so a browser user who
-   set a 20px default is silently reduced. Fix: return without mutating when
-   `scale === 1`. Smallest of the three and the only one that degrades something
-   a user chose.
-2. **Eight fixed-px labels bypass Dynamic Type.** `text-[13px]` in
-   `Sidebar.tsx:328/352/382`, `text-[11px]` in `ProfileModal.tsx:670`,
-   `text-[10px]`/`text-[8px]` in `YouTubeCard.tsx`, `text-[10px]` in
-   `Select.tsx:61`. Tailwind emits arbitrary values as literal px. At the 1.3×
-   cap the surrounding text grows and these do not.
-3. **Keyboard listeners are coupled to resize-mode setup.** `capacitor.ts:95` —
-   `setResizeMode`, `setAccessoryBarVisible` and both `addListener` calls share
-   one swallowed `nativeOnly` block. If either setup call rejects, the listeners
-   never register, `--keyboard-inset` stays `0px`, and the composer sits behind
-   the keyboard with no diagnostic. Pre-existing, not introduced.
-
-Also open, lower value:
+Still open, lower value:
 
 - **Ban is not implemented.** The moderation queue has hide + dismiss only.
   Banning needs enforcement across sign-in and every feed RPC; a half-built ban
@@ -90,5 +96,9 @@ Also open, lower value:
 - **The simulator's hardware-keyboard setting** hides the software keyboard, so
   keyboard-open geometry cannot be screenshotted while it is on. Measure against
   the real stylesheet in the browser pane, or toggle it off in Simulator.app.
+- **Dynamic Type is settable from the CLI**, no Settings.app detour:
+  `xcrun simctl ui <udid> content_size accessibility-extra-extra-extra-large`.
+  Underscore, not hyphen — the hyphenated spelling just prints usage and exits 117. Read the current value first and restore it; background and relaunch the
+  app after changing it, since it only re-reads on foreground.
 - **Admin is the owner account only.** Never `appreview@retrowaveblog.com` —
   App Review signs into it.
