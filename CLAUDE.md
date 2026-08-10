@@ -88,17 +88,18 @@ config that would otherwise be invisible to the repo.
 
 CLAUDE.md is the always-loaded layer. Deeper context lives in topic-specific docs — load only what's relevant.
 
-| Layer | File                              | When to read                               |
-| ----- | --------------------------------- | ------------------------------------------ |
-| Index | `.claude/learnings.md`            | Start here — routes to topic docs          |
-| Topic | `.claude/docs/gotchas.md`         | Before any code change                     |
-| Topic | `.claude/docs/data-contracts.md`  | Changing field limits or adding columns    |
-| Topic | `.claude/docs/theming.md`         | CSS variables, contrast, responsive        |
-| Topic | `.claude/docs/architecture.md`    | Supabase RPCs, auth, icons, performance    |
-| Topic | `.claude/docs/false-positives.md` | Before flagging audit issues               |
-| Skill | `.claude/commands/*.md`           | Auto-loaded by `/skill` commands           |
-| Code  | `src/lib/validation.ts`           | Field limits (POST_LIMITS, PROFILE_LIMITS) |
-| Code  | `src/lib/themes.ts`               | 8 theme definitions (42 CSS vars each)     |
+| Layer | File                              | When to read                                                   |
+| ----- | --------------------------------- | -------------------------------------------------------------- |
+| State | `docs/handoff.md`                 | **Start a new session here** — current state, open work, traps |
+| Index | `.claude/learnings.md`            | Routes to topic docs                                           |
+| Topic | `.claude/docs/gotchas.md`         | Before any code change                                         |
+| Topic | `.claude/docs/data-contracts.md`  | Changing field limits or adding columns                        |
+| Topic | `.claude/docs/theming.md`         | CSS variables, contrast, responsive                            |
+| Topic | `.claude/docs/architecture.md`    | Supabase RPCs, auth, icons, performance                        |
+| Topic | `.claude/docs/false-positives.md` | Before flagging audit issues                                   |
+| Skill | `.claude/commands/*.md`           | Auto-loaded by `/skill` commands                               |
+| Code  | `src/lib/validation.ts`           | Field limits (POST_LIMITS, PROFILE_LIMITS)                     |
+| Code  | `src/lib/themes.ts`               | 8 theme definitions (42 CSS vars each)                         |
 
 # Compact instructions
 
