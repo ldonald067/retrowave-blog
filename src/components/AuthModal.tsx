@@ -114,24 +114,12 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
               </button>
             </div>
 
-            {/* Welcome Message */}
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 text-center"
-            >
-              <h2 className="xanga-title text-xl sm:text-2xl mb-2">
-                {activeTab === 'signup' ? '~ welcome! ~' : '~ welcome back ~'}
-              </h2>
-              <p className="xanga-subtitle">
-                {activeTab === 'signup'
-                  ? 'create ur account 2 start journaling'
-                  : 'sign in 2 continue ur journey'}
-              </p>
-            </motion.div>
-
-            {/* Form Content */}
+            {/* Welcome message and form are ONE keyed child on purpose. They used
+                to be siblings — the message swapped instantly while the form sat
+                inside `mode="wait"` — so for the 200ms of the exit the heading
+                read "welcome back" above a still-mounted signup form. Keeping
+                them in one child means the panel is never internally
+                contradictory, whatever the animation is doing. */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeTab}
@@ -143,6 +131,16 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
               >
+                <div className="mb-6 text-center">
+                  <h2 className="xanga-title text-xl sm:text-2xl mb-2">
+                    {activeTab === 'signup' ? '~ welcome! ~' : '~ welcome back ~'}
+                  </h2>
+                  <p className="xanga-subtitle">
+                    {activeTab === 'signup'
+                      ? 'create ur account 2 start journaling'
+                      : 'sign in 2 continue ur journey'}
+                  </p>
+                </div>
                 {activeTab === 'login' ? <LoginForm /> : <SignUpForm />}
               </motion.div>
             </AnimatePresence>

@@ -84,9 +84,13 @@ describe('useAuth', () => {
       await result.current.signIn('test@example.com');
     });
 
+    // emailRedirectTo is required, not incidental: without it the link falls
+    // back to the project's Site URL, which is what confirmed iOS signups in
+    // Safari where the app could never see the session. jsdom's origin stands
+    // in for the web branch of authRedirectTo here.
     expect(supabase.auth.signInWithOtp).toHaveBeenCalledWith({
       email: 'test@example.com',
-      options: { shouldCreateUser: false },
+      options: { shouldCreateUser: false, emailRedirectTo: window.location.origin },
     });
   });
 
@@ -118,6 +122,7 @@ describe('useAuth', () => {
       email: 'user@example.com',
       options: {
         shouldCreateUser: true,
+        emailRedirectTo: window.location.origin,
         data: {
           birth_year: 2000,
           tos_accepted: true,

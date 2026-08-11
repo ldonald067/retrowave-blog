@@ -8,6 +8,7 @@
  */
 import { supabase } from './supabase';
 import { toUserMessage } from './errors';
+import { authRedirectTo } from './auth-callback';
 
 /** Passwordless magic-link sign-up (creates the user if absent). */
 export async function signUpMagicLink(
@@ -20,6 +21,7 @@ export async function signUpMagicLink(
       email,
       options: {
         shouldCreateUser: true,
+        emailRedirectTo: authRedirectTo(),
         data: { birth_year: birthYear, tos_accepted: tosAccepted },
       },
     });
@@ -41,7 +43,13 @@ export async function signUpWithPassword(
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { birth_year: birthYear, tos_accepted: tosAccepted } },
+      options: {
+        // Without this the confirmation link falls back to the project's Site
+        // URL, so an iOS signup was confirmed in Safari and the app never saw
+        // the session. See authRedirectTo.
+        emailRedirectTo: authRedirectTo(),
+        data: { birth_year: birthYear, tos_accepted: tosAccepted },
+      },
     });
     if (error) throw error;
     // With confirmations on, an existing email returns success with an
@@ -59,7 +67,7 @@ export async function signInMagicLink(email: string): Promise<{ error: string | 
   try {
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: false },
+      options: { shouldCreateUser: false, emailRedirectTo: authRedirectTo() },
     });
     if (error) throw error;
     return { error: null };
