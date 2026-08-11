@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { TRAIL_MODES, getTrailMode, type TrailMode } from '../lib/cursorTrail';
+import { prefersReducedMotion } from '../lib/motion';
 
 const RAINBOW_COLORS = [
   '#ff0000',
@@ -33,7 +34,7 @@ export default function CursorSparkle() {
     const container = containerRef.current;
     if (!container) return;
 
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (prefersReducedMotion()) return;
     const hasFineMouse = window.matchMedia('(pointer: fine)').matches;
     if (!hasFineMouse) return;
 

@@ -85,6 +85,12 @@ export default function LoginForm() {
       </AnimatePresence>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* autoComplete is what makes iOS Password AutoFill and iCloud Keychain
+              offer to fill this pair; without it the strip above the keyboard
+              stays empty and every returning user types their password by hand.
+              "username" rather than "email" — that is the token AutoFill pairs
+              with current-password. autoCapitalize is off because WKWebView will
+              otherwise capitalise the first letter of an address. */}
           <Input
             label="ur email address:"
             type="email"
@@ -95,6 +101,10 @@ export default function LoginForm() {
             }}
             placeholder="you@example.com"
             error={emailError}
+            autoComplete="username"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             autoFocus
           />
 
@@ -109,6 +119,7 @@ export default function LoginForm() {
               }}
               placeholder="shhh it's a secret..."
               error={passwordError}
+              autoComplete="current-password"
             />
           )}
 

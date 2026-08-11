@@ -89,4 +89,20 @@ describe('SignUpForm', () => {
     expect(screen.getByText(/at least .* characters plz/i)).toBeInTheDocument();
     expect(signUpWithPassword).not.toHaveBeenCalled();
   });
+
+  /**
+   * The counterpart to LoginForm's pairing: new-password is what makes iOS
+   * offer to generate and save a strong password. It matters more here than on
+   * most sign-up forms, because Supabase enforces lower+upper+digit+symbol
+   * server-side and a suggested password always satisfies that policy.
+   */
+  it('asks iOS to suggest a strong password rather than fill an old one', () => {
+    render(<SignUpForm />);
+
+    expect(screen.getByLabelText(/ur email address/i)).toHaveAttribute('autocomplete', 'email');
+    expect(screen.getByLabelText(/create a password/i)).toHaveAttribute(
+      'autocomplete',
+      'new-password'
+    );
+  });
 });

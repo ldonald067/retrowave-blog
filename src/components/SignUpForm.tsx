@@ -180,9 +180,17 @@ export default function SignUpForm() {
             }}
             placeholder="you@example.com"
             error={emailError}
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
             autoFocus
           />
 
+          {/* new-password, not current-password: this is the token that makes iOS
+              offer to generate and save a strong password. Worth having, because
+              Supabase enforces lower+upper+digit+symbol server-side — a suggested
+              password satisfies that policy where a typed one often does not. */}
           <Input
             label="create a password:"
             type="password"
@@ -193,6 +201,7 @@ export default function SignUpForm() {
             }}
             placeholder="8+ chars w/ Aa, 123 & !?*..."
             error={passwordError}
+            autoComplete="new-password"
           />
 
           <button

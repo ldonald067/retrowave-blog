@@ -5,12 +5,9 @@
  * Emoji Rain: emoji falling from the top of the screen (like MySpace snowflake scripts)
  */
 
-const SPARKLE_CHARS = ['✦', '✧', '⋆', '✶', '✷', '✸', '·'];
+import { prefersReducedMotion } from './motion';
 
-// Respect reduced motion globally
-function prefersReducedMotion(): boolean {
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
+const SPARKLE_CHARS = ['✦', '✧', '⋆', '✶', '✷', '✸', '·'];
 
 /**
  * Sparkle Burst — radiates sparkle characters outward from a point.

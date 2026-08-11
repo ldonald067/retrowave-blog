@@ -14,15 +14,21 @@ interface YouTubeCardProps {
 }
 
 // Size presets — thumbnail, text, and icon sizes.
-// Text sizes are rem, not the px these used to be: Tailwind emits an arbitrary
-// `text-[10px]` as literal px, which ignores the root scaling that carries
-// Dynamic Type (see lib/dynamic-type.ts). The rem values are the same size at
-// the default root of 16px, and unlike the named scale they stay exact.
+//
+// Text sizes are rem, never arbitrary px: Tailwind emits `text-[10px]` as
+// literal px, which ignores the root scaling that carries Dynamic Type (see
+// lib/dynamic-type.ts). Named steps where one fits, arbitrary rem otherwise.
+//
+// Nothing here goes below 0.6875rem (11px). `badge` used to be 8px in the sm
+// preset, which is under every published floor — and it is not only the
+// decorative "YouTube" label: it also renders "Loading title...", so a reader
+// waiting on a slow oembed call was the one person guaranteed to need it. Both
+// presets keep title one step above badge so the hierarchy survives the bump.
 const SIZES = {
   sm: {
     thumb: 'w-14 h-10',
-    title: 'text-[0.625rem] leading-tight',
-    badge: 'text-[0.5rem]',
+    title: 'text-xs leading-tight',
+    badge: 'text-[0.6875rem]',
     ytIcon: 8,
     extIcon: 6,
     gap: 'gap-2',
@@ -32,7 +38,7 @@ const SIZES = {
   md: {
     thumb: 'w-20 h-14',
     title: 'text-sm',
-    badge: 'text-[0.625rem]',
+    badge: 'text-[0.6875rem]',
     ytIcon: 12,
     extIcon: 8,
     gap: 'gap-3',
