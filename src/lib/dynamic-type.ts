@@ -18,10 +18,20 @@
  * full — bigger text that gets truncated is not more readable.
  *
  * The floor of 1 means we only ever scale up, and at exactly 1x we clear the
- * inline size rather than write the base value — see applyDynamicType for why
- * that distinction is the difference between a no-op and overriding a
- * preference the user set in their browser.
+ * inline size rather than write the base value, so returning to the default
+ * content size undoes a previous scale-up.
+ *
+ * Native only. The web needs none of this — browsers already scale rem with the
+ * reader's default font size — and running it there was actively harmful: off
+ * Apple platforms the `-apple-system-body` shorthand is invalid, so the probe
+ * simply reports the current root size. A reader who had chosen 20px produced a
+ * 20/17 ratio out of nothing and got 16 × 1.18 = 18.8px written back, shrinking
+ * the very preference this is supposed to respect. Guarding at 1x fixed only
+ * the case where that reader had chosen exactly 16px. There is no ratio to
+ * compute on the web, so the answer is not to compute a better one.
  */
+
+import { isNativePlatform } from './capacitor';
 
 /** `-apple-system-body` at the default iOS content size. */
 const BODY_AT_DEFAULT_PX = 17;
@@ -51,6 +61,8 @@ function measureBodyTextSize(): number | null {
 }
 
 export function applyDynamicType(): void {
+  if (!isNativePlatform) return;
+
   const measured = measureBodyTextSize();
   if (measured === null) return;
 

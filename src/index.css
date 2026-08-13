@@ -1093,11 +1093,18 @@ input[type='submit'],
   }
 
   /* IPHONE: Prevent iOS Safari auto-zoom on input focus.
-     iOS Safari zooms when focused font-size < 16px. */
+     iOS Safari zooms when focused font-size < 16px.
+
+     max(), not a flat 16px: the flat value was an absolute unit, so it did not
+     follow the root scaling that carries Dynamic Type. At the 1.3x cap every
+     label grew and the fields they label — email, password, and the composer's
+     own textarea — stayed at 16px, which is the one surface where the setting
+     most needs to work. 1rem tracks the scaled root, and max() keeps the
+     anti-zoom floor intact at every size. */
   input,
   textarea,
   select {
-    font-size: 16px !important;
+    font-size: max(1rem, 16px) !important;
   }
 }
 

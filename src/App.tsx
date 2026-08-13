@@ -27,6 +27,7 @@ import { withRetry } from './lib/retry';
 import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
+import { AUTH_CALLBACK_ERROR } from './lib/auth-callback';
 import { sparkleBurst, emojiRain } from './lib/celebrations';
 import { Input, Select, Windows95MyComputer, Windows95Notepad } from './components/ui';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -369,6 +370,15 @@ function App() {
   const { toggleReaction } = useReactions({
     onOptimisticUpdate: applyOptimisticReaction,
   });
+
+  // A confirmation link that has expired or been used already fails silently
+  // otherwise: the deep link reopens the app, no session is created, and the
+  // signup screen comes back with no explanation for why.
+  useEffect(() => {
+    const onCallbackError = (e: Event) => showError((e as CustomEvent<string>).detail);
+    window.addEventListener(AUTH_CALLBACK_ERROR, onCallbackError);
+    return () => window.removeEventListener(AUTH_CALLBACK_ERROR, onCallbackError);
+  }, [showError]);
 
   const { chapters, refetch: refetchChapters } = useChapters(user?.id ?? null);
   const LOOSE_ENTRIES = '__loose__';

@@ -80,6 +80,25 @@ async function nativeOnly(action: () => Promise<void> | void): Promise<void> {
   }
 }
 
+/**
+ * Same as nativeOnly, but says so when it fails.
+ *
+ * Silence is correct for optional flourishes — a haptic that does not fire is
+ * not worth a log line. It is wrong for anything the layout depends on. The
+ * keyboard listeners are the case that matters: if they do not register,
+ * `--keyboard-inset` stays at 0px and the composer sits behind the keyboard,
+ * which is indistinguishable from a CSS bug and sent a previous investigation
+ * looking in the wrong file entirely.
+ */
+async function requiredNative(label: string, action: () => Promise<void>): Promise<void> {
+  if (!isNative) return;
+  try {
+    await action();
+  } catch (err) {
+    console.error(`capacitor: ${label} failed to initialise —`, err);
+  }
+}
+
 function setKeyboardInset(height = 0): void {
   document.documentElement.style.setProperty('--keyboard-inset', `${height}px`);
   document.body.classList.toggle('keyboard-open', height > 0);
@@ -106,7 +125,7 @@ export function initCapacitor(): void {
     await Keyboard.setAccessoryBarVisible({ isVisible: true });
   });
 
-  void nativeOnly(async () => {
+  void requiredNative('keyboardWillShow', async () => {
     await Keyboard.addListener('keyboardWillShow', ({ keyboardHeight }) => {
       setKeyboardInset(keyboardHeight);
       window.setTimeout(() => {
@@ -117,11 +136,11 @@ export function initCapacitor(): void {
     });
   });
 
-  void nativeOnly(async () => {
+  void requiredNative('keyboardWillHide', async () => {
     await Keyboard.addListener('keyboardWillHide', () => setKeyboardInset(0));
   });
 
-  void nativeOnly(async () => {
+  void requiredNative('keyboardDidHide', async () => {
     await Keyboard.addListener('keyboardDidHide', () => setKeyboardInset(0));
   });
 

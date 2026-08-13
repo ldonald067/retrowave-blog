@@ -7,6 +7,7 @@ import Toast from './Toast';
 import { signUpWithPassword } from '../lib/auth-actions';
 import { useToast } from '../hooks/useToast';
 import { PASSWORD_MIN_LENGTH } from '../lib/validation';
+import { isNativePlatform } from '../lib/capacitor';
 
 export default function SignUpForm() {
   const [email, setEmail] = useState('');
@@ -140,8 +141,13 @@ export default function SignUpForm() {
             <p className="font-semibold text-sm mt-1" style={{ color: 'var(--accent-primary)' }}>
               {email}
             </p>
+            {/* On iOS the link reopens the app already signed in, so the old
+                "come back & sign in" told people to redo work already done and
+                made a working deep link look like it had failed. */}
             <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
-              click it, then come back & sign in ✨
+              {isNativePlatform
+                ? 'click it & this app will open, already signed in ✨'
+                : 'click it & u will be signed in ✨'}
             </p>
           </div>
 

@@ -116,18 +116,13 @@ export const TEMPLATES = {
       footNote: IGNORE('sign in'),
     }),
   },
-  recovery: {
-    subject: 'Reset your password — Retrowave Blog',
-    html: shell({
-      preheader: 'Reset your password. Link expires in 60 minutes.',
-      heading: '~ let&rsquo;s get u back in ~',
-      body: `<p style="margin:0;">forgot ur password? happens 2 the best of us.</p>
-             <p style="margin:12px 0 0;">tap below 2 pick a new one. the link expires in an hour.</p>`,
-      cta: URL,
-      ctaLabel: '~ reset my password ~',
-      footNote: `You&rsquo;re getting this because someone asked to reset the password for this address on Retrowave Blog. If that wasn&rsquo;t you, ignore this email &mdash; your password stays exactly as it is.`,
-    }),
-  },
+  // NO recovery template here, deliberately. There is no password-reset surface
+  // in the app: nothing calls resetPasswordForEmail, nothing handles a
+  // type=recovery callback, and nothing calls updateUser({ password }). A
+  // recovery link would establish an ordinary session and drop the user on the
+  // feed, having promised "pick a new one" and then never asking. Branding that
+  // email would only make a broken flow look trustworthy. Add it here when the
+  // reset screen exists, not before.
   email_change: {
     subject: 'Confirm your new email — Retrowave Blog',
     html: shell({

@@ -39,47 +39,114 @@ const NATIVE_CALLBACK = 'com.retrowave.journal://';
  * Where a confirmation or magic link should send the user back to.
  *
  * Native gets the deep link so the session is created inside the app. Web gets
- * the current origin, which keeps localhost working in development — the bare
- * Site URL would bounce a local signup to production.
+ * the current origin, which matches the allow-list entry
+ * `https://retrowaveblog.com/**` in production.
+ *
+ * This does NOT make local development work: the allow-list holds only that
+ * pattern and the app scheme, so a signup from http://localhost:5174 fails to
+ * match and Supabase redirects to the Site URL — a confirmation started locally
+ * lands on production. Confirming a local signup needs the dev origin added to
+ * the allow-list first.
  */
 export function authRedirectTo(): string {
   return isNativePlatform ? NATIVE_CALLBACK : window.location.origin;
 }
 
+/** `none` means the hash was an ordinary route, not a callback. */
+export type AuthCallbackResult =
+  | { status: 'none' }
+  | { status: 'signed-in' }
+  | { status: 'error'; message: string };
+
+/** Event carrying a failed callback to whatever is rendering the UI. */
+export const AUTH_CALLBACK_ERROR = 'auth-callback-error';
+
+/**
+ * A link that cannot be spent again is the common case here, not an anomaly:
+ * confirmation links are single-use and time-limited, so the second tap on one
+ * is ordinary user behaviour and deserves an explanation rather than silence.
+ */
+const EXPIRED = 'that link has expired or was already used ~ request a fresh one';
+const FAILED = 'could not finish signing u in ~ please try again';
+
+/**
+ * Strip the callback out of the URL.
+ *
+ * Runs on success AND on every failure. Tokens are bearer credentials: leaving
+ * them in the address bar after a failed exchange is strictly worse than after
+ * a successful one, because the failure is the case where they linger. Replace
+ * rather than assign so this adds no history entry.
+ */
+function clearCallbackFromUrl(): void {
+  window.history.replaceState(null, '', window.location.pathname + window.location.search);
+}
+
 /**
  * Establish a session from an implicit-flow callback hash.
  *
- * Returns true only when a session was actually created, so callers can tell a
- * consumed callback from an ordinary route like `#/u/name`.
+ * Recognises Supabase's error callbacks too. A dead link comes back as
+ * `#error=access_denied&error_description=...` with no tokens at all, which is
+ * indistinguishable from an ordinary route unless it is checked for — that is
+ * how an expired link used to land the user back on the signup screen with
+ * nothing said.
  */
-export async function consumeAuthCallback(hash: string): Promise<boolean> {
+export async function consumeAuthCallback(hash: string): Promise<AuthCallbackResult> {
   // Tolerate both `#a=b` and `a=b`; a deep link's hash arrives with the marker.
   const params = new URLSearchParams(hash.replace(/^#/, ''));
+
+  const errorCode = params.get('error_code') ?? params.get('error');
+  if (errorCode) {
+    clearCallbackFromUrl();
+    const expired = /expired|invalid|access_denied|otp/i.test(
+      `${errorCode} ${params.get('error_description') ?? ''}`
+    );
+    return { status: 'error', message: expired ? EXPIRED : FAILED };
+  }
+
   const access_token = params.get('access_token');
   const refresh_token = params.get('refresh_token');
-  if (!access_token || !refresh_token) return false;
+  if (!access_token || !refresh_token) return { status: 'none' };
 
-  const { error } = await supabase.auth.setSession({ access_token, refresh_token });
-  if (error) return false;
-
-  // Clear the tokens once they are spent. They are credentials, and leaving
-  // them in the address bar means they survive in history and in anything that
-  // logs URLs. Replace rather than assign so this does not add a history entry.
-  window.history.replaceState(null, '', window.location.pathname + window.location.search);
-  return true;
+  try {
+    const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+    if (error) return { status: 'error', message: EXPIRED };
+    return { status: 'signed-in' };
+  } catch {
+    // setSession throws rather than returning on transport failure. Uncaught,
+    // this was an unhandled rejection from a `void` call and the user saw
+    // nothing at all.
+    return { status: 'error', message: FAILED };
+  } finally {
+    // Whatever happened, the tokens are not staying in the URL.
+    clearCallbackFromUrl();
+  }
 }
 
 /**
  * Watch for callbacks for the lifetime of the app.
+ *
+ * Native only. On the web the Supabase client's own `detectSessionInUrl` reads
+ * the URL as it is constructed and owns that path already; running both meant
+ * two consumers racing for one set of single-use tokens, where which of them
+ * cleared the URL or persisted the session first depended on client
+ * initialisation timing. Native is the case Supabase cannot cover, because the
+ * app is already running when the deep link arrives.
  *
  * Checks the hash once at startup — a cold launch from a deep link has it
  * already — then on every change, which is how `initCapacitor`'s `appUrlOpen`
  * handler delivers one to an app that is already running.
  */
 export function initAuthCallback(): void {
-  void consumeAuthCallback(window.location.hash);
+  if (!isNativePlatform) return;
 
-  window.addEventListener('hashchange', () => {
-    void consumeAuthCallback(window.location.hash);
-  });
+  const consume = (hash: string) => {
+    void consumeAuthCallback(hash).then((result) => {
+      if (result.status === 'error') {
+        window.dispatchEvent(new CustomEvent(AUTH_CALLBACK_ERROR, { detail: result.message }));
+      }
+    });
+  };
+
+  consume(window.location.hash);
+  window.addEventListener('hashchange', () => consume(window.location.hash));
 }
