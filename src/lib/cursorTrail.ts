@@ -6,19 +6,37 @@
  */
 import { useEffect, useState } from 'react';
 
+/**
+ * Trail presets.
+ *
+ * `color` is empty when the glyphs supply their own — an emoji ignores `color`
+ * anyway, and leaving it unset is what keeps the renderer free of per-mode
+ * special cases.
+ *
+ * `sizeScale` exists because emoji need more pixels than line glyphs to read as
+ * anything: a 🌈 at the 8px floor that suits `✦` is an indistinct smudge.
+ */
 export const TRAIL_MODES = {
   sparkle: {
     chars: ['✦', '✧', '⋆', '✶', '✷', '·', '✸'],
     color: 'var(--accent-primary)',
+    sizeScale: 1,
   },
   hearts: {
     chars: ['♡', '♥', '❤', '💕', '❥', '♡', '❣'],
     color: 'var(--accent-secondary)',
+    sizeScale: 1,
   },
+  // Actual rainbows. This used to be the sparkle glyphs tinted through a
+  // hardcoded seven-colour cycle, which broke the promise the picker makes
+  // (every other mode trails the glyph on its own button) and quietly failed on
+  // the light themes: that palette's yellow sits at 1.03:1 on classic-xanga's
+  // background and its green at 1.98:1, so most of the "rainbow" was invisible
+  // on the default theme. An emoji brings its own colours and cannot wash out.
   rainbow: {
-    chars: ['✦', '⋆', '✧', '★', '·', '✶', '✸'],
-    // Color cycles via index — handled in mousemove
+    chars: ['🌈'],
     color: '',
+    sizeScale: 1.75,
   },
 } as const;
 

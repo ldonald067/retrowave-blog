@@ -2,16 +2,6 @@ import { useEffect, useRef } from 'react';
 import { TRAIL_MODES, getTrailMode, type TrailMode } from '../lib/cursorTrail';
 import { prefersReducedMotion } from '../lib/motion';
 
-const RAINBOW_COLORS = [
-  '#ff0000',
-  '#ff8800',
-  '#ffff00',
-  '#00cc00',
-  '#0088ff',
-  '#8800ff',
-  '#ff00ff',
-];
-
 const MAX_SPARKLES = 20;
 const SPAWN_INTERVAL = 50;
 
@@ -19,7 +9,6 @@ export default function CursorSparkle() {
   const containerRef = useRef<HTMLDivElement>(null);
   const sparkleCount = useRef(0);
   const lastSpawn = useRef(0);
-  const rainbowIndex = useRef(0);
   const modeRef = useRef<TrailMode>(getTrailMode());
 
   useEffect(() => {
@@ -56,16 +45,13 @@ export default function CursorSparkle() {
       sparkle.style.left = `${e.clientX + offsetX}px`;
       sparkle.style.top = `${e.clientY + offsetY}px`;
 
-      const size = 8 + Math.random() * 8;
+      const size = (8 + Math.random() * 8) * config.sizeScale;
       sparkle.style.fontSize = `${size}px`;
 
-      if (mode === 'rainbow') {
-        sparkle.style.color =
-          RAINBOW_COLORS[rainbowIndex.current % RAINBOW_COLORS.length] ?? '#ff0000';
-        rainbowIndex.current++;
-      } else {
-        sparkle.style.color = config.color;
-      }
+      // Only tint glyphs that need tinting. Emoji carry their own colours, and
+      // setting `color` on one does nothing — so an empty `color` in the preset
+      // is the whole of the former rainbow special case.
+      if (config.color) sparkle.style.color = config.color;
 
       container.appendChild(sparkle);
       sparkleCount.current++;
