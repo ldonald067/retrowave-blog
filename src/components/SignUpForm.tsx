@@ -9,7 +9,13 @@ import { useToast } from '../hooks/useToast';
 import { PASSWORD_MIN_LENGTH } from '../lib/validation';
 import { isNativePlatform } from '../lib/capacitor';
 
-export default function SignUpForm() {
+interface SignUpFormProps {
+  /** Called when the address turns out to be registered, so the surrounding
+      tabs can switch to sign-in with it already filled in. */
+  onAccountExists?: (email: string) => void;
+}
+
+export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [step, setStep] = useState<'email' | 'age' | 'success'>('email');
@@ -81,7 +87,15 @@ export default function SignUpForm() {
       }
 
       if (alreadyRegistered) {
-        showToast('u already have an account with this email! try signing in instead', 'error');
+        // Supabase will not say whether an address is taken until a signup is
+        // actually attempted — deliberately, so the signup form cannot be used
+        // to test who has an account here. That means this can only ever be
+        // discovered at the end, after the password and the age gate. Since the
+        // news cannot arrive earlier, it at least arrives useful: carry the
+        // address over to sign-in rather than emptying the form and leaving the
+        // person to retype everything they just entered.
+        showToast('u already have an account with this email! signing u in instead ~', 'info');
+        onAccountExists?.(email);
         setStep('email');
         setIsSubmitting(false);
         return;
@@ -166,7 +180,12 @@ export default function SignUpForm() {
     return (
       <>
         {toastLayer}
-        <AgeVerification onVerified={handleAgeVerified} requireTOS={true} loading={isSubmitting} />
+        <AgeVerification
+          onVerified={handleAgeVerified}
+          onBack={() => setStep('email')}
+          requireTOS={true}
+          loading={isSubmitting}
+        />
       </>
     );
   }

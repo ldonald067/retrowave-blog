@@ -5,12 +5,15 @@ import { openUrl } from '../lib/capacitor';
 
 interface AgeVerificationProps {
   onVerified: (birthYear: number, tosAccepted: boolean) => void;
+  /** Returns to the previous step. Without it this screen is a one-way door. */
+  onBack?: () => void;
   requireTOS?: boolean;
   loading?: boolean;
 }
 
 export default function AgeVerification({
   onVerified,
+  onBack,
   requireTOS = true,
   loading = false,
 }: AgeVerificationProps) {
@@ -64,12 +67,31 @@ export default function AgeVerification({
           borderColor: 'var(--border-primary)',
         }}
       >
-        <h1
-          className="text-center text-sm font-bold"
-          style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-        >
-          ✨ age verification ✨
-        </h1>
+        {/* Same shape as AuthModal's header: back on the left, title centred by
+            a matching spacer. This screen covers the whole viewport, so without
+            a way out a mistyped email on the previous step could only be fixed
+            by finishing the age gate first. */}
+        <div className="flex items-center justify-between">
+          {onBack ? (
+            <button
+              onClick={onBack}
+              className="w-16 text-left text-xs font-bold min-h-[44px] flex items-center transition hover:opacity-70"
+              style={{ color: 'var(--link-color)', fontFamily: 'var(--title-font)' }}
+              aria-label="Go back to email and password"
+            >
+              ← back
+            </button>
+          ) : (
+            <div className="w-16" />
+          )}
+          <h1
+            className="flex-1 text-center text-sm font-bold"
+            style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+          >
+            ✨ age verification ✨
+          </h1>
+          <div className="w-16" />
+        </div>
       </div>
 
       {/* Content */}

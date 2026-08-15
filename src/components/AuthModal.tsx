@@ -12,6 +12,9 @@ interface AuthModalProps {
 
 export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>(defaultTab);
+  // Carried across the tab switch when a signup turns out to be an existing
+  // account, so the address survives the handoff to sign-in.
+  const [prefillEmail, setPrefillEmail] = useState('');
   const dialogRef = useRef<HTMLDivElement>(null);
   useFocusTrap(dialogRef, isOpen);
 
@@ -141,7 +144,16 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
                       : 'sign in 2 continue ur journey'}
                   </p>
                 </div>
-                {activeTab === 'login' ? <LoginForm /> : <SignUpForm />}
+                {activeTab === 'login' ? (
+                  <LoginForm initialEmail={prefillEmail} />
+                ) : (
+                  <SignUpForm
+                    onAccountExists={(email) => {
+                      setPrefillEmail(email);
+                      setActiveTab('login');
+                    }}
+                  />
+                )}
               </motion.div>
             </AnimatePresence>
           </div>

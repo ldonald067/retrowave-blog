@@ -96,6 +96,21 @@ describe('SignUpForm', () => {
    * most sign-up forms, because Supabase enforces lower+upper+digit+symbol
    * server-side and a suggested password always satisfies that policy.
    */
+  it('hands an already-registered address to sign-in instead of emptying the form', async () => {
+    signUpWithPassword.mockResolvedValueOnce({ error: null, alreadyRegistered: true });
+    const onAccountExists = vi.fn();
+    render(<SignUpForm onAccountExists={onAccountExists} />);
+
+    fillCredentials('taken@example.com', 'Hunter!2222');
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+    fireEvent.click(await screen.findByRole('button', { name: 'stub-verify-age' }));
+
+    // Supabase will not reveal that an address is taken until a signup is
+    // actually attempted, so this can only be discovered after the password and
+    // the age gate. The address at least has to survive the trip.
+    await vi.waitFor(() => expect(onAccountExists).toHaveBeenCalledWith('taken@example.com'));
+  });
+
   it('asks iOS to suggest a strong password rather than fill an old one', () => {
     render(<SignUpForm />);
 

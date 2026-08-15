@@ -5,8 +5,14 @@ import Toast from './Toast';
 import { signInMagicLink, signInWithPassword } from '../lib/auth-actions';
 import { useToast } from '../hooks/useToast';
 
-export default function LoginForm() {
-  const [email, setEmail] = useState('');
+interface LoginFormProps {
+  /** Pre-fills the address, so someone bounced here from signup does not
+      retype what they just entered. */
+  initialEmail?: string;
+}
+
+export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<'password' | 'magic'>('password');

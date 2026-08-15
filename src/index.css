@@ -239,9 +239,12 @@ body {
   );
 }
 
-.toast-safe {
-  width: min(24rem, calc(100vw - 1rem));
-}
+/* .toast-safe removed: it sized the toast pill back when the pill was also the
+   positioned element. On the wrapper that replaced it, an explicit width
+   alongside inset-x-0 over-constrains the box — `right` loses, the container
+   pins to the left edge, and the pill centres inside something that isn't
+   centred. Toast.tsx now expresses the same intent as max-w-sm on the pill plus
+   padding on the wrapper, which cannot conflict with the positioning. */
 
 .short-viewport-start {
   justify-content: flex-start;
