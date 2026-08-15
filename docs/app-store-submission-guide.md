@@ -221,9 +221,16 @@ _Keep the demo account (`appreview@retrowaveblog.com`) alive until the app is ap
 
 ## Part 6 — Screenshots (iPhone 6.9")
 
-**Five of six are already captured** in `store-assets/screenshots/`:
-`01-themes`, `02-feed`, `03-composer`, `04-signup`, `05-public-profile`.
-Only **06 — empty-journal first run** is missing.
+**All six are captured** in `store-assets/screenshots/`, every one 1320 × 2868:
+`01-themes`, `02-feed`, `03-composer`, `04-signup`, `05-public-profile`,
+`06-empty-journal`.
+
+If 06 is ever recaptured, two things about the composition are deliberate and
+easy to lose: the profile card must be **collapsed** (its expanded state pushes
+"~ your journal is empty ~" below the fold and the shot loses its subject), and
+the display name must not be the signup email — a plus-addressed test address
+rendered as the display name reads as unfinished on a store page and publishes
+a real address.
 
 - **Capture device:** iPhone 17 Pro Max simulator (UDID `296A830B-AE5D-4123-9A94-5E676FEAD090`) — the 6.9" device. _Do NOT use iPhone 17 Pro (6.3", wrong size)._
 - **Count:** 1 min, 10 max — ship **6**.
@@ -253,8 +260,8 @@ Captions are optional and must be baked into the image (App Store Connect has no
 
 ## Remaining human checklist
 
-- [ ] Confirm Apple Developer Program enrollment is active.
-- [ ] Capture screenshot 06 (empty-journal first run).
+- [ ] Confirm Apple Developer Program enrollment is active. **Nothing is configured on this machine as of 2026-08-15**: `security find-identity -v -p codesigning` reports 0 valid identities, there are no provisioning profiles, no Apple ID is signed into Xcode, and `project.pbxproj` has no `DEVELOPMENT_TEAM`. Simulator builds do not need any of it, which is why everything else here works.
+- [x] Capture screenshot 06 (empty-journal first run). Done 2026-08-15 — all six are 1320 × 2868.
 - [ ] Xcode: set Team, archive, upload (Part 1).
 - [ ] App Store Connect: create the app record (name "Retrowave Journal"), paste Parts 2–4.
 - [ ] Upload screenshots (Part 6).
