@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Pepicon, Winamp as WinampIcon } from './ui';
 import ReactMarkdown from 'react-markdown';
@@ -6,7 +6,7 @@ import rehypeSanitize from 'rehype-sanitize';
 import { formatDate } from '../utils/formatDate';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { FEED_EXCERPT_MAX } from '../lib/constants';
-import { buildReportEmailHref } from '../lib/reporting';
+import ReportDialog from './ReportDialog';
 import ReactionBar from './ui/ReactionBar';
 import YouTubeCard from './ui/YouTubeCard';
 import type { Post } from '../types/post';
@@ -36,6 +36,7 @@ const PostCard = memo(function PostCard({
 }: PostCardProps) {
   const isOwner = currentUserId === post.user_id;
   const ytInfo = useYouTubeInfo(post.music);
+  const [reporting, setReporting] = useState(false);
 
   // Xanga-style blog post card
   return (
@@ -172,17 +173,21 @@ const PostCard = memo(function PostCard({
         {/* Apple Guideline 1.2: UGC apps must provide reporting + blocking */}
         {!isOwner && currentUserId && (
           <div className="flex items-center gap-1 flex-shrink-0">
-            <a
-              href={buildReportEmailHref(
-                `Report: "${post.title}" (${post.id})`,
-                `Post id: ${post.id}\nUser id: ${post.user_id}\nTitle: ${post.title}`
-              )}
+            {/* Writes a row through an RPC, never a mailto: — a mailto anchor is
+                a silent no-op in the WKWebView on any device without a
+                configured Mail account, which is every simulator and plenty of
+                real phones. This control was that anchor, so Guideline 1.2
+                reporting did nothing at all on the app's main surface while the
+                working flow sat unused in the public profile view. */}
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setReporting(true)}
               className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px]"
               style={{ color: 'var(--text-muted)' }}
               aria-label="Report this post"
             >
               <Pepicon name="flag" size={12} />~ report ~
-            </a>
+            </motion.button>
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={() => onBlock?.(post.user_id)}
@@ -219,6 +224,10 @@ const PostCard = memo(function PostCard({
             'linear-gradient(to right, var(--accent-primary), var(--accent-secondary), var(--border-primary))',
         }}
       />
+
+      {reporting && (
+        <ReportDialog postId={post.id} postTitle={post.title} onClose={() => setReporting(false)} />
+      )}
     </motion.article>
   );
 });

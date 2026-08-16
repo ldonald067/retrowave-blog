@@ -1,4 +1,3 @@
-import { BLOG_OWNER_EMAIL } from './constants';
 import { supabase } from './supabase';
 import { toUserMessage } from './errors';
 import { withRetry } from './retry';
@@ -59,11 +58,4 @@ export async function blockUserByUsername(username: string): Promise<{ error: st
   } catch (err) {
     return { error: toUserMessage(err) };
   }
-}
-
-/** Secondary contact path, offered alongside (never instead of) in-app reporting. */
-export function buildReportEmailHref(subject: string, body?: string): string {
-  const params = [`subject=${encodeURIComponent(subject)}`];
-  if (body) params.push(`body=${encodeURIComponent(body)}`);
-  return `mailto:${BLOG_OWNER_EMAIL}?${params.join('&')}`;
 }

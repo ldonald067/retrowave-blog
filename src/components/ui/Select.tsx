@@ -58,7 +58,7 @@ export default function Select({
           ))}
         </select>
         <div
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.625rem]"
+          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.6875rem]"
           style={{ color: 'var(--text-muted)' }}
         >
           ▼
