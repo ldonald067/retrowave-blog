@@ -270,12 +270,21 @@ export default function Sidebar({
         </p>
       </motion.div>
 
-      {/* Stats */}
+      {/* Stats — desktop only, like Chapters below, and for the same reason.
+          On mobile the sidebar stacks above the feed, so this card sat between
+          you and your own entries: a full box with a heading as heavy as "About
+          Me", spending roughly 100pt to tell you your own entry count (visible
+          by scrolling the feed underneath it) and the year you joined (which you
+          know, and which reads 2026 for everyone until the app has been live a
+          second year). On a new account it says "Entries: 0" directly above an
+          empty state that already says the journal is empty.
+          The desktop column has room to spare and the stats are a genuine Xanga
+          flourish there, so this hides rather than deletes. */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="xanga-box p-4"
+        className="xanga-box p-4 hidden lg:block"
       >
         <h3
           className="xanga-title text-lg mb-3 border-b-2 border-dotted pb-1"
