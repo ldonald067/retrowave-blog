@@ -1,55 +1,56 @@
 /**
- * Email-confirmation callbacks.
+ * Auth email callbacks — confirmation, magic link, and password recovery.
  *
- * Signing up sends a link that has to come back to the client that started the
- * signup, and on iOS that is not a website. Every piece of that round trip was
- * already in place except the two ends: the `com.retrowave.journal` URL scheme
- * is registered in Info.plist, `com.retrowave.journal://` is on Supabase's
- * redirect allow-list, and `initCapacitor` already forwards an incoming deep
- * link's hash to `window.location.hash`. What was missing is that `signUp`
- * never asked for that redirect, so confirmation always landed on
- * https://retrowaveblog.com — the site, in Safari. The user tapped the link,
- * got signed in *in their browser*, returned to the app, and found the signup
- * screen again, because a Capacitor WKWebView has its own storage and knows
- * nothing about a session created in Safari.
+ * Every one of these links is an https URL to the site, on every platform. See
+ * authRedirectTo for why, including on iOS where a deep link seems obviously
+ * better and is not.
  *
- * The second half is that `detectSessionInUrl` (on by default) only reads the
- * URL when the client is constructed. On the web that is enough — the browser
- * navigates to the callback and the client is built afterwards. On native the
- * app is already running when the deep link arrives, so the tokens turn up in
- * the hash long after that one check. They have to be picked up by hand.
+ * The rest of this module exists for links that DO carry tokens into the app:
+ * `initCapacitor` forwards an incoming deep link's fragment to
+ * `window.location.hash`, and `consumeAuthCallback` turns that into a session.
+ * That path is dormant while emails point at https, and is what a Universal
+ * Link will use once Apple enrolment allows one.
+ *
+ * The reason it cannot simply be left to Supabase: `detectSessionInUrl` (on by
+ * default) only reads the URL when the client is constructed. On the web that
+ * is enough — the browser navigates to the callback and the client is built
+ * afterwards. On native the app is already running when a deep link arrives, so
+ * the tokens turn up long after that single check and must be picked up by hand.
  */
 import { supabase } from './supabase';
 import { isNativePlatform } from './capacitor';
+import { SITE_URL } from './constants';
 
 /**
- * Custom scheme registered in ios/App/App/Info.plist.
+ * Where a confirmation, magic or recovery link should send the user back to.
  *
- * Bare, with no path, because this string has to match Supabase's redirect
- * allow-list, which holds exactly `com.retrowave.journal://` and no wildcard.
- * Supabase silently falls back to the Site URL when a redirect fails to match,
- * so adding a tidier `://auth-callback` path here would reinstate the very bug
- * this fixes, with nothing to show for it. Widening the allow-list to
- * `com.retrowave.journal://**` would be the alternative; that is a change to
- * production auth config, so it is not made unilaterally here.
- */
-const NATIVE_CALLBACK = 'com.retrowave.journal://';
-
-/**
- * Where a confirmation or magic link should send the user back to.
+ * Always an https URL, including on native — and this is the second time that
+ * decision has had to be made, so the reasoning is worth keeping.
  *
- * Native gets the deep link so the session is created inside the app. Web gets
- * the current origin, which matches the allow-list entry
- * `https://retrowaveblog.com/**` in production.
+ * Pointing native links at `com.retrowave.journal://` did put the session
+ * straight into the app, but only when the email was opened *on the phone
+ * running it*. Opened anywhere else — a laptop, which is where most people read
+ * email — the browser is handed a scheme it cannot resolve and the link does
+ * nothing at all. Not an error, not a fallback: a blank page. It cost a signup
+ * confirmation and then a password reset before it was taken seriously.
  *
- * This does NOT make local development work: the allow-list holds only that
- * pattern and the app scheme, so a signup from http://localhost:5174 fails to
- * match and Supabase redirects to the Site URL — a confirmation started locally
- * lands on production. Confirming a local signup needs the dev origin added to
- * the allow-list first.
+ * An https link degrades instead of dying: it works in any browser on any
+ * device, and the person finishes on the website and signs into the app after.
+ * Less magical, never dead. Universal Links are the real answer — the same
+ * https URL opening the app when it is installed — and they build on this
+ * rather than replacing it, but they need an Associated Domains entitlement and
+ * an apple-app-site-association file, both blocked on Apple enrolment.
+ *
+ * `consumeAuthCallback` still handles token-bearing deep links, since that is
+ * exactly what a Universal Link will deliver once it exists.
+ *
+ * Web uses the live origin so localhost stays on localhost during development;
+ * note the allow-list holds only `https://retrowaveblog.com/**` and the app
+ * scheme, so a local signup still redirects to production until the dev origin
+ * is added to it.
  */
 export function authRedirectTo(): string {
-  return isNativePlatform ? NATIVE_CALLBACK : window.location.origin;
+  return isNativePlatform ? SITE_URL : window.location.origin;
 }
 
 /** `none` means the hash was an ordinary route, not a callback. */

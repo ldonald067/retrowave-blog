@@ -150,14 +150,16 @@ describe('authRedirectTo', () => {
     vi.resetModules();
   });
 
-  it('sends native signups to the deep link, not the website', async () => {
+  it('sends native links to https, never the app scheme', async () => {
     const { authRedirectTo } = await loadWith(true);
 
-    // Asserted exactly, including the absence of a path: Supabase's allow-list
-    // holds the bare scheme with no wildcard, and separators in its glob syntax
-    // are `.` and `/`, so an added path would not match. A "harmless" tidy-up
-    // here sends confirmation back to the website instead of the app.
-    expect(authRedirectTo()).toBe('com.retrowave.journal://');
+    // A com.retrowave.journal:// redirect only works when the email is opened
+    // on the phone running the app. Opened on a laptop the browser is handed a
+    // scheme it cannot resolve and the link does nothing — a blank page, not an
+    // error. That cost a signup confirmation and a password reset before it was
+    // taken seriously, so this asserts the scheme is NOT used.
+    expect(authRedirectTo()).toBe('https://retrowaveblog.com');
+    expect(authRedirectTo()).not.toContain('com.retrowave.journal');
   });
 
   it('sends web signups to the current origin', async () => {

@@ -149,12 +149,12 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
             <p className="font-semibold text-sm mt-1" style={{ color: 'var(--accent-primary)' }}>
               {email}
             </p>
-            {/* On iOS the link reopens the app already signed in, so the old
-                "come back & sign in" told people to redo work already done and
-                made a working deep link look like it had failed. */}
+            {/* Says where the link actually goes. It opens the website on every
+                platform — see authRedirectTo — so promising the app would
+                reopen would be the same lie in the other direction. */}
             <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
               {isNativePlatform
-                ? 'click it & this app will open, already signed in ✨'
+                ? 'click it 2 confirm, then come back here & sign in ✨'
                 : 'click it & u will be signed in ✨'}
             </p>
           </div>
