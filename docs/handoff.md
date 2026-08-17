@@ -54,6 +54,29 @@ Added 2026-08-10, on the iPhone 17 simulator unless noted:
   keyboard was connected, so only the accessory-bar-height inset was exercised,
   not a full software-keyboard height.
 
+## Verified on device 2026-08-17 (signed in, iPhone 17 Pro Max)
+
+The authenticated surfaces, which had gone unchecked through a lot of change
+because reaching them needs a password the assistant cannot type.
+
+- **Composer with the full software keyboard raised.** Body textarea keeps its
+  height, three typed lines all visible with the caret at the end, save button
+  reachable, panel bottom ~54pt clear of the accessory bar, draft autosaved
+  *while the keyboard was up*, panel restored to full height on dismiss. This is
+  the surface whose textarea once collapsed to zero height.
+- **Profile modal, same test.** Focused field auto-scrolls into view, its counter
+  and helper text stay visible, save and cancel both reachable, identical
+  clearance. Note iOS shows a one-time QuickPath intro instead of the keys on the
+  very first software-keyboard use — tap Continue, it is not a layout bug.
+- **Signed-in home at accessibility-extra-extra-extra-large.** Nothing truncated
+  or overlapping. Three fixes visible working together: the title drops its ✨ via
+  `data-text-scaled`, the Stats card is absent on mobile, and no floating "new
+  entry" button sits over the empty state.
+
+Still untested: **a populated feed at large text.** The account used has no
+entries, so `PostCard` at the Dynamic Type cap has never been seen. Write one
+entry and re-check if you want that closed.
+
 ## Open work
 
 All three findings from the second adversarial review are **fixed and verified**
