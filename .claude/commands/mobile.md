@@ -144,6 +144,32 @@ failure mode `reporting.ts` was rewritten to remove.
   `nativeOnly` swallows errors and is correct only for optional flourishes.
 - Portrait-only in `Info.plist` is deliberate and Apple-sanctioned.
 
+### Visual hierarchy — look at the screenshot, not just the rules
+
+The measurable checks above pass on screens that still read badly. Take a
+screenshot of each state and ask:
+
+- **Do two controls that do different things look identical?** Sign-in had
+  "~ or use a magic link ~" and "~ forgot ur password? ~" stacked in the same
+  link style. One is another way to do what you came for; the other is what you
+  reach for when that failed. Rendered as peers they read as a list of equal
+  options and you have to read both to find the one you want. Rank them: keep
+  the primary alternative styled as a link, make the fallback quieter and set it
+  apart.
+- **Is anything offering the same action twice?** The empty journal had "write
+  ur first entry" in the card _and_ a floating "new entry" button — on a phone
+  the floating one lands on top of the card it duplicates. A desktop layout can
+  absorb that; 390pt cannot.
+- **Does a fixed-position element cover content?** Anything `fixed` with a
+  `bottom` is a candidate — FABs, toasts, banners. Check it against the shortest
+  screen, not the tallest.
+- **Is the emphasis where the task is?** The retro maximalism is the product and
+  is not the target here — the question is whether the one thing a person came
+  to do is the loudest thing on the screen.
+
+These are judgement calls, so a finding needs a screenshot and a sentence about
+which decision the reader is being asked to make. "Looks cluttered" is not one.
+
 ### Accessibility
 
 `<MotionConfig reducedMotion="user">` (App.tsx) covers framer; the

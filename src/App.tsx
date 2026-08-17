@@ -1445,7 +1445,13 @@ function App() {
             </Suspense>
           )}
 
+          {/* Hidden while the journal is empty: EmptyState already offers
+              "write ur first entry" as its whole point, and on a phone the
+              floating button lands on top of that card — two controls doing the
+              same job, one obscuring the other. Desktop has the room, but the
+              duplication reads as clutter there too. */}
           {user &&
+            posts.length > 0 &&
             !needsProfileSetup &&
             !showModal &&
             !showProfileModal &&
@@ -1500,7 +1506,7 @@ function App() {
 
           {/* Toast Notifications */}
           {toastLayer}
-        {newPasswordLayer}
+          {newPasswordLayer}
 
           {/* Footer - very Xanga! */}
           <footer

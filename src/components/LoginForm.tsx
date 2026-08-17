@@ -141,6 +141,13 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
           )}
 
           {mode === 'password' ? (
+            /* These two are not peers and should not look like peers. A magic
+               link is another way to do the thing you came to do; a reset is
+               what you reach for when that has failed. Rendered identically and
+               stacked, they read as one list of equal options and you have to
+               read both to find the one you want. The magic link keeps the link
+               styling; the reset is quieter, set apart by a rule, and reads as
+               a fallback. */
             <div className="text-center flex flex-col">
               <button
                 type="button"
@@ -152,15 +159,20 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
               >
                 ~ or use a magic link ~
               </button>
+              <div
+                className="border-t border-dotted mx-auto w-2/3 my-1"
+                style={{ borderColor: 'var(--border-primary)' }}
+              />
               <button
                 type="button"
                 onClick={() => {
                   setMode('reset');
                   clearErrors();
                 }}
-                className="xanga-link text-xs min-h-[44px] inline-flex items-center justify-center"
+                className="text-xs min-h-[44px] inline-flex items-center justify-center underline underline-offset-2 transition hover:opacity-70"
+                style={{ color: 'var(--text-muted)' }}
               >
-                ~ forgot ur password? ~
+                forgot ur password?
               </button>
             </div>
           ) : mode === 'reset' ? (
