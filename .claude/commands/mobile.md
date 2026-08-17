@@ -163,6 +163,21 @@ screenshot of each state and ask:
 - **Does a fixed-position element cover content?** Anything `fixed` with a
   `bottom` is a candidate — FABs, toasts, banners. Check it against the shortest
   screen, not the tallest.
+- **Does anything look tappable that isn't — or tappable that is?** This theme
+  makes it easy to get wrong: `--link-color`, `--text-title` and
+  `--accent-primary` are all the same red family, so colour alone says "text",
+  not "control". The signals that actually carry are the **underline** on
+  `.xanga-link` and the **solid fill** on `.xanga-button`. A bordered, filled,
+  rounded span has neither and still reads as a chip — the public profile had
+  two of those sitting inches from real controls, saying "3 public entries" and
+  "writing since 2026", tappable-looking and inert. Anything with border +
+  radius + background is a control or should stop dressing like one.
+- **Does this information earn its space on a 390pt screen?** Ask what decision
+  it supports. A count you can confirm by scrolling two inches, or a year that
+  reads the same on every profile in the app, is not free — it occupies the
+  region right below the identity, which is the most valuable space on the page.
+  Static facts belong in plain text; the pill treatment should be reserved for
+  things you can act on.
 - **Is the emphasis where the task is?** The retro maximalism is the product and
   is not the target here — the question is whether the one thing a person came
   to do is the loudest thing on the screen.

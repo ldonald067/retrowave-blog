@@ -266,28 +266,19 @@ export default function PublicProfileView({
                   ♫ listening to: {profile.current_music}
                 </p>
               )}
-              <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                <span
-                  className="inline-flex items-center rounded-full border px-3 py-2 font-bold"
-                  style={{
-                    borderColor: 'var(--border-primary)',
-                    backgroundColor: 'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
-                    color: 'var(--text-body)',
-                  }}
-                >
-                  {publicEntryLabel}
-                </span>
-                <span
-                  className="inline-flex items-center rounded-full border px-3 py-2"
-                  style={{
-                    borderColor: 'var(--border-primary)',
-                    backgroundColor: 'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
-                    color: 'var(--text-muted)',
-                  }}
-                >
-                  writing since {joinedYear}
-                </span>
-              </div>
+              {/* Plain text, not pills. These were bordered, filled, rounded
+                  spans — chip styling, which on this screen sits inches from
+                  real chips and reads as a tappable filter. Nothing happens
+                  when you tap them, and on a phone they took a whole row of the
+                  most valuable space on the page to say something you can
+                  confirm by scrolling. The year stays because it is one word
+                  here rather than a row of its own; note it says the same thing
+                  for every profile until the app has been live a second year,
+                  so it is worth deleting outright if it still reads as filler
+                  then. */}
+              <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+                {publicEntryLabel} · writing since {joinedYear}
+              </p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <button
                   onClick={onGoHome}
