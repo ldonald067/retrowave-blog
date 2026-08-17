@@ -1122,7 +1122,10 @@ function App() {
   return (
     <ErrorBoundary>
       <MotionConfig reducedMotion="user">
-        <div className="min-h-screen themed-bg page-safe-bottom">
+        {/* page-fab-clearance, not page-safe-bottom: this is the only page that
+            renders the floating "new entry" button, and it needs that button's
+            height reserved so the last line can be scrolled clear of it. */}
+        <div className="min-h-screen themed-bg page-fab-clearance">
           <a href="#main-content" className="skip-link">
             Skip to main content
           </a>

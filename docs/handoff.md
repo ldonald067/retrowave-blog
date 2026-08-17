@@ -73,9 +73,9 @@ because reaching them needs a password the assistant cannot type.
   `data-text-scaled`, the Stats card is absent on mobile, and no floating "new
   entry" button sits over the empty state.
 
-Still untested: **a populated feed at large text.** The account used has no
-entries, so `PostCard` at the Dynamic Type cap has never been seen. Write one
-entry and re-check if you want that closed.
+- **PostCard at accessibility-extra-extra-extra-large.** Title, date, content
+  and author all scale; the reaction bar wraps to a second row rather than
+  truncating or overflowing. Found one real bug doing it — see below.
 
 ## Open work
 

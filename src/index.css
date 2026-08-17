@@ -237,6 +237,26 @@ body {
   margin-block: auto;
 }
 
+/* Reserves the floating "new entry" button's height, for the one page that has
+   one. The button is `fixed` at the same 1rem offset that .page-safe-bottom
+   reserves, and it is about 56px tall, so the final line of the page sits
+   permanently underneath it — and because the button does not scroll, no amount
+   of scrolling frees it. On the feed that line is the footer's "Made with 💕 and
+   nostalgia"; at the accessibility text sizes the button grows and takes more
+   with it.
+   Expressed in rem on purpose: the button's own height scales with the root, so
+   the reservation scales with it rather than being outgrown. Above `lg` the
+   button is hidden, so this collapses back to ordinary page padding. */
+.page-fab-clearance {
+  padding-bottom: calc(5.5rem + var(--safe-area-bottom));
+}
+
+@media (min-width: 1024px) {
+  .page-fab-clearance {
+    padding-bottom: calc(1rem + var(--safe-area-bottom));
+  }
+}
+
 /* Sole owner of keyboard compensation for every modal. */
 .modal-panel-safe {
   max-height: calc(
