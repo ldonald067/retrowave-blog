@@ -49,8 +49,22 @@ The hyphenated `content-size` prints usage and exits 117 without doing anything.
 
 **Verification traps that cost real time:**
 
-- The simulator's **hardware keyboard** setting suppresses the software keyboard,
-  so keyboard-open geometry cannot be screenshotted while it is on (⇧⌘K).
+- **The software keyboard needs Simulator.app, not just the streaming panel.**
+  The panel forwards the Mac keyboard, so iOS thinks hardware is attached and
+  gives you the accessory bar (⌃ ⌄ ✓) with no keys — `--keyboard-inset` then
+  applies at the accessory bar's height instead of the real ~400pt, which looks
+  like a pass and tests almost nothing. The tell is a focused field with a caret
+  and a bar but no keyboard. Both steps, in order:
+
+  ```bash
+  defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false
+  open -a Simulator
+  ```
+
+  The `defaults` write alone does nothing — it is a Simulator.app preference and
+  Simulator.app is not driving the device until you open it. `xcrun simctl io …
+screenshot` works throughout either way.
+
 - The **browser pane cannot verify anything behind `AnimatePresence`**. Its tab
   reports `visibilityState: "hidden"`, so rAF is throttled and animations freeze
   mid-flight — an entrance stalls at partial opacity and `mode="wait"` never

@@ -93,9 +93,12 @@ Still open, lower value:
   permanently inert in jsdom. Verify user-facing work on the simulator.
 - **Watch the test count, not just red/green.** CI silently ran 241 of 265 tests
   for over a week.
-- **The simulator's hardware-keyboard setting** hides the software keyboard, so
-  keyboard-open geometry cannot be screenshotted while it is on. Measure against
-  the real stylesheet in the browser pane, or toggle it off in Simulator.app.
+- **The software keyboard needs Simulator.app open**, not just the assistant's
+  streaming panel — the panel forwards the Mac keyboard, so iOS shows the
+  accessory bar with no keys and `--keyboard-inset` lands at the bar's height
+  instead of the real ~400pt. Run
+  `defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false`
+  and then `open -a Simulator`; neither step works alone.
 - **Dynamic Type is settable from the CLI**, no Settings.app detour:
   `xcrun simctl ui <udid> content_size accessibility-extra-extra-extra-large`.
   Underscore, not hyphen — the hyphenated spelling just prints usage and exits 117. Read the current value first and restore it; background and relaunch the
