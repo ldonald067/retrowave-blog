@@ -80,7 +80,7 @@ function PublicPostCard({
         <button
           type="button"
           onClick={() => onReport(post)}
-          className="xanga-link inline-flex items-center justify-end text-xs min-h-[44px]"
+          className="xanga-link-caution inline-flex items-center justify-end text-xs min-h-[44px]"
           aria-label={`Report public entry: ${post.title}`}
         >
           ~ report entry ~
@@ -256,14 +256,27 @@ export default function PublicProfileView({
                   {profile.bio}
                 </p>
               )}
+              {/* Label quiet, value loud. These were four consecutive lines of
+                  the same muted grey at the same weight — bio, mood, music,
+                  stats — so the eye had nothing to catch on and the whole block
+                  read as one grey paragraph. Splitting each into a muted label
+                  and a full-strength value gives the column a rhythm, and it
+                  puts the emphasis on the part that is actually about this
+                  person rather than on the word "feeling". */}
               {profile.current_mood && (
                 <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                  ♡ feeling: {profile.current_mood}
+                  ♡ feeling:{' '}
+                  <span className="font-semibold" style={{ color: 'var(--text-body)' }}>
+                    {profile.current_mood}
+                  </span>
                 </p>
               )}
               {profile.current_music && (
                 <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                  ♫ listening to: {profile.current_music}
+                  ♫ listening to:{' '}
+                  <span className="font-semibold" style={{ color: 'var(--text-body)' }}>
+                    {profile.current_music}
+                  </span>
                 </p>
               )}
               {/* Plain text, not pills. These were bordered, filled, rounded
@@ -302,7 +315,7 @@ export default function PublicProfileView({
                 ) : (
                   <button
                     onClick={() => (isAuthenticated ? setConfirmingBlock(true) : onSignUp())}
-                    className="xanga-link inline-flex items-center justify-center text-xs min-h-[44px] px-3"
+                    className="xanga-link-caution inline-flex items-center justify-center text-xs min-h-[44px] px-3"
                     aria-label={`Block @${profile.username}`}
                   >
                     block @{profile.username}

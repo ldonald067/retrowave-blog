@@ -172,6 +172,28 @@ screenshot of each state and ask:
   two of those sitting inches from real controls, saying "3 public entries" and
   "writing since 2026", tappable-looking and inert. Anything with border +
   radius + background is a control or should stop dressing like one.
+- **Do links of different consequence look different?** There are four tiers,
+  and a control should be in the one that matches what it does:
+
+  | Tier     | Treatment                                            | Used for                               |
+  | -------- | ---------------------------------------------------- | -------------------------------------- |
+  | Primary  | `.xanga-button`, solid fill                          | the action the screen exists for       |
+  | Standard | `.xanga-link`, link colour + underline               | ordinary navigation                    |
+  | Caution  | `.xanga-link-caution`, `--link-caution` amber + bold | block, report — anything consequential |
+  | Quiet    | `--text-muted` + underline                           | fallbacks, e.g. "forgot ur password?"  |
+
+  Caution is amber because no palette here uses that hue for anything else, and
+  **bold as well as coloured** because hue alone excludes anyone who cannot
+  separate red from amber. Verified ≥4.5:1 on `--card-bg` in all 8 themes —
+  `--accent-secondary` was the obvious candidate and fails on emo-dark (3.23:1)
+  and cottage-core (3.54:1), so check before reaching for a token.
+
+- **Does a column of text have any rhythm?** Four stacked lines of `--text-muted`
+  at the same size and weight read as one grey paragraph and the eye slides off.
+  Where a line is label + value, mute the label and give the value
+  `--text-body` and `font-semibold`: the emphasis lands on the part that is
+  about this person rather than on the word "feeling".
+
 - **Does this information earn its space on a 390pt screen?** Ask what decision
   it supports. A count you can confirm by scrolling two inches, or a year that
   reads the same on every profile in the app, is not free — it occupies the

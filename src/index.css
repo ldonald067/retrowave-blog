@@ -35,6 +35,11 @@
   --scrollbar-thumb-to: #cc66ff;
   --link-color: #d6157e;
   --link-hover: #9932cc;
+  /* Amber, a hue no palette here uses for anything else, so a caution link
+     cannot be mistaken for the accent red. Verified >= 4.5:1 on card-bg in all
+     8 themes; --accent-secondary was the obvious candidate and fails on
+     emo-dark (3.23:1) and cottage-core (3.54:1). */
+  --link-caution: #b45309;
   --code-bg: #fff0f8;
   --code-border: #ffb3d9;
   --code-text: #9932cc;
@@ -927,6 +932,35 @@ select:focus-visible {
   min-height: 44px;
   display: inline-flex;
   align-items: center;
+}
+
+/* Link tiers. Everything interactive on this app was one red underline, so the
+   colour said "is text" rather than "is a control", and a link that navigates
+   was indistinguishable from one that blocks a person. Three tiers, each
+   carrying a signal that survives the theme change:
+
+     .xanga-button          solid fill      — the primary action
+     .xanga-link            link colour     — ordinary navigation
+     .xanga-link-caution    amber + bold    — consequential: block, report
+     (muted + underline)                    — de-emphasised: forgot password
+
+   Amber because no palette here uses that hue for anything else, so it cannot
+   be read as another shade of the accent. Bold because hue alone excludes
+   anyone who cannot separate red from amber. */
+.xanga-link-caution {
+  color: var(--link-caution);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.xanga-link-caution:hover {
+  opacity: 0.75;
 }
 
 .xanga-link:hover {
