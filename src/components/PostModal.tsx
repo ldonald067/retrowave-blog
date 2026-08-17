@@ -441,8 +441,10 @@ export default function PostModal({
                             onDelete(post);
                           }}
                           className="w-full text-left px-4 py-3 text-xs font-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px] border-t border-dotted"
+                          // See SettingsModal: --accent-secondary fails 4.5:1
+                          // on emo-dark and cottage-core, and this is 12px bold.
                           style={{
-                            color: 'var(--accent-secondary)',
+                            color: 'var(--link-caution)',
                             borderColor: 'var(--border-primary)',
                             fontFamily: 'var(--title-font)',
                           }}

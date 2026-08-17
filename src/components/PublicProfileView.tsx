@@ -256,28 +256,55 @@ export default function PublicProfileView({
                   {profile.bio}
                 </p>
               )}
-              {/* Label quiet, value loud. These were four consecutive lines of
-                  the same muted grey at the same weight — bio, mood, music,
-                  stats — so the eye had nothing to catch on and the whole block
-                  read as one grey paragraph. Splitting each into a muted label
-                  and a full-strength value gives the column a rhythm, and it
-                  puts the emphasis on the part that is actually about this
-                  person rather than on the word "feeling". */}
-              {profile.current_mood && (
-                <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                  ♡ feeling:{' '}
-                  <span className="font-semibold" style={{ color: 'var(--text-body)' }}>
-                    {profile.current_mood}
-                  </span>
-                </p>
-              )}
-              {profile.current_music && (
-                <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                  ♫ listening to:{' '}
-                  <span className="font-semibold" style={{ color: 'var(--text-body)' }}>
-                    {profile.current_music}
-                  </span>
-                </p>
+              {/* Mood and music get a panel, not two grey lines.
+                  These are the two most Xanga things on the page — the whole
+                  point of visiting someone's journal is to see what they are
+                  feeling and what they have on repeat — and they were rendered
+                  as the quietest text in the card, indistinguishable from the
+                  bio and the entry count above and below them.
+                  The signed-in sidebar already gives mood an accent-tinted box
+                  with a bold label, and music a full Winamp player, so the
+                  public view was also contradicting the app's own language.
+                  One shared panel rather than two: it lifts both without
+                  spending two boxes' worth of a 390pt screen, and it keeps them
+                  reading as a pair, which is what they are. Labels stay quiet so
+                  the emphasis lands on "nostalgic", not on "feeling". */}
+              {(profile.current_mood || profile.current_music) && (
+                <div
+                  className="mt-3 rounded-lg border px-3 py-2.5 space-y-1.5"
+                  style={{
+                    backgroundColor:
+                      'color-mix(in srgb, var(--accent-primary) 10%, var(--card-bg))',
+                    borderColor: 'var(--border-primary)',
+                  }}
+                >
+                  {profile.current_mood && (
+                    <p className="text-sm flex flex-wrap items-baseline gap-x-1.5">
+                      <span aria-hidden="true" style={{ color: 'var(--accent-primary)' }}>
+                        ♡
+                      </span>
+                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        feeling
+                      </span>
+                      <span className="font-bold" style={{ color: 'var(--text-body)' }}>
+                        {profile.current_mood}
+                      </span>
+                    </p>
+                  )}
+                  {profile.current_music && (
+                    <p className="text-sm flex flex-wrap items-baseline gap-x-1.5">
+                      <span aria-hidden="true" style={{ color: 'var(--accent-primary)' }}>
+                        ♫
+                      </span>
+                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        on repeat
+                      </span>
+                      <span className="font-bold break-words" style={{ color: 'var(--text-body)' }}>
+                        {profile.current_music}
+                      </span>
+                    </p>
+                  )}
+                </div>
               )}
               {/* Plain text, not pills. These were bordered, filled, rounded
                   spans — chip styling, which on this screen sits inches from
