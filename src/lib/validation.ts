@@ -142,6 +142,31 @@ const USERNAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
 // Password minimum length (must match supabase config.toml minimum_password_length)
 export const PASSWORD_MIN_LENGTH = 8;
 
+/**
+ * Mirrors the password policy Supabase enforces server-side: lower + upper +
+ * digit + symbol, at least PASSWORD_MIN_LENGTH.
+ *
+ * Shared rather than inline because signup and password-reset must agree. If
+ * they drift, one of them lets a password through that the server then refuses,
+ * and the rejection arrives from the API with no field to attach it to.
+ *
+ * Returns null when the password is acceptable.
+ */
+export function validatePassword(password: string): string | null {
+  if (!password || password.length < PASSWORD_MIN_LENGTH) {
+    return `at least ${PASSWORD_MIN_LENGTH} characters plz`;
+  }
+  if (
+    !/[a-z]/.test(password) ||
+    !/[A-Z]/.test(password) ||
+    !/\d/.test(password) ||
+    !/[^a-zA-Z0-9]/.test(password)
+  ) {
+    return 'needs UPPER & lower letters, a number & a symbol';
+  }
+  return null;
+}
+
 interface ProfileValidationErrors {
   display_name?: string;
   bio?: string;

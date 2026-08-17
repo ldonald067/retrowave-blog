@@ -28,6 +28,7 @@ import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
 import { AUTH_CALLBACK_ERROR } from './lib/auth-callback';
+import NewPasswordModal from './components/NewPasswordModal';
 import { sparkleBurst, emojiRain } from './lib/celebrations';
 import { Input, Select, Windows95MyComputer, Windows95Notepad } from './components/ui';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -350,6 +351,8 @@ function App() {
     signOut,
     updateProfile,
     refetchProfile,
+    passwordRecovery,
+    clearPasswordRecovery,
   } = useAuth();
   const {
     posts,
@@ -379,6 +382,18 @@ function App() {
     window.addEventListener(AUTH_CALLBACK_ERROR, onCallbackError);
     return () => window.removeEventListener(AUTH_CALLBACK_ERROR, onCallbackError);
   }, [showError]);
+
+  // Rendered above everything, including the auth modal: a recovery link
+  // establishes a session, so without this the app would look like an ordinary
+  // sign-in and never ask for the new password the email promised.
+  const newPasswordLayer = passwordRecovery ? (
+    <NewPasswordModal
+      onDone={(message) => {
+        clearPasswordRecovery();
+        success(message);
+      }}
+    />
+  ) : null;
 
   const { chapters, refetch: refetchChapters } = useChapters(user?.id ?? null);
   const LOOSE_ENTRIES = '__loose__';
@@ -967,6 +982,7 @@ function App() {
           }}
         />
         {toastLayer}
+        {newPasswordLayer}
       </Suspense>
     );
   }
@@ -1018,6 +1034,7 @@ function App() {
           onClose={() => setShowAuthModal(false)}
         />
         {toastLayer}
+        {newPasswordLayer}
       </Suspense>
     );
   }
@@ -1054,6 +1071,7 @@ function App() {
           requireTOS={true}
         />
         {toastLayer}
+        {newPasswordLayer}
       </Suspense>
     );
   }
@@ -1482,6 +1500,7 @@ function App() {
 
           {/* Toast Notifications */}
           {toastLayer}
+        {newPasswordLayer}
 
           {/* Footer - very Xanga! */}
           <footer

@@ -6,7 +6,7 @@ import { Input } from './ui';
 import Toast from './Toast';
 import { signUpWithPassword } from '../lib/auth-actions';
 import { useToast } from '../hooks/useToast';
-import { PASSWORD_MIN_LENGTH } from '../lib/validation';
+import { validatePassword } from '../lib/validation';
 import { isNativePlatform } from '../lib/capacitor';
 
 interface SignUpFormProps {
@@ -43,17 +43,11 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
       hasError = true;
     }
 
-    // Mirrors the Supabase password policy: lower + upper + digit + symbol.
-    if (!password || password.length < PASSWORD_MIN_LENGTH) {
-      setPasswordError(`at least ${PASSWORD_MIN_LENGTH} characters plz`);
-      hasError = true;
-    } else if (
-      !/[a-z]/.test(password) ||
-      !/[A-Z]/.test(password) ||
-      !/\d/.test(password) ||
-      !/[^a-zA-Z0-9]/.test(password)
-    ) {
-      setPasswordError('needs UPPER & lower letters, a number & a symbol');
+    // Shared with the password-reset form, so the two cannot drift apart and
+    // let through something the server then refuses.
+    const passwordProblem = validatePassword(password);
+    if (passwordProblem) {
+      setPasswordError(passwordProblem);
       hasError = true;
     }
 

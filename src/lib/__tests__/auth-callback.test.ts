@@ -166,3 +166,39 @@ describe('authRedirectTo', () => {
     expect(authRedirectTo()).toBe(window.location.origin);
   });
 });
+
+describe('recovery callbacks', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    setSession.mockResolvedValue({ error: null });
+    window.history.replaceState(null, '', '/');
+  });
+  afterEach(() => {
+    vi.doUnmock('../capacitor');
+    vi.resetModules();
+  });
+
+  it('tells a recovery link apart from an ordinary sign-in', async () => {
+    const { consumeAuthCallback } = await loadWith(true);
+    const recovery = '#access_token=tok-abc&refresh_token=ref-xyz&type=recovery';
+
+    // Same token pair as any other callback. Without reading `type` the app
+    // signs the user in and drops them on the feed, having promised a new
+    // password and then never asking for one.
+    await expect(consumeAuthCallback(recovery)).resolves.toEqual({ status: 'recovery' });
+    // The session still has to be established — it is what authorises the change.
+    expect(setSession).toHaveBeenCalled();
+  });
+
+  it('announces recovery so the app can open the new-password screen', async () => {
+    const { initAuthCallback, AUTH_PASSWORD_RECOVERY } = await loadWith(true);
+    const heard = vi.fn();
+    window.addEventListener(AUTH_PASSWORD_RECOVERY, heard);
+    window.history.replaceState(null, '', '/#access_token=a&refresh_token=b&type=recovery');
+
+    initAuthCallback();
+    await vi.waitFor(() => expect(heard).toHaveBeenCalled());
+
+    window.removeEventListener(AUTH_PASSWORD_RECOVERY, heard);
+  });
+});

@@ -76,6 +76,44 @@ export async function signInMagicLink(email: string): Promise<{ error: string | 
   }
 }
 
+/**
+ * Sends the "reset your password" email.
+ *
+ * Deliberately reports success even when the address has no account. Saying
+ * "no account with that email" here would turn this form into a way to test who
+ * has an account, which is the same reason Supabase will not reveal it at
+ * signup. `resetPasswordForEmail` behaves that way already; this just does not
+ * undo it.
+ */
+export async function requestPasswordReset(email: string): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: authRedirectTo(),
+    });
+    if (error) throw error;
+    return { error: null };
+  } catch (err) {
+    return { error: toUserMessage(err) };
+  }
+}
+
+/**
+ * Sets a new password for the session the recovery link established.
+ *
+ * Only works while that session is live — the recovery token is what authorises
+ * the change, so this must be called from the screen the callback opens rather
+ * than saved for later.
+ */
+export async function updatePassword(password: string): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+    return { error: null };
+  } catch (err) {
+    return { error: toUserMessage(err) };
+  }
+}
+
 /** Password-based sign-in. */
 export async function signInWithPassword(
   email: string,

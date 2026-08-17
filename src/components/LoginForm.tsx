@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from './ui';
 import Toast from './Toast';
-import { signInMagicLink, signInWithPassword } from '../lib/auth-actions';
+import { requestPasswordReset, signInMagicLink, signInWithPassword } from '../lib/auth-actions';
 import { useToast } from '../hooks/useToast';
 
 interface LoginFormProps {
@@ -15,7 +15,7 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [mode, setMode] = useState<'password' | 'magic'>('password');
+  const [mode, setMode] = useState<'password' | 'magic' | 'reset'>('password');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const { toasts, showToast, hideToast } = useToast();
@@ -61,6 +61,17 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
         } else {
           setPasswordError(error);
         }
+      }
+    } else if (mode === 'reset') {
+      const { error } = await requestPasswordReset(email);
+      if (error) {
+        showToast(error, 'error');
+      } else {
+        // Says "if" on purpose. Confirming that an address has an account would
+        // make this form a way to test who has one here.
+        showToast('if that email has an account, a reset link is on its way ✨', 'success');
+        setEmail('');
+        setMode('password');
       }
     } else {
       const { error } = await signInMagicLink(email);
@@ -130,7 +141,7 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
           )}
 
           {mode === 'password' ? (
-            <div className="text-center">
+            <div className="text-center flex flex-col">
               <button
                 type="button"
                 onClick={() => {
@@ -140,6 +151,32 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
                 className="xanga-link text-xs min-h-[44px] inline-flex items-center justify-center"
               >
                 ~ or use a magic link ~
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('reset');
+                  clearErrors();
+                }}
+                className="xanga-link text-xs min-h-[44px] inline-flex items-center justify-center"
+              >
+                ~ forgot ur password? ~
+              </button>
+            </div>
+          ) : mode === 'reset' ? (
+            <div className="text-center">
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                🔑 we&apos;ll email u a link 2 pick a new one
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('password');
+                  clearErrors();
+                }}
+                className="xanga-link text-xs mt-1 min-h-[44px] inline-flex items-center justify-center"
+              >
+                ~ back 2 signing in ~
               </button>
             </div>
           ) : (
@@ -169,7 +206,9 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
               ? 'sending...'
               : mode === 'password'
                 ? '~ sign in ~'
-                : '~ send magic link ~'}
+                : mode === 'reset'
+                  ? '~ send reset link ~'
+                  : '~ send magic link ~'}
           </button>
         </form>
       </motion.div>

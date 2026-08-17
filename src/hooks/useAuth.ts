@@ -12,6 +12,7 @@ import {
 } from '../lib/auth-actions';
 import { validateProfileInput, hasValidationErrors } from '../lib/validation';
 import { MIN_AGE } from '../lib/constants';
+import { AUTH_PASSWORD_RECOVERY } from '../lib/auth-callback';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 
@@ -45,6 +46,9 @@ interface UseAuthReturn {
   signOut: () => Promise<{ error: string | null }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: string | null }>;
   refetchProfile: () => Promise<void>;
+  /** True while a recovery link is awaiting a new password. */
+  passwordRecovery: boolean;
+  clearPasswordRecovery: () => void;
 }
 
 export function useAuth(): UseAuthReturn {
@@ -52,6 +56,7 @@ export function useAuth(): UseAuthReturn {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [passwordRecovery, setPasswordRecovery] = useState<boolean>(false);
 
   const fetchingProfileFor = useRef<string | null>(null);
   const activeAuthUserIdRef = useRef<string | null>(null);
@@ -155,8 +160,17 @@ export function useAuth(): UseAuthReturn {
       if (cancelled) return;
       if (event === 'INITIAL_SESSION') return;
 
+      // Web recovery links arrive here: detectSessionInUrl consumes the URL as
+      // the client is built and reports PASSWORD_RECOVERY. Native links cannot
+      // — the app is already running by then — so initAuthCallback raises the
+      // matching window event below. Two delivery routes, one flag.
+      if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
+
       syncAuthState(session?.user ?? null);
     });
+
+    const onNativeRecovery = () => setPasswordRecovery(true);
+    window.addEventListener(AUTH_PASSWORD_RECOVERY, onNativeRecovery);
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (cancelled) return;
@@ -167,6 +181,7 @@ export function useAuth(): UseAuthReturn {
     return () => {
       cancelled = true;
       subscription.unsubscribe();
+      window.removeEventListener(AUTH_PASSWORD_RECOVERY, onNativeRecovery);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only auth subscription; including syncAuthState (unmemoized) would resubscribe every render
   }, []);
@@ -306,5 +321,7 @@ export function useAuth(): UseAuthReturn {
     signOut,
     updateProfile,
     refetchProfile,
+    passwordRecovery,
+    clearPasswordRecovery: () => setPasswordRecovery(false),
   };
 }

@@ -56,10 +56,14 @@ export function authRedirectTo(): string {
 export type AuthCallbackResult =
   | { status: 'none' }
   | { status: 'signed-in' }
+  | { status: 'recovery' }
   | { status: 'error'; message: string };
 
 /** Event carrying a failed callback to whatever is rendering the UI. */
 export const AUTH_CALLBACK_ERROR = 'auth-callback-error';
+
+/** Event announcing that a recovery link opened and a new password is due. */
+export const AUTH_PASSWORD_RECOVERY = 'auth-password-recovery';
 
 /**
  * A link that cannot be spent again is the common case here, not an anomaly:
@@ -110,6 +114,13 @@ export async function consumeAuthCallback(hash: string): Promise<AuthCallbackRes
   try {
     const { error } = await supabase.auth.setSession({ access_token, refresh_token });
     if (error) return { status: 'error', message: EXPIRED };
+
+    // A recovery link carries the same token pair as any other callback, so
+    // without reading `type` it is indistinguishable from a sign-in — the app
+    // would drop the user on the feed having promised them a new password.
+    // The session it just created is what authorises updateUser({ password }).
+    if (params.get('type') === 'recovery') return { status: 'recovery' };
+
     return { status: 'signed-in' };
   } catch {
     // setSession throws rather than returning on transport failure. Uncaught,
@@ -143,6 +154,9 @@ export function initAuthCallback(): void {
     void consumeAuthCallback(hash).then((result) => {
       if (result.status === 'error') {
         window.dispatchEvent(new CustomEvent(AUTH_CALLBACK_ERROR, { detail: result.message }));
+      }
+      if (result.status === 'recovery') {
+        window.dispatchEvent(new Event(AUTH_PASSWORD_RECOVERY));
       }
     });
   };
