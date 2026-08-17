@@ -144,13 +144,39 @@ export function initCapacitor(): void {
     await Keyboard.addListener('keyboardDidHide', () => setKeyboardInset(0));
   });
 
-  void nativeOnly(async () => {
-    await CapApp.addListener('appUrlOpen', ({ url }) => {
-      const hashIndex = url.indexOf('#');
-      if (hashIndex >= 0) {
-        window.location.hash = url.substring(hashIndex);
-      }
-    });
+  /**
+   * Route a deep link's fragment into the app.
+   *
+   * iOS normalises `com.retrowave.journal://#/u/name` to
+   * `com.retrowave.journal:///#/u/name`, so the fragment is found by searching
+   * for `#` rather than by parsing the URL structure.
+   */
+  const routeDeepLink = (url: string): void => {
+    const hashIndex = url.indexOf('#');
+    if (hashIndex < 0) return;
+    const hash = url.substring(hashIndex);
+    // Assigning an identical hash fires no hashchange, so nothing downstream
+    // would notice a link being followed twice.
+    if (window.location.hash === hash) return;
+    window.location.hash = hash;
+  };
+
+  void requiredNative('appUrlOpen', async () => {
+    await CapApp.addListener('appUrlOpen', ({ url }) => routeDeepLink(url));
+  });
+
+  /**
+   * The cold-start case, which addListener alone cannot cover.
+   *
+   * Tapping a link while the app is closed launches it *with* the URL, and iOS
+   * delivers that before this JavaScript exists — so the event has already been
+   * and gone by the time the listener registers, and the link silently does
+   * nothing. getLaunchUrl asks for it after the fact. That is the common case
+   * for an emailed link: the app is usually not already open.
+   */
+  void requiredNative('getLaunchUrl', async () => {
+    const launch = await CapApp.getLaunchUrl();
+    if (launch?.url) routeDeepLink(launch.url);
   });
 }
 
