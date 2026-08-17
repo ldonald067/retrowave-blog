@@ -233,7 +233,7 @@ export default function PublicProfileView({
           animate={{ opacity: 1, y: 0 }}
           className="xanga-box p-6 mb-6"
         >
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-4 stack-when-scaled">
             <Avatar
               src={profile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`}
               alt={profile.username}

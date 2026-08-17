@@ -287,6 +287,20 @@ body {
   display: none;
 }
 
+/* A two-column row has a text column narrow enough to fight the words once
+   they grow. On the public profile at the 1.3x cap the avatar kept its fixed
+   width and squeezed the rest to about half the screen, so the display name
+   broke mid-phrase — "retro demo ☆" put its ☆ alone on the next line — the bio
+   ran to two lines and the now-playing line to three, all beside a tall empty
+   gap under the avatar. Stacking hands the text the full width, which is the
+   entire point of having scaled it up. Centring matches the signed-in profile
+   card, which already stacks avatar over name at every size. */
+[data-text-scaled] .stack-when-scaled {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
 /* Dotted borders everywhere - very 2005 */
 .xanga-border {
   border: 2px dotted var(--border-primary);
