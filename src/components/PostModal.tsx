@@ -20,6 +20,7 @@ import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import type { Chapter } from '../hooks/useChapters';
 import type { Post, CreatePostInput } from '../types/post';
 import { MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
+import { formatDate } from '../utils/formatDate';
 import { quickContentCheck } from '../lib/moderation';
 import { POST_LIMITS } from '../lib/validation';
 
@@ -468,6 +469,52 @@ export default function PostModal({
           >
             {isViewMode ? (
               <div className="p-4 sm:p-6">
+                {/* Date, privacy and author on one muted line.
+                    The date was missing entirely — the feed card shows it and
+                    the detail view did not, so opening an entry to read it lost
+                    the one piece of metadata a journal is organised by. Privacy
+                    was missing too: is_private is read here for editing but was
+                    never shown, so while reading you could not tell whether the
+                    entry was public, in an app whose premise is private by
+                    default with optional sharing.
+                    The author moved in from a standalone bold accent-primary
+                    line, which made "~ Anonymous" louder than the entry text
+                    underneath it. One muted row costs less height than that line
+                    did and inverts nothing. */}
+                <div
+                  className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs mb-4"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  {post?.created_at && (
+                    <span className="flex items-center gap-1">
+                      <span aria-hidden="true">📅</span>
+                      {formatDate(post.created_at, 'MMM dd, yyyy')}
+                    </span>
+                  )}
+                  {post && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span
+                        className="flex items-center gap-1 font-bold"
+                        style={{
+                          color: post.is_private
+                            ? 'var(--text-muted)'
+                            : 'var(--accent-primary)',
+                        }}
+                      >
+                        <span aria-hidden="true">{post.is_private ? '🔒' : '🌐'}</span>
+                        {post.is_private ? 'private' : 'public'}
+                      </span>
+                    </>
+                  )}
+                  {post?.author && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span>~ {post.author}</span>
+                    </>
+                  )}
+                </div>
+
                 {post?.mood && (
                   <div className="xanga-box p-3 mb-3">
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -511,15 +558,6 @@ export default function PostModal({
                       </span>
                     )}
                   </div>
-                )}
-
-                {post?.author && (
-                  <p
-                    className="text-sm mb-4 font-bold"
-                    style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
-                  >
-                    ~ {post.author}
-                  </p>
                 )}
 
                 <div
