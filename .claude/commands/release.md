@@ -33,8 +33,35 @@ npx cap open ios                                     # open Xcode (user drives G
 ```
 
 - `npx cap sync ios` must re-run after ANY web code change before an iOS build.
-- The iOS project uses Swift Package Manager (`CapApp-SPM`) — no CocoaPods.
-- Simulator build: `xcodebuild -project ios/App/App.xcodeproj -scheme App -destination 'platform=iOS Simulator,name=iPhone 16' build` (adjust device name to an installed simulator).
+- The iOS project uses Swift Package Manager (`CapApp-SPM`) — no CocoaPods, and
+  **no `.xcworkspace`**. `xcodebuild -workspace App.xcworkspace` fails with
+  "does not exist"; always pass `-project ios/App/App.xcodeproj`.
+- Read the installed simulators before choosing a destination — the names move
+  with each Xcode release, and a stale `name=` fails the build:
+
+```bash
+xcrun simctl list devices available | grep iPhone
+```
+
+- Simulator build, targeting a booted device by UDID so the name cannot go
+  stale, and writing DerivedData somewhere you can find the `.app`:
+
+```bash
+xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
+  -sdk iphonesimulator -destination "id=$(xcrun simctl list devices booted -j \
+  | python3 -c 'import json,sys;print(next(d["udid"] for v in json.load(sys.stdin)["devices"].values() for d in v))')" \
+  -derivedDataPath ios/DerivedData build
+```
+
+- The installable bundle lands at
+  `ios/DerivedData/Build/Products/Debug-iphonesimulator/App.app`. `DerivedData`
+  is already in `ios/.gitignore`; the repo root `build/` is **not**, so do not
+  redirect it there.
+- Install and launch it without the Xcode GUI:
+
+```bash
+xcrun simctl install booted ios/DerivedData/Build/Products/Debug-iphonesimulator/App.app && xcrun simctl launch booted com.retrowave.journal
+```
 
 ## Phase 3: Versioning
 
