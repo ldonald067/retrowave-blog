@@ -325,6 +325,10 @@ function App() {
   // ── Public profile routing via hash ──────────────────────────────────────
   const [publicUsername, setPublicUsername] = useState<string | null>(getPublicUsername);
   const [reportRoute, setReportRoute] = useState<string | null>(getReportRoute);
+  // Filters start closed: expanded they fill a phone's first screen and push
+  // the entries below the fold. Active filters stay visible as chips regardless,
+  // so a filtered feed is never silently filtered.
+  const [filtersOpen, setFiltersOpen] = useState(false);
   useEffect(() => {
     const onHashChange = () => {
       setPublicUsername(getPublicUsername());
@@ -1252,30 +1256,48 @@ function App() {
                     animate={{ opacity: 1, y: 0 }}
                     className="xanga-box p-4 mb-4"
                   >
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <h2
-                          className="xanga-title text-base sm:text-lg flex items-center gap-2"
-                          style={{ color: 'var(--text-title)' }}
+                    {/* A disclosure, not a permanently open panel. Expanded, this
+                        is a heading, a description, a search box and four selects
+                        — on a phone it filled the whole first screen and pushed
+                        the entries themselves below the fold, which is backwards
+                        for a journal: the entries are the content, this is a tool
+                        for finding them. Collapsed it is one row, and one tap
+                        away. The count stays in the summary so "showing 3 of 12"
+                        is readable without opening anything. */}
+                    <button
+                      type="button"
+                      onClick={() => setFiltersOpen((open) => !open)}
+                      aria-expanded={filtersOpen}
+                      className="w-full flex items-center justify-between gap-3 text-left min-h-[44px]"
+                    >
+                      <h2
+                        className="xanga-title text-base sm:text-lg flex items-center gap-2"
+                        style={{ color: 'var(--text-title)' }}
+                      >
+                        <Windows95MyComputer size={18} alt="" />
+                        find old entries
+                      </h2>
+                      <span className="flex items-center gap-2 flex-shrink-0">
+                        <span
+                          className="text-xs font-bold"
+                          aria-live="polite"
+                          style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
                         >
-                          <Windows95MyComputer size={18} alt="" />
-                          find old entries
-                        </h2>
-                        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                          showing {visiblePosts.length} of {chapterFilteredPosts.length}{' '}
+                          {chapterFilteredPosts.length === 1 ? 'entry' : 'entries'}
+                        </span>
+                        <span aria-hidden="true" style={{ color: 'var(--text-muted)' }}>
+                          {filtersOpen ? '\u2303' : '\u2304'}
+                        </span>
+                      </span>
+                    </button>
+
+                    {filtersOpen && (
+                      <>
+                        <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
                           search your archive by text, privacy, mood, music, or last edit
                         </p>
-                      </div>
-                      <p
-                        className="text-xs font-bold"
-                        aria-live="polite"
-                        style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
-                      >
-                        showing {visiblePosts.length} of {chapterFilteredPosts.length}{' '}
-                        {chapterFilteredPosts.length === 1 ? 'entry' : 'entries'}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+                        <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
                       <Input
                         label="search"
                         value={searchQuery}
@@ -1313,28 +1335,37 @@ function App() {
                         options={[...SORT_FILTER_OPTIONS]}
                         aria-label="Sort entries"
                       />
-                    </div>
+                        </div>
+                      </>
+                    )}
 
                     <div className="mt-3 flex flex-col gap-2 text-xs">
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <span style={{ color: 'var(--text-muted)' }}>{activeFeedSummaryText}</span>
-                        {hasFeedFilters && (
-                          <button
-                            onClick={clearFeedFilters}
-                            className="xanga-link text-xs min-h-[44px]"
-                          >
-                            ~ clear search + filters ~
-                          </button>
-                        )}
-                        {(hasFeedFilters || chapterFilter) && (
-                          <button
-                            onClick={clearAllFilters}
-                            className="xanga-link text-xs min-h-[44px]"
-                          >
-                            ~ reset everything ~
-                          </button>
-                        )}
-                      </div>
+                      {/* Bulk clears live inside the panel; the chips below stay
+                          visible either way. Collapsed, three rows of
+                          filter-management outweighed the one row of filters
+                          they managed — and each chip already carries its own ×,
+                          so nothing is lost by folding these away. */}
+                      {filtersOpen && (
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                          <span style={{ color: 'var(--text-muted)' }}>{activeFeedSummaryText}</span>
+                          {hasFeedFilters && (
+                            <button
+                              onClick={clearFeedFilters}
+                              className="xanga-link text-xs min-h-[44px]"
+                            >
+                              ~ clear search + filters ~
+                            </button>
+                          )}
+                          {(hasFeedFilters || chapterFilter) && (
+                            <button
+                              onClick={clearAllFilters}
+                              className="xanga-link text-xs min-h-[44px]"
+                            >
+                              ~ reset everything ~
+                            </button>
+                          )}
+                        </div>
+                      )}
 
                       {activeFeedFilters.length > 0 && (
                         <div className="flex flex-wrap gap-2">
