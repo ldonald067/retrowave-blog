@@ -5,7 +5,6 @@ import { useAuth } from './hooks/useAuth';
 import { usePosts } from './hooks/usePosts';
 import { useToast } from './hooks/useToast';
 import { useReactions } from './hooks/useReactions';
-import { useBlocks } from './hooks/useBlocks';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import CursorSparkle from './components/CursorSparkle';
@@ -136,7 +135,6 @@ function PostList({
   posts,
   onView,
   onReaction,
-  onBlock,
   onChapterClick,
   currentUserId,
   onLoadMore,
@@ -147,7 +145,6 @@ function PostList({
   posts: Post[];
   onView: (post: Post) => void;
   onReaction?: (postId: string, emoji: string) => void;
-  onBlock?: (userId: string) => void;
   onChapterClick?: (chapter: string) => void;
   currentUserId?: string;
   onLoadMore: () => void;
@@ -269,7 +266,6 @@ function PostList({
                   post={post}
                   onView={onView}
                   onReaction={onReaction}
-                  onBlock={onBlock}
                   onChapterClick={onChapterClick}
                   currentUserId={currentUserId}
                 />
@@ -403,10 +399,7 @@ function App() {
   const LOOSE_ENTRIES = '__loose__';
   const [chapterFilter, setChapterFilter] = useState<string | null>(null);
 
-  const { toggleBlock } = useBlocks();
   // State for block confirmation dialog
-  const [userToBlock, setUserToBlock] = useState<string | null>(null);
-  const [blockLoading, setBlockLoading] = useState(false);
 
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [modalMode, setModalMode] = useState<ModalMode>('create');
@@ -882,27 +875,6 @@ function App() {
     },
     [user, toggleReaction, showError]
   );
-
-  // Apple Guideline 1.2: Block user — shows confirm dialog, then blocks + refetches feed
-  const handleBlock = useCallback((userId: string) => {
-    setUserToBlock(userId);
-  }, []);
-
-  const confirmBlockUser = useCallback(async () => {
-    if (!userToBlock) return;
-    setBlockLoading(true);
-    const { is_blocked, error: blockError } = await toggleBlock(userToBlock);
-    setBlockLoading(false);
-    if (blockError) {
-      showError('~ couldnt block that user :( try again ~');
-    } else {
-      void hapticImpact();
-      success(is_blocked ? SUCCESS_MESSAGES.block.blocked : SUCCESS_MESSAGES.block.unblocked);
-      void refetch(); // Refresh feed to hide blocked user's posts
-      void refetchChapters(); // Blocked user's posts hidden → chapter counts change
-    }
-    setUserToBlock(null);
-  }, [userToBlock, toggleBlock, showError, success, refetch, refetchChapters]);
 
   const handleProfileClick = () => {
     if (!user) {
@@ -1428,7 +1400,6 @@ function App() {
                     posts={visiblePosts}
                     onView={handleViewPost}
                     onReaction={handleReaction}
-                    onBlock={handleBlock}
                     onChapterClick={handleChapterClick}
                     currentUserId={user?.id}
                     onLoadMore={loadMore}
@@ -1523,18 +1494,6 @@ function App() {
               loading={deleteLoading}
               onConfirm={confirmDeletePost}
               onCancel={() => setPostToDelete(null)}
-            />
-          )}
-
-          {/* Block Confirmation Dialog */}
-          {userToBlock && (
-            <ConfirmDialog
-              title="~ block user? ~"
-              message="r u sure u want 2 block this user? u wont see their posts anymore. u can unblock from ur profile."
-              confirmLabel="~ yes, block ~"
-              loading={blockLoading}
-              onConfirm={confirmBlockUser}
-              onCancel={() => setUserToBlock(null)}
             />
           )}
 

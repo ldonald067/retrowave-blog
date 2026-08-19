@@ -157,24 +157,13 @@ describe('PostCard', () => {
     expect(screen.queryByLabelText(/delete/i)).not.toBeInTheDocument();
   });
 
-  it('does NOT show report/block for owner', () => {
-    render(<PostCard {...defaultProps} currentUserId="user-1" />);
-    expect(screen.queryByText('~ report ~')).not.toBeInTheDocument();
-    expect(screen.queryByText('~ block ~')).not.toBeInTheDocument();
-  });
-
-  it('shows report/block for non-owner', () => {
-    render(<PostCard {...defaultProps} currentUserId="other-user" />);
-    expect(screen.getByText('~ report ~')).toBeInTheDocument();
-    expect(screen.getByText('~ block ~')).toBeInTheDocument();
-  });
-
-  it('calls onBlock when block button is clicked (non-owner)', () => {
-    const onBlock = vi.fn();
-    render(<PostCard {...defaultProps} currentUserId="other-user" onBlock={onBlock} />);
-    fireEvent.click(screen.getByLabelText('Block this user'));
-    expect(onBlock).toHaveBeenCalledWith('user-1');
-  });
+  /* The report/block tests that lived here are gone with the controls.
+     They forced `!isOwner` by passing a currentUserId that differed from
+     post.user_id — a state the app cannot produce, because
+     get_posts_with_reactions filters on `p.user_id = v_user_id` and the feed
+     therefore only ever contains your own posts. Three green tests were
+     guarding UI no user could reach. Guideline 1.2 reporting and blocking live
+     on the public profile, where they are reachable and are tested. */
 
   // ── Mood and music ────────────────────────────────────────────────────
 
