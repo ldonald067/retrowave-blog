@@ -82,9 +82,15 @@ describe('PostModal ⋮ Menu', () => {
     expect(screen.getByLabelText('More options')).toBeInTheDocument();
   });
 
-  it('shows ⋮ button in create mode', () => {
+  it('does not show ⋮ button in create mode', () => {
+    // Delete is the menu's only item, so create mode has nothing to open.
     render(<PostModal {...defaultProps} mode="create" post={null} />);
-    expect(screen.getByLabelText('More options')).toBeInTheDocument();
+    expect(screen.queryByLabelText('More options')).not.toBeInTheDocument();
+  });
+
+  it('does not show ⋮ button when the viewer is not the owner', () => {
+    render(<PostModal {...defaultProps} isOwner={false} />);
+    expect(screen.queryByLabelText('More options')).not.toBeInTheDocument();
   });
 
   it('does not show ⋮ button in view mode', () => {
@@ -98,10 +104,15 @@ describe('PostModal ⋮ Menu', () => {
     expect(screen.getByRole('menu')).toBeInTheDocument();
   });
 
-  it('shows privacy toggle in dropdown', () => {
+  it('does not duplicate the privacy control in the dropdown', () => {
+    // Privacy lives in one place — the toggle in the editor body. The menu
+    // used to carry a second control for the same state, visible at the same
+    // time as the toggle it duplicated.
     render(<PostModal {...defaultProps} />);
     fireEvent.click(screen.getByLabelText('More options'));
-    expect(screen.getByRole('menuitem', { name: /make private/ })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', { name: /make (private|public)/ })
+    ).not.toBeInTheDocument();
   });
 
   it('shows entry privacy in the editor body', () => {
@@ -113,6 +124,15 @@ describe('PostModal ⋮ Menu', () => {
     fireEvent.click(screen.getByRole('button', { name: /^public$/i }));
 
     expect(screen.getByText('Can appear on your public page.')).toBeInTheDocument();
+  });
+
+  it('states privacy exactly once in the editor', () => {
+    // Guards the redundancy this pass removed: heading, badge, toggle pair and
+    // a footer chip all asserted the same state on one screen.
+    render(<PostModal {...defaultProps} mode="create" post={null} />);
+    // The toggle's own "private" button, and nothing else, apart from the
+    // heading and the save button which name the action rather than repeat it.
+    expect(screen.getAllByText(/^private$/i)).toHaveLength(1);
   });
 
   it('saves new entries as private by default', async () => {
@@ -144,38 +164,39 @@ describe('PostModal ⋮ Menu', () => {
     expect(screen.getByRole('menuitem', { name: /delete entry/ })).toBeInTheDocument();
   });
 
-  it('hides delete option in create mode', () => {
-    render(<PostModal {...defaultProps} mode="create" post={null} />);
-    fireEvent.click(screen.getByLabelText('More options'));
-    expect(screen.queryByRole('menuitem', { name: /delete entry/ })).not.toBeInTheDocument();
-  });
-
-  it('hides delete option when not owner', () => {
-    render(<PostModal {...defaultProps} isOwner={false} />);
-    fireEvent.click(screen.getByLabelText('More options'));
-    expect(screen.queryByRole('menuitem', { name: /delete entry/ })).not.toBeInTheDocument();
-  });
-
-  it('toggles privacy when clicking make private', () => {
+  it('toggles privacy from the editor body', () => {
     render(<PostModal {...defaultProps} />);
-    // Initially public - open menu and click make private
-    fireEvent.click(screen.getByLabelText('More options'));
-    fireEvent.click(screen.getByRole('menuitem', { name: /make private/ }));
+    // mockPost is public, so the public side starts pressed.
+    expect(screen.getByRole('button', { name: /^public$/i })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
 
-    // Menu should close and footer should show private badge
-    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
-    expect(screen.getAllByText(/private/).length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(screen.getByRole('button', { name: /^private$/i }));
+
+    expect(screen.getByRole('button', { name: /^private$/i })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    expect(screen.getByRole('button', { name: /^public$/i })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
   });
 
-  it('shows make public after toggling to private', () => {
+  it('describes the consequence of the selected privacy side', () => {
     render(<PostModal {...defaultProps} />);
-    // Toggle to private
-    fireEvent.click(screen.getByLabelText('More options'));
-    fireEvent.click(screen.getByRole('menuitem', { name: /make private/ }));
+    expect(screen.getByText('Can appear on your public page.')).toBeInTheDocument();
 
-    // Now open menu again - should say "make public"
-    fireEvent.click(screen.getByLabelText('More options'));
-    expect(screen.getByRole('menuitem', { name: /make public/ })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /^private$/i }));
+
+    expect(screen.getByText('Only you can see this entry.')).toBeInTheDocument();
+    expect(screen.queryByText('Can appear on your public page.')).not.toBeInTheDocument();
+  });
+
+  it('labels the privacy toggle as a group', () => {
+    render(<PostModal {...defaultProps} />);
+    expect(screen.getByRole('group', { name: /entry privacy/i })).toBeInTheDocument();
   });
 
   it('calls onDelete when delete is clicked', () => {
@@ -212,11 +233,14 @@ describe('PostModal Footer', () => {
     expect(screen.getByText('~ save changes ~')).toBeInTheDocument();
   });
 
-  it('shows private badge in footer when post is private', () => {
+  it('reflects a private post on the toggle, without a second footer badge', () => {
     render(<PostModal {...defaultProps} post={{ ...mockPost, is_private: true }} />);
-    // The footer shows a read-only 🔒 private badge
-    const badges = screen.getAllByText(/private/);
-    expect(badges.length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByRole('button', { name: /^private$/i })).toHaveAttribute(
+      'aria-pressed',
+      'true'
+    );
+    // The footer used to carry a read-only 🔒 private chip repeating this.
+    expect(screen.getAllByText(/^private$/i)).toHaveLength(1);
   });
 
   it('does not show footer in view mode', () => {

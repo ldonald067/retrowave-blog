@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, type FormEvent } from 'react';
+import { useState, useEffect, useCallback, useId, useRef, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
@@ -304,7 +304,11 @@ export default function PostModal({
   };
 
   const isViewMode = mode === 'view';
-  const privacyLabel = isPrivate ? 'private' : 'public';
+  const privacyLabelId = useId();
+  // The ⋮ menu holds exactly one item — delete — so it has nothing to open
+  // when that item is unavailable. Gate the button on the item, not the mode,
+  // or create mode shows an affordance that opens an empty box.
+  const canDelete = mode === 'edit' && isOwner && !!onDelete && !!post;
   const privacyDetail = isPrivate
     ? 'Only you can see this entry.'
     : 'Can appear on your public page.';
@@ -402,7 +406,7 @@ export default function PostModal({
                   <ModalCloseButton onClick={handleClose} label="Close modal" />
                 </div>
               )}
-              {!isViewMode && (
+              {!isViewMode && canDelete && (
                 <div className="relative" ref={moreMenuRef}>
                   <button
                     onClick={() => setShowMoreMenu((p) => !p)}
@@ -423,25 +427,14 @@ export default function PostModal({
                       }}
                       role="menu"
                     >
-                      <button
-                        role="menuitem"
-                        onClick={() => {
-                          setIsPrivate((p) => !p);
-                          setShowMoreMenu(false);
-                        }}
-                        className="w-full text-left px-4 py-3 text-xs font-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px]"
-                        style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
-                      >
-                        {isPrivate ? '🔓' : '🔒'} {isPrivate ? 'make public' : 'make private'}
-                      </button>
-                      {mode === 'edit' && isOwner && onDelete && post && (
+                      {onDelete && post && (
                         <button
                           role="menuitem"
                           onClick={() => {
                             setShowMoreMenu(false);
                             onDelete(post);
                           }}
-                          className="w-full text-left px-4 py-3 text-xs font-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px] border-t border-dotted"
+                          className="w-full text-left px-4 py-3 text-xs font-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px]"
                           // See SettingsModal: --accent-secondary fails 4.5:1
                           // on emo-dark and cottage-core, and this is 12px bold.
                           style={{
@@ -497,9 +490,7 @@ export default function PostModal({
                       <span
                         className="flex items-center gap-1 font-bold"
                         style={{
-                          color: post.is_private
-                            ? 'var(--text-muted)'
-                            : 'var(--accent-primary)',
+                          color: post.is_private ? 'var(--text-muted)' : 'var(--accent-primary)',
                         }}
                       >
                         <span aria-hidden="true">{post.is_private ? '🔒' : '🌐'}</span>
@@ -631,32 +622,23 @@ export default function PostModal({
                     </div>
                   )}
 
+                  {/* One control, one description. The selected side of the
+                      toggle already states which way this entry is set, so the
+                      badge that used to sit here only repeated it, and the
+                      description reads as consequence rather than status when
+                      it follows the choice instead of preceding it. */}
                   <div className="xanga-box p-3 sm:p-4">
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <h3 className="xanga-title text-base flex items-center gap-2">
-                          {isPrivate ? '🔒' : '🔓'} entry privacy
-                        </h3>
-                        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                          {privacyDetail}
-                        </p>
-                      </div>
-                      <span
-                        className="inline-flex w-fit rounded border px-2 py-1 text-xs font-bold"
-                        style={{
-                          borderColor: isPrivate
-                            ? 'var(--border-primary)'
-                            : 'var(--accent-primary)',
-                          color: isPrivate ? 'var(--text-muted)' : 'var(--accent-primary)',
-                          backgroundColor: isPrivate
-                            ? 'var(--card-bg)'
-                            : 'color-mix(in srgb, var(--accent-primary) 10%, var(--card-bg))',
-                        }}
-                      >
-                        {privacyLabel}
-                      </span>
-                    </div>
-                    <div className="mt-3 grid grid-cols-2 gap-2">
+                    <h3
+                      id={privacyLabelId}
+                      className="xanga-title text-base flex items-center gap-2"
+                    >
+                      {isPrivate ? '🔒' : '🔓'} entry privacy
+                    </h3>
+                    <div
+                      className="mt-2 grid grid-cols-2 gap-2"
+                      role="group"
+                      aria-labelledby={privacyLabelId}
+                    >
                       <button
                         type="button"
                         aria-pressed={isPrivate}
@@ -694,6 +676,13 @@ export default function PostModal({
                         public
                       </button>
                     </div>
+                    <p
+                      className="text-xs mt-2"
+                      style={{ color: 'var(--text-muted)' }}
+                      aria-live="polite"
+                    >
+                      {privacyDetail}
+                    </p>
                   </div>
 
                   {/* Title */}
@@ -1026,28 +1015,19 @@ export default function PostModal({
 
           {!isViewMode && (
             <ModalFooter className="flex flex-col items-center gap-2 flex-shrink-0">
-              <div className="flex items-center justify-center gap-2 flex-wrap">
-                {mode === 'create' && (
-                  <span
-                    className="text-xs"
-                    style={{ color: 'var(--text-muted)' }}
-                    aria-live="polite"
-                  >
-                    {draftStatusText}
-                  </span>
-                )}
-                {isPrivate && (
-                  <span
-                    className="text-xs flex items-center gap-1 px-2 py-1 rounded-full"
-                    style={{
-                      color: 'var(--text-muted)',
-                      backgroundColor: 'color-mix(in srgb, var(--border-primary) 20%, transparent)',
-                    }}
-                  >
-                    🔒 private
-                  </span>
-                )}
-              </div>
+              {/* Draft status is create-only; the row it sat in held a second
+                  🔒 private chip that repeated the toggle above it, so the
+                  wrapper is gated rather than left to render empty in edit
+                  mode and take footer height for nothing. */}
+              {mode === 'create' && (
+                <span
+                  className="text-xs text-center"
+                  style={{ color: 'var(--text-muted)' }}
+                  aria-live="polite"
+                >
+                  {draftStatusText}
+                </span>
+              )}
               {/* cancel + save, centred as a pair */}
               <div className="flex w-full justify-center gap-4">
                 <motion.button
