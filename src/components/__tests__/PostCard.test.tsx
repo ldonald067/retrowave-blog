@@ -81,7 +81,6 @@ describe('PostCard', () => {
     post: basePost,
     onView: vi.fn(),
     onReaction: vi.fn(),
-    onBlock: vi.fn(),
     onChapterClick: vi.fn(),
     currentUserId: 'user-1', // owner by default
   };

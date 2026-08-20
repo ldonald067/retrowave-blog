@@ -6,7 +6,12 @@ import tseslint from 'typescript-eslint';
 import { defineConfig, globalIgnores } from 'eslint/config';
 
 export default defineConfig([
-  globalIgnores(['dist', 'ios/App/App/public']),
+  // Ignore all of ios/, not just the synced web copy. It holds Swift plus
+  // whatever build output lands there — `npx cap sync` writes App/App/public and
+  // an Xcode build writes DerivedData — and naming those paths one at a time
+  // meant the next one silently turned `npm run lint` into a review of minified
+  // vendor bundles.
+  globalIgnores(['dist', 'ios']),
   {
     files: ['**/*.{js,jsx}'],
     extends: [

@@ -24,7 +24,7 @@ npm install
 Follow `docs/development/supabase-local-setup.md` for the current local setup
 flow.
 
-Copy `.env.example` to `.env` and fill in:
+Copy `.env.example` to `.env.local` and fill in:
 
 ```env
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
@@ -71,7 +71,12 @@ npm run dev
   Store submission — status, listing copy, privacy answers, and what's left.
 - `docs/audit/backend-privacy-smoke-checks.md` describes how to run
   `supabase/tests/privacy_smoke.sql` before shipping privacy-sensitive changes.
+- `docs/supabase-snippet-archive/` is a historical record of SQL actually run
+  against production. Read-only — see its README before touching the database.
 - `.env.example` mirrors the current frontend Supabase environment shape.
+- Migrations are **not** applied by `supabase db push` on this project; a file in
+  `supabase/migrations/` does not mean it is live. See
+  `docs/development/supabase-local-setup.md`.
 
 ## License
 

@@ -1,11 +1,25 @@
 # Backend Privacy Smoke Checks
 
-Branch: `fix/intentional-public-profile`
+Run `supabase/tests/privacy_smoke.sql` against production before shipping any
+change to RLS, the public-profile path, or chapter privacy. These are
+metadata/function-definition smoke checks, not a replacement for seeded
+integration tests — they prove the policies and function signatures are shaped
+correctly, not that a real session sees the right rows.
 
-Updated from `fix/private-journal-rls-hardening` after the branch inventory found
-that the older private-journal RLS migration had not been carried onto `main`.
+## How to run it
 
-Run `supabase/tests/privacy_smoke.sql` against a migrated Supabase database before shipping privacy-sensitive changes. These checks are metadata/function-definition smoke checks, not a replacement for seeded integration tests.
+`supabase db push` and `supabase test db` do not work on this hosted project, so
+there is no CLI path. Two options:
+
+1. **Dashboard** — paste the file into the SQL editor and run it.
+2. **Management API** — from the repo root:
+
+```bash
+TOKEN=$(security find-generic-password -s "Supabase CLI" -a supabase -w)
+python3 -c "import json,sys;print(json.dumps({'query':open('supabase/tests/privacy_smoke.sql').read()}))" \
+  | curl -s -X POST "https://api.supabase.com/v1/projects/$(cat supabase/.temp/project-ref)/database/query" \
+      -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" --data-binary @-
+```
 
 ## What The Smoke Checks Cover
 
@@ -22,7 +36,29 @@ Run `supabase/tests/privacy_smoke.sql` against a migrated Supabase database befo
 
 ## Expected Result
 
-Every result row should have `passed = true`.
+Every result row should have `passed = true`. All 9 passed against prod on
+2026-08-20.
+
+## When a check fails, read the function before believing it
+
+Checks 8 and 9 assert on `pg_get_functiondef` text, so they fail whenever prod
+implements the same guarantee a different way. Both have already done this once:
+
+- Check 9 asserted the literal `p.user_id = auth.uid()`, but prod assigns
+  `v_user_id := auth.uid()` and filters on the variable. Correctly owner-scoped,
+  reported as FAIL.
+- Check 8 asserted `pr.is_public = true`, but prod looks the owner up on
+  `profiles` unaliased (`AND is_public = true`) and only introduces the `pr`
+  alias later. Correctly filtered, reported as FAIL.
+
+Both now accept either shape. If one fails again, dump the live definition
+before concluding anything is leaking:
+
+```sql
+select pg_get_functiondef(p.oid)
+from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public' and p.proname = 'get_public_profile';
+```
 
 ## Manual Follow-Up
 

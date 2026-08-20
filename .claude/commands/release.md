@@ -16,13 +16,13 @@ rating, review notes, and screenshot plan. Update it as items complete.
 
 ## Phase 1: Prerequisites (verify before building)
 
-| Check                      | Command                              | Fix if missing                                |
-| -------------------------- | ------------------------------------ | --------------------------------------------- |
-| Node                       | `node --version`                     | `brew install node`                           |
-| Xcode                      | `xcodebuild -version`                | Install from App Store                        |
-| iOS simulator runtime      | `xcrun simctl runtime list`          | `xcodebuild -downloadPlatform iOS`            |
-| `.env` with Supabase creds | file exists (do NOT read or edit it) | Copy `.env.example` → `.env`, user fills keys |
-| Dependencies               | `node_modules/` exists               | `npm install`                                 |
+| Check                            | Command                              | Fix if missing                                      |
+| -------------------------------- | ------------------------------------ | --------------------------------------------------- |
+| Node                             | `node --version`                     | `brew install node`                                 |
+| Xcode                            | `xcodebuild -version`                | Install from App Store                              |
+| iOS simulator runtime            | `xcrun simctl runtime list`          | `xcodebuild -downloadPlatform iOS`                  |
+| `.env.local` with Supabase creds | file exists (do NOT read or edit it) | Copy `.env.example` → `.env.local`, user fills keys |
+| Dependencies                     | `node_modules/` exists               | `npm install`                                       |
 
 ## Phase 2: Build & Sync
 
