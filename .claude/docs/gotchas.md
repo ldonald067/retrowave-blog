@@ -60,7 +60,8 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 
 ## Performance
 
-- Tree-shaking pepicons cut the main bundle from 3,130 KB to 672 KB (-78%). Code splitting since brought it to **316 KB raw / 97 KB gzipped** (`index-*.js`), with vendor chunks split out — 948 KB of JS total. Measured 2026-08-20; re-run `npm run build` rather than trusting this number.
+- Tree-shaking pepicons cut the main bundle from 3,130 KB to 672 KB (-78%). Code splitting since brought it to **316 KB raw / 97 KB gzipped** (`index-*.js`), with vendor chunks split out — 891 KB of JS total. Measured 2026-08-20; re-run `npm run build` rather than trusting this number.
+- **90% of that JS is on the critical path** — 801 KB is eager, only the modals and route views are split. On Capacitor the bytes are local, so the cold-start cost is JS parse/eval on the device CPU, not transfer. Measured cold start: median 1.94s (Debug, warm, iPhone 17 Pro Max simulator). See `/ios`.
 - `filteredPosts` and `looseCount` are memoized with `useMemo` in App.tsx.
 
 ## Data & Environment

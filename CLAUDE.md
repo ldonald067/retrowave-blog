@@ -78,7 +78,8 @@ config that would otherwise be invisible to the repo.
 | `/frontend`  | Theming, components, CSS, Xanga aesthetic, responsive     |
 | `/feature`   | Supabase RPCs, hooks, auth patterns, error handling       |
 | `/fullstack` | Audit: RPC types, RLS policies, shared data contracts     |
-| `/mobile`    | iOS, Capacitor, App Store compliance, touch targets       |
+| `/mobile`    | Layout, touch targets, Dynamic Type, App Store compliance |
+| `/ios`       | Cold start, lifecycle, session/storage durability, bridge |
 | `/migration` | SQL migrations, syncing database.ts + validation.ts       |
 | `/test`      | Vitest mock patterns, Supabase chain mocking              |
 | `/preflight` | Pre-commit: tsc + build + tests, diagnose failures        |
