@@ -2,7 +2,7 @@
 
 Xanga/LiveJournal nostalgia blog. Solo operator, zero overhead. If a feature requires ongoing moderation, storage costs, or maintenance — don't build it.
 
-**IMPORTANT:** Before starting any task, check `.claude/learnings.md` for the relevant topic doc and read it. Use the right `/skill` for the domain (see table below).
+**IMPORTANT:** Before starting any task, read the relevant topic doc from the table below — `.claude/docs/gotchas.md` for almost any code change. Use the right `/skill` for the domain.
 
 ## Commands
 
@@ -36,7 +36,7 @@ src/lib/           # supabase, auth-guard, errors, retry, validation, cache, mod
 src/types/         # post, profile, database
 supabase/          # migrations/ + functions/ (moderate-content, notify-report)
 ios/               # Capacitor iOS app
-.claude/           # learnings.md, commands/ (skills)
+.claude/           # docs/ (topic docs), commands/ (skills)
 ```
 
 ## Production (read before touching the database)
@@ -91,11 +91,9 @@ CLAUDE.md is the always-loaded layer. Deeper context lives in topic-specific doc
 | Layer | File                              | When to read                                                   |
 | ----- | --------------------------------- | -------------------------------------------------------------- |
 | State | `docs/handoff.md`                 | **Start a new session here** — current state, open work, traps |
-| Index | `.claude/learnings.md`            | Routes to topic docs                                           |
-| Topic | `.claude/docs/gotchas.md`         | Before any code change                                         |
+| Topic | `.claude/docs/gotchas.md`         | Before any code change — also Supabase/RPC, auth, icons, perf  |
 | Topic | `.claude/docs/data-contracts.md`  | Changing field limits or adding columns                        |
 | Topic | `.claude/docs/theming.md`         | CSS variables, contrast, responsive                            |
-| Topic | `.claude/docs/architecture.md`    | Supabase RPCs, auth, icons, performance                        |
 | Topic | `.claude/docs/false-positives.md` | Before flagging audit issues                                   |
 | Skill | `.claude/commands/*.md`           | Auto-loaded by `/skill` commands                               |
 | Code  | `src/lib/validation.ts`           | Field limits (POST_LIMITS, PROFILE_LIMITS)                     |

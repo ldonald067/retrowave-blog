@@ -7,7 +7,7 @@ description: Design, build, and audit Retrowave Blog UI — Xanga aesthetic, the
 
 Design, build, and audit UI for the Retrowave Blog app.
 
-Read `CLAUDE.md` first. Read `.claude/learnings.md` for known gotchas.
+Read `CLAUDE.md` first. Read `.claude/docs/gotchas.md` for known footguns.
 
 ---
 
@@ -118,7 +118,7 @@ Touch targets: **44px minimum**. Input font: **16px minimum** on mobile (prevent
 
 ## Learnings
 
-Append findings to `.claude/learnings.md`:
+Append findings to the relevant `.claude/docs/*.md` topic doc:
 ```
 - [YYYY-MM-DD /frontend] One-line finding
 ```

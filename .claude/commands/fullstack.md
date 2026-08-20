@@ -8,7 +8,7 @@ description: Run fullstack integration audit — verifies RPC types, RLS policie
 Run a fullstack integration audit across the Retrowave Blog codebase. Verify that frontend and backend are correctly wired together.
 
 Read `CLAUDE.md` first — it contains the shared data contracts table, architecture patterns, and known tech debt. Don't re-discover what's already documented.
-Read `.claude/learnings.md` for accumulated integration knowledge and known false
+Read `.claude/docs/gotchas.md` for integration knowledge, and `.claude/docs/false-positives.md` for known false
 positives. Check the "False Positives" section to avoid repeating previously
 dismissed findings.
 
@@ -89,7 +89,7 @@ Present findings as a table:
 |-------|--------|---------|
 | ... | PASS/WARN/FAIL | ... |
 
-Flag only genuine issues. Distinguish between actual bugs vs minor improvements vs false positives. Reference the "Known gotcha" notes above and `.claude/learnings.md` false positives to avoid repeating false alarms from previous audits.
+Flag only genuine issues. Distinguish between actual bugs vs minor improvements vs false positives. Reference the "Known gotcha" notes above and `.claude/docs/false-positives.md` to avoid repeating false alarms from previous audits.
 
 ## Cross-Domain Checks
 
@@ -100,7 +100,7 @@ Before completing your audit:
 
 ## Learning Contribution
 
-After completing your audit, append NEW findings to `.claude/learnings.md` under
+After completing your audit, append NEW findings to the relevant `.claude/docs/*.md` topic doc under
 the appropriate section (usually "Architecture & Integration" or "False Positives").
 Use the format:
 ```

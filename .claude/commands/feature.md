@@ -7,7 +7,7 @@ description: Feature development following Retrowave Blog architecture — Supab
 
 Build new features for the Retrowave Blog app.
 
-Read `CLAUDE.md` first. Read `.claude/learnings.md` for known gotchas.
+Read `CLAUDE.md` first. Read `.claude/docs/gotchas.md` for known footguns.
 
 ---
 
@@ -127,7 +127,7 @@ Add wrappers in `capacitor.ts` with dynamic `await import()`.
 
 ## Learnings
 
-Append findings to `.claude/learnings.md`:
+Append findings to the relevant `.claude/docs/*.md` topic doc:
 ```
 - [YYYY-MM-DD /feature] One-line finding
 ```

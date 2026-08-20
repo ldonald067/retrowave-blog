@@ -9,7 +9,7 @@ Run the full pre-commit validation pipeline and fix any failures. This is the
 "measure twice, cut once" step before committing changes.
 
 Read `CLAUDE.md` first for architecture and conventions.
-Read `.claude/learnings.md` for accumulated knowledge and known gotchas.
+Read `.claude/docs/gotchas.md` for accumulated knowledge and known footguns.
 
 ---
 

@@ -7,7 +7,7 @@ description: Create Supabase SQL migrations and keep all cross-file sync points 
 
 Create Supabase SQL migrations and keep cross-file sync points consistent.
 
-Read `CLAUDE.md` first. Read `.claude/learnings.md` for known gotchas.
+Read `CLAUDE.md` first. Read `.claude/docs/gotchas.md` for known footguns.
 Read existing migrations in `supabase/migrations/` for patterns.
 
 ---
@@ -114,7 +114,7 @@ When invoked without a task, check all sync points for drift and report:
 
 ## Learnings
 
-Append findings to `.claude/learnings.md`:
+Append findings to the relevant `.claude/docs/*.md` topic doc:
 ```
 - [YYYY-MM-DD /migration] One-line finding
 ```

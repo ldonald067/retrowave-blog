@@ -86,7 +86,7 @@ Work from `docs/app-store-submission-guide.md`. The recurring gates:
 
 ## Learnings
 
-Append findings to `.claude/learnings.md` docs:
+Append findings to the relevant `.claude/docs/*.md` topic doc:
 
 ```
 - [YYYY-MM-DD /release] One-line finding

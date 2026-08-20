@@ -31,14 +31,43 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 - Toast: minimal centered pills. Error messages use `~` tildes. Never raw error strings.
 - Auth forms use inline field errors (not toasts) — App-level `<Toast>` isn't mounted during auth.
 - Keyboard shortcut: Ctrl+N / Cmd+N opens new post modal.
-- PostModal ⋮ menu (top-right header): contains privacy toggle (🔒/🔓) and delete entry. Footer is just cancel + save + privacy badge.
+- PostModal ⋮ menu (top-right header) holds **delete entry only**, so the button itself is gated on delete being available — it does not render in create mode. Privacy is stated exactly once, by the toggle in the editor body; the menu's duplicate privacy control, a status badge and a footer chip were removed in `121c4ba`. Footer is cancel + save, plus the create-only draft status.
+
+## Supabase & RPCs
+
+- `ModerationResult` is intentionally duplicated between `lib/moderation.ts` and the Deno edge function — the edge function cannot import through Vite, so the two definitions must be changed together.
+- SECURITY DEFINER functions with `SET search_path = public, pg_temp` need fully-qualified `auth.users` references.
+- PostgREST parses `jsonb` return values into structured TypeScript objects automatically — no manual parse step.
+- The `get_posts_result` composite type must be **dropped and recreated** when adding a column. `ALTER TYPE ADD ATTRIBUTE` fails while dependent functions exist.
+- Private-chapter matching goes through `public.normalize_chapter()` on both sides. See Chapters below.
+
+## Auth & Errors
+
+- `tos_accepted` defaults to `false` in the trigger. `set_age_verification()` is the only legitimate path to flip it.
+- `useReactions`' in-flight guard only prevents sequential duplicates — the 400ms cooldown is the real rapid-tap protection.
+- Every hook routes failures through `toUserMessage()`; no raw `error.message` reaches the UI. 27 patterns plus a fallback in `lib/errors.ts`.
+
+## Features
+
+- Public profiles: `is_public` boolean, `get_public_profile(username)` RPC, hash routing `#/u/username`. Visitors get a read-only journal in the owner's theme and must sign up to react.
+- No comments, no followers, no discovery feed — deliberate, to keep moderation overhead at zero. Reporting and the admin queue are the only moderation surface, and ban is not implemented.
+- 6 emoji styles fill a 2×3 grid: native, fluent, twemoji, openmoji, blob, noto.
+
+## Icons
+
+- **pepicons** (Pop! variant) for functional UI icons. Only 11 are imported by name, for tree-shaking — adding one means a named import in `Pepicon.tsx` _and_ an entry in the `usedIcons` map.
+- **react-old-icons** for decorative Win98 accents. Fetches `.webp` from GitHub at runtime, so it will not render offline.
+
+## Performance
+
+- Tree-shaking pepicons cut the main bundle from 3,130 KB to 672 KB (-78%). Code splitting since brought it to **316 KB raw / 97 KB gzipped** (`index-*.js`), with vendor chunks split out — 948 KB of JS total. Measured 2026-08-20; re-run `npm run build` rather than trusting this number.
+- `filteredPosts` and `looseCount` are memoized with `useMemo` in App.tsx.
 
 ## Data & Environment
 
 - `is_admin` and COPPA fields are trigger-protected — need SECURITY DEFINER RPCs.
 - All `localStorage` access in try/catch (Safari private browsing throws).
-- `react-old-icons` fetches `.webp` from GitHub at runtime — won't render offline.
-- `.env` is gitignored. Copy `.env.example` → `.env` on each machine.
+- `.env.local` is gitignored. Copy `.env.example` → `.env.local` on each machine. Without it the Supabase client fails to initialise and the app renders blank.
 - `useChapters` called once in App.tsx — don't add a second call (duplicate RPCs).
 
 ## Chapters

@@ -7,7 +7,7 @@ description: Write and fix Vitest tests for hooks and components — project-spe
 
 Write, fix, and audit tests for the Retrowave Blog app.
 
-Read `CLAUDE.md` first. Read `.claude/learnings.md` for known gotchas.
+Read `CLAUDE.md` first. Read `.claude/docs/gotchas.md` for known footguns.
 Read existing tests in `src/hooks/__tests__/` for real examples of every pattern below.
 
 ---
@@ -163,7 +163,7 @@ expect(result.current.posts[0]?.id).toBe('post-1');
 
 ## Learnings
 
-Append findings to `.claude/learnings.md`:
+Append findings to the relevant `.claude/docs/*.md` topic doc:
 ```
 - [YYYY-MM-DD /test] One-line finding
 ```

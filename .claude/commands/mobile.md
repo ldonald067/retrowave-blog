@@ -269,8 +269,7 @@ behind mobile UI → `/fullstack`. New modals → `/frontend`.
 
 ## Learnings
 
-Append to the relevant topic doc under `.claude/docs/` (usually `gotchas.md`),
-not to `learnings.md` — that file is a routing index only:
+Append to the relevant topic doc under `.claude/docs/` (usually `gotchas.md`):
 
 ```
 - [YYYY-MM-DD /mobile] One-line finding
