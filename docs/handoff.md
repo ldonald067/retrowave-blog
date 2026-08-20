@@ -6,116 +6,126 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
+Last rewritten 2026-08-20, at `8918305`.
+
 ---
 
 ## Where the project is
 
 The web app, backend, and security surface are done and live at
 https://retrowaveblog.com. **What remains is Apple-side only**: signing,
-archive/upload, the App Store Connect listing, and one screenshot.
+archive/upload, and the App Store Connect listing.
 
 `docs/app-store-submission-guide.md` is the single source of truth for
 submission — paste-ready listing copy, App Privacy answers, age rating, review
-notes, and the screenshot plan. `APP_STORE_TODO.md` no longer exists; it was
-merged into the guide in `a3caf86`.
+notes, and the screenshot plan.
 
 CI is green. `main` is current; everything below is pushed.
 
-## Verified working (on device, this session)
+## The one blocker
 
-- Composer and profile modals survive the iOS keyboard; both use `flex flex-col`
-  - `flex-1 min-h-0` so the panel shortening is absorbed rather than clipping.
-- Modals centre at every width and sit above the keyboard.
-- Dynamic Type: 0% → 130%, capped at 1.3×, with no truncation at any size and
-  pixel-identical rendering at the default size.
-- Content reports end to end: UI → row → webhook → edge function → Resend →
-  inbox, with an enriched email and an in-app moderation queue.
-- Anonymous clients read **0 rows** from every table (verified by real anon
-  requests, not policy inspection).
+**Apple Developer Program enrollment.** `security find-identity -v -p
+codesigning` reports **0 valid identities** and no team is configured, so
+nothing can be signed, archived, or uploaded. Every other submission input is
+ready and waiting on this. Nothing in the repo can move it forward — it needs
+your Apple ID and a paid enrollment.
 
-Added 2026-08-10, on the iPhone 17 simulator unless noted:
+## Verified on device
 
-- **Root font size no longer clobbers a browser preference.**
-  `applyDynamicType` clears `font-size` at 1× rather than writing 16px, so a web
-  reader's own default stands; it still undoes a previous scale-up when the
-  setting comes back down. Verified in the browser pane — no `font-size` in the
-  `<html>` style attribute at all — plus two new unit tests (267 total, up from
-  265).
-- **The last 8 fixed-px labels now follow Dynamic Type.** Converted to arbitrary
-  rem, so they are pixel-identical at the default root (13/11/10/8px measured)
-  and scale exactly 1.3× at the cap (16.9/14.3/13/10.4px measured). On device at
-  `accessibility-extra-extra-extra-large` the theme descriptions and the Select
-  ▼ grow in step with the text around them, wrapping without truncation.
-- **Keyboard listeners are independent of resize-mode setup.** Each
-  `Keyboard.*` call now has its own `nativeOnly`. Round trip verified: focusing a
-  composer field shortens the panel (`keyboardWillShow` fired) and dismissing
-  restores it (`keyboardWillHide`/`DidHide` fired), with the accessory bar
-  proving `setAccessoryBarVisible` ran from its own block. Caveat: the hardware
-  keyboard was connected, so only the accessory-bar-height inset was exercised,
-  not a full software-keyboard height.
+iPhone 17 Pro Max simulator unless noted. These are the surfaces that green
+tests do not cover.
 
-## Verified on device 2026-08-17 (signed in, iPhone 17 Pro Max)
-
-The authenticated surfaces, which had gone unchecked through a lot of change
-because reaching them needs a password the assistant cannot type.
-
-- **Composer with the full software keyboard raised.** Body textarea keeps its
-  height, three typed lines all visible with the caret at the end, save button
-  reachable, panel bottom ~54pt clear of the accessory bar, draft autosaved
-  *while the keyboard was up*, panel restored to full height on dismiss. This is
-  the surface whose textarea once collapsed to zero height.
-- **Profile modal, same test.** Focused field auto-scrolls into view, its counter
-  and helper text stay visible, save and cancel both reachable, identical
-  clearance. Note iOS shows a one-time QuickPath intro instead of the keys on the
-  very first software-keyboard use — tap Continue, it is not a layout bug.
-- **Signed-in home at accessibility-extra-extra-extra-large.** Nothing truncated
-  or overlapping. Three fixes visible working together: the title drops its ✨ via
-  `data-text-scaled`, the Stats card is absent on mobile, and no floating "new
-  entry" button sits over the empty state.
-
-- **PostCard at accessibility-extra-extra-extra-large.** Title, date, content
-  and author all scale; the reaction bar wraps to a second row rather than
-  truncating or overflowing. Found one real bug doing it — see below.
+- **Composer with the full software keyboard raised.** Textarea keeps its
+  height, typed lines visible with the caret at the end, save reachable, panel
+  ~54pt clear of the accessory bar, draft autosaved _while the keyboard was up_.
+  This is the surface whose textarea once collapsed to zero height.
+- **Profile modal, same test.** Focused field auto-scrolls into view, counter
+  and helper text stay visible, save and cancel both reachable. Note iOS shows a
+  one-time QuickPath intro on the very first software-keyboard use — tap
+  Continue, it is not a layout bug.
+- **Dynamic Type 0% → 130%**, capped at 1.3×, no truncation at any size and
+  pixel-identical rendering at the default. `applyDynamicType` is native-only,
+  so a web reader's own font preference is never clobbered.
+- **Signed-in home and PostCard at accessibility-extra-extra-extra-large.**
+  Nothing truncated or overlapping; the reaction bar wraps rather than overflows.
+- **Entry detail and editor** (2026-08-20). Detail shows
+  `📅 date · 🔒 private · ~ author` in one muted row. The editor states privacy
+  once — heading, toggle, consequence line — where it used to assert it six
+  times, which put `ur thoughts:` below the fold.
+- **Content reports end to end:** UI → `content_reports` row → webhook → edge
+  function → Resend → inbox, with an in-app moderation queue.
+- **Anonymous clients read 0 rows** from every table, verified with real anon
+  requests rather than policy inspection.
+- **Privacy smoke checks: 9/9 green against prod** (2026-08-20). Run them with
+  the recipe in `docs/audit/backend-privacy-smoke-checks.md` before shipping
+  anything that touches RLS or the public-profile path.
 
 ## Open work
 
-All three findings from the second adversarial review are **fixed and verified**
-(2026-08-10) — see "Verified working" below. Nothing from that review is
-outstanding.
+Nothing is outstanding from either adversarial review. Still open, lower value:
 
-Still open, lower value:
-
-- **Ban is not implemented.** The moderation queue has hide + dismiss only.
-  Banning needs enforcement across sign-in and every feed RPC; a half-built ban
-  is worse than none. Use the dashboard's auth controls meanwhile.
+- **Ban is not implemented.** Prod has `admin_list_reports` and
+  `admin_resolve_report` only — hide and dismiss, no ban. Enforcing one means
+  touching sign-in and every feed RPC, and a half-built ban is worse than none.
+  Use the dashboard's auth controls meanwhile.
+- **Renaming a chapter republishes its entries** and the UI does not warn. A
+  post moved from a private chapter to a new name drops out of
+  `private_chapters` and becomes publicly visible. Deliberate — a rename is a
+  real content move and the post's own `is_private` is the control — but a
+  confirmation step would be worth building.
 - **Silent sign-out, unreproduced.** Observed once mid-session, never again
-  across a dozen relaunches. No cause found. If it recurs, note whether the app
-  had been backgrounded a while — that would point at token refresh rather than
-  storage eviction.
+  across a dozen relaunches. If it recurs, note whether the app had been
+  backgrounded a while — that points at token refresh rather than storage
+  eviction.
 
 ## Waiting for you, not for a session
 
-- **One open report is deliberately left in the queue** so you can exercise the
-  moderation screen. Sign in as `ldonald0234` (the only admin) and open the
-  "Review in app" link from the report email, or `#/report/<id>` directly.
-- **Screenshot 06** (empty-journal first run) is the last one missing; the other
-  five are in `store-assets/screenshots/`. Note they are 1320×2868 while the
-  guide previously said 1290×2796 — both have been valid 6.9" sizes, so confirm
-  which App Store Connect accepts at upload rather than re-capturing blind.
-- **Apple Developer Program enrollment** needs confirming before signing.
+- **One open report is deliberately left in the queue** (confirmed still `open`)
+  so you can exercise the moderation screen. Sign in as `ldonald0234` — the only
+  admin — and open `#/report/<id>`, or the "Review in app" link from the report
+  email.
+- **Apple Developer Program enrollment**, as above.
+
+All six screenshots are captured at 1320 × 2868 in `store-assets/screenshots/`.
+Confirm App Store Connect accepts that size at upload rather than re-capturing
+blind; 1290 × 2796 has also been a valid 6.9" size and the guide explains what
+to do if it rejects them.
 
 ## Things that will waste your time if you do not know them
 
 - **Migrations are not applied by `supabase db push`** — it is blocked on this
-  hosted project. Verify schema claims by querying prod (recipe in `CLAUDE.md`);
-  a file in `supabase/migrations/` does not mean it is live. This session applied
-  `20260810000000_admin_moderation_rpcs.sql` through the Management API query
-  endpoint, which works.
-- **Green tests are not proof.** Several suites mock the thing under test, and
-  anything native-only (`--keyboard-inset`, Dynamic Type, safe areas) is
-  permanently inert in jsdom. Verify user-facing work on the simulator.
+  hosted project, as are `migration list` and `test db`. A file in
+  `supabase/migrations/` does not mean it is live. Verify schema claims by
+  querying prod (recipe in `CLAUDE.md`); apply SQL through the dashboard editor
+  or the Management API query endpoint.
+- **The Management API returns only the LAST statement's result.** A file of
+  nine `select`s reports one row and hides the other eight — silently, looking
+  like success. `supabase/tests/privacy_smoke.sql` is a single `union` for
+  exactly this reason. Do not split it up.
+- **Do not trust a function check that matches on SQL text.** Prod writes the
+  same guarantee differently — `v_user_id := auth.uid()` instead of
+  `p.user_id = auth.uid()`, unaliased `is_public` instead of `pr.is_public` —
+  and two smoke checks reported FAIL against correctly-scoped code because of
+  it. Dump the live definition with `pg_get_functiondef` before believing a
+  failure.
+- **There is no `.xcworkspace`.** The iOS project is SPM (`CapApp-SPM`), so
+  `xcodebuild -workspace App.xcworkspace` fails with "does not exist" and reads
+  like a broken checkout. Pass `-project ios/App/App.xcodeproj`. Full build and
+  launch commands are in `.claude/commands/release.md`.
+- **Simulator names move with each Xcode release.** A hardcoded
+  `name=iPhone 16` fails at destination resolution. Target the booted device's
+  UDID instead.
+- **Keep build output out of `ios/` paths ESLint does not ignore.** The config
+  ignores `dist` and `ios` wholesale now, but it previously named
+  `ios/App/App/public` alone, and pointing DerivedData at `ios/DerivedData`
+  turned `npm run lint` into a review of minified vendor bundles — 266 errors
+  with nothing wrong in `src/`.
+- **Green tests are not proof.** Several suites mock the thing under test —
+  `PostModal.test.tsx` mocks `useFocusTrap` — and anything native-only
+  (`--keyboard-inset`, Dynamic Type, safe areas) is permanently inert in jsdom.
+  Verify user-facing work on the simulator and show the evidence.
 - **Watch the test count, not just red/green.** CI silently ran 241 of 265 tests
-  for over a week.
+  for over a week. Currently **299**.
 - **The software keyboard needs Simulator.app open**, not just the assistant's
   streaming panel — the panel forwards the Mac keyboard, so iOS shows the
   accessory bar with no keys and `--keyboard-inset` lands at the bar's height
@@ -124,7 +134,10 @@ Still open, lower value:
   and then `open -a Simulator`; neither step works alone.
 - **Dynamic Type is settable from the CLI**, no Settings.app detour:
   `xcrun simctl ui <udid> content_size accessibility-extra-extra-extra-large`.
-  Underscore, not hyphen — the hyphenated spelling just prints usage and exits 117. Read the current value first and restore it; background and relaunch the
-  app after changing it, since it only re-reads on foreground.
+  Underscore, not hyphen — the hyphenated spelling prints usage and exits 117.
+  Read the current value first and restore it; background and relaunch the app
+  after changing it, since it only re-reads on foreground.
 - **Admin is the owner account only.** Never `appreview@retrowaveblog.com` —
   App Review signs into it.
+- **The env file is `.env.local`**, not `.env`. Without it the Supabase client
+  fails to initialise and the app renders blank.

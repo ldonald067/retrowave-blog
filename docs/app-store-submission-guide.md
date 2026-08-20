@@ -18,8 +18,8 @@ the screenshot plan.
 confirmation (Resend SMTP), AI moderation, RLS, security headers, HTTPS
 redirect, and the hosted legal/support pages are all verified in production.
 
-**What remains is Apple-side only:** signing, archive/upload, the App Store
-Connect listing, and one last screenshot.
+**What remains is Apple-side only:** signing, archive/upload, and the App Store
+Connect listing. All six screenshots are captured (Part 6).
 
 Already handled in code and backend:
 
@@ -35,7 +35,7 @@ Already handled in code and backend:
 
 1. Set the signing **Team** in Xcode and archive/upload the build.
 2. Create the app record + fill the listing in **App Store Connect** (all copy below is paste-ready).
-3. Upload screenshots — 5 of 6 are already captured, see Part 6.
+3. Upload the screenshots — all 6 are captured, see Part 6.
 
 ---
 
