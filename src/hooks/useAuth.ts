@@ -11,7 +11,7 @@ import {
   signInWithPassword,
 } from '../lib/auth-actions';
 import { validateProfileInput, hasValidationErrors } from '../lib/validation';
-import { MIN_AGE } from '../lib/constants';
+import { MIN_AGE, AUTH_SESSION_EXPIRED } from '../lib/constants';
 import { AUTH_PASSWORD_RECOVERY } from '../lib/auth-callback';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
@@ -49,6 +49,14 @@ interface UseAuthReturn {
   /** True while a recovery link is awaiting a new password. */
   passwordRecovery: boolean;
   clearPasswordRecovery: () => void;
+  /**
+   * True when the session ended without the user asking — an evicted or expired
+   * token rather than a tap on sign out. Both used to land on the auth screen
+   * identically, which is what made the sign-out look like a bug in the app
+   * rather than an expired login.
+   */
+  sessionExpired: boolean;
+  clearSessionExpired: () => void;
 }
 
 export function useAuth(): UseAuthReturn {
@@ -57,6 +65,9 @@ export function useAuth(): UseAuthReturn {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [passwordRecovery, setPasswordRecovery] = useState<boolean>(false);
+  const [sessionExpired, setSessionExpired] = useState<boolean>(false);
+  /** Set only by the signOut action, so an unrequested SIGNED_OUT is distinguishable. */
+  const deliberateSignOutRef = useRef<boolean>(false);
 
   const fetchingProfileFor = useRef<string | null>(null);
   const activeAuthUserIdRef = useRef<string | null>(null);
@@ -166,11 +177,28 @@ export function useAuth(): UseAuthReturn {
       // matching window event below. Two delivery routes, one flag.
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
 
+      // A SIGNED_OUT nobody asked for is the silent sign-out: an evicted or
+      // expired token. Flag it so the UI can say so instead of just swapping to
+      // the auth screen, which is indistinguishable from a deliberate sign-out.
+      if (event === 'SIGNED_OUT') {
+        if (deliberateSignOutRef.current) {
+          deliberateSignOutRef.current = false;
+        } else {
+          setSessionExpired(true);
+        }
+      }
+
       syncAuthState(session?.user ?? null);
     });
 
     const onNativeRecovery = () => setPasswordRecovery(true);
     window.addEventListener(AUTH_PASSWORD_RECOVERY, onNativeRecovery);
+
+    // Raised by the resume handler in capacitor.ts when a refresh fails. It
+    // arrives before any SIGNED_OUT the client may then emit, and setting the
+    // same flag twice is harmless.
+    const onSessionExpired = () => setSessionExpired(true);
+    window.addEventListener(AUTH_SESSION_EXPIRED, onSessionExpired);
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (cancelled) return;
@@ -182,6 +210,7 @@ export function useAuth(): UseAuthReturn {
       cancelled = true;
       subscription.unsubscribe();
       window.removeEventListener(AUTH_PASSWORD_RECOVERY, onNativeRecovery);
+      window.removeEventListener(AUTH_SESSION_EXPIRED, onSessionExpired);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-only auth subscription; including syncAuthState (unmemoized) would resubscribe every render
   }, []);
@@ -266,6 +295,7 @@ export function useAuth(): UseAuthReturn {
 
   const signOut = async (): Promise<{ error: string | null }> => {
     try {
+      deliberateSignOutRef.current = true;
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       return { error: null };
@@ -323,5 +353,7 @@ export function useAuth(): UseAuthReturn {
     refetchProfile,
     passwordRecovery,
     clearPasswordRecovery: () => setPasswordRecovery(false),
+    sessionExpired,
+    clearSessionExpired: () => setSessionExpired(false),
   };
 }

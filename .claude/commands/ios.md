@@ -105,10 +105,9 @@ Check each of these:
 - **Is there an `appStateChange` listener at all?** Without one, nothing
   re-validates the session, refetches stale data, or re-reads OS settings when
   the app returns from the background.
-  **Finding, 2026-08-20: there is none.** `src/lib/capacitor.ts` registers
-  keyboard, `appUrlOpen` and `getLaunchUrl` listeners and no lifecycle listener.
-  This is the leading suspect for the unreproduced silent sign-out in
-  `docs/handoff.md` — see Phase 3.
+  **Added 2026-08-21.** There was none, which was half of the silent sign-out.
+  `capacitor.ts` now calls `getSession()` on resume and raises
+  `AUTH_SESSION_EXPIRED` if the refresh fails.
 - **Cold-start deep links need `getLaunchUrl`, not just `appUrlOpen`.**
   `addListener('appUrlOpen')` only fires for a _running_ app. A link that
   launches the app from cold delivers its URL through `CapApp.getLaunchUrl()`,
@@ -137,9 +136,11 @@ Two independent failure modes, both of which present as "it logged me out".
 grep -n "persistSession\|storage\|autoRefreshToken\|flowType" src/lib/supabase.ts
 ```
 
-**Finding, 2026-08-20: `createClient` is called with no auth options at all**,
-so every default applies — `persistSession: true` into `localStorage`, and
-`autoRefreshToken: true` on a JS timer.
+**Fixed 2026-08-21.** `createClient` used to take no auth options at all, so
+every default applied — `persistSession` into `localStorage` and
+`autoRefreshToken` on a JS timer. `lib/auth-storage.ts` now supplies a
+`Preferences`-backed adapter on native. The reproduction below is kept because
+it is the regression test.
 
 Both defaults are shakier on iOS than on the web:
 
@@ -152,18 +153,40 @@ Both defaults are shakier on iOS than on the web:
   in a background WKWebView, so a token can expire mid-suspension. Recovery
   depends on something firing on resume — which, per Phase 2, nothing here does.
 
-Test eviction directly rather than waiting for it in the wild:
+Test eviction directly rather than waiting for it in the wild. Sign in first,
+then delete only the auth key from the **evictable** store:
 
 ```bash
-# Sign in first, then simulate the OS reclaiming web storage.
-xcrun simctl terminate <UDID> com.retrowave.journal
-# Inspect or clear the WebKit store under the app's data container:
-xcrun simctl get_app_container <UDID> com.retrowave.journal data
-xcrun simctl launch <UDID> com.retrowave.journal
+C=$(xcrun simctl get_app_container <UDID> com.retrowave.journal data)
+D=$(find "$C" -name localstorage.sqlite3)
+xcrun simctl shutdown <UDID>          # see the warning below — terminate is not enough
+rm -f "$D-wal" "$D-shm"
+sqlite3 "$D" "delete from ItemTable where key like 'sb-%-auth-token';"
+xcrun simctl boot <UDID> && xcrun simctl launch <UDID> com.retrowave.journal
 ```
 
-The app should return to a signed-in state, or fail with a real message — never
-a silent bounce to the auth screen.
+The app must stay signed in — the session lives in `UserDefaults` now, which
+this does not touch. Confirm where it actually is:
+
+```bash
+plutil -p "$C/Library/Preferences/com.retrowave.journal.plist"   # CapacitorStorage.sb-…-auth-token
+```
+
+Four harness traps, all of which produced a wrong answer first:
+
+- **`simctl terminate` is not enough to read or write these stores.** WebKit's
+  storage runs in XPC processes that outlive the app and will flush their
+  in-memory state over your edit, and `localStorage` on disk is stale while the
+  app runs. `shutdown` the whole device before touching the sqlite, and before
+  trusting a read.
+- **`simctl install` can rotate the data container.** Re-resolve
+  `get_app_container` after every install; state you seeded is in the old one.
+- **Externally seeding `localStorage` is unreliable** — WebKit may not adopt a
+  sqlite you wrote behind its back. Seeding `UserDefaults` via the plist is
+  reliable, so prefer it when testing the durable path.
+- A session whose `expires_at` is in the future is accepted without a network
+  round trip, so a seeded fake token proves the **read path** only. It reaches
+  the signed-in shell and then fails its first RPC, which is the expected shape.
 
 **Also check what the app does with a `SIGNED_OUT` it did not ask for.**
 

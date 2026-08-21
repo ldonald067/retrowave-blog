@@ -353,6 +353,8 @@ function App() {
     refetchProfile,
     passwordRecovery,
     clearPasswordRecovery,
+    sessionExpired,
+    clearSessionExpired,
   } = useAuth();
   const {
     posts,
@@ -382,6 +384,16 @@ function App() {
     window.addEventListener(AUTH_CALLBACK_ERROR, onCallbackError);
     return () => window.removeEventListener(AUTH_CALLBACK_ERROR, onCallbackError);
   }, [showError]);
+
+  // A session that ended on its own — an evicted or expired token — used to be
+  // indistinguishable from tapping sign out: the auth screen simply reappeared.
+  // Say which it was, so "the app logged me out" is a message rather than a
+  // mystery.
+  useEffect(() => {
+    if (!sessionExpired) return;
+    showError('~ ur session expired, sign in again ~');
+    clearSessionExpired();
+  }, [sessionExpired, showError, clearSessionExpired]);
 
   // Rendered above everything, including the auth modal: a recovery link
   // establishes a session, so without this the app would look like an ordinary
@@ -1270,43 +1282,45 @@ function App() {
                           search your archive by text, privacy, mood, music, or last edit
                         </p>
                         <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
-                      <Input
-                        label="search"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="title, chapter, mood..."
-                        icon={<Windows95Notepad size={16} alt="" />}
-                        aria-label="Search entries"
-                      />
-                      <Select
-                        label="visibility"
-                        value={visibilityFilter}
-                        onChange={(e) => setVisibilityFilter(e.target.value as VisibilityFilter)}
-                        options={[...VISIBILITY_FILTER_OPTIONS]}
-                        aria-label="Filter by visibility"
-                      />
-                      <Select
-                        label="music"
-                        value={musicFilter}
-                        onChange={(e) => setMusicFilter(e.target.value as MusicFilter)}
-                        options={[...MUSIC_FILTER_OPTIONS]}
-                        aria-label="Filter by music"
-                      />
-                      <Select
-                        label="mood"
-                        value={moodFilter}
-                        onChange={(e) => setMoodFilter(e.target.value)}
-                        placeholder="any mood"
-                        options={moodOptions}
-                        aria-label="Filter by mood"
-                      />
-                      <Select
-                        label="sort"
-                        value={sortFilter}
-                        onChange={(e) => setSortFilter(e.target.value as SortFilter)}
-                        options={[...SORT_FILTER_OPTIONS]}
-                        aria-label="Sort entries"
-                      />
+                          <Input
+                            label="search"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="title, chapter, mood..."
+                            icon={<Windows95Notepad size={16} alt="" />}
+                            aria-label="Search entries"
+                          />
+                          <Select
+                            label="visibility"
+                            value={visibilityFilter}
+                            onChange={(e) =>
+                              setVisibilityFilter(e.target.value as VisibilityFilter)
+                            }
+                            options={[...VISIBILITY_FILTER_OPTIONS]}
+                            aria-label="Filter by visibility"
+                          />
+                          <Select
+                            label="music"
+                            value={musicFilter}
+                            onChange={(e) => setMusicFilter(e.target.value as MusicFilter)}
+                            options={[...MUSIC_FILTER_OPTIONS]}
+                            aria-label="Filter by music"
+                          />
+                          <Select
+                            label="mood"
+                            value={moodFilter}
+                            onChange={(e) => setMoodFilter(e.target.value)}
+                            placeholder="any mood"
+                            options={moodOptions}
+                            aria-label="Filter by mood"
+                          />
+                          <Select
+                            label="sort"
+                            value={sortFilter}
+                            onChange={(e) => setSortFilter(e.target.value as SortFilter)}
+                            options={[...SORT_FILTER_OPTIONS]}
+                            aria-label="Sort entries"
+                          />
                         </div>
                       </>
                     )}
@@ -1319,7 +1333,9 @@ function App() {
                           so nothing is lost by folding these away. */}
                       {filtersOpen && (
                         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                          <span style={{ color: 'var(--text-muted)' }}>{activeFeedSummaryText}</span>
+                          <span style={{ color: 'var(--text-muted)' }}>
+                            {activeFeedSummaryText}
+                          </span>
                           {hasFeedFilters && (
                             <button
                               onClick={clearFeedFilters}

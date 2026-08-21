@@ -64,6 +64,14 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 - **90% of that JS is on the critical path** — 801 KB is eager, only the modals and route views are split. On Capacitor the bytes are local, so the cold-start cost is JS parse/eval on the device CPU, not transfer. Measured cold start: median 1.94s (Debug, warm, iPhone 17 Pro Max simulator). See `/ios`.
 - `filteredPosts` and `looseCount` are memoized with `useMemo` in App.tsx.
 
+## Session storage (iOS)
+
+- **The Supabase session must not live in `localStorage` on native.** A Capacitor app's `localStorage` is in the WKWebView website data store, which iOS reclaims under disk pressure and after long idle. Nothing warns the app — the token is gone next launch and the user lands on signup having never signed out. This was the "silent sign-out"; it reproduces first try by deleting the `sb-*-auth-token` row from `WebsiteData/.../LocalStorage/localstorage.sqlite3` and relaunching.
+- `lib/auth-storage.ts` routes it to `@capacitor/preferences` (`UserDefaults`) on native, keeps `localStorage` on web, and migrates an existing session on first read so upgrades do not sign everyone out.
+- **supabase-js clears a session by writing `""`, not by calling `removeItem`.** An adapter that treats `""` as a present value hands it to `JSON.parse` and permanently shadows the migration fallback beneath it. Treat empty as absent on read, and as a clear on write.
+- **Nothing re-validates the session on resume without an `appStateChange` listener.** The refresh timer is a JS timer, and iOS suspends those in a backgrounded WKWebView, so a long background can outlive the token with no refresh scheduled. `capacitor.ts` calls `getSession()` on resume and raises `AUTH_SESSION_EXPIRED` when it fails.
+- An unrequested `SIGNED_OUT` is now distinguished from a deliberate one (`useAuth`), so an expired session says so instead of silently swapping to the auth screen.
+
 ## Data & Environment
 
 - `is_admin` and COPPA fields are trigger-protected — need SECURITY DEFINER RPCs.

@@ -81,6 +81,15 @@ export const SUCCESS_MESSAGES = {
 // Feed — content truncation thresholds
 export const FEED_EXCERPT_MAX = 300; // characters before "read more" appears
 
+/**
+ * Raised when a session could not be refreshed on resume — the user is about to
+ * be signed out without having asked to be. Lives here rather than beside the
+ * other auth events in `auth-callback.ts` because `capacitor.ts` raises it and
+ * `auth-callback.ts` already imports `capacitor.ts`; the other direction would
+ * be a cycle.
+ */
+export const AUTH_SESSION_EXPIRED = 'auth-session-expired';
+
 // Mood options for posts - Xanga/LiveJournal style!
 export const MOODS = [
   { emoji: '😊', label: 'happy' },

@@ -73,10 +73,16 @@ Nothing is outstanding from either adversarial review. Still open, lower value:
   `private_chapters` and becomes publicly visible. Deliberate — a rename is a
   real content move and the post's own `is_private` is the control — but a
   confirmation step would be worth building.
-- **Silent sign-out, unreproduced.** Observed once mid-session, never again
-  across a dozen relaunches. If it recurs, note whether the app had been
-  backgrounded a while — that points at token refresh rather than storage
-  eviction.
+- **Silent sign-out — reproduced, fixed, not yet confirmed with a real login.**
+  It was both suspected causes at once. The session lived only in WKWebView
+  `localStorage`, which iOS evicts, and nothing re-validated it on resume.
+  Deleting the `sb-*-auth-token` row and relaunching reproduced it first try.
+  `lib/auth-storage.ts` moves the session to `UserDefaults` on native, and
+  `capacitor.ts` revalidates on foreground. Verified on device that a session
+  present **only** in `UserDefaults` reaches the signed-in shell, so the durable
+  path works — but the end-to-end pass needs someone who can type the password
+  to sign in, evict `localStorage`, and confirm they stay signed in. See `/ios`
+  Phase 3 for the exact commands.
 
 ## Waiting for you, not for a session
 

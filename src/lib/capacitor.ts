@@ -7,6 +7,8 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { supabase } from './supabase';
+import { AUTH_SESSION_EXPIRED } from './constants';
 
 const isNative = Capacitor.isNativePlatform();
 
@@ -177,6 +179,37 @@ export function initCapacitor(): void {
   void requiredNative('getLaunchUrl', async () => {
     const launch = await CapApp.getLaunchUrl();
     if (launch?.url) routeDeepLink(launch.url);
+  });
+
+  /**
+   * Revalidate the session when the app comes back to the foreground.
+   *
+   * supabase-js refreshes the access token on a JS timer, and iOS suspends
+   * timers in a backgrounded WKWebView. An app left in the background past the
+   * token's lifetime therefore wakes with an expired token and no scheduled
+   * refresh — the next request fails, or the client clears the session, and the
+   * user is dropped on the auth screen without ever signing out.
+   *
+   * `getSession()` refreshes if the token is expired, so calling it on resume is
+   * enough. The failure is reported rather than swallowed: a refresh that cannot
+   * succeed (revoked or rotated token) is exactly the case that used to be
+   * silent, and `useAuth` turns this event into a message for the user.
+   */
+  void requiredNative('appStateChange', async () => {
+    await CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (!isActive) return;
+      void supabase.auth
+        .getSession()
+        .then(({ error }) => {
+          if (error) {
+            console.error('capacitor: session refresh on resume failed —', error);
+            window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED));
+          }
+        })
+        .catch((err: unknown) => {
+          console.error('capacitor: session refresh on resume threw —', err);
+        });
+    });
   });
 }
 
