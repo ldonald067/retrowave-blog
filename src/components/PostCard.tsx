@@ -1,8 +1,7 @@
 import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Winamp as WinampIcon } from './ui';
-import ReactMarkdown from 'react-markdown';
-import rehypeSanitize from 'rehype-sanitize';
+import MarkdownContent from './ui/MarkdownContent';
 import { formatDate } from '../utils/formatDate';
 import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { FEED_EXCERPT_MAX } from '../lib/constants';
@@ -134,11 +133,9 @@ const PostCard = memo(function PostCard({
         )}
 
         {/* Post content - Markdown rendered with XSS protection */}
-        <div className="prose prose-sm max-w-none mb-4">
-          <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-            {truncateContent(post.content)}
-          </ReactMarkdown>
-        </div>
+        <MarkdownContent className="prose prose-sm max-w-none mb-4">
+          {truncateContent(post.content)}
+        </MarkdownContent>
 
         {/* Read more link — prefer server truncation flag over length guess */}
         {(post.content_truncated || (post.content && post.content.length > FEED_EXCERPT_MAX)) && (

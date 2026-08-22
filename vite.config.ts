@@ -31,6 +31,8 @@ export default defineConfig({
             '@capacitor/core',
             '@capacitor/haptics',
             '@capacitor/keyboard',
+            '@capacitor/network',
+            '@capacitor/preferences',
             '@capacitor/share',
             '@capacitor/splash-screen',
             '@capacitor/status-bar',

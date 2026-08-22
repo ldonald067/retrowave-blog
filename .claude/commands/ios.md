@@ -85,9 +85,24 @@ print(f'eager {tot/1024:.0f} KB of {allj/1024:.0f} KB total ({100*tot/allj:.0f}%
 PY
 ```
 
-**Measured here: 801 KB eager of 891 KB total — 90% on the critical path.**
-(Sum actual byte sizes. `du -ck` counts allocated disk blocks and overstates
-this by ~6%.)
+**Measured 2026-08-21: 683 KB eager of 896 KB — 76% on the critical path**,
+down from 802 KB / 90% after `react-markdown` was deferred behind
+`MarkdownContent`. (Sum actual byte sizes. `du -ck` counts allocated disk blocks
+and overstates this by ~6%.)
+
+**That 119 KB produced no measurable cold-start change**: median 1.22s before,
+1.26s after, with both runs spanning 1.19–1.32s. Do not read that as "bundle
+size does not matter" — read it as **this rig cannot resolve an effect that
+small**. Two reasons, and both apply to any measurement you take here:
+
+- The probe's granularity is one screenshot round-trip, ~1.5s. It cannot see a
+  difference of tens of milliseconds.
+- The simulator executes JavaScript on the **Mac's** CPU, so parse and evaluate
+  cost is understated by a large factor versus an actual iPhone.
+
+Use the eager-KB number as the optimisation target, since it is measured
+precisely and directly. Only claim a startup win from a physical-device
+measurement, and only when the delta clears the noise band of at least five runs.
 Only the modals and route views are split. `vendor-markdown` (120 KB) and
 `vendor-motion` (125 KB) are both eager; neither is needed to paint the shell.
 

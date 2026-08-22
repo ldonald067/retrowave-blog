@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useId, useRef, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
-import rehypeSanitize from 'rehype-sanitize';
+import MarkdownContent from './ui/MarkdownContent';
 import {
   Input,
   ModalCloseButton,
@@ -560,9 +559,7 @@ export default function PostModal({
                       loading full entry...
                     </p>
                   ) : (
-                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-                      {fullContent ?? post?.content}
-                    </ReactMarkdown>
+                    <MarkdownContent>{fullContent ?? post?.content ?? ''}</MarkdownContent>
                   )}
                 </div>
               </div>
@@ -953,14 +950,12 @@ export default function PostModal({
                               </div>
                             )}
 
-                            <div
+                            <MarkdownContent
                               className="prose prose-sm max-w-none"
                               style={{ color: 'var(--text-body)' }}
                             >
-                              <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-                                {content || '_start typing 2 see ur post preview..._'}
-                              </ReactMarkdown>
-                            </div>
+                              {content || '_start typing 2 see ur post preview..._'}
+                            </MarkdownContent>
                           </div>
 
                           <div
