@@ -66,6 +66,13 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 - `PostCard.test.tsx` and `PostModal.test.tsx` both **mock `react-markdown`**, so neither would notice the lazy chunk failing to resolve — the Suspense fallback renders the same text. `ui/__tests__/MarkdownContent.test.tsx` uses the real renderer and is what actually guards it.
 - `filteredPosts` and `looseCount` are memoized with `useMemo` in App.tsx.
 
+## Signed-out states
+
+- **There are exactly two**: the intro on first launch, then the auth wall. There is no guest mode. `AuthModal` has no close control on purpose — dismissing it used to drop into an `@guest` journal that looked like a real empty account, offered "write ur first entry", and bounced to signup when tapped.
+- `OnboardingFlow` sat in the repo unused from the initial commit until 2026-08-21. Its last slide is a preview of the empty journal plus the signup/sign-in choice, so the intro ends in a decision rather than a fourth description.
+- The seen flag (`lib/onboarding.ts`) is in `Preferences`, versioned `onboarding-seen-v1`. `UserDefaults` dies with an uninstall and survives updates and backups — once per install, which is what "first launch after download" means. Bump the suffix to re-show a rewritten intro.
+- **The intro is gated on having no session**, not only on the flag. Existing users have never written the flag, so without that check an app update would greet them with a tour of the app they already use.
+
 ## Session storage (iOS)
 
 - **The Supabase session must not live in `localStorage` on native.** A Capacitor app's `localStorage` is in the WKWebView website data store, which iOS reclaims under disk pressure and after long idle. Nothing warns the app — the token is gone next launch and the user lands on signup having never signed out. This was the "silent sign-out"; it reproduces first try by deleting the `sb-*-auth-token` row from `WebsiteData/.../LocalStorage/localstorage.sqlite3` and relaunching.

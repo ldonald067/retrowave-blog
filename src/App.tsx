@@ -27,6 +27,7 @@ import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
 import { AUTH_CALLBACK_ERROR } from './lib/auth-callback';
+import { hasSeenOnboarding, markOnboardingSeen } from './lib/onboarding';
 import NewPasswordModal from './components/NewPasswordModal';
 import { sparkleBurst, emojiRain } from './lib/celebrations';
 import { Input, Select, Windows95MyComputer, Windows95Notepad } from './components/ui';
@@ -43,6 +44,7 @@ const AuthModal = lazy(() => import('./components/AuthModal'));
 const AgeVerification = lazy(() => import('./components/AgeVerification'));
 const PublicProfileView = lazy(() => import('./components/PublicProfileView'));
 const ModerationView = lazy(() => import('./components/ModerationView'));
+const OnboardingFlow = lazy(() => import('./components/OnboardingFlow'));
 
 type ModalMode = 'create' | 'edit' | 'view';
 type VisibilityFilter = 'all' | 'private' | 'public';
@@ -395,6 +397,24 @@ function App() {
     clearSessionExpired();
   }, [sessionExpired, showError, clearSessionExpired]);
 
+  // Read the intro flag once. Gated on there being no session: an existing user
+  // updating the app has never written this flag, and showing them a "welcome,
+  // here is what a journal looks like" tour would be absurd.
+  useEffect(() => {
+    if (authLoading) return;
+    if (user) {
+      setShowOnboarding(false);
+      return;
+    }
+    let cancelled = false;
+    void hasSeenOnboarding().then((seen) => {
+      if (!cancelled) setShowOnboarding(!seen);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [authLoading, user]);
+
   // Rendered above everything, including the auth modal: a recovery link
   // establishes a session, so without this the app would look like an ordinary
   // sign-in and never ask for the new password the email promised.
@@ -418,6 +438,12 @@ function App() {
   const [showModal, setShowModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'signup'>('signup');
+  /**
+   * `null` while the durable flag is being read — the intro must not flash for a
+   * returning user, and must not be skipped for a new one, so nothing signed-out
+   * renders until this resolves.
+   */
+  const [showOnboarding, setShowOnboarding] = useState<boolean | null>(null);
   const [ageVerifying, setAgeVerifying] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -1012,15 +1038,38 @@ function App() {
     );
   }
 
-  // Show auth page if not authenticated (full-screen, not modal)
-  if (!user && showAuthModal) {
+  // Signed out: intro on first launch, then auth. There is no third state —
+  // dismissing auth used to drop into an "@guest" journal that offered to write
+  // an entry and bounced to signup when you tried, which read as a broken
+  // account rather than as a signed-out app.
+  if (!user) {
+    if (showOnboarding === null) {
+      return (
+        <div className="min-h-screen themed-bg flex items-center justify-center safe-area-top page-safe-bottom px-4">
+          <LoadingSpinner fullScreen={false} />
+        </div>
+      );
+    }
+
+    if (showOnboarding) {
+      return (
+        <Suspense fallback={<LazyFallback />}>
+          <OnboardingFlow
+            onComplete={(tab) => {
+              void markOnboardingSeen();
+              setShowOnboarding(false);
+              setAuthModalTab(tab);
+              setShowAuthModal(true);
+            }}
+          />
+          {toastLayer}
+        </Suspense>
+      );
+    }
+
     return (
       <Suspense fallback={<LoadingSpinner />}>
-        <AuthModal
-          isOpen={showAuthModal}
-          defaultTab={authModalTab}
-          onClose={() => setShowAuthModal(false)}
-        />
+        <AuthModal isOpen defaultTab={authModalTab} />
         {toastLayer}
         {newPasswordLayer}
       </Suspense>

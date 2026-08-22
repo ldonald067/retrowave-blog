@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 
 interface OnboardingFlowProps {
-  onComplete: () => void;
+  /** Which auth tab to land on — the intro ends by choosing one, not by exiting to nothing. */
+  onComplete: (tab: 'signup' | 'login') => void;
 }
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
@@ -11,6 +12,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [direction, setDirection] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
   useFocusTrap(containerRef, true);
+
+  const previewDate = new Date().toLocaleDateString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
   const slides = [
     {
@@ -34,21 +42,24 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         'choose from 8 unique themes 2 match ur vibe: emo dark, scene kid, cottage core & more. pick an emoji style 2. ur journal = ur rules.',
       decoration: '- - - ♥ - - - ♥ - - -',
     },
+    // The last beat is a look at the thing itself rather than a fourth
+    // description of it. `~ let's get started!! ~` used to sit here and said the
+    // same thing as the button underneath it.
     {
-      emoji: '🌟💻🌟',
-      title: "~ let's get started!! ~",
-      description:
-        "ur xanga is ready & waiting 4 u!! pick a theme, set ur status, & start writing. it's gonna b gr8 ♡",
+      kind: 'preview' as const,
+      emoji: '📓✨',
+      title: '~ ur journal is waiting ~',
+      description: 'this is what ur xanga looks like on day one. make an account & fill it in ♡',
       decoration: '·411·.·´¯`·.·★ OMG ★·.·´¯`·.411·',
     },
   ];
 
+  // Only advances. The last slide has its own explicit signup/sign-in buttons
+  // rather than a "next" that quietly means "done".
   const handleNext = () => {
     if (currentStep < slides.length - 1) {
       setDirection(1);
       setCurrentStep(currentStep + 1);
-    } else {
-      onComplete();
     }
   };
 
@@ -193,6 +204,43 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 >
                   {slide.description}
                 </motion.p>
+
+                {/* A look at the empty journal, on the last slide only.
+                    Inert on purpose: this is a picture of what an account gets
+                    you, not a journal you are in. It used to be reachable for
+                    real by dismissing the auth screen, where an "@guest" shell
+                    offered to write an entry and then bounced you to signup. */}
+                {slide.kind === 'preview' && (
+                  <motion.div
+                    initial={direction === 0 ? false : { opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                    className="mt-4 rounded-lg border-2 border-dotted p-3 text-left select-none"
+                    style={{
+                      borderColor: 'var(--border-primary)',
+                      backgroundColor: 'var(--card-bg)',
+                    }}
+                    aria-hidden="true"
+                  >
+                    <p className="xanga-title text-sm text-center mb-2">
+                      ~ your journal is empty ~
+                    </p>
+                    <div
+                      className="border-t border-dotted pt-2 text-xs leading-relaxed"
+                      style={{ borderColor: 'var(--border-primary)', color: 'var(--text-body)' }}
+                    >
+                      <p style={{ color: 'var(--text-muted)' }}>{previewDate}</p>
+                      <p className="mt-1">every xanga needs a first entry...</p>
+                      <p>what&apos;s on ur mind? 💭</p>
+                    </div>
+                    <p
+                      className="text-center text-xs mt-3 tracking-wider"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      · _ · _ · _ · ♡ · _ · _ · _ ·
+                    </p>
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           </AnimatePresence>
@@ -208,28 +256,62 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         }}
       >
         <div className="max-w-md mx-auto space-y-3">
-          {/* Navigation buttons */}
-          <div className="flex gap-2">
-            {!isFirstSlide && (
+          {/* The last slide ends the intro, so it stops looking like a carousel
+              and starts looking like a decision: one loud primary action, and
+              signing in spelled out underneath for people who already have an
+              account. Mid-intro it stays "next »" with a quiet skip. */}
+          {isLastSlide ? (
+            <>
               <button
-                onClick={handlePrevious}
-                className="xanga-button py-2.5 px-4 text-sm flex-shrink-0"
+                onClick={() => onComplete('signup')}
+                className="xanga-button w-full py-3 text-sm font-bold"
               >
-                « back
+                ✨ ~ create ur xanga ~ ✨
               </button>
-            )}
-            <button onClick={handleNext} className="xanga-button py-2.5 text-sm flex-1">
-              {isLastSlide ? '~ start writing!! ~' : 'next »'}
-            </button>
-          </div>
-
-          {/* Skip link */}
-          {!isLastSlide && (
-            <div className="text-center">
-              <button onClick={onComplete} className="xanga-link text-xs">
-                ~ skip intro ~
-              </button>
-            </div>
+              <div className="text-center">
+                <span className="text-xs" style={{ color: 'var(--text-body)' }}>
+                  already got one?{' '}
+                </span>
+                <button
+                  onClick={() => onComplete('login')}
+                  className="xanga-link text-xs font-bold"
+                >
+                  ~ sign in ~
+                </button>
+              </div>
+              {!isFirstSlide && (
+                <div className="text-center">
+                  <button
+                    onClick={handlePrevious}
+                    className="text-xs"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
+                    « back
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="flex gap-2">
+                {!isFirstSlide && (
+                  <button
+                    onClick={handlePrevious}
+                    className="xanga-button py-2.5 px-4 text-sm flex-shrink-0"
+                  >
+                    « back
+                  </button>
+                )}
+                <button onClick={handleNext} className="xanga-button py-2.5 text-sm flex-1">
+                  next »
+                </button>
+              </div>
+              <div className="text-center">
+                <button onClick={() => onComplete('signup')} className="xanga-link text-xs">
+                  ~ skip intro ~
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>

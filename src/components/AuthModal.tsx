@@ -7,10 +7,9 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 interface AuthModalProps {
   isOpen: boolean;
   defaultTab?: 'login' | 'signup';
-  onClose?: () => void;
 }
 
-export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: AuthModalProps) {
+export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>(defaultTab);
   // Carried across the tab switch when a signup turns out to be an existing
   // account, so the address survives the handoff to sign-in.
@@ -46,23 +45,14 @@ export default function AuthModal({ isOpen, defaultTab = 'login', onClose }: Aut
             borderColor: 'var(--border-primary)',
           }}
         >
-          <div className="flex items-center justify-between px-4 h-14">
-            {onClose ? (
-              <button
-                onClick={onClose}
-                className="w-16 text-left text-xs font-bold min-h-[44px] flex items-center transition hover:opacity-70"
-                style={{ color: 'var(--link-color)', fontFamily: 'var(--title-font)' }}
-                aria-label="Go back to blog"
-              >
-                ← back
-              </button>
-            ) : (
-              <div className="w-16" />
-            )}
-            <h1 className="flex-1 text-center xanga-title text-xs sm:text-lg whitespace-nowrap">
+          {/* No back control. There is nothing behind this screen: signed out,
+              the app is the intro (once) and then this. "← back" used to lead to
+              an "@guest" journal that looked like an account and bounced to
+              signup on the first tap. */}
+          <div className="flex items-center justify-center px-4 h-14">
+            <h1 className="text-center xanga-title text-xs sm:text-lg whitespace-nowrap">
               ✨ {activeTab === 'signup' ? 'Create Your Xanga' : 'Welcome Back'} ✨
             </h1>
-            <div className="w-16" />
           </div>
         </div>
 
