@@ -71,6 +71,7 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 - **supabase-js clears a session by writing `""`, not by calling `removeItem`.** An adapter that treats `""` as a present value hands it to `JSON.parse` and permanently shadows the migration fallback beneath it. Treat empty as absent on read, and as a clear on write.
 - **Nothing re-validates the session on resume without an `appStateChange` listener.** The refresh timer is a JS timer, and iOS suspends those in a backgrounded WKWebView, so a long background can outlive the token with no refresh scheduled. `capacitor.ts` calls `getSession()` on resume and raises `AUTH_SESSION_EXPIRED` when it fails.
 - An unrequested `SIGNED_OUT` is now distinguished from a deliberate one (`useAuth`), so an expired session says so instead of silently swapping to the auth screen.
+- **`navigator.onLine` is not trustworthy in WKWebView** — it often stays `true` with no route to the internet, and the `offline` event may never fire. `useOnlineStatus` uses `@capacitor/network` on native. Seed with `getStatus()`, since `networkStatusChange` only reports changes and an app launched offline would otherwise claim to be online. Assume online if reachability fails, rather than pinning a permanent banner over a working app. Only verifiable on a real device — the simulator shares the Mac's connection.
 
 ## Data & Environment
 

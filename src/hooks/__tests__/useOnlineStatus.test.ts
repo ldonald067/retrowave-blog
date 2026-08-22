@@ -1,6 +1,25 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useOnlineStatus } from '../useOnlineStatus';
+
+const nativeState = { isNative: false };
+const netListeners: Array<(s: { connected: boolean }) => void> = [];
+const removeSpy = vi.fn();
+const getStatus = vi.fn(async () => ({ connected: true }));
+
+vi.mock('@capacitor/core', () => ({
+  Capacitor: { isNativePlatform: () => nativeState.isNative },
+}));
+
+vi.mock('@capacitor/network', () => ({
+  Network: {
+    addListener: vi.fn(async (_event: string, cb: (s: { connected: boolean }) => void) => {
+      netListeners.push(cb);
+      return { remove: removeSpy };
+    }),
+    getStatus: () => getStatus(),
+  },
+}));
 
 describe('useOnlineStatus', () => {
   const originalOnLine = navigator.onLine;
@@ -66,5 +85,65 @@ describe('useOnlineStatus', () => {
 
     addSpy.mockRestore();
     removeSpy.mockRestore();
+  });
+});
+
+describe('useOnlineStatus on native', () => {
+  beforeEach(() => {
+    nativeState.isNative = true;
+    netListeners.length = 0;
+    removeSpy.mockClear();
+    getStatus.mockClear().mockResolvedValue({ connected: true });
+  });
+
+  afterEach(() => {
+    nativeState.isNative = false;
+  });
+
+  it('ignores navigator.onLine and uses real reachability', async () => {
+    // The whole point: inside WKWebView navigator.onLine routinely claims to be
+    // online with no route to the internet, so the banner would never show.
+    Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
+    getStatus.mockResolvedValue({ connected: false });
+
+    const { result } = renderHook(() => useOnlineStatus());
+
+    await waitFor(() => expect(result.current).toBe(false));
+  });
+
+  it('seeds from getStatus, since the listener only reports changes', async () => {
+    getStatus.mockResolvedValue({ connected: false });
+    const { result } = renderHook(() => useOnlineStatus());
+
+    await waitFor(() => expect(result.current).toBe(false));
+    expect(getStatus).toHaveBeenCalled();
+  });
+
+  it('follows networkStatusChange events', async () => {
+    const { result } = renderHook(() => useOnlineStatus());
+    await waitFor(() => expect(result.current).toBe(true));
+
+    act(() => netListeners.forEach((cb) => cb({ connected: false })));
+    expect(result.current).toBe(false);
+
+    act(() => netListeners.forEach((cb) => cb({ connected: true })));
+    expect(result.current).toBe(true);
+  });
+
+  it('assumes online when reachability is unavailable', async () => {
+    // Better than pinning a permanent offline banner over a working app.
+    getStatus.mockRejectedValue(new Error('plugin unavailable'));
+    const { result } = renderHook(() => useOnlineStatus());
+
+    await waitFor(() => expect(result.current).toBe(true));
+  });
+
+  it('removes the native listener on unmount', async () => {
+    const { unmount } = renderHook(() => useOnlineStatus());
+    await waitFor(() => expect(netListeners.length).toBe(1));
+
+    unmount();
+
+    await waitFor(() => expect(removeSpy).toHaveBeenCalled());
   });
 });

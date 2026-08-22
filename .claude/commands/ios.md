@@ -206,17 +206,24 @@ grep -rn "navigator.onLine\|useOnlineStatus" src/
 python3 -c "import json;d=json.load(open('package.json'));print([k for k in d['dependencies'] if 'network' in k] or 'no @capacitor/network')"
 ```
 
-**Finding, 2026-08-20: offline detection is `navigator.onLine` only**
-(`src/hooks/useOnlineStatus.ts`), and `@capacitor/network` is not installed.
+**Fixed 2026-08-21.** Offline detection was `navigator.onLine` only, which is
+unreliable inside WKWebView — it reports the web view's notion of connectivity,
+which frequently stays `true` with no route to the internet, and the `offline`
+event is not dependable, so the banner explaining a failed save would never
+appear. `useOnlineStatus` now uses `@capacitor/network` on native and keeps
+`navigator.onLine` on web.
 
-`navigator.onLine` is unreliable inside WKWebView — it reports the web view's
-notion of connectivity, which frequently stays `true` with no route to the
-internet, and the `offline` event is not dependable. `@capacitor/network` reads
-the real reachability state from iOS.
+Two things that are easy to get wrong here: `networkStatusChange` only reports
+_changes_, so the current state has to be seeded with `getStatus()` or an app
+launched offline claims to be online until connectivity happens to move; and a
+reachability failure should assume **online**, since the alternative is a
+permanent offline banner pinned over a working app.
 
-This one **cannot be verified on the simulator**, which shares the Mac's
-connection. Confirm it on a device with Airplane Mode, or with Network Link
-Conditioner set to 100% loss. Do not report it as verified from a simulator run.
+The native path **cannot be verified on the simulator**, which shares the Mac's
+connection and reports online regardless. Confirm on a device with Airplane
+Mode, or Network Link Conditioner at 100% loss. Do not report it as verified
+from a simulator run — the most a simulator shows is that the plugin resolves
+and the app does not render blank.
 
 Beyond detection, check behaviour: what happens to an in-flight write when the
 connection drops mid-request, and does the user get their text back? The
