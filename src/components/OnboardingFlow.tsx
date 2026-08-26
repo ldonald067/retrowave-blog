@@ -385,15 +385,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   next »
                 </motion.button>
               </div>
-              {/* Quietest of the three: no border, muted rather than link
-                  coloured, so leaving the intro never competes with continuing
-                  it. */}
+              {/* Quietest of the three — no border, no fill, small — but still
+                  in the palette. It is subordinate because of how little of the
+                  screen it takes, not because the colour was drained out. */}
               <div className="text-center">
-                <button
-                  onClick={() => onComplete('signup')}
-                  className="text-xs underline underline-offset-4 min-h-[44px]"
-                  style={{ color: 'var(--text-muted)' }}
-                >
+                <button onClick={() => onComplete('signup')} className="xanga-link text-xs">
                   ~ skip intro ~
                 </button>
               </div>

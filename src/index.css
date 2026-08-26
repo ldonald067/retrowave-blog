@@ -429,18 +429,24 @@ body {
   border: 2px dotted var(--border-primary);
   border-radius: 0.5rem;
   background: transparent;
-  color: var(--text-muted);
+  /* Accent, not --text-muted. Grey is how a corporate design system says
+     "secondary", and muted palettes are on this project's anti-pattern list.
+     A quieter tier here means less accent *area* — an outline instead of a
+     fill — not accent drained out into grey. Measured 4.82:1 at worst on
+     --card-bg across the eight themes. */
+  color: var(--accent-primary);
   font-family: var(--title-font);
   cursor: pointer;
   transition:
     border-color 0.2s,
-    color 0.2s;
+    color 0.2s,
+    background-color 0.2s;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .xanga-button-ghost:hover:not(:disabled) {
     border-color: var(--accent-primary);
-    color: var(--text-body);
+    background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
   }
 }
 
@@ -562,9 +568,11 @@ body {
   transition: color 0.2s;
 }
 
-.prose a:hover {
-  color: var(--link-hover);
-  text-decoration: none;
+@media (hover: hover) and (pointer: fine) {
+  .prose a:hover {
+    color: var(--link-hover);
+    text-decoration: none;
+  }
 }
 
 .prose code {
@@ -759,34 +767,41 @@ body {
    touch screen — where there is no hover to fall back on — means the only
    confirmation you acted is the screen changing afterwards.
 
-   Done here rather than by adding whileTap to 71 call sites: a bare <button>
-   now responds by default, and anything with its own treatment (.xanga-button
-   lifts and drops, Framer's whileTap scales) keeps it, because those set
-   transform and win over opacity.
+   The press *blooms* rather than dims. Fading something out on touch is the
+   generic component-library reflex and reads as the control going away; on a
+   maximalist page the press should be the loudest that control ever gets.
 
-   :active is the right selector for touch — it fires on press and clears on
-   release, with none of the stickiness :hover has on iOS. */
+   `filter` and `transform` are deliberate: nearly every button here is coloured
+   by an inline `style` from a theme variable, and inline wins over a stylesheet
+   `color` or `background-color`. Filter and transform are set by neither, so
+   this reaches all 96. Saturation also preserves meaning — a caution link gets
+   more amber rather than turning into the accent. */
 button:not(:disabled):active,
 [role='button']:not([aria-disabled='true']):active,
-a:active {
-  opacity: 0.6;
-  transition: opacity 0.05s;
-}
-
-/* Elements that already move on press should not also dim — the two together
-   read as a flicker rather than a press. */
-.xanga-button:not(:disabled):active,
-.winamp-btn:active,
-.chapter-chip:active {
-  opacity: 1;
-}
-
-/* Links get a press state too. .xanga-link only had hover, which does not
-   exist on the platform this ships on. */
+a:active,
 .xanga-link:active,
 .xanga-link-caution:active {
-  opacity: 0.6;
+  filter: saturate(1.6) brightness(1.08);
+  transform: scale(0.96);
+  transition:
+    filter 0.06s ease-out,
+    transform 0.06s ease-out;
 }
+
+/* Bare controls have no fill to bloom, so give them one for the moment of the
+   press — the accent washes in behind the label and recedes on release. */
+.icon-btn-hover:active,
+.xanga-button-ghost:not(:disabled):active,
+.xanga-link:active,
+.xanga-link-caution:active {
+  background-color: color-mix(in srgb, var(--accent-primary) 18%, transparent);
+  border-radius: 0.5rem;
+}
+
+/* `.xanga-button` already presses like a key — it drops 2px and loses its
+   shadow. Let that stand rather than also scaling it; the class beats the
+   element selector above on specificity, so it keeps its own transform and
+   still picks up the saturation bloom. */
 
 /* Mood icons spacing */
 .mood-icon {
@@ -1250,9 +1265,14 @@ select:focus-visible {
   );
 }
 
-/* ===== Marquee Pause on Hover ===== */
-.marquee-banner:hover .marquee-banner-inner {
-  animation-play-state: paused;
+/* ===== Marquee Pause on Hover =====
+   Guarded: on touch, :hover latches on tap and does not clear until you touch
+   something else — so tapping the banner would leave the marquee permanently
+   stopped, looking like it had crashed. */
+@media (hover: hover) and (pointer: fine) {
+  .marquee-banner:hover .marquee-banner-inner {
+    animation-play-state: paused;
+  }
 }
 
 /* ===== Custom cursor — very 2005 ===== */
@@ -1280,8 +1300,10 @@ input[type='submit'],
   background-color: transparent;
 }
 
-.icon-btn-hover:hover {
-  background-color: color-mix(in srgb, currentColor 15%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .icon-btn-hover:hover {
+    background-color: color-mix(in srgb, currentColor 15%, transparent);
+  }
 }
 
 /* ===== Chapter Chips — horizontal swipe row (mobile only) ===== */

@@ -137,16 +137,23 @@ One colour for every clickable thing gives a screen no hierarchy. Three tiers:
 
 | Tier      | Use                      | Treatment                                                       |
 | --------- | ------------------------ | --------------------------------------------------------------- |
-| Primary   | the main action          | `.xanga-button`, solid, loudest                                 |
-| Secondary | supporting action        | `.xanga-button-ghost`, dotted outline, transparent              |
-| Tertiary  | incidental               | bare icon or text, `var(--text-muted)`, no border               |
+| Primary   | the main action          | `.xanga-button`, solid accent fill                              |
+| Secondary | supporting action        | `.xanga-button-ghost`, accent text, dotted border, no fill      |
+| Tertiary  | incidental               | bare accent icon or text, no border, no fill                    |
 | Link      | ordinary navigation      | `.xanga-link`, `var(--link-color)`                              |
 | Caution   | destructive or reporting | `.xanga-link-caution`, `var(--link-caution)`, bold + underlined |
 
-**Hierarchy is carried by shape, not colour.** A row of same-shaped buttons in
-the accent colour reads as one undifferentiated group however the icons differ —
-Home, Profile and New Entry were all `.xanga-button`, and on mobile the labels
-are hidden, so the nav was three interchangeable magenta squares.
+**Hierarchy is carried by how much accent an element deploys, never by draining
+the accent out of it.** A quieter tier means less fill and less border — not
+grey. `--text-muted` is body copy, not a way to say "less important": muted
+palettes are on the anti-pattern list at the top of this file, and reaching for
+grey to signal subordination is the corporate-design reflex this app exists to
+avoid. Every tier above sits at 4.82:1 or better on `--card-bg`.
+
+A row of same-shaped buttons in the same colour also reads as one
+undifferentiated group however the icons differ — Home, Profile and New Entry
+were all `.xanga-button`, and on mobile the labels are hidden, so the nav was
+three interchangeable magenta squares.
 
 ### Hover and press
 
@@ -156,10 +163,16 @@ Both are handled globally in `index.css`; a new button needs nothing added.
   Without it iOS applies hover on tap and leaves it applied — the control stays
   lit until you touch something else, which reads as stuck rather than as
   feedback.
-- **Press feedback is global**: `button`, `[role="button"]` and `a` dim to 0.6
-  on `:active`. Controls that already move on press — `.xanga-button`,
-  `.winamp-btn`, `.chapter-chip` — are excluded, because a dim plus a movement
-  reads as a flicker.
+- **Press feedback is global and blooms, it does not dim.** `button`,
+  `[role="button"]` and `a` get `filter: saturate(1.6) brightness(1.08)` plus
+  `transform: scale(0.96)` on `:active`; bare controls also wash in an 18%
+  accent fill. Fading a control out on press is the generic
+  component-library reflex and reads as the control leaving — on a maximalist
+  page the press should be the loudest that control ever gets.
+- **Why `filter` and not `color`/`background`:** nearly every button here is
+  coloured by an inline `style` from a theme variable, and inline beats a
+  stylesheet. Filter and transform are set by neither, so one rule reaches all 96. Saturation also preserves meaning — a caution link gets more amber rather
+  than turning into the accent.
 - `whileTap={{ scale: 0.95 }}` is still worth adding to significant controls,
   but it is no longer the only thing standing between a button and silence.
   71 of 96 buttons had neither before this was made global.

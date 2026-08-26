@@ -279,7 +279,10 @@ export default function Header({
               whileTap={{ scale: 0.95 }}
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="icon-btn-hover flex items-center gap-1 px-2 py-2 rounded-lg min-h-[44px] min-w-[44px] justify-center"
-              style={{ color: 'var(--text-muted)' }}
+              // Accent, not grey. The tier is quieter because it carries no
+              // border and no fill, not because the colour was drained out of
+              // it — a muted palette is an anti-pattern here.
+              style={{ color: 'var(--accent-primary)' }}
               aria-label="Scroll to top"
             >
               <Pepicon name="house" size={14} />
