@@ -224,8 +224,14 @@ title's ✨, an oversized hero — never to shrink the words themselves.
 - `drag="x"` swipe dismiss with `SWIPE_DISMISS_THRESHOLD`
 - `onTouchMove` blurs the focused field so the keyboard drops
 - `useFocusTrap`
-- Safe-area classes that actually exist: `.modal-panel-safe`,
-  `.modal-overlay-safe`, `.keyboard-safe-pad`, `.keyboard-safe-scroll`
+- Safe-area classes: `.modal-panel-safe`, `.modal-overlay-safe`,
+  `.modal-footer-safe`, `.keyboard-safe-pad`, `.keyboard-safe-scroll`,
+  `.safe-area-bottom`, `.page-safe-bottom`. **Several are declared inside an
+  `@supports (padding-bottom: env(safe-area-inset-bottom))` block**, so they are
+  indented and a line-anchored `grep '^\.modal-footer-safe'` reports them as
+  missing. Search without the anchor before concluding a class does not exist —
+  this file previously claimed `.modal-footer-safe` was undefined on exactly
+  that mistake.
 - `--keyboard-inset` carries the iOS keyboard height; the panel shortens rather
   than the content clipping
 

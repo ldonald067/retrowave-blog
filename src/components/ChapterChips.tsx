@@ -174,7 +174,13 @@ export default function ChapterChips({
                   backgroundColor: isActive
                     ? 'color-mix(in srgb, var(--text-body) 25%, var(--accent-primary))'
                     : 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
-                  color: isActive ? 'var(--card-bg)' : 'var(--text-muted)',
+                  // Inactive count is --text-body, not --text-muted. The 12%
+                  // accent wash lifts the badge just far enough off --card-bg
+                  // that muted lands at 4.47:1 on emo-dark — under the floor by
+                  // a hair, and only on that one theme. Body text takes the
+                  // worst case to 6.41:1, and a count is information rather
+                  // than chrome anyway.
+                  color: isActive ? 'var(--card-bg)' : 'var(--text-body)',
                 }}
               >
                 {chip.count}
