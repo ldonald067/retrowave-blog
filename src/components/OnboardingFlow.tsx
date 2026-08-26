@@ -148,7 +148,10 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden keyboard-safe-pad px-3 sm:px-6 py-6 sm:py-8 flex flex-col items-center short-viewport-start">
+      {/* No `short-viewport-start`: the panel centres itself with `margin-block:
+          auto`, which does not clip overflowing content the way centring on this
+          scroll container does. */}
+      <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden keyboard-safe-pad px-3 sm:px-6 py-4 sm:py-8 flex flex-col items-center">
         <div className="onboarding-panel" aria-live="polite" aria-atomic="true">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
@@ -165,20 +168,20 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               className="w-full max-w-full"
             >
               {/* Slide content as xanga-box */}
-              <div className="xanga-box p-4 sm:p-8 text-center min-w-0 max-w-full overflow-hidden">
+              <div className="xanga-box px-6 py-10 sm:px-8 sm:py-12 text-center min-w-0 max-w-full overflow-hidden">
                 {/* Emoji illustration */}
                 <motion.div
                   initial={direction === 0 ? false : { scale: 0, rotate: -10 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
-                  className="onboarding-wrap text-3xl sm:text-5xl mb-4 tracking-widest"
+                  className="onboarding-wrap onboarding-hero mb-7 tracking-widest"
                 >
                   {slide.emoji}
                 </motion.div>
 
                 {/* Decorative divider */}
                 <p
-                  className="onboarding-wrap text-xs mb-4 tracking-wider"
+                  className="onboarding-wrap text-xs mb-5 tracking-wider"
                   style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
                 >
                   {slide.decoration}
@@ -189,7 +192,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   initial={direction === 0 ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="onboarding-wrap xanga-title text-base sm:text-xl mb-3"
+                  className="onboarding-wrap xanga-title text-2xl sm:text-3xl mb-5"
                 >
                   {slide.title}
                 </motion.h2>
@@ -199,7 +202,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   initial={direction === 0 ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25 }}
-                  className="onboarding-wrap onboarding-copy text-xs sm:text-sm leading-relaxed"
+                  className="onboarding-wrap onboarding-copy text-sm sm:text-base leading-relaxed"
                   style={{ color: 'var(--text-body)' }}
                 >
                   {slide.description}

@@ -72,6 +72,8 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 - `OnboardingFlow` sat in the repo unused from the initial commit until 2026-08-21. Its last slide is a preview of the empty journal plus the signup/sign-in choice, so the intro ends in a decision rather than a fourth description.
 - The seen flag (`lib/onboarding.ts`) is in `Preferences`, versioned `onboarding-seen-v1`. `UserDefaults` dies with an uninstall and survives updates and backups — once per install, which is what "first launch after download" means. Bump the suffix to re-show a rewritten intro.
 - **The intro is gated on having no session**, not only on the flag. Existing users have never written the flag, so without that check an app update would greet them with a tour of the app they already use.
+- **Do not centre the slide with `justify-content` on the scroll container** — it clips the top of overflowing content, which is what happens at large Dynamic Type. `.onboarding-panel` uses `margin-block: auto`, which centres without that failure mode. `short-viewport-start` is still correct for `AgeVerification`, which does not scroll the same way.
+- The hero is `clamp(3.5rem, 11vh, 6rem)` so it scales with the device rather than one phone, and drops to `2.5rem` under `[data-text-scaled]` where the words need the room. A minimum height on the card was tried and reverted: it produced a tall white box with the content pooled in the middle.
 
 ## Session storage (iOS)
 

@@ -279,6 +279,38 @@ body {
   width: calc(100vw - 2rem);
   max-width: 28rem;
   min-width: 0;
+  /* Centres in the space available, and scrolls instead of clipping when there
+     is not enough — `justify-content: center` on the scroll parent cuts off the
+     top of overflowing content, which is exactly what happens at large Dynamic
+     Type sizes. `margin-block: auto` centres without that failure mode, so the
+     intro no longer sits pinned to the top of a mostly empty screen. */
+  margin-block: auto;
+}
+
+/* The card hugs its content and the centring above places it. A minimum height
+   was tried and looked worse: it produced a tall white box with the words
+   pooled in the middle, which reads as a layout bug rather than as space. The
+   screen is filled by giving the slide a hero big enough to earn it, not by
+   stretching an empty card over it.
+
+   Sized in vh so the hero scales with the device rather than being tuned to one
+   phone, clamped so it cannot dominate a short screen or vanish on a tall one.
+   The `em` floor keeps it tied to the reader's text size. */
+.onboarding-hero {
+  font-size: clamp(3.5rem, 11vh, 6rem);
+  line-height: 1.1;
+}
+
+/* Balance the wrap so a scaled-up title does not leave its closing `~` alone on
+   a second line, which reads as a typo rather than as decoration. */
+.onboarding-panel .xanga-title {
+  text-wrap: balance;
+}
+
+/* At large Dynamic Type the words matter and the decoration does not: shrink
+   the hero so it stops pushing the copy off the screen. */
+[data-text-scaled] .onboarding-hero {
+  font-size: 2.5rem;
 }
 
 .onboarding-wrap {
@@ -294,8 +326,11 @@ body {
   width: 100%;
 }
 
+/* 16rem here capped the copy at 256px on a 440pt phone, wrapping short
+   sentences over four lines and leaving the card looking empty either side.
+   A measure of ~20rem still keeps line length readable. */
 .onboarding-copy {
-  max-width: 16rem;
+  max-width: 20rem;
   margin-inline: auto;
 }
 
