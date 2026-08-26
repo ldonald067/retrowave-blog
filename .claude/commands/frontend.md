@@ -148,16 +148,17 @@ all 8 themes. Use it for delete and report, never for ordinary navigation.
 
 - Framer springs, not durations: `{ type: 'spring', stiffness: 300, damping: 25 }`
 - `whileTap={{ scale: 0.95 }}` on interactive elements
-- `MotionConfig reducedMotion="user"` is set app-wide, so Framer honours Reduce
-  Motion for free. **CSS `@keyframes` do not** — wrap them yourself:
+- Reduce Motion is already handled on **both** sides, and a new animation needs
+  nothing added for it:
+  - `MotionConfig reducedMotion="user"` covers everything Framer drives.
+  - `index.css` has a global `@media (prefers-reduced-motion: reduce)` block
+    that neutralises `animation-duration`, `animation-iteration-count` and
+    `transition-duration` on `*` with `!important`.
 
-```css
-@media (prefers-reduced-motion: reduce) {
-  .my-animation {
-    animation: none;
-  }
-}
-```
+  Writing a per-animation `prefers-reduced-motion` rule is redundant. Add one
+  only when an animation must be _replaced_ rather than stopped — see
+  `.marquee-banner-inner`, which needs `animation: none` because a
+  near-zero-duration marquee still jumps.
 
 Existing keyframes worth reusing before writing a new one: `sparkle`,
 `float-gentle`, `rainbow-border`, `blink`, `glitter-sweep`, `sparkle-trail`,

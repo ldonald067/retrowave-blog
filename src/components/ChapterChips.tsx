@@ -164,8 +164,15 @@ export default function ChapterChips({
               <span
                 className="chapter-chip-count"
                 style={{
+                  // Was rgba(255,255,255,0.25), which does not adapt: the label
+                  // is --card-bg, so on a light theme a white wash moved the
+                  // badge toward its own text. 3.61:1 on classic-xanga (the
+                  // default) and 2.94:1 on cottage-core. Mixing --text-body in
+                  // moves it away from the label on every theme, because
+                  // --text-body is always the opposite pole from --card-bg.
+                  // Worst case now 5.68:1.
                   backgroundColor: isActive
-                    ? 'rgba(255,255,255,0.25)'
+                    ? 'color-mix(in srgb, var(--text-body) 25%, var(--accent-primary))'
                     : 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
                   color: isActive ? 'var(--card-bg)' : 'var(--text-muted)',
                 }}

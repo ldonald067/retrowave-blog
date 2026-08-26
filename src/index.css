@@ -418,15 +418,6 @@ body {
   animation: float-gentle 3s ease-in-out infinite;
 }
 
-/* Reduce Motion is honoured app-wide by MotionConfig for Framer, but these are
-   CSS animations and need saying separately. */
-@media (prefers-reduced-motion: reduce) {
-  .ob-eq span,
-  .ob-swatch {
-    animation: none;
-  }
-}
-
 /* Three actions at the foot of the intro need three weights, and colour alone
    does not carry that — `next` and `back` were both `.xanga-button`, identical
    treatment for opposite directions. Shape separates them: solid for the way
