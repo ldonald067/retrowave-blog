@@ -267,12 +267,19 @@ export default function Header({
           </motion.div>
 
           {/* Navigation */}
+          {/* Three tiers, not three identical buttons. All three were
+              `.xanga-button` — solid accent, same size — and on mobile the
+              labels are hidden, so the nav read as three interchangeable
+              magenta squares. Writing an entry is what the app is for; scrolling
+              to the top is the least consequential thing here. Order is left to
+              right by ascending importance, so the primary sits at the thumb
+              end. */}
           <nav className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             <motion.button
-              whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="xanga-button flex items-center gap-1"
+              className="icon-btn-hover flex items-center gap-1 px-2 py-2 rounded-lg min-h-[44px] min-w-[44px] justify-center"
+              style={{ color: 'var(--text-muted)' }}
               aria-label="Scroll to top"
             >
               <Pepicon name="house" size={14} />
@@ -282,10 +289,9 @@ export default function Header({
             {user ? (
               <>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onProfileClick}
-                  className="xanga-button flex items-center gap-1"
+                  className="xanga-button-ghost flex items-center gap-1 px-3 py-2 min-h-[44px] min-w-[44px] justify-center"
                   aria-label="Edit profile"
                 >
                   <Pepicon name="person" size={14} />
@@ -293,7 +299,6 @@ export default function Header({
                 </motion.button>
 
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={onNewPost}
                   className="xanga-button flex items-center gap-1"

@@ -358,7 +358,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={handlePrevious}
-                    className="ob-ghost text-xs px-4 py-2 min-h-[44px]"
+                    className="xanga-button-ghost text-xs px-4 py-2 min-h-[44px]"
                   >
                     « back
                   </motion.button>
@@ -372,7 +372,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   <motion.button
                     whileTap={{ scale: 0.95 }}
                     onClick={handlePrevious}
-                    className="ob-ghost py-2.5 px-4 text-sm flex-shrink-0 min-h-[44px]"
+                    className="xanga-button-ghost py-2.5 px-4 text-sm flex-shrink-0 min-h-[44px]"
                   >
                     « back
                   </motion.button>

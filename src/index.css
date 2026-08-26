@@ -418,24 +418,35 @@ body {
   animation: float-gentle 3s ease-in-out infinite;
 }
 
-/* Three actions at the foot of the intro need three weights, and colour alone
-   does not carry that — `next` and `back` were both `.xanga-button`, identical
-   treatment for opposite directions. Shape separates them: solid for the way
-   forward, outlined for the way back, bare text for leaving entirely. */
-.ob-ghost {
+/* The secondary button tier.
+ *
+ * The design system had exactly one button — .xanga-button, solid and loud —
+ * so every action rendered at the same volume however consequential it was.
+ * `next` and `back` were identical; so were Home, Profile and New Entry.
+ * Shape carries the hierarchy: solid for the primary action, outlined for the
+ * supporting one, bare text for leaving. */
+.xanga-button-ghost {
   border: 2px dotted var(--border-primary);
   border-radius: 0.5rem;
   background: transparent;
   color: var(--text-muted);
   font-family: var(--title-font);
+  cursor: pointer;
   transition:
     border-color 0.2s,
     color 0.2s;
 }
 
-.ob-ghost:hover {
-  border-color: var(--accent-primary);
-  color: var(--text-body);
+@media (hover: hover) and (pointer: fine) {
+  .xanga-button-ghost:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+    color: var(--text-body);
+  }
+}
+
+.xanga-button-ghost:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
 /* At large Dynamic Type the words matter and the decoration does not: shrink
@@ -712,12 +723,17 @@ body {
  * The lift, glow and brightness still give the hover its pop without putting
  * text on an unvetted background.
  */
-.xanga-button:hover:not(:disabled) {
-  filter: brightness(1.12);
-  transform: translateY(-1px);
-  box-shadow:
-    3px 3px 0px var(--shadow-color),
-    0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent);
+/* Hover is gated on a device that actually has a pointer. Without the guard iOS
+   applies :hover on tap and leaves it applied — the button stays lit until you
+   touch something else, which reads as stuck rather than as feedback. */
+@media (hover: hover) and (pointer: fine) {
+  .xanga-button:hover:not(:disabled) {
+    filter: brightness(1.12);
+    transform: translateY(-1px);
+    box-shadow:
+      3px 3px 0px var(--shadow-color),
+      0 0 8px color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  }
 }
 
 .xanga-button:focus-visible {
@@ -735,6 +751,41 @@ body {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+/* ── Press feedback for everything ──────────────────────────────────────────
+   71 of the app's 96 buttons had no pressed state at all: no whileTap, no
+   :active. Tapping them looked identical to not tapping them, which on a
+   touch screen — where there is no hover to fall back on — means the only
+   confirmation you acted is the screen changing afterwards.
+
+   Done here rather than by adding whileTap to 71 call sites: a bare <button>
+   now responds by default, and anything with its own treatment (.xanga-button
+   lifts and drops, Framer's whileTap scales) keeps it, because those set
+   transform and win over opacity.
+
+   :active is the right selector for touch — it fires on press and clears on
+   release, with none of the stickiness :hover has on iOS. */
+button:not(:disabled):active,
+[role='button']:not([aria-disabled='true']):active,
+a:active {
+  opacity: 0.6;
+  transition: opacity 0.05s;
+}
+
+/* Elements that already move on press should not also dim — the two together
+   read as a flicker rather than a press. */
+.xanga-button:not(:disabled):active,
+.winamp-btn:active,
+.chapter-chip:active {
+  opacity: 1;
+}
+
+/* Links get a press state too. .xanga-link only had hover, which does not
+   exist on the platform this ships on. */
+.xanga-link:active,
+.xanga-link-caution:active {
+  opacity: 0.6;
 }
 
 /* Mood icons spacing */
@@ -1145,13 +1196,15 @@ select:focus-visible {
   align-items: center;
 }
 
-.xanga-link-caution:hover {
-  opacity: 0.75;
-}
+@media (hover: hover) and (pointer: fine) {
+  .xanga-link-caution:hover {
+    opacity: 0.75;
+  }
 
-.xanga-link:hover {
-  color: var(--link-hover);
-  text-decoration: none;
+  .xanga-link:hover {
+    color: var(--link-hover);
+    text-decoration: none;
+  }
 }
 
 .xanga-link:focus-visible {

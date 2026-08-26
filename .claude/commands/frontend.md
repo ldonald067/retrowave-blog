@@ -138,8 +138,31 @@ One colour for every clickable thing gives a screen no hierarchy. Three tiers:
 | Tier      | Use                      | Treatment                                                       |
 | --------- | ------------------------ | --------------------------------------------------------------- |
 | Primary   | the main action          | `.xanga-button`, solid, loudest                                 |
-| Secondary | ordinary navigation      | `.xanga-link`, `var(--link-color)`                              |
+| Secondary | supporting action        | `.xanga-button-ghost`, dotted outline, transparent              |
+| Tertiary  | incidental               | bare icon or text, `var(--text-muted)`, no border               |
+| Link      | ordinary navigation      | `.xanga-link`, `var(--link-color)`                              |
 | Caution   | destructive or reporting | `.xanga-link-caution`, `var(--link-caution)`, bold + underlined |
+
+**Hierarchy is carried by shape, not colour.** A row of same-shaped buttons in
+the accent colour reads as one undifferentiated group however the icons differ —
+Home, Profile and New Entry were all `.xanga-button`, and on mobile the labels
+are hidden, so the nav was three interchangeable magenta squares.
+
+### Hover and press
+
+Both are handled globally in `index.css`; a new button needs nothing added.
+
+- **Every `:hover` rule must sit inside `@media (hover: hover) and (pointer: fine)`.**
+  Without it iOS applies hover on tap and leaves it applied — the control stays
+  lit until you touch something else, which reads as stuck rather than as
+  feedback.
+- **Press feedback is global**: `button`, `[role="button"]` and `a` dim to 0.6
+  on `:active`. Controls that already move on press — `.xanga-button`,
+  `.winamp-btn`, `.chapter-chip` — are excluded, because a dim plus a movement
+  reads as a flicker.
+- `whileTap={{ scale: 0.95 }}` is still worth adding to significant controls,
+  but it is no longer the only thing standing between a button and silence.
+  71 of 96 buttons had neither before this was made global.
 
 `--link-caution` is amber (`#b45309` light / `#ffb347` dark) and clears 4.5:1 on
 all 8 themes. Use it for delete and report, never for ordinary navigation.
