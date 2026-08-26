@@ -60,6 +60,24 @@ tests do not cover.
   the recipe in `docs/audit/backend-privacy-smoke-checks.md` before shipping
   anything that touches RLS or the public-profile path.
 
+Added 2026-08-26, signed in on the iPhone 17 Pro Max simulator:
+
+- **Session survives web-storage eviction.** Deleted the whole
+  `localstorage.sqlite3` and relaunched: still signed in. The token is in
+  `UserDefaults` only.
+- **Chapters end to end.** Created an entry with the chapter `summer 2026`;
+  chips appeared, filtering works, the chapter detail bar and the
+  `chapter: summer 2026 ×` filter pill both render.
+- **Chapter chip count badge measures 6.66:1** on screen, up from 3.61:1 before
+  the fix. Sampled the rendered pixel rather than trusting the formula.
+- **Markdown renders through the lazy chunk** — `**bold**` and `*italic*`
+  correct in both the composer preview and the feed card. No raw asterisks, no
+  visible fallback.
+- **Header nav reads as three tiers** — bare accent icon, dotted outline, solid
+  fill. No grey anywhere.
+- **Composer with the keyboard up** still holds: textarea keeps its height, the
+  panel auto-scrolls the focused field into view, draft autosaves while typing.
+
 ## Open work
 
 Nothing is outstanding from either adversarial review. Still open, lower value:
@@ -73,7 +91,14 @@ Nothing is outstanding from either adversarial review. Still open, lower value:
   `private_chapters` and becomes publicly visible. Deliberate — a rename is a
   real content move and the post's own `is_private` is the control — but a
   confirmation step would be worth building.
-- **Silent sign-out — reproduced, fixed, not yet confirmed with a real login.**
+- **Silent sign-out — reproduced, fixed, and confirmed end to end (2026-08-26).**
+  Signed in for real, then deleted the entire WebKit `localStorage` database —
+  the exact reclamation that caused the bug — and relaunched. Still signed in,
+  entry and chapter intact. The token lives only in `UserDefaults`;
+  `localStorage` holds nothing but `feed-preferences` and `emoji-style`. This
+  item is closed; the detail below is kept as the regression procedure.
+
+  <details><summary>original</summary>
   It was both suspected causes at once. The session lived only in WKWebView
   `localStorage`, which iOS evicts, and nothing re-validated it on resume.
   Deleting the `sb-*-auth-token` row and relaunching reproduced it first try.
@@ -83,6 +108,7 @@ Nothing is outstanding from either adversarial review. Still open, lower value:
   path works — but the end-to-end pass needs someone who can type the password
   to sign in, evict `localStorage`, and confirm they stay signed in. See `/ios`
   Phase 3 for the exact commands.
+  </details>
 
 ## Waiting for you, not for a session
 
