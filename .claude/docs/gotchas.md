@@ -74,6 +74,9 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 - **The intro is gated on having no session**, not only on the flag. Existing users have never written the flag, so without that check an app update would greet them with a tour of the app they already use.
 - **Do not centre the slide with `justify-content` on the scroll container** — it clips the top of overflowing content, which is what happens at large Dynamic Type. `.onboarding-panel` uses `margin-block: auto`, which centres without that failure mode. `short-viewport-start` is still correct for `AgeVerification`, which does not scroll the same way.
 - The hero is `clamp(3.5rem, 11vh, 6rem)` so it scales with the device rather than one phone, and drops to `2.5rem` under `[data-text-scaled]` where the words need the room. A minimum height on the card was tried and reverted: it produced a tall white box with the content pooled in the middle.
+- **The intro always renders in `classic-xanga`.** A signed-out user has no theme, so `syncAuthState` applies `DEFAULT_THEME`. The slide scenes are still written in theme variables rather than hex, so they survive if that ever changes — but a dark-theme check on the intro is not applicable today.
+- Slide scenes (`.ob-paper`, `.ob-eq`, `.ob-swatch`) are CSS, not artwork: eight themes make a baked image wrong in seven of them, and `react-old-icons` already shows what remote assets cost — it fetches from GitHub at runtime and renders nothing offline. Slide 3's swatches are the real `previewColors` from `THEMES`, so "8 unique themes" is demonstrated rather than claimed.
+- The intro's three footer actions use three _shapes_, not three colours: solid `.xanga-button` forward, dotted-outline `.ob-ghost` back, bare underlined text to skip. `next` and `back` were previously both `.xanga-button` — identical weight for opposite directions.
 
 ## Session storage (iOS)
 

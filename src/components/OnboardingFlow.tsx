@@ -1,6 +1,68 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { THEMES } from '../lib/themes';
+
+/**
+ * Each slide gets its own picture rather than the same emoji treatment four
+ * times over. Built from theme variables and CSS, not artwork: eight themes
+ * means a baked-in image is wrong in seven of them, and `react-old-icons`
+ * already shows the other cost of remote assets — it fetches from GitHub at
+ * runtime and renders nothing offline.
+ *
+ * Decorative by definition, so the whole thing is `aria-hidden`; the slide's
+ * title and description carry the meaning.
+ */
+function SlideScene({ scene, emoji }: { scene: string; emoji: string }) {
+  if (scene === 'themes') {
+    return (
+      <div className="ob-scene" aria-hidden="true">
+        <div className="ob-swatches">
+          {THEMES.map((theme, i) => (
+            <div
+              key={theme.id}
+              className="ob-swatch"
+              style={{
+                // The actual palettes, so "8 unique themes" is shown rather
+                // than merely claimed.
+                background: `linear-gradient(135deg, ${theme.previewColors.join(', ')})`,
+                animationDelay: `${i * 0.12}s`,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (scene === 'music') {
+    return (
+      <div className="ob-scene" aria-hidden="true">
+        <div className="ob-eq">
+          {Array.from({ length: 6 }, (_, i) => (
+            <span key={i} />
+          ))}
+        </div>
+        <span className="onboarding-hero ml-3">{emoji}</span>
+      </div>
+    );
+  }
+
+  if (scene === 'paper') {
+    return (
+      <div className="ob-scene" aria-hidden="true">
+        <div className="ob-paper" />
+        <span className="onboarding-hero relative">{emoji}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="ob-scene" aria-hidden="true">
+      <span className="onboarding-hero">{emoji}</span>
+    </div>
+  );
+}
 
 interface OnboardingFlowProps {
   /** Which auth tab to land on — the intro ends by choosing one, not by exiting to nothing. */
@@ -22,21 +84,24 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const slides = [
     {
-      emoji: '✨📓✨',
+      scene: 'paper' as const,
+      emoji: '🔒📓',
       title: '~ Your Personal Xanga ~',
       description:
         'a private space 2 capture ur thoughts, feelings, & memories. ur story, ur way. just like the good old days~',
       decoration: '· _ · _ · _ ·  ♡  · _ · _ · _ ·',
     },
     {
-      emoji: '💕🎵✨',
+      scene: 'music' as const,
+      emoji: '💕🎵',
       title: '~ Express Yourself ~',
       description:
         'add mood tags & what ur listening 2 on every post. paste a youtube link 2 share ur fav songs. make it *~totally u~*',
       decoration: '★·.·´¯`·.·★ ♫ ★·.·´¯`·.·★',
     },
     {
-      emoji: '🎨✨🌈',
+      scene: 'themes' as const,
+      emoji: '',
       title: '~ Make It Ur Own ~',
       description:
         'choose from 8 unique themes 2 match ur vibe: emo dark, scene kid, cottage core & more. pick an emoji style 2. ur journal = ur rules.',
@@ -47,6 +112,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     // same thing as the button underneath it.
     {
       kind: 'preview' as const,
+      scene: 'plain' as const,
       emoji: '📓✨',
       title: '~ ur journal is waiting ~',
       description: 'this is what ur xanga looks like on day one. make an account & fill it in ♡',
@@ -169,14 +235,14 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             >
               {/* Slide content as xanga-box */}
               <div className="xanga-box px-6 py-10 sm:px-8 sm:py-12 text-center min-w-0 max-w-full overflow-hidden">
-                {/* Emoji illustration */}
+                {/* Per-slide scene */}
                 <motion.div
-                  initial={direction === 0 ? false : { scale: 0, rotate: -10 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
-                  className="onboarding-wrap onboarding-hero mb-7 tracking-widest"
+                  initial={direction === 0 ? false : { scale: 0.85, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                  className="onboarding-wrap"
                 >
-                  {slide.emoji}
+                  <SlideScene scene={slide.scene} emoji={slide.emoji} />
                 </motion.div>
 
                 {/* Decorative divider */}
@@ -203,7 +269,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.25 }}
                   className="onboarding-wrap onboarding-copy text-sm sm:text-base leading-relaxed"
-                  style={{ color: 'var(--text-body)' }}
+                  // --text-subtitle rather than --text-body: near-black reads as
+                  // a form on a screen that is meant to sell the app. Swept
+                  // across all 8 themes on --card-bg, lowest 5.03 (emo-dark),
+                  // so it clears AA everywhere.
+                  style={{ color: 'var(--text-subtitle)' }}
                 >
                   {slide.description}
                 </motion.p>
@@ -265,14 +335,15 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               account. Mid-intro it stays "next »" with a quiet skip. */}
           {isLastSlide ? (
             <>
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 onClick={() => onComplete('signup')}
-                className="xanga-button w-full py-3 text-sm font-bold"
+                className="xanga-button w-full py-3 text-sm font-bold min-h-[44px]"
               >
                 ✨ ~ create ur xanga ~ ✨
-              </button>
+              </motion.button>
               <div className="text-center">
-                <span className="text-xs" style={{ color: 'var(--text-body)' }}>
+                <span className="text-xs" style={{ color: 'var(--text-subtitle)' }}>
                   already got one?{' '}
                 </span>
                 <button
@@ -284,13 +355,13 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               </div>
               {!isFirstSlide && (
                 <div className="text-center">
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={handlePrevious}
-                    className="text-xs"
-                    style={{ color: 'var(--text-muted)' }}
+                    className="ob-ghost text-xs px-4 py-2 min-h-[44px]"
                   >
                     « back
-                  </button>
+                  </motion.button>
                 </div>
               )}
             </>
@@ -298,19 +369,31 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
             <>
               <div className="flex gap-2">
                 {!isFirstSlide && (
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     onClick={handlePrevious}
-                    className="xanga-button py-2.5 px-4 text-sm flex-shrink-0"
+                    className="ob-ghost py-2.5 px-4 text-sm flex-shrink-0 min-h-[44px]"
                   >
                     « back
-                  </button>
+                  </motion.button>
                 )}
-                <button onClick={handleNext} className="xanga-button py-2.5 text-sm flex-1">
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleNext}
+                  className="xanga-button py-2.5 text-sm flex-1 min-h-[44px]"
+                >
                   next »
-                </button>
+                </motion.button>
               </div>
+              {/* Quietest of the three: no border, muted rather than link
+                  coloured, so leaving the intro never competes with continuing
+                  it. */}
               <div className="text-center">
-                <button onClick={() => onComplete('signup')} className="xanga-link text-xs">
+                <button
+                  onClick={() => onComplete('signup')}
+                  className="text-xs underline underline-offset-4 min-h-[44px]"
+                  style={{ color: 'var(--text-muted)' }}
+                >
                   ~ skip intro ~
                 </button>
               </div>
