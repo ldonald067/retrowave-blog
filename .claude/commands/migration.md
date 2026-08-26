@@ -33,6 +33,7 @@ NOTIFY pgrst, 'reload schema';
 ### SECURITY DEFINER Pattern
 
 For functions bypassing RLS or trigger-protected fields:
+
 ```sql
 CREATE OR REPLACE FUNCTION public.my_function(...)
 RETURNS ... LANGUAGE plpgsql SECURITY DEFINER
@@ -51,12 +52,12 @@ When a migration changes schema, these files MUST be updated in lockstep:
 
 ### 1. `src/types/database.ts`
 
-| SQL Change | Update |
-|------------|--------|
-| New table | Add `Row`, `Insert`, `Update`, `Relationships` to `Tables` |
-| New column | Add to `Row` + `Insert` (optional?) + `Update` (optional?) |
-| New RPC | Add to `Functions` with `Args` and `Returns` |
-| Dropped entity | Remove from types |
+| SQL Change     | Update                                                     |
+| -------------- | ---------------------------------------------------------- |
+| New table      | Add `Row`, `Insert`, `Update`, `Relationships` to `Tables` |
+| New column     | Add to `Row` + `Insert` (optional?) + `Update` (optional?) |
+| New RPC        | Add to `Functions` with `Args` and `Returns`               |
+| Dropped entity | Remove from types                                          |
 
 RPCs returning `jsonb` → structured TS objects (PostgREST parses automatically).
 Void RPCs → `Returns: undefined` (not `void`).
@@ -81,29 +82,78 @@ New UGC tables may need `is_blocked_pair()` enforcement and rate limiting
 
 ### 6. Trigger-Protected Fields
 
-| Field | Trigger | Bypass |
-|-------|---------|--------|
-| `profiles.is_admin` | Silently preserves | SECURITY DEFINER only |
-| `profiles.age_verified/tos_accepted/birth_year` | Blocks UPDATE | `set_age_verification` RPC |
+| Field                                           | Trigger            | Bypass                     |
+| ----------------------------------------------- | ------------------ | -------------------------- |
+| `profiles.is_admin`                             | Silently preserves | SECURITY DEFINER only      |
+| `profiles.age_verified/tos_accepted/birth_year` | Blocks UPDATE      | `set_age_verification` RPC |
 
 ---
+
+## Applying it — the CLI cannot
+
+**`supabase db push` does not work on this project.** The hosted Postgres
+refuses the CLI's login-role creation; `migration list` and `test db` fail for
+the same reason. Every migration in this repo was applied by hand, and
+`supabase_migrations.schema_migrations` holds **1 row out of 40+**.
+
+**A file in `supabase/migrations/` is a statement of intent, not a description
+of production.** On 2026-08-01 that gap broke profile editing for every user:
+the app sent `status_message`, a column whose migration had never been applied,
+and PostgREST returned `PGRST204` while the repo looked perfectly correct.
+
+Apply by pasting into the dashboard SQL editor, or through the Management API:
+
+```bash
+TOKEN=$(security find-generic-password -s "Supabase CLI" -a supabase -w)
+curl -s -X POST "https://api.supabase.com/v1/projects/$(cat supabase/.temp/project-ref)/database/query" \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"query":"alter table public.profiles add column if not exists foo text;"}'
+```
+
+The endpoint returns **only the last statement's result**, so a multi-statement
+script reports one row and hides the rest. Send one statement at a time, or
+`union` the checks.
+
+## Verifying it — query prod, never the migration
+
+```bash
+# columns
+-d '{"query":"select column_name from information_schema.columns where table_name='"'"'profiles'"'"';"}'
+
+# a function's live body — grep the definition, do not assume the idiom
+-d '{"query":"select pg_get_functiondef(p.oid) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='"'"'public'"'"' and p.proname='"'"'get_public_profile'"'"';"}'
+```
+
+Prod may implement the same guarantee a different way — it filters on
+`v_user_id := auth.uid()` rather than `auth.uid()` inline, and normalises
+chapters through `public.normalize_chapter()` rather than `lower(btrim(...))`.
+Two privacy smoke checks reported FAIL against correct code for exactly this
+reason. **Read the definition before concluding anything is missing.**
+
+Prod also carries columns that exist in no migration (`birthdate`, `about`,
+`terms_accepted_date`) — see
+`20260729010000_capture_undocumented_prod_state.sql`.
 
 ## Workflow
 
 1. Write SQL migration
-2. Update `database.ts` types
-3. Update `validation.ts` limits (if CHECK constraints changed)
-4. Update domain types in `src/types/` (if shape changed)
-5. Wire up in hook (if new RPC)
-6. Verify: `npx tsc --noEmit && npm run build && npm run test`
+2. **Apply it to prod** and confirm with a query — the steps above
+3. Update `database.ts` types
+4. Update `validation.ts` limits (if CHECK constraints changed)
+5. Update domain types in `src/types/` (if shape changed)
+6. Wire up in hook (if new RPC)
+7. Verify: `npx tsc --noEmit && npm run build && npm run test && npm run lint`
+8. If RLS or the public-profile path changed, run
+   `supabase/tests/privacy_smoke.sql` — see
+   `docs/audit/backend-privacy-smoke-checks.md`
 
 ## Audit Mode
 
 When invoked without a task, check all sync points for drift and report:
 
-| Sync Point | Status | Details |
-|-----------|--------|---------|
-| ... | IN SYNC / DRIFT | ... |
+| Sync Point | Status          | Details |
+| ---------- | --------------- | ------- |
+| ...        | IN SYNC / DRIFT | ...     |
 
 ## Cross-Domain
 
@@ -115,6 +165,7 @@ When invoked without a task, check all sync points for drift and report:
 ## Learnings
 
 Append findings to the relevant `.claude/docs/*.md` topic doc:
+
 ```
 - [YYYY-MM-DD /migration] One-line finding
 ```

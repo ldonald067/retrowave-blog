@@ -87,7 +87,10 @@ vi.mock('../../lib/auth-guard', () => ({ requireAuth: vi.fn() }));
 // In beforeEach:
 vi.mocked(requireAuth).mockResolvedValue({ user: mockUser, error: null } as never);
 // In test (logged out):
-vi.mocked(requireAuth).mockResolvedValueOnce({ user: null, error: 'You must be logged in.' } as never);
+vi.mocked(requireAuth).mockResolvedValueOnce({
+  user: null,
+  error: 'You must be logged in.',
+} as never);
 
 // Cache
 vi.mock('../../lib/cache', () => ({
@@ -133,14 +136,39 @@ await act(async () => {
 });
 ```
 
+### Do not mock the thing under test
+
+The recurring failure here is a suite that is green because it mocked away the
+behaviour it claims to cover.
+
+- `PostModal.test.tsx` mocks `useFocusTrap`. A bug that stole focus on every
+  keystroke and made the composer unusable shipped with 239 tests passing.
+- `PostCard.test.tsx` and `PostModal.test.tsx` both mock `react-markdown`.
+  Markdown is now lazy-loaded, and the Suspense fallback renders the same text —
+  so a chunk that never resolves is **indistinguishable from a working renderer**
+  in those suites. `ui/__tests__/MarkdownContent.test.tsx` uses the real one and
+  is what actually guards it.
+
+Mock a dependency to isolate the unit. If the mock replaces the thing whose
+behaviour the test names, the test proves nothing — write one alongside it that
+uses the real implementation.
+
+**Anything native-only is permanently inert in jsdom** — `--keyboard-inset`,
+Dynamic Type, safe areas, `Capacitor.isNativePlatform()`. A passing test says
+nothing about them; verify on the simulator (`/mobile`, `/ios`).
+
 ### What to Test
+
 1. Happy path
 2. Auth guard (requireAuth returns error)
 3. Server error (Supabase returns error)
 4. Edge cases (empty arrays, rapid calls, cooldowns)
+5. The regression itself, when fixing a bug — with the real collaborator, not a mock of it
 
 ### `noUncheckedIndexedAccess`
+
 Array access returns `T | undefined` — use optional chaining:
+
 ```typescript
 expect(result.current.posts[0]?.id).toBe('post-1');
 ```
@@ -164,6 +192,7 @@ expect(result.current.posts[0]?.id).toBe('post-1');
 ## Learnings
 
 Append findings to the relevant `.claude/docs/*.md` topic doc:
+
 ```
 - [YYYY-MM-DD /test] One-line finding
 ```

@@ -15,15 +15,30 @@ Read `.claude/docs/gotchas.md` for accumulated knowledge and known footguns.
 
 ## Pipeline
 
-Run all three checks in sequence (each depends on the previous passing):
+Run all four checks in sequence (each depends on the previous passing):
 
 ```bash
 npx tsc --noEmit       # Step 1: Type check
 npm run build          # Step 2: Production build (Vite)
 npm run test           # Step 3: All tests (Vitest)
+npm run lint           # Step 4: ESLint
 ```
 
 **NEVER run `npm run dev`** — use `npm run build` only.
+
+**Lint is part of the gate, not an afterthought.** It has caught two real
+problems that the other three steps passed clean over: a `react-refresh`
+violation from exporting a helper beside a component, and — after an Xcode
+build wrote DerivedData into `ios/` — 266 errors from ESLint walking minified
+vendor bundles, with nothing wrong in `src/` at all.
+
+**Green is not the same as complete.** CI silently ran **241 of 265** tests for
+over a week. Read the count, not just the colour, and compare it to the last
+known number rather than glancing at "passed".
+
+**And green is not proof the feature works.** Several suites mock the thing they
+test, and anything native-only is inert in jsdom. For user-facing work this gate
+is necessary and not sufficient — verify on the simulator (`/mobile`, `/ios`).
 
 ---
 
@@ -31,13 +46,13 @@ npm run test           # Step 3: All tests (Vitest)
 
 ### Common Failures and Fixes
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Type 'X \| undefined' is not assignable to type 'X'` | `noUncheckedIndexedAccess` — array indexing returns `T \| undefined` | Add `?.` optional chaining or `!` non-null assertion (only if guaranteed by logic) |
-| `Property 'X' does not exist on type 'Y'` | Missing field in `database.ts` types | Add the field to `Row`, `Insert`, and/or `Update` in `src/types/database.ts` |
-| `Argument of type 'X' is not assignable to parameter of type 'Y'` | RPC type mismatch | Verify `Args` and `Returns` in `database.ts` match the SQL function signature |
-| `Type 'PromiseLike<...>' is missing` | Forgot `async () =>` wrapper in `withRetry()` | Wrap: `withRetry(async () => supabase.from(...))` |
-| `Cannot find module '@/...'` or `@components/...` | Path alias issue | Check `tsconfig.json` paths — aliases are `@/*`, `@components/*`, `@hooks/*`, `@utils/*`, `@lib/*` |
+| Error                                                             | Cause                                                                | Fix                                                                                                |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `Type 'X \| undefined' is not assignable to type 'X'`             | `noUncheckedIndexedAccess` — array indexing returns `T \| undefined` | Add `?.` optional chaining or `!` non-null assertion (only if guaranteed by logic)                 |
+| `Property 'X' does not exist on type 'Y'`                         | Missing field in `database.ts` types                                 | Add the field to `Row`, `Insert`, and/or `Update` in `src/types/database.ts`                       |
+| `Argument of type 'X' is not assignable to parameter of type 'Y'` | RPC type mismatch                                                    | Verify `Args` and `Returns` in `database.ts` match the SQL function signature                      |
+| `Type 'PromiseLike<...>' is missing`                              | Forgot `async () =>` wrapper in `withRetry()`                        | Wrap: `withRetry(async () => supabase.from(...))`                                                  |
+| `Cannot find module '@/...'` or `@components/...`                 | Path alias issue                                                     | Check `tsconfig.json` paths — aliases are `@/*`, `@components/*`, `@hooks/*`, `@utils/*`, `@lib/*` |
 
 ### `noUncheckedIndexedAccess` Patterns
 
@@ -74,12 +89,12 @@ const userId = auth.user!.id; // Safe — union guarantees non-null when error i
 
 ### Common Failures and Fixes
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Could not resolve "..."` | Missing import or wrong path | Fix the import path |
-| `'X' is not exported from 'Y'` | Export was removed or renamed | Update the import to match current exports |
-| Chunk size warning | Large bundle | Not a failure — just a warning. Ignore unless >500kB |
-| CSS errors | Invalid CSS custom property syntax | Check `index.css` and `themes.ts` for syntax errors |
+| Error                          | Cause                              | Fix                                                  |
+| ------------------------------ | ---------------------------------- | ---------------------------------------------------- |
+| `Could not resolve "..."`      | Missing import or wrong path       | Fix the import path                                  |
+| `'X' is not exported from 'Y'` | Export was removed or renamed      | Update the import to match current exports           |
+| Chunk size warning             | Large bundle                       | Not a failure — just a warning. Ignore unless >500kB |
+| CSS errors                     | Invalid CSS custom property syntax | Check `index.css` and `themes.ts` for syntax errors  |
 
 ### Vite-Specific Issues
 
@@ -93,18 +108,19 @@ const userId = auth.user!.id; // Safe — union guarantees non-null when error i
 
 ### Common Failures and Fixes
 
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `vi.mock` hoisting error | Variable referenced in mock factory defined outside it | Move variable inside the `vi.mock()` factory function |
-| `Cannot read properties of undefined (reading 'mockReturnValue')` | Mock chain incomplete | Add the missing chain step (see `/test` command for chain patterns) |
-| `mockReturnThis is not a function` | Using `mockReturnThis()` on wrong mock | Use on intermediate chain steps only, not terminal ones |
-| Timeout on `waitFor` | Async operation never resolves | Check mock returns — the mock might not be returning the expected shape |
-| `act()` warning | State update outside `act()` | Wrap async calls in `await act(async () => { ... })` |
-| Test passes alone but fails in suite | Mock leaking between tests | Add `vi.clearAllMocks()` in `beforeEach` |
+| Error                                                             | Cause                                                  | Fix                                                                     |
+| ----------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------- |
+| `vi.mock` hoisting error                                          | Variable referenced in mock factory defined outside it | Move variable inside the `vi.mock()` factory function                   |
+| `Cannot read properties of undefined (reading 'mockReturnValue')` | Mock chain incomplete                                  | Add the missing chain step (see `/test` command for chain patterns)     |
+| `mockReturnThis is not a function`                                | Using `mockReturnThis()` on wrong mock                 | Use on intermediate chain steps only, not terminal ones                 |
+| Timeout on `waitFor`                                              | Async operation never resolves                         | Check mock returns — the mock might not be returning the expected shape |
+| `act()` warning                                                   | State update outside `act()`                           | Wrap async calls in `await act(async () => { ... })`                    |
+| Test passes alone but fails in suite                              | Mock leaking between tests                             | Add `vi.clearAllMocks()` in `beforeEach`                                |
 
 ### Running Individual Tests
 
 To isolate a failing test:
+
 ```bash
 npm run test -- src/hooks/__tests__/usePosts.test.ts
 npm run test -- --reporter=verbose
@@ -132,12 +148,17 @@ When failures are found:
 
 ## Post-Preflight
 
-If all three steps pass, report:
+If all four steps pass, report:
+
 ```
 ✅ tsc:   0 errors
 ✅ build: success
-✅ test:  XX tests passed
+✅ test:  XX tests passed  (was YY — state the delta, or that it is unchanged)
+✅ lint:  0 errors
 ```
+
+A test count that dropped without tests being deleted is a failure wearing a
+green tick.
 
 If any step fails, report the failure, apply fixes, and re-run until clean.
 
