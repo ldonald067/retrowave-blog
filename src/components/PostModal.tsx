@@ -389,15 +389,24 @@ export default function PostModal({
               <div>
                 {/* A sparkle at each corner rather than one inline before the
                     title. Inline, it sat alone above a long title's first line
-                    and read as lopsided; as a pair it frames the heading. Purely
-                    decorative, so the whole row is aria-hidden — a screen reader
-                    gets the title and nothing else. */}
+                    and read as lopsided; as a pair it frames the heading.
+
+                    `✦` rather than the ✨ emoji, because an emoji renders in its
+                    own colours and cannot be tinted — pale gold on a light header
+                    band was barely visible. A text glyph takes `color`, and
+                    --text-body is the only candidate that stays strong on the
+                    header gradient across all eight themes: 6.10 at worst,
+                    against 2.20 for --text-title and 2.38 for --accent-primary.
+
+                    Decorative, so the row is aria-hidden — a screen reader gets
+                    the title and nothing else. */}
                 <div
                   className="flex items-start justify-between text-lg sm:text-xl mb-1"
+                  style={{ color: 'var(--text-body)' }}
                   aria-hidden="true"
                 >
-                  <span>✨</span>
-                  <span>✨</span>
+                  <span>✦</span>
+                  <span>✦</span>
                 </div>
                 <h2 className="xanga-title glitter-text text-xl sm:text-2xl break-words">
                   {post?.title}
