@@ -387,8 +387,19 @@ export default function PostModal({
                 is a fixed short string, so nothing can squeeze anything. */}
             {isViewMode ? (
               <div>
+                {/* A sparkle at each corner rather than one inline before the
+                    title. Inline, it sat alone above a long title's first line
+                    and read as lopsided; as a pair it frames the heading. Purely
+                    decorative, so the whole row is aria-hidden — a screen reader
+                    gets the title and nothing else. */}
+                <div
+                  className="flex items-start justify-between text-lg sm:text-xl mb-1"
+                  aria-hidden="true"
+                >
+                  <span>✨</span>
+                  <span>✨</span>
+                </div>
                 <h2 className="xanga-title glitter-text text-xl sm:text-2xl break-words">
-                  <span aria-hidden="true">✨ </span>
                   {post?.title}
                 </h2>
                 <div className="flex items-center justify-center gap-4 mt-8">
