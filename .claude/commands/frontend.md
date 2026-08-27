@@ -155,6 +155,35 @@ undifferentiated group however the icons differ — Home, Profile and New Entry
 were all `.xanga-button`, and on mobile the labels are hidden, so the nav was
 three interchangeable magenta squares.
 
+### Hierarchy needs a middle tier
+
+The most common failure here is not too little contrast — it is a scale with
+only two steps. One big heading and then everything else at roughly the same
+small size reads as flat no matter how the small things are coloured.
+
+The entry detail had a 20–24px title, **13px** body copy and 12px metadata: the
+thing the person actually wrote carried no more weight than the byline beside
+it. Adding colour and weight to the metadata made it worse, because four items
+each asking for attention is the _absence_ of hierarchy, not a version of it.
+
+Aim for **one not-so-big thing, something medium, then the small stuff**:
+
+| Tier     | Where                         | Size            |
+| -------- | ----------------------------- | --------------- |
+| Heading  | title                         | `text-xl`/`2xl` |
+| Reading  | entry body — `.prose-reading` | `1rem`          |
+| Scanning | feed excerpts — `.prose`      | `0.8125rem`     |
+| Chrome   | metadata, counts, hints       | `text-xs`       |
+
+A feed excerpt stays small on purpose — a list is for scanning, a detail view is
+for reading. Those are different jobs and should not share a size.
+
+**Within a tier, keep one voice.** If a band of metadata needs four different
+emphases to be legible, the problem is that the band is competing with the
+content, not that it needs more colours. Give it one muted treatment and let
+size do the separating — then spend a single accent on the one item that is
+genuinely a state worth noticing (`public`, not `private`).
+
 ### Space is a material — use it
 
 A cramped layout is a defect, not a neutral choice. The instinct to pack things

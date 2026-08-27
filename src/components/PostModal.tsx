@@ -484,34 +484,36 @@ export default function PostModal({
                     line, which made "~ Anonymous" louder than the entry text
                     underneath it. One muted row costs less height than that line
                     did and inverts nothing. */}
-                {/* Four facts, not one grey string.
-                    These were a single run separated by `·` at one size, one
-                    weight and one colour, and once the chapter pushed it onto a
-                    second line the separators orphaned — a line beginning with a
-                    lone dot. Nothing told you which of the four mattered, so the
-                    eye slid off all of them.
+                {/* One quiet tier, not four competing ones.
+                    The previous pass gave two of these facts --text-body and
+                    semibold to distinguish them, which created a second level of
+                    emphasis inside a block that should be a single level — four
+                    items all asking for attention is the absence of hierarchy,
+                    not a version of it.
 
-                    Now: privacy and chapter are what classify this entry, so
-                    they carry --text-body and semibold; the date and byline are
-                    context and stay muted. Whitespace separates instead of dots,
-                    which cannot orphan on a wrap, and `gap-x-5 gap-y-2` gives
-                    each fact room to read as its own item. */}
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs mt-1 mb-5">
+                    Hierarchy in this modal is carried by *size* across three
+                    tiers: the title, then the entry at `.prose-reading`, then
+                    this at 12px. Within the band everything is muted and the
+                    same weight, with one exception: `public` is a state worth
+                    noticing, so it alone takes the accent. `private` is the
+                    default and stays quiet.
+
+                    Whitespace separates rather than `·`, which orphaned onto a
+                    second line when the chapter was long. */}
+                <div
+                  className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs mt-1 mb-6"
+                  style={{ color: 'var(--text-muted)' }}
+                >
                   {post?.created_at && (
-                    <span
-                      className="flex items-center gap-1.5"
-                      style={{ color: 'var(--text-muted)' }}
-                    >
+                    <span className="flex items-center gap-1.5">
                       <span aria-hidden="true">📅</span>
                       {formatDate(post.created_at, 'MMM dd, yyyy')}
                     </span>
                   )}
                   {post && (
                     <span
-                      className="flex items-center gap-1.5 font-semibold"
-                      style={{
-                        color: post.is_private ? 'var(--text-body)' : 'var(--accent-primary)',
-                      }}
+                      className={`flex items-center gap-1.5${post.is_private ? '' : ' font-semibold'}`}
+                      style={post.is_private ? undefined : { color: 'var(--accent-primary)' }}
                     >
                       <span aria-hidden="true">{post.is_private ? '🔒' : '🌐'}</span>
                       {post.is_private ? 'private' : 'public'}
@@ -523,19 +525,14 @@ export default function PostModal({
                        content without min-w-0 — it ran off the right edge and was
                        clipped without an ellipsis, while the feed card truncated
                        the same value correctly. */
-                    <span
-                      className="flex items-center gap-1.5 min-w-0 max-w-[14rem] font-semibold"
-                      style={{ color: 'var(--text-body)' }}
-                    >
+                    <span className="flex items-center gap-1.5 min-w-0 max-w-[14rem]">
                       <span aria-hidden="true" className="flex-shrink-0">
                         📖
                       </span>
                       <span className="truncate">{post.chapter}</span>
                     </span>
                   )}
-                  {post?.author && (
-                    <span style={{ color: 'var(--text-muted)' }}>~ {post.author}</span>
-                  )}
+                  {post?.author && <span>~ {post.author}</span>}
                 </div>
 
                 {post?.mood && (
@@ -576,7 +573,7 @@ export default function PostModal({
                 )}
 
                 <div
-                  className="prose prose-sm sm:prose max-w-none"
+                  className="prose prose-reading max-w-none"
                   style={{ color: 'var(--text-body)' }}
                 >
                   {loadingFullContent ? (

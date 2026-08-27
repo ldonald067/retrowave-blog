@@ -28,6 +28,12 @@ on a static screenshot. `/frontend` first where the surface is read-only.
 `/mobile` finding. A `/mobile` finding whose fix is a colour or a tier is a
 `/frontend` finding. File it where the fix lives, not where it was spotted.
 
+**Standing question for every surface: does the scale have a middle?** One big
+heading and everything else at roughly one small size reads as flat however it
+is coloured. The content a person came for should sit between the heading and
+the chrome. Adding emphasis inside a metadata band is not a substitute — four
+items each asking for attention is the absence of hierarchy.
+
 **Standing question for every surface: is it cramped?** Space is a material
 here, not leftover. A modal is already bounded, so crowding inside it wins
 nothing — a heading and the actions beneath it need a real break between them,

@@ -542,6 +542,22 @@ body {
   overflow-wrap: anywhere;
 }
 
+/* Reading size, for the entry detail only.
+ *
+ * `.prose` is 13px, which is right for a feed excerpt you are scanning past and
+ * wrong for the entry you opened in order to read. It left the type scale with
+ * a 20–24px title, 13px body and 12px metadata — one big thing and then two
+ * tiers that are effectively the same size, so the thing the person actually
+ * wrote carried no weight in the hierarchy at all. Hierarchy needs a middle:
+ * one not-so-big thing, something medium, then the small stuff.
+ *
+ * The feed keeps 13px on purpose — a list is for scanning, a detail view is for
+ * reading. */
+.prose-reading {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
 .prose h1,
 .prose h2,
 .prose h3,
