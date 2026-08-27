@@ -506,7 +506,12 @@ export default function PostModal({
 
                     Whitespace separates rather than `·`, which orphaned onto a
                     second line when the chapter was long. */}
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs mt-4 mb-6">
+                {/* `gap-y-4` is doing real work: once the chapter is long enough
+                    to wrap the band onto two lines, 12px text on consecutive
+                    rows reads as one block. The row gap is what keeps them
+                    reading as two lines of metadata. `mb-6` below separates the
+                    band from the entry. */}
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-4 text-xs mt-4 mb-6">
                   {post?.created_at && (
                     <span
                       className="flex items-center gap-1.5"
