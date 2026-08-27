@@ -34,6 +34,13 @@ is coloured. The content a person came for should sit between the heading and
 the chrome. Adding emphasis inside a metadata band is not a substitute — four
 items each asking for attention is the absence of hierarchy.
 
+**Style is a hierarchy tool, not decoration.** Once a band is subordinate by
+size, bold / italic / underline differentiate inside it without pulling rank.
+Each must encode a kind and do so consistently: regular for context, bold for a
+status, italic for the name of a thing, underline for links and nothing else.
+Reaching instead for a second size or a darker colour inside a correctly-sized
+band is what makes four facts each demand attention.
+
 **Standing question for every surface: is it cramped?** Space is a material
 here, not leftover. A modal is already bounded, so crowding inside it wins
 nothing — a heading and the actions beneath it need a real break between them,

@@ -178,11 +178,28 @@ Aim for **one not-so-big thing, something medium, then the small stuff**:
 A feed excerpt stays small on purpose — a list is for scanning, a detail view is
 for reading. Those are different jobs and should not share a size.
 
-**Within a tier, keep one voice.** If a band of metadata needs four different
-emphases to be legible, the problem is that the band is competing with the
-content, not that it needs more colours. Give it one muted treatment and let
-size do the separating — then spend a single accent on the one item that is
-genuinely a state worth noticing (`public`, not `private`).
+**Size separates tiers; weight and slant separate things inside one.** Once a
+band is clearly subordinate by size, bold, italic and underline are the right
+tools within it — they differentiate without pulling rank, because they do not
+change how loud the band is relative to the content.
+
+The rule is that each treatment must **encode a kind**, consistently:
+
+| Treatment | Means                       | Example                      |
+| --------- | --------------------------- | ---------------------------- |
+| regular   | plain context               | the date, the byline         |
+| **bold**  | a status or state           | `private` / `public`         |
+| _italic_  | the name of a thing         | a chapter name, a song title |
+| underline | a link — nothing else, ever | `.xanga-link`                |
+
+Applied without a rule, weight inside a band is noise; applied consistently it
+is what makes the band scannable. What does _not_ work is reaching for a second
+size or a darker colour inside a band that is already the right size — that is
+how four facts end up each demanding attention, which is the absence of
+hierarchy rather than a version of it.
+
+Reserve one accent for the single item that is genuinely worth noticing
+(`public`, not `private`) — colour is the loudest tool here, so spend it once.
 
 ### Space is a material — use it
 

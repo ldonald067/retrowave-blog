@@ -484,19 +484,24 @@ export default function PostModal({
                     line, which made "~ Anonymous" louder than the entry text
                     underneath it. One muted row costs less height than that line
                     did and inverts nothing. */}
-                {/* One quiet tier, not four competing ones.
-                    The previous pass gave two of these facts --text-body and
-                    semibold to distinguish them, which created a second level of
-                    emphasis inside a block that should be a single level — four
-                    items all asking for attention is the absence of hierarchy,
-                    not a version of it.
+                {/* One size and one colour; style carries the differences.
+                    Size separates this band from the entry above it, so nothing
+                    here needs to get bigger or darker to be found. Within the
+                    band, weight and slant encode *what kind of fact each one is*
+                    rather than decorating them at random:
 
-                    Hierarchy in this modal is carried by *size* across three
-                    tiers: the title, then the entry at `.prose-reading`, then
-                    this at 12px. Within the band everything is muted and the
-                    same weight, with one exception: `public` is a state worth
-                    noticing, so it alone takes the accent. `private` is the
-                    default and stays quiet.
+                      regular  — the date, plain context
+                      bold     — the privacy state, because it is a status
+                      italic   — the chapter, because it is the name of a thing
+                      regular  — the byline
+
+                    That is three treatments for three kinds of information, in
+                    one muted colour at one size. Applied without a rule, weight
+                    inside a band is noise; applied consistently, it is what makes
+                    the band scannable without pulling rank on the entry.
+
+                    `public` additionally takes the accent — it is the one state
+                    here worth actively noticing. `private` is the default.
 
                     Whitespace separates rather than `·`, which orphaned onto a
                     second line when the chapter was long. */}
@@ -512,7 +517,7 @@ export default function PostModal({
                   )}
                   {post && (
                     <span
-                      className={`flex items-center gap-1.5${post.is_private ? '' : ' font-semibold'}`}
+                      className="flex items-center gap-1.5 font-bold"
                       style={post.is_private ? undefined : { color: 'var(--accent-primary)' }}
                     >
                       <span aria-hidden="true">{post.is_private ? '🔒' : '🌐'}</span>
@@ -529,7 +534,7 @@ export default function PostModal({
                       <span aria-hidden="true" className="flex-shrink-0">
                         📖
                       </span>
-                      <span className="truncate">{post.chapter}</span>
+                      <span className="truncate italic">{post.chapter}</span>
                     </span>
                   )}
                   {post?.author && <span>~ {post.author}</span>}
