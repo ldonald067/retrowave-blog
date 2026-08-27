@@ -128,6 +128,14 @@ Truncation is only acceptable where the full value is reachable somewhere else.
 - [x] A single unbroken token — body copy wraps correctly in card, detail and textarea
 - [ ] Long values at max Dynamic Type, where they wrap to many more lines
 
+## Carried over — re-confirm next pass
+
+- [ ] **Photograph the truncated filter pill.** Finding 12 (a 100-char chapter
+      forcing the whole document into horizontal scroll) is verified by the page
+      no longer shifting plus the code change — not by a screenshot of the pill
+      itself truncating, because the tap toggled the filter off rather than on.
+      Apply the chapter filter and capture it.
+
 ## Phase 8 — Adverse states
 
 - [ ] Offline banner (device or Network Link Conditioner, not the simulator)
