@@ -57,14 +57,21 @@ const PostCard = memo(function PostCard({
       >
         <div>
           <h2 className="xanga-title text-lg sm:text-2xl mb-1">
+            {/* `line-clamp-2` and `flex` cannot share an element: the clamp
+                needs `display: -webkit-box` and `flex` overrides it, so the
+                clamp silently did nothing. A 200-character title — a length the
+                field accepts — rendered five lines and pushed past the card's
+                right padding. The clamp lives on an inner span so the button
+                keeps `flex` for its 44pt target, and `w-full`/`min-w-0` stop a
+                flex item from outgrowing its container. */}
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => onView(post)}
-              className="text-left cursor-pointer transition hover:opacity-80 line-clamp-2 break-words py-1 min-h-[44px] lg:min-h-0 flex items-center"
+              className="text-left cursor-pointer transition hover:opacity-80 py-1 min-h-[44px] lg:min-h-0 flex items-center w-full min-w-0"
               style={{ color: 'inherit', textShadow: 'inherit' }}
               aria-label={`View post: ${post.title}`}
             >
-              {post.title}
+              <span className="line-clamp-2 break-words w-full min-w-0">{post.title}</span>
             </motion.button>
           </h2>
           <div

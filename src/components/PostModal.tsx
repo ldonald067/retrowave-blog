@@ -391,13 +391,19 @@ export default function PostModal({
                   '✨ ~ new entry ~'
                 )}
               </h2>
+              {/* `flex-shrink-0` and `whitespace-nowrap` on the controls: a
+                  200-character title is a length the field accepts, and without
+                  these the title took the whole row and squeezed "~ edit entry ~"
+                  into a three-line sliver one character wide. The title is what
+                  should wrap here — it is the thing being read — so the controls
+                  hold their size and the title gets the rest. */}
               {isViewMode && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {isOwner && onEdit && post && (
                     <button
                       type="button"
                       onClick={() => onEdit(post)}
-                      className="xanga-button text-xs px-3 py-2"
+                      className="xanga-button text-xs px-3 py-2 whitespace-nowrap"
                     >
                       ~ edit entry ~
                     </button>
@@ -500,9 +506,15 @@ export default function PostModal({
                   {post?.chapter && (
                     <>
                       <span aria-hidden="true">·</span>
-                      <span className="flex items-center gap-1">
+                      {/* `min-w-0` + `truncate`: a chapter can be 100 characters
+                          with no spaces, and a flex item will not shrink below
+                          its content without min-w-0 — it ran off the right edge
+                          and was clipped without an ellipsis, while the feed card
+                          truncated the same value correctly. `max-w` keeps it
+                          from crowding out the date and author beside it. */}
+                      <span className="flex items-center gap-1 min-w-0 max-w-[14rem]">
                         <span aria-hidden="true">📖</span>
-                        {post.chapter}
+                        <span className="truncate">{post.chapter}</span>
                       </span>
                     </>
                   )}

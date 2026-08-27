@@ -102,6 +102,32 @@ on a static screenshot. `/frontend` first where the surface is read-only.
 
 - [ ] `ModerationView` queue, hide entry, dismiss — **needs the admin account**
 
+## Phase 7b — Overflow: what a legal maximum does to the layout
+
+Cross-cutting, not a surface. Every field below is a value the app **accepts**,
+so every one of these is a state a real user can reach — not an edge case. The
+question is never "does it wrap" but **what gets pushed off, truncated, or
+overlapped when it does.**
+
+| Field    | Limit                  | Where it renders                                                   |
+| -------- | ---------------------- | ------------------------------------------------------------------ |
+| title    | 200 chars              | feed card, entry detail header, edit header, public page, og:title |
+| content  | 50,000 chars           | feed excerpt (truncated at 300), entry detail, preview             |
+| chapter  | 100 chars              | chip, filter pill, metadata row, sidebar, chapter detail bar       |
+| author   | 50 chars               | feed footer, metadata row                                          |
+| mood     | 100 chars              | feed card, sidebar, profile                                        |
+| music    | 200 chars              | feed card, YouTube card fallback, profile                          |
+| username | per `USERNAME_PATTERN` | header, profile card, public URL, block button label               |
+
+For each: does it **truncate with an ellipsis**, **wrap**, or **overflow**?
+Truncation is only acceptable where the full value is reachable somewhere else.
+
+- [x] Title at 200 — feed card, detail header (edit header still to do)
+- [x] Chapter at 100 — chip truncates, metadata row truncates, chip row scrolls horizontally
+- [ ] Author at 50 — feed footer
+- [x] A single unbroken token — body copy wraps correctly in card, detail and textarea
+- [ ] Long values at max Dynamic Type, where they wrap to many more lines
+
 ## Phase 8 — Adverse states
 
 - [ ] Offline banner (device or Network Link Conditioner, not the simulator)
