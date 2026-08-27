@@ -198,8 +198,22 @@ size or a darker colour inside a band that is already the right size — that is
 how four facts end up each demanding attention, which is the absence of
 hierarchy rather than a version of it.
 
-Reserve one accent for the single item that is genuinely worth noticing
-(`public`, not `private`) — colour is the loudest tool here, so spend it once.
+**Colour should encode the same kinds, not a fourth system.** Use it — a band
+that varies only in weight is doing hierarchy with one hand. But map it onto the
+kinds above so the signals reinforce each other and a reader learns one system
+rather than three:
+
+| Kind    | Weight  | Slant  | Colour                                                                   |
+| ------- | ------- | ------ | ------------------------------------------------------------------------ |
+| context | regular | roman  | `--text-muted`                                                           |
+| status  | bold    | roman  | `--text-body`, or `--accent-primary` when it is the state worth noticing |
+| name    | regular | italic | `--text-subtitle`                                                        |
+
+`--text-muted`, `--text-body`, `--text-subtitle` and `--accent-primary` all
+clear 4.5:1 on `--card-bg` across the eight themes — worst case 4.82. Sweep
+again if you reach for anything else, and remember a colour verified on one
+surface is not verified on another: the same accent that passes on `--card-bg`
+measured 2.38 on a modal header gradient.
 
 ### Space is a material — use it
 

@@ -490,27 +490,28 @@ export default function PostModal({
                     band, weight and slant encode *what kind of fact each one is*
                     rather than decorating them at random:
 
-                      regular  — the date, plain context
-                      bold     — the privacy state, because it is a status
-                      italic   — the chapter, because it is the name of a thing
-                      regular  — the byline
+                      context — date, byline    regular, --text-muted
+                      status  — private/public  bold,    --text-body / --accent-primary
+                      name    — chapter         italic,  --text-subtitle
 
-                    That is three treatments for three kinds of information, in
-                    one muted colour at one size. Applied without a rule, weight
-                    inside a band is noise; applied consistently, it is what makes
-                    the band scannable without pulling rank on the entry.
+                    Colour encodes the *same* three kinds that weight and slant
+                    do, so the signals reinforce each other instead of competing.
+                    A reader does not have to learn three separate systems: one
+                    kind of fact always looks one way.
 
-                    `public` additionally takes the accent — it is the one state
-                    here worth actively noticing. `private` is the default.
+                    All three colours are verified ≥4.5:1 on --card-bg across the
+                    eight themes — --text-subtitle bottoms out at 5.03 on
+                    emo-dark. `public` takes the accent because it is the one
+                    state here worth actively noticing; `private` is the default.
 
                     Whitespace separates rather than `·`, which orphaned onto a
                     second line when the chapter was long. */}
-                <div
-                  className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs mt-1 mb-6"
-                  style={{ color: 'var(--text-muted)' }}
-                >
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs mt-4 mb-6">
                   {post?.created_at && (
-                    <span className="flex items-center gap-1.5">
+                    <span
+                      className="flex items-center gap-1.5"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
                       <span aria-hidden="true">📅</span>
                       {formatDate(post.created_at, 'MMM dd, yyyy')}
                     </span>
@@ -518,7 +519,9 @@ export default function PostModal({
                   {post && (
                     <span
                       className="flex items-center gap-1.5 font-bold"
-                      style={post.is_private ? undefined : { color: 'var(--accent-primary)' }}
+                      style={{
+                        color: post.is_private ? 'var(--text-body)' : 'var(--accent-primary)',
+                      }}
                     >
                       <span aria-hidden="true">{post.is_private ? '🔒' : '🌐'}</span>
                       {post.is_private ? 'private' : 'public'}
@@ -530,14 +533,19 @@ export default function PostModal({
                        content without min-w-0 — it ran off the right edge and was
                        clipped without an ellipsis, while the feed card truncated
                        the same value correctly. */
-                    <span className="flex items-center gap-1.5 min-w-0 max-w-[14rem]">
+                    <span
+                      className="flex items-center gap-1.5 min-w-0 max-w-[14rem]"
+                      style={{ color: 'var(--text-subtitle)' }}
+                    >
                       <span aria-hidden="true" className="flex-shrink-0">
                         📖
                       </span>
                       <span className="truncate italic">{post.chapter}</span>
                     </span>
                   )}
-                  {post?.author && <span>~ {post.author}</span>}
+                  {post?.author && (
+                    <span style={{ color: 'var(--text-muted)' }}>~ {post.author}</span>
+                  )}
                 </div>
 
                 {post?.mood && (
