@@ -484,50 +484,57 @@ export default function PostModal({
                     line, which made "~ Anonymous" louder than the entry text
                     underneath it. One muted row costs less height than that line
                     did and inverts nothing. */}
-                <div
-                  className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs mb-4"
-                  style={{ color: 'var(--text-muted)' }}
-                >
+                {/* Four facts, not one grey string.
+                    These were a single run separated by `·` at one size, one
+                    weight and one colour, and once the chapter pushed it onto a
+                    second line the separators orphaned — a line beginning with a
+                    lone dot. Nothing told you which of the four mattered, so the
+                    eye slid off all of them.
+
+                    Now: privacy and chapter are what classify this entry, so
+                    they carry --text-body and semibold; the date and byline are
+                    context and stay muted. Whitespace separates instead of dots,
+                    which cannot orphan on a wrap, and `gap-x-5 gap-y-2` gives
+                    each fact room to read as its own item. */}
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs mt-1 mb-5">
                   {post?.created_at && (
-                    <span className="flex items-center gap-1">
+                    <span
+                      className="flex items-center gap-1.5"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
                       <span aria-hidden="true">📅</span>
                       {formatDate(post.created_at, 'MMM dd, yyyy')}
                     </span>
                   )}
                   {post && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      <span
-                        className="flex items-center gap-1 font-bold"
-                        style={{
-                          color: post.is_private ? 'var(--text-muted)' : 'var(--accent-primary)',
-                        }}
-                      >
-                        <span aria-hidden="true">{post.is_private ? '🔒' : '🌐'}</span>
-                        {post.is_private ? 'private' : 'public'}
-                      </span>
-                    </>
+                    <span
+                      className="flex items-center gap-1.5 font-semibold"
+                      style={{
+                        color: post.is_private ? 'var(--text-body)' : 'var(--accent-primary)',
+                      }}
+                    >
+                      <span aria-hidden="true">{post.is_private ? '🔒' : '🌐'}</span>
+                      {post.is_private ? 'private' : 'public'}
+                    </span>
                   )}
                   {post?.chapter && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      {/* `min-w-0` + `truncate`: a chapter can be 100 characters
-                          with no spaces, and a flex item will not shrink below
-                          its content without min-w-0 — it ran off the right edge
-                          and was clipped without an ellipsis, while the feed card
-                          truncated the same value correctly. `max-w` keeps it
-                          from crowding out the date and author beside it. */}
-                      <span className="flex items-center gap-1 min-w-0 max-w-[14rem]">
-                        <span aria-hidden="true">📖</span>
-                        <span className="truncate">{post.chapter}</span>
+                    /* `min-w-0` + `truncate`: a chapter can be 100 characters
+                       with no spaces, and a flex item will not shrink below its
+                       content without min-w-0 — it ran off the right edge and was
+                       clipped without an ellipsis, while the feed card truncated
+                       the same value correctly. */
+                    <span
+                      className="flex items-center gap-1.5 min-w-0 max-w-[14rem] font-semibold"
+                      style={{ color: 'var(--text-body)' }}
+                    >
+                      <span aria-hidden="true" className="flex-shrink-0">
+                        📖
                       </span>
-                    </>
+                      <span className="truncate">{post.chapter}</span>
+                    </span>
                   )}
                   {post?.author && (
-                    <>
-                      <span aria-hidden="true">·</span>
-                      <span>~ {post.author}</span>
-                    </>
+                    <span style={{ color: 'var(--text-muted)' }}>~ {post.author}</span>
                   )}
                 </div>
 
