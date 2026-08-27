@@ -497,6 +497,15 @@ export default function PostModal({
                       </span>
                     </>
                   )}
+                  {post?.chapter && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span className="flex items-center gap-1">
+                        <span aria-hidden="true">📖</span>
+                        {post.chapter}
+                      </span>
+                    </>
+                  )}
                   {post?.author && (
                     <>
                       <span aria-hidden="true">·</span>
@@ -514,21 +523,13 @@ export default function PostModal({
                   </div>
                 )}
 
-                {post?.chapter && (
-                  <div className="mb-3">
-                    <span
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border-2 border-dotted"
-                      style={{
-                        borderColor: 'var(--accent-primary)',
-                        color: 'var(--accent-primary)',
-                        backgroundColor:
-                          'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
-                      }}
-                    >
-                      📖 {post.chapter}
-                    </span>
-                  </div>
-                )}
+                {/* The chapter moved into the metadata row above. It used to sit
+                    here as a bordered, rounded, bold pill in the accent colour —
+                    the same visual language as the chapter chips in the feed,
+                    which ARE tappable filters. So the app taught "📖 pill means
+                    tap to filter" and then put an inert `<span>` wearing that
+                    costume on the next screen. It is metadata here, and now it
+                    reads as metadata. */}
 
                 {post?.music && (
                   <div
