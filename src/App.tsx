@@ -1404,6 +1404,14 @@ function App() {
                         </div>
                       )}
 
+                      {/* `max-w-full` + `min-w-0` + `truncate` on the label below:
+                          a chapter can be 100 characters with no spaces, and the
+                          label embeds it as `chapter: <name>`. Without these the
+                          pill grew past the viewport and forced the whole
+                          *document* into horizontal scroll — the header, the
+                          journal title and every card shifted left and were
+                          clipped. The × stays outside the truncated span or it
+                          gets ellipsed away with the text. */}
                       {activeFeedFilters.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {activeFeedFilters.map((filter) => (
@@ -1411,7 +1419,7 @@ function App() {
                               key={filter.key}
                               type="button"
                               onClick={() => clearSingleFeedFilter(filter.key)}
-                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition hover:opacity-80 min-h-[44px]"
+                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition hover:opacity-80 min-h-[44px] max-w-full min-w-0"
                               style={{
                                 borderColor: 'var(--border-primary)',
                                 backgroundColor:
@@ -1421,8 +1429,10 @@ function App() {
                               }}
                               aria-label={`Clear filter ${filter.label}`}
                             >
-                              <span>{filter.label}</span>
-                              <span aria-hidden="true">×</span>
+                              <span className="truncate min-w-0">{filter.label}</span>
+                              <span aria-hidden="true" className="flex-shrink-0">
+                                ×
+                              </span>
                             </button>
                           ))}
                         </div>

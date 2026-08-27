@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MarkdownContent from './ui/MarkdownContent';
 import {
   Input,
-  ModalCloseButton,
   ModalFooter,
   ModalFrame,
   ModalHeader,
@@ -378,27 +377,21 @@ export default function PostModal({
           className="max-w-3xl flex flex-col"
         >
           <ModalHeader>
-            <div className="flex items-center justify-between">
-              <h2 className="xanga-title glitter-text text-xl sm:text-2xl min-w-0 pr-2">
-                {isViewMode ? (
-                  <span className="flex items-center gap-2 min-w-0">
-                    <span aria-hidden="true">✨</span>
-                    <span className="min-w-0 break-words">{post?.title}</span>
-                  </span>
-                ) : mode === 'edit' ? (
-                  '✏️ ~ edit entry ~'
-                ) : (
-                  '✨ ~ new entry ~'
-                )}
-              </h2>
-              {/* `flex-shrink-0` and `whitespace-nowrap` on the controls: a
-                  200-character title is a length the field accepts, and without
-                  these the title took the whole row and squeezed "~ edit entry ~"
-                  into a three-line sliver one character wide. The title is what
-                  should wrap here — it is the thing being read — so the controls
-                  hold their size and the title gets the rest. */}
-              {isViewMode && (
-                <div className="flex items-center gap-2 flex-shrink-0">
+            {/* View mode stacks; the editor does not.
+                A title can be 200 characters, and sharing a row with the
+                controls gave it a narrow column to wrap down — eleven lines
+                beside a button squeezed to one word wide. The title now owns the
+                full width, so it wraps across the panel and takes far fewer
+                lines, and the two things you can do sit together in a row
+                beneath it. The editor keeps the side-by-side layout: its heading
+                is a fixed short string, so nothing can squeeze anything. */}
+            {isViewMode ? (
+              <div>
+                <h2 className="xanga-title glitter-text text-xl sm:text-2xl break-words">
+                  <span aria-hidden="true">✨ </span>
+                  {post?.title}
+                </h2>
+                <div className="flex items-center gap-2 mt-3">
                   {isOwner && onEdit && post && (
                     <button
                       type="button"
@@ -408,54 +401,66 @@ export default function PostModal({
                       ~ edit entry ~
                     </button>
                   )}
-                  <ModalCloseButton onClick={handleClose} label="Close modal" />
-                </div>
-              )}
-              {!isViewMode && canDelete && (
-                <div className="relative" ref={moreMenuRef}>
                   <button
-                    onClick={() => setShowMoreMenu((p) => !p)}
-                    aria-label="More options"
-                    aria-expanded={showMoreMenu}
-                    aria-haspopup="true"
-                    className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center hover:opacity-70"
-                    style={{ color: 'var(--text-muted)' }}
+                    type="button"
+                    onClick={handleClose}
+                    className="xanga-button-ghost text-xs px-3 py-2 min-h-[44px] whitespace-nowrap"
                   >
-                    <span className="text-lg font-bold leading-none">⋮</span>
+                    close
                   </button>
-                  {showMoreMenu && (
-                    <div
-                      className="absolute right-0 top-full mt-1 z-50 rounded-lg border-2 border-dotted overflow-hidden min-w-[180px] shadow-lg"
-                      style={{
-                        backgroundColor: 'var(--card-bg)',
-                        borderColor: 'var(--border-primary)',
-                      }}
-                      role="menu"
-                    >
-                      {onDelete && post && (
-                        <button
-                          role="menuitem"
-                          onClick={() => {
-                            setShowMoreMenu(false);
-                            onDelete(post);
-                          }}
-                          className="w-full text-left px-4 py-3 text-xs font-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px]"
-                          // See SettingsModal: --accent-secondary fails 4.5:1
-                          // on emo-dark and cottage-core, and this is 12px bold.
-                          style={{
-                            color: 'var(--link-caution)',
-                            borderColor: 'var(--border-primary)',
-                            fontFamily: 'var(--title-font)',
-                          }}
-                        >
-                          🗑️ delete entry
-                        </button>
-                      )}
-                    </div>
-                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <h2 className="xanga-title glitter-text text-xl sm:text-2xl min-w-0 pr-2">
+                  {mode === 'edit' ? '✏️ ~ edit entry ~' : '✨ ~ new entry ~'}
+                </h2>
+                {canDelete && (
+                  <div className="relative" ref={moreMenuRef}>
+                    <button
+                      onClick={() => setShowMoreMenu((p) => !p)}
+                      aria-label="More options"
+                      aria-expanded={showMoreMenu}
+                      aria-haspopup="true"
+                      className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center hover:opacity-70"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
+                      <span className="text-lg font-bold leading-none">⋮</span>
+                    </button>
+                    {showMoreMenu && (
+                      <div
+                        className="absolute right-0 top-full mt-1 z-50 rounded-lg border-2 border-dotted overflow-hidden min-w-[180px] shadow-lg"
+                        style={{
+                          backgroundColor: 'var(--card-bg)',
+                          borderColor: 'var(--border-primary)',
+                        }}
+                        role="menu"
+                      >
+                        {onDelete && post && (
+                          <button
+                            role="menuitem"
+                            onClick={() => {
+                              setShowMoreMenu(false);
+                              onDelete(post);
+                            }}
+                            className="w-full text-left px-4 py-3 text-xs font-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px]"
+                            // See SettingsModal: --accent-secondary fails 4.5:1
+                            // on emo-dark and cottage-core, and this is 12px bold.
+                            style={{
+                              color: 'var(--link-caution)',
+                              borderColor: 'var(--border-primary)',
+                              fontFamily: 'var(--title-font)',
+                            }}
+                          >
+                            🗑️ delete entry
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </ModalHeader>
 
           {/* Content — flex-1 fills remaining space between header and footer */}

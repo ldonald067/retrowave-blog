@@ -428,7 +428,13 @@ body {
 .xanga-button-ghost {
   border: 2px dotted var(--border-primary);
   border-radius: 0.5rem;
-  background: transparent;
+  /* Carries its own surface rather than being transparent. The label is
+     --accent-primary, which clears 4.5:1 on --card-bg on all eight themes but
+     NOT on whatever happens to sit behind it — on a modal header gradient it
+     measured 2.38 on classic-xanga, 3.20 on cottage-core, 3.93 on myspace-blue
+     and 4.31 on grunge. Painting --card-bg underneath makes the contrast a
+     property of the button instead of a property of its surroundings. */
+  background: var(--card-bg);
   /* Accent, not --text-muted. Grey is how a corporate design system says
      "secondary", and muted palettes are on this project's anti-pattern list.
      A quieter tier here means less accent *area* — an outline instead of a
