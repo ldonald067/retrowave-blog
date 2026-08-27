@@ -155,6 +155,25 @@ undifferentiated group however the icons differ — Home, Profile and New Entry
 were all `.xanga-button`, and on mobile the labels are hidden, so the nav was
 three interchangeable magenta squares.
 
+### Space is a material — use it
+
+A cramped layout is a defect, not a neutral choice. The instinct to pack things
+tightly comes from treating space as waste; it is the thing that makes a group
+read as a group and a control read as separate from the text above it.
+
+- **A modal is bounded real estate — spend it.** It already limits itself to a
+  panel, so there is no reason to crowd inside that panel. Between a heading and
+  the actions under it, `mt-8` reads as a deliberate break; `mt-3` reads as the
+  buttons being part of the paragraph.
+- **Give related controls room from each other.** Two buttons at `gap-2` read as
+  one segmented control. At `gap-4` they read as two choices.
+- **Check the gap on the screenshot, not in the class name.** `gap-2` looks
+  generous in source and cramped at 440pt.
+
+Where a screen genuinely has too much to fit, the fix is to remove something —
+see the privacy state that was asserted six times in the editor — not to tighten
+the spacing until it all squeezes in.
+
 ### Hover and press
 
 Both are handled globally in `index.css`; a new button needs nothing added.

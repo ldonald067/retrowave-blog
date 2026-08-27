@@ -391,7 +391,7 @@ export default function PostModal({
                   <span aria-hidden="true">✨ </span>
                   {post?.title}
                 </h2>
-                <div className="flex items-center justify-center gap-2 mt-5">
+                <div className="flex items-center justify-center gap-4 mt-8">
                   {isOwner && onEdit && post && (
                     <button
                       type="button"

@@ -28,6 +28,14 @@ on a static screenshot. `/frontend` first where the surface is read-only.
 `/mobile` finding. A `/mobile` finding whose fix is a colour or a tier is a
 `/frontend` finding. File it where the fix lives, not where it was spotted.
 
+**Standing question for every surface: is it cramped?** Space is a material
+here, not leftover. A modal is already bounded, so crowding inside it wins
+nothing — a heading and the actions beneath it need a real break between them,
+and two buttons need enough gap to read as two choices rather than one
+segmented control. Judge it on the screenshot; `gap-2` looks generous in source
+and tight at 440pt. Where a screen truly cannot fit, remove something rather
+than tightening until it squeezes in.
+
 ---
 
 ## Phase 0 — Rig
