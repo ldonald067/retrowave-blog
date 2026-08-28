@@ -39,32 +39,48 @@ function PublicPostCard({
           borderColor: 'var(--border-primary)',
         }}
       >
-        <h2 className="xanga-title text-lg sm:text-2xl mb-1 break-words">{post.title}</h2>
+        <h2 className="xanga-title text-xl sm:text-2xl mb-2 break-words">{post.title}</h2>
+        {/* The same four-fact band as the entry detail, so it gets the same
+            treatment. The chapter was --accent-primary on this header gradient,
+            which measures 2.38:1 on classic-xanga, 3.13 on myspace-blue, 3.20
+            on cottage-core and 4.31 on grunge — the identical failure the feed
+            card carried until `74c20b7`. It is not a control here, because a
+            visitor has nothing to filter, so it takes the `name` treatment
+            rather than the feed card's: italic --text-subtitle, which is 4.51
+            at worst on the same gradient.
+
+            `min-w-0` + `truncate` because a chapter runs to 100 characters with
+            no spaces, and `gap-y-2` so the rows stay legible once it wraps. The
+            `•` is gone — it was `hidden sm:inline`, so it did nothing on a
+            phone and could orphan onto its own line on a wider screen.
+            Whitespace separates instead; it cannot orphan. */}
         <div
-          className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs min-h-[28px]"
+          className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs min-h-[28px]"
           style={{ color: 'var(--text-muted)' }}
         >
-          <span className="flex items-center gap-1">
-            <span style={{ color: 'var(--accent-primary)' }}>📅</span>
+          <span className="flex items-center gap-1.5">
+            <span aria-hidden="true">📅</span>
             {formatDate(post.created_at, 'MMM dd, yyyy')}
           </span>
           {post.chapter && (
-            <>
-              <span className="hidden sm:inline">•</span>
-              <span className="flex items-center gap-1" style={{ color: 'var(--accent-primary)' }}>
-                📖 {post.chapter}
+            <span className="flex items-center gap-1.5 min-w-0 max-w-[14rem]">
+              <span aria-hidden="true">📖</span>
+              <span className="truncate italic" style={{ color: 'var(--text-subtitle)' }}>
+                {post.chapter}
               </span>
-            </>
+            </span>
           )}
         </div>
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <div
-          className="text-sm leading-relaxed whitespace-pre-wrap"
-          style={{ color: 'var(--text-body)' }}
-        >
+        {/* `.prose-reading` (1rem/1.7), not `text-sm`. A public page shows
+            entries in full — it is somewhere you read, not a list you scan — so
+            it takes the reading tier the entry detail uses. At text-sm the card
+            ran an 18px title over 14px body over 12px chrome, a scale whose
+            middle was four pixels wide. */}
+        <div className="prose-reading whitespace-pre-wrap" style={{ color: 'var(--text-body)' }}>
           {post.content}
           {post.content_truncated && <span style={{ color: 'var(--text-muted)' }}> ...</span>}
         </div>
@@ -215,12 +231,17 @@ export default function PublicProfileView({
       className="min-h-screen safe-area-top page-safe-bottom"
       style={{ backgroundColor: 'var(--bg-primary)' }}
     >
-      {/* Marquee banner */}
-      <div
-        className="overflow-hidden py-1 text-xs"
-        style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-muted)' }}
-      >
-        <div className="marquee">
+      {/* `.marquee-banner` + `.marquee-banner-inner`, which is what Header uses
+          and what index.css actually defines. This was `.marquee`, a class that
+          exists nowhere in the stylesheet — so the banner never scrolled, never
+          clipped and simply wrapped onto two static lines on the most
+          visitor-facing screen in the app. aria-hidden to match Header: it is
+          decoration, and the display name it repeats is the h1 below it. */}
+      <div className="marquee-banner" aria-hidden="true">
+        <div
+          className="marquee-banner-inner"
+          style={{ color: 'var(--text-subtitle)', fontSize: '12px' }}
+        >
           ~ welcome to {profile.display_name || profile.username}'s journal ~ ♥ ~ thx 4 stopping by
           ~ ☆ ~ xoxo ~
         </div>
@@ -319,7 +340,10 @@ export default function PublicProfileView({
               <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
                 {publicEntryLabel} · writing since {joinedYear}
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
+              {/* gap-x-4/gap-y-3, not gap-2: these three wrap onto three rows
+                  on a phone, and at 8px a caution link sits hard under a filled
+                  primary button and reads as part of it. */}
+              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-3">
                 <button
                   onClick={onGoHome}
                   className="xanga-link inline-flex items-center justify-center text-xs min-h-[44px] px-3"
