@@ -1,4 +1,3 @@
-import { Pepicon } from './ui';
 import { openUrl } from '../lib/capacitor';
 
 interface PublicPageSettingsProps {
@@ -33,22 +32,34 @@ export default function PublicPageSettings({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 className="xanga-title text-base sm:text-lg flex items-center gap-2">
-            <Pepicon name="stars" size={14} color="var(--accent-primary)" />
+            {/* 🌐 rather than a retro icon: `Windows95MyComputer` is already
+                SettingsModal's `data` heading, and reusing one glyph for two
+                different sections is the same empty encoding the `stars` icon
+                had. No retro icon in the set means "a page other people can
+                visit"; this one says it exactly. */}
+            <span aria-hidden="true" style={{ fontSize: '20px', lineHeight: 1 }}>
+              🌐
+            </span>
             public page
           </h3>
           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
             Keep your journal private, with an optional page for entries you choose to share.
           </p>
         </div>
+        {/* Text, not a pill. This was a bordered, rounded, filled, bold span
+            sitting a thumb's width above a real button — the third time this
+            app has dressed an inert status as a control (the entry detail's
+            chapter, the stat pills on the public profile). Nothing happens when
+            you tap it.
+
+            It is a status, so it takes the status treatment: bold, and the
+            accent only for the state worth noticing. That is the same split the
+            entry detail's metadata band uses for public vs private — accent for
+            `on`, --text-body for the quiet default — rather than a third
+            convention invented here. */}
         <span
-          className="inline-flex w-fit rounded border px-2 py-1 text-xs font-bold"
-          style={{
-            borderColor: enabled ? 'var(--accent-primary)' : 'var(--border-primary)',
-            color: enabled ? 'var(--accent-primary)' : 'var(--text-muted)',
-            backgroundColor: enabled
-              ? 'color-mix(in srgb, var(--accent-primary) 10%, var(--card-bg))'
-              : 'var(--card-bg)',
-          }}
+          className="w-fit text-xs font-bold"
+          style={{ color: enabled ? 'var(--accent-primary)' : 'var(--text-body)' }}
         >
           {statusText}
         </span>

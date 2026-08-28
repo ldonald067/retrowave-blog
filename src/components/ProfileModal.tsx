@@ -25,6 +25,7 @@ import {
   Windows95Notepad,
   Windows95WordPad,
   Windows95Configuration,
+  Windows95Password,
   Winamp as WinampIcon,
   VisualStudioFace,
 } from './ui';
@@ -521,7 +522,15 @@ export default function ProfileModal({
                   {/* Status Message */}
                   <div className="xanga-box p-4">
                     <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                      <Pepicon name="stars" size={14} color="var(--accent-primary)" />
+                      {/* 📟, the glyph Header and PublicProfileView already use for
+                          status. This was a 14px monochrome Pepicon while every
+                          other section heading in the modal carried a 20px retro
+                          icon — Pepicons mark controls here, retro icons mark
+                          sections, and this was the control system doing a
+                          section's job. No `color`: emoji ignore it. */}
+                      <span aria-hidden="true" style={{ fontSize: '20px', lineHeight: 1 }}>
+                        📟
+                      </span>
                       status message
                     </h3>
                     <Input
@@ -680,7 +689,13 @@ export default function ProfileModal({
                   {!isInitialSetup && (
                     <div className="xanga-box p-4">
                       <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                        <Pepicon name="stars" size={14} color="var(--accent-primary)" />
+                        {/* The same `stars` glyph was doing duty for both this
+                            and `status message`, so it encoded nothing. This
+                            section is about emoji; there is no retro icon that
+                            fits, and an emoji describes it exactly. */}
+                        <span aria-hidden="true" style={{ fontSize: '20px', lineHeight: 1 }}>
+                          😀
+                        </span>
                         emoji style
                       </h3>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -766,7 +781,7 @@ export default function ProfileModal({
                   {!isInitialSetup && blockedUsers.length > 0 && (
                     <div className="xanga-box p-4">
                       <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                        <Pepicon name="shield" size={14} color="var(--accent-secondary)" />
+                        <Windows95Password size={20} alt="" />
                         blocked users
                       </h3>
                       {blockedLoading ? (
