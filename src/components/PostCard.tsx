@@ -74,29 +74,41 @@ const PostCard = memo(function PostCard({
               <span className="line-clamp-2 break-words w-full min-w-0">{post.title}</span>
             </motion.button>
           </h2>
-          <div
-            className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs min-h-[44px] lg:min-h-0"
-            style={{ color: 'var(--text-muted)' }}
-          >
-            <span className="flex items-center gap-1">
-              <span style={{ color: 'var(--accent-primary)' }}>📅</span>
+          {/* Same three rules as the entry detail: context is muted and regular,
+              a control looks like a control, and the row gap survives a wrap.
+              Two things were wrong here specifically.
+
+              The 📅 carried `color: var(--accent-primary)`, which does nothing —
+              emoji render in their own colours and ignore `color`. It read as
+              intent that was never happening.
+
+              The chapter is genuinely tappable (it filters the feed), but it was
+              --accent-primary on the header gradient, which measures 2.38:1 on
+              classic-xanga, 3.13 on myspace-blue and 3.20 on cottage-core. Its
+              only affordance was `hover:underline`, and hover does not exist on
+              the platform this ships on — so on a phone it was a low-contrast
+              control with nothing marking it as one. It is --text-body now
+              (6.10:1 at worst on that gradient) and permanently underlined. */}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs min-h-[44px] lg:min-h-0">
+            <span className="flex items-center gap-1.5" style={{ color: 'var(--text-muted)' }}>
+              <span aria-hidden="true">📅</span>
               {formatDate(post.created_at, 'MMM dd, yyyy')}
             </span>
             {post.chapter && (
-              <>
-                <span className="hidden sm:inline">•</span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onChapterClick?.(post.chapter!);
-                  }}
-                  className="flex items-center gap-1 transition hover:underline min-h-[44px] lg:min-h-0 max-w-[160px] sm:max-w-[220px]"
-                  style={{ color: 'var(--accent-primary)' }}
-                  aria-label={`Filter by chapter: ${post.chapter}`}
-                >
-                  📖 <span className="truncate">{post.chapter}</span>
-                </button>
-              </>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChapterClick?.(post.chapter!);
+                }}
+                className="flex items-center gap-1.5 underline underline-offset-2 min-h-[44px] lg:min-h-0 max-w-[160px] sm:max-w-[220px] min-w-0"
+                style={{ color: 'var(--text-body)' }}
+                aria-label={`Filter by chapter: ${post.chapter}`}
+              >
+                <span aria-hidden="true" className="flex-shrink-0">
+                  📖
+                </span>
+                <span className="truncate italic">{post.chapter}</span>
+              </button>
             )}
           </div>
         </div>
@@ -161,11 +173,12 @@ const PostCard = memo(function PostCard({
           color: 'var(--text-muted)',
         }}
       >
+        {/* A byline is context, so it is muted and regular. It was semibold in
+            --accent-primary, which made the least consequential fact on the card
+            the loudest thing in its footer — the same inversion the entry detail
+            had, where "~ Anonymous" outranked the entry itself. */}
         {post.author && (
-          <span
-            className="font-semibold min-w-0 max-w-full truncate"
-            style={{ color: 'var(--accent-primary)' }}
-          >
+          <span className="min-w-0 max-w-full truncate" style={{ color: 'var(--text-muted)' }}>
             ~ {post.author}
           </span>
         )}

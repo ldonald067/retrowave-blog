@@ -157,10 +157,40 @@ Truncation is only acceptable where the full value is reachable somewhere else.
       itself truncating, because the tap toggled the filter off rather than on.
       Apply the chapter filter and capture it.
 
+## Phase 7c — Hierarchy sweep
+
+Apply the system settled on the entry detail to every other surface. **Surface
+by surface with a screenshot each, not a find-and-replace** — the whole lesson
+from that modal was that the right fix depended on looking at the specific
+screen, and three of the four attempts there were wrong in a way only a
+screenshot showed.
+
+The system:
+
+1. **Three size tiers** — heading, reading (`.prose-reading`), chrome (`text-xs`).
+   Check first whether the surface has a middle at all.
+2. **Style encodes kind** — regular/context, bold/status, italic/name,
+   underline/link only.
+3. **Colour maps to the same kinds** — `--text-muted`, `--text-body` or
+   `--accent-primary`, `--text-subtitle`. Re-measure on the surface it paints on.
+4. **Space is a material** — a real break between groups, a row gap that survives
+   wrapping.
+
+| Surface                    | Looked at | Applied | Notes                                        |
+| -------------------------- | --------- | ------- | -------------------------------------------- |
+| `PostCard`                 | [ ]       | [ ]     | Same four facts as the detail; highest value |
+| `PublicProfileView`        | [ ]       | [ ]     | Visitor-facing; stat pills flagged earlier   |
+| `ProfileModal`             | [ ]       | [ ]     | Three tabs                                   |
+| `SettingsModal`            | [ ]       | [ ]     | Also revisit the reserved-but-unused height  |
+| `ModerationView`           | [ ]       | [ ]     | Needs the admin account                      |
+| `LoginForm` / `SignUpForm` | [ ]       | [ ]     | Link tiers already partly done               |
+| `EmptyState`               | [ ]       | [ ]     |                                              |
+| `Sidebar`                  | [ ]       | [ ]     | Desktop only                                 |
+
 ## Phase 8 — Adverse states
 
 - [ ] Offline banner (device or Network Link Conditioner, not the simulator)
-- [ ] `ErrorMessage` / `ErrorBoundary`
+- [x] `ErrorMessage` — seen after a simulator reboot: 🥴 hero, bold `error:` label, muted message, full-width `~ try again ~`. Hierarchy reads correctly; recovery worked
 - [ ] `LoadingSpinner`, `PostSkeleton`
 - [ ] `Toast` — success and error, caught within 2.5s
 - [ ] Rapid taps on reactions (cooldown)
