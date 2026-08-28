@@ -73,8 +73,8 @@ than tightening until it squeezes in.
 | Surface                   | `/mobile` | `/frontend` | Notes                                     |
 | ------------------------- | --------- | ----------- | ----------------------------------------- |
 | Onboarding, 4 slides      | [x]       | [x]         | Also at max Dynamic Type                  |
-| Auth — sign up            | [x]       | [ ]         | Re-check links after the `#c2185b` change |
-| Auth — sign in            | [x]       | [ ]         | Same                                      |
+| Auth — sign up            | [x]       | [x]         | `cc3fed1` — form moved onto --card-bg     |
+| Auth — sign in            | [x]       | [x]         | Link tiers deliberate and documented      |
 | Age verification          | [ ]       | [ ]         | Never rendered                            |
 | Public profile as visitor | [x]       | [x]         |                                           |
 | Report dialog (anonymous) | [ ]       | [ ]         | Never rendered                            |
@@ -190,7 +190,7 @@ The system:
 | `ProfileModal`             | [x]       | [x]     | `b09d127` — findings 25, 26; all three tabs   |
 | `SettingsModal`            | [x]       | [x]     | No findings — icons already correct          |
 | `ModerationView`           | [ ]       | [ ]     | Needs the admin account                      |
-| `LoginForm` / `SignUpForm` | [ ]       | [ ]     | **Blocked** — needs sign-out; see below      |
+| `LoginForm` / `SignUpForm` | [x]       | [x]     | `cc3fed1` — findings 30, 31                  |
 | `EmptyState`               | [ ]       | [ ]     | **Blocked** — needs a zero-post account      |
 | `Sidebar`                  | [x]       | [x]     | `5728fa2` — findings 28, 29. **Not desktop-only** |
 
@@ -265,7 +265,10 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 28  | MED  | Sidebar         | Expanded, the summary row repeats the card beneath it — same avatar, name and @username, with `Hi, <name>!` above that: the identity three times in the top third. Persists in localStorage, so permanent for anyone who expands once | Fixed `5728fa2` |
 | 29  | MED  | Sidebar         | `About Me`, `Stats`, `📖 Chapters`, `Current Mood:`, `Entries:` in Title Case against ~14 lowercase headings elsewhere — and ProfileModal labels the same field `about me` | Fixed `5728fa2` |
 
-**29 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
+| 30  | MED  | Auth screen     | `Input`'s label is `--accent-primary`, and the form sat bare on the auth gradient: **4.11:1 classic-xanga, 4.14 cottage-core** — the same numbers as finding 2, which `d683a7a` fixed by changing `--link-color` only. Form now sits on `--card-bg` (4.82 worst) | Fixed `cc3fed1` |
+| 31  | MED  | Auth screen     | Header read `Welcome Back` directly above a heading reading `~ welcome back ~`; both tabs Title Case too | Fixed `cc3fed1` |
+
+**31 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
 
@@ -273,8 +276,7 @@ from a single maximum-length entry (9–11), one document-breaking layout bug
 
 | Surface                    | Needs                                                                 |
 | -------------------------- | --------------------------------------------------------------------- |
-| `LoginForm` / `SignUpForm` | A sign-out. The account password is no longer in `settings.local.json` (removed this session), and authenticating is not something an agent should do — so signing out would end the session with no way back in |
-| `EmptyState`               | An account with zero posts. `EmptyState` renders only at `posts.length === 0`; a chapter filter with no matches renders the archive-empty branch instead, not this component. `blankslate` exists but needs its password |
+| `EmptyState`               | Sign-in as a zero-post account. `EmptyState` renders only at `posts.length === 0`; a chapter filter with no matches renders the archive-empty branch instead, not this component. `blankslate` exists but needs its password |
 | `ModerationView`           | The admin account, as before                                          |
 | Sidebar stats labels       | ≥1024px. `hidden lg:block`, and the phone is 440pt — the finding 29 fix there is verified by reading, not photographed |
 
