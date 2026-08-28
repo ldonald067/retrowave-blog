@@ -5,6 +5,7 @@ import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
+import { formatDate } from '../utils/formatDate';
 
 type Report = {
   report_id: string;
@@ -129,8 +130,14 @@ export default function ModerationView({ focusReportId, onGoHome }: ModerationVi
               {REASON_LABELS[r.reason] ?? r.reason}
             </p>
             <p className="text-xs mb-3" style={{ color: 'var(--text-muted)' }}>
+              {/* formatDate, like every other surface. This was
+                  toLocaleDateString(), the only use of it in the app, which
+                  renders to the device locale — so `8/10/2026` is 8 October in
+                  most of the world and 10 August in the US. Ambiguous anywhere,
+                  and worst here: judging whether a report has been sitting open
+                  is most of what this screen is for. */}
               reported by {r.reporter_username ? `@${r.reporter_username}` : 'anonymous'} ·{' '}
-              {new Date(r.created_at).toLocaleDateString()}
+              {formatDate(r.created_at, 'MMM dd, yyyy')}
             </p>
 
             {r.report_count > 1 && (
@@ -153,11 +160,19 @@ export default function ModerationView({ focusReportId, onGoHome }: ModerationVi
               <p className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>
                 entry by {r.author_username ? `@${r.author_username}` : 'unknown'}
               </p>
-              <p className="text-sm font-bold mb-1" style={{ color: 'var(--text-body)' }}>
+              {/* The reported entry is the evidence — it is what an operator has
+                  to read to judge the report — and it was `text-xs`, the same
+                  size as the chrome around it. Below a text-xl page heading that
+                  left the screen with one big thing and a flat field of 12px,
+                  the same missing middle the entry detail had in `95aa9bb` and
+                  the public profile card in `abe31f8`. `text-sm` was off-scale
+                  besides: the tiers here are 1rem reading, 0.8125rem scanning,
+                  text-xs chrome. */}
+              <p className="text-lg font-bold mb-1" style={{ color: 'var(--text-body)' }}>
                 {r.post_title || '(no title)'}
               </p>
               <p
-                className="text-xs whitespace-pre-wrap"
+                className="prose-reading whitespace-pre-wrap"
                 style={{ color: 'var(--text-body)', overflowWrap: 'anywhere' }}
               >
                 {r.post_excerpt || '(content unavailable)'}
