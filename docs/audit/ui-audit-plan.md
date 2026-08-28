@@ -178,7 +178,7 @@ The system:
 
 | Surface                    | Looked at | Applied | Notes                                        |
 | -------------------------- | --------- | ------- | -------------------------------------------- |
-| `PostCard`                 | [ ]       | [ ]     | Same four facts as the detail; highest value |
+| `PostCard`                 | [x]       | [x]     | `74c20b7` — findings 18, 19                  |
 | `PublicProfileView`        | [ ]       | [ ]     | Visitor-facing; stat pills flagged earlier   |
 | `ProfileModal`             | [ ]       | [ ]     | Three tabs                                   |
 | `SettingsModal`            | [ ]       | [ ]     | Also revisit the reserved-but-unused height  |
@@ -233,3 +233,29 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 5   | MED  | Header nav      | Home/Profile/New Entry identical, labels hidden on mobile           | Fixed `52d94df` |
 | 6   | MED  | App-wide        | 71 of 96 buttons had no pressed state                               | Fixed `52d94df` |
 | 7   | HIGH | App-wide        | 8 `:hover` rules unguarded; marquee pause latched on tap            | Fixed `47ff34d` |
+| 8   | MED  | Entry detail    | Chapter dressed as a filter chip — inert control in a real control's costume | Fixed `c6c6696` |
+| 9   | HIGH | Feed card       | `line-clamp-2` defeated by `flex` on the same element; a 200-char title ran 5 lines past the card padding | Fixed `1266721` |
+| 10  | MED  | Entry detail    | A 200-char title squeezed `~ edit entry ~` into a 3-line, one-word column; header now stacked | Fixed `1266721` / `b7e67de` |
+| 11  | MED  | Entry detail    | 100-char chapter ran off the right edge with no ellipsis — flex item without `min-w-0` — pushing date and author out of view | Fixed `1266721` |
+| 12  | HIGH | Filter pill     | `chapter: <name>` had no width constraint and forced the **whole document** into horizontal scroll, clipping header, journal title and every card | Fixed `b7e67de` |
+| 13  | MED  | App-wide        | `.xanga-button-ghost` labels `--accent-primary`: 2.38:1 on a modal header gradient (3.20 cottage-core, 3.93 myspace-blue, 4.31 grunge). Now paints `--card-bg` beneath | Fixed `b7e67de` |
+| 14  | MED  | Entry detail    | Action row hard left under the title at `gap-2` — read as one segmented control continuing the text block | Fixed `3b0a718` / `8767deb` |
+| 15  | MED  | Entry detail    | No middle tier: 20–24px title, 13px `.prose` body, 12px metadata — the entry read no louder than its byline. `.prose-reading` added | Fixed `95aa9bb` |
+| 16  | MED  | Entry detail    | Four metadata facts at one size, weight and colour joined by `·`; separators orphaned onto a new line when the chapter wrapped | Fixed `83be72e`, refined `fca81c5` `4e8f90b` `4fa4c95` |
+| 17  | MED  | Entry detail    | Corner sparkles were `✨`, which ignores `color` — the intended tint did nothing, pale gold on a cream band. Now `✦` | Fixed `1342690` |
+| 18  | MED  | Feed card       | Chapter is genuinely tappable but painted `--accent-primary` on the header gradient (2.38 classic-xanga, 3.13 myspace-blue, 3.20 cottage-core) with `hover:underline` as its only affordance on a platform without hover | Fixed `74c20b7` |
+| 19  | MED  | Feed card       | `📅` carried a dead `color: var(--accent-primary)` (emoji ignore colour); byline semibold in accent made the least consequential fact the loudest in the footer | Fixed `74c20b7` |
+
+**19 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
+from a single maximum-length entry (9–11), one document-breaking layout bug
+(12), and the entry-detail/feed-card hierarchy set (14–19).
+
+## Dismissed — looked at, deliberately not filed
+
+Recorded so they are not re-raised.
+
+| Surface                | Impression                          | Why dismissed                                                              |
+| ---------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
+| scene-kid title        | Looked muddy                        | Measured **14.3:1** at its brightest stops. The muddiness is `.xanga-title`'s retro text-shadow doing its job |
+| cottage-core headings  | Looked muddy                        | Measured **8.04** and **7.28**                                             |
+| Entry detail metadata  | "The metadata colours are wrong"    | My own misdiagnosis. The flatness was a missing size tier — 13px body copy that could not outrank 12px chrome — not colour. Fixing colour first (`83be72e`) had to be partly reversed in `95aa9bb`. Measure and check the scale before reaching for a third grey |

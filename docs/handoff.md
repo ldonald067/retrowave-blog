@@ -37,9 +37,10 @@ A **full UI audit** is roughly half done, run as `/mobile` and `/frontend`
 together. `docs/audit/ui-audit-plan.md` is the live checklist, the phase plan,
 and the findings log — **start there, not here**, for anything UI.
 
-- **16 findings, all fixed.** Four contrast failures (one on the default theme's
-  sign-in screen), three overflow bugs from a single maximum-length entry, and
-  a set of hierarchy problems in the entry detail.
+- **19 findings, all fixed.** Four contrast failures (one on the default theme's
+  sign-in screen), three overflow bugs from a single maximum-length entry, one
+  that forced the whole document into horizontal scroll, and a set of hierarchy
+  problems across the entry detail and the feed card.
 - **3 dismissals**, recorded so they are not re-raised: two "muddy" headings
   that measured 8.04 and 14.3, and one misdiagnosis of mine.
 - **Phase 7c (hierarchy sweep) is 1 of 8 surfaces done** — `PostCard` is
