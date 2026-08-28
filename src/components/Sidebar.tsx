@@ -200,7 +200,7 @@ export default function Sidebar({
               <div className="flex items-center gap-2">
                 <Pepicon name="heartFilled" size={14} color="var(--accent-primary)" />
                 <span className="font-bold" style={{ color: 'var(--text-body)' }}>
-                  Current Mood:
+                  current mood:
                 </span>
               </div>
               <div className="ml-6 mt-1" style={{ color: 'var(--text-muted)' }}>
@@ -260,7 +260,7 @@ export default function Sidebar({
           className="xanga-title text-lg mb-2 border-b-2 border-dotted pb-1"
           style={{ borderColor: 'var(--border-primary)' }}
         >
-          About Me
+          about me
         </h3>
         <p
           className="text-xs leading-relaxed italic break-words"
@@ -290,14 +290,14 @@ export default function Sidebar({
           className="xanga-title text-lg mb-3 border-b-2 border-dotted pb-1"
           style={{ borderColor: 'var(--border-primary)' }}
         >
-          Stats
+          stats
         </h3>
 
         <div className="space-y-2 text-xs">
           <div className="flex justify-between items-center">
             <span className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
               <Windows95Notepad size={14} alt="" />
-              Entries:
+              entries:
             </span>
             <span className="font-bold" style={{ color: 'var(--accent-primary)' }}>
               {postCount}
@@ -328,7 +328,7 @@ export default function Sidebar({
             className="xanga-title text-lg mb-2 border-b-2 border-dotted pb-1"
             style={{ borderColor: 'var(--border-primary)' }}
           >
-            📖 Chapters
+            📖 chapters
           </h3>
           <div className="space-y-0.5">
             {/* "All entries" option */}
@@ -487,16 +487,30 @@ export default function Sidebar({
             size="sm"
             fallbackSeed={user?.id || 'guest'}
           />
+          {/* Only while collapsed. This row summarises what is hidden, so once
+              the panel is open it is repeating the card directly beneath it —
+              same avatar, same display name, same @username, one above the
+              other. The collapsed state persists in localStorage, so for anyone
+              who expands once that duplication is permanent. The row stays a
+              44pt control with its own aria-label either way. */}
           <div className="flex-1 text-left min-w-0">
-            <p
-              className="text-sm font-bold truncate"
-              style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-            >
-              {userData.displayName}
-            </p>
-            <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
-              {userData.mood || `@${userData.username}`}
-            </p>
+            {collapsed ? (
+              <>
+                <p
+                  className="text-sm font-bold truncate"
+                  style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+                >
+                  {userData.displayName}
+                </p>
+                <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+                  {userData.mood || `@${userData.username}`}
+                </p>
+              </>
+            ) : (
+              <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+                ~ hide profile ~
+              </p>
+            )}
           </div>
           <span style={{ color: 'var(--text-muted)' }}>
             {collapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
