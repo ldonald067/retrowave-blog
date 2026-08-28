@@ -51,7 +51,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
               signup on the first tap. */}
           <div className="flex items-center justify-center px-4 h-14">
             <h1 className="text-center xanga-title text-xs sm:text-lg whitespace-nowrap">
-              ✨ {activeTab === 'signup' ? 'Create Your Xanga' : 'Welcome Back'} ✨
+              ✨ {activeTab === 'signup' ? 'create ur xanga' : 'welcome back'} ✨
             </h1>
           </div>
         </div>
@@ -83,7 +83,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
                       : 'var(--text-muted)',
                 }}
               >
-                ~ Sign In ~
+                ~ sign in ~
               </button>
               <button
                 onClick={() => setActiveTab('signup')}
@@ -103,7 +103,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
                       : 'var(--text-muted)',
                 }}
               >
-                ~ Sign Up ~
+                ~ sign up ~
               </button>
             </div>
 
@@ -123,6 +123,20 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.2 }}
+                /* On --card-bg, not bare on the auth gradient. Input renders its
+                   label in --accent-primary, which measures 4.11:1 on
+                   classic-xanga's gradient and 4.14 on cottage-core — the same
+                   two numbers finding 2 recorded for --link-color. That fix
+                   changed --link-color only, so every field label on the first
+                   screen a new user sees kept the failure. On --card-bg the
+                   accent is 4.82 at worst across the eight themes.
+
+                   Fixing the surface rather than the token, the same way
+                   .xanga-button-ghost was fixed in `b7e67de`: it keeps the pink
+                   labels, which are the look, instead of draining the accent out
+                   of every form in the app to solve it in one place. It also
+                   puts this form in a box like every other form here. */
+                className="xanga-box p-4 sm:p-6"
               >
                 <div className="mb-6 text-center">
                   <h2 className="xanga-title text-xl sm:text-2xl mb-2">
