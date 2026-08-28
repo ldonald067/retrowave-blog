@@ -60,8 +60,8 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 
 ## Performance
 
-- Tree-shaking pepicons cut the main bundle from 3,130 KB to 672 KB (-78%). Code splitting since brought it to **316 KB raw / 97 KB gzipped** (`index-*.js`), with vendor chunks split out — 891 KB of JS total. Measured 2026-08-20; re-run `npm run build` rather than trusting this number.
-- **76% of that JS is on the critical path** — 683 KB eager, down from 802 KB since `react-markdown` moved behind `MarkdownContent`. On Capacitor the bytes are local, so cold-start cost is JS parse/eval on the device CPU, not transfer. See `/ios`.
+- Tree-shaking pepicons cut the main bundle from 3,130 KB to 672 KB (-78%). Code splitting since brought it to **316 KB raw / 97 KB gzipped** (`index-*.js`), with vendor chunks split out — 904 KB of JS total. Measured 2026-08-28; re-run `npm run build` rather than trusting this number.
+- **76% of that JS is on the critical path** — 684 KB eager, down from 802 KB since `react-markdown` moved behind `MarkdownContent`. On Capacitor the bytes are local, so cold-start cost is JS parse/eval on the device CPU, not transfer. See `/ios`.
 - **Post bodies render through `ui/MarkdownContent`, never `react-markdown` directly.** It lazy-loads the renderer and prefetches it on idle, so the ~120 KB is off the startup path but resident before the feed request resolves. Importing `react-markdown` directly anywhere puts it straight back on the critical path.
 - `PostCard.test.tsx` and `PostModal.test.tsx` both **mock `react-markdown`**, so neither would notice the lazy chunk failing to resolve — the Suspense fallback renders the same text. `ui/__tests__/MarkdownContent.test.tsx` uses the real renderer and is what actually guards it.
 - `filteredPosts` and `looseCount` are memoized with `useMemo` in App.tsx.

@@ -85,7 +85,7 @@ print(f'eager {tot/1024:.0f} KB of {allj/1024:.0f} KB total ({100*tot/allj:.0f}%
 PY
 ```
 
-**Measured 2026-08-21: 683 KB eager of 896 KB — 76% on the critical path**,
+**Measured 2026-08-28: 684 KB eager of 904 KB — 76% on the critical path**,
 down from 802 KB / 90% after `react-markdown` was deferred behind
 `MarkdownContent`. (Sum actual byte sizes. `du -ck` counts allocated disk blocks
 and overstates this by ~6%.)
