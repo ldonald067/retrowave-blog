@@ -121,7 +121,8 @@ than tightening until it squeezes in.
 
 ## Phase 7 — Moderation
 
-- [ ] `ModerationView` queue, hide entry, dismiss — **needs the admin account**
+- [x] `ModerationView` queue rendered and audited — `6b34d0d`
+- [ ] hide entry / dismiss — **not exercised**: both act on real prod moderation data, and dismissing consumes the only open report
 
 ## Phase 7b — Overflow: what a legal maximum does to the layout
 
@@ -164,7 +165,13 @@ Truncation is only acceptable where the full value is reachable somewhere else.
       itself truncating, because the tap toggled the filter off rather than on.
       Apply the chapter filter and capture it.
 
-## Phase 7c — Hierarchy sweep
+## Phase 7c — Hierarchy sweep — **complete except `EmptyState`**
+
+All eight rows below are done bar `EmptyState`, which needs a zero-post account.
+`ModerationView` is reachable any time the admin account is signed in: deep-link
+`#/report/<any well-formed uuid>`, because `focusReportId` only highlights a row
+and the queue loads from `admin_list_reports` independently.
+
 
 Apply the system settled on the entry detail to every other surface. **Surface
 by surface with a screenshot each, not a find-and-replace** — the whole lesson
@@ -189,7 +196,7 @@ The system:
 | `PublicProfileView`        | [x]       | [x]     | findings 20-24; 2 deferred                   |
 | `ProfileModal`             | [x]       | [x]     | `b09d127` — findings 25, 26; all three tabs   |
 | `SettingsModal`            | [x]       | [x]     | No findings — icons already correct          |
-| `ModerationView`           | [ ]       | [ ]     | Needs the admin account                      |
+| `ModerationView`           | [x]       | [x]     | `6b34d0d` — findings 32, 33                  |
 | `LoginForm` / `SignUpForm` | [x]       | [x]     | `cc3fed1` — findings 30, 31                  |
 | `EmptyState`               | [ ]       | [ ]     | **Blocked** — needs a zero-post account      |
 | `Sidebar`                  | [x]       | [x]     | `5728fa2` — findings 28, 29. **Not desktop-only** |
@@ -268,7 +275,10 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 30  | MED  | Auth screen     | `Input`'s label is `--accent-primary`, and the form sat bare on the auth gradient: **4.11:1 classic-xanga, 4.14 cottage-core** — the same numbers as finding 2, which `d683a7a` fixed by changing `--link-color` only. Form now sits on `--card-bg` (4.82 worst) | Fixed `cc3fed1` |
 | 31  | MED  | Auth screen     | Header read `Welcome Back` directly above a heading reading `~ welcome back ~`; both tabs Title Case too | Fixed `cc3fed1` |
 
-**31 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
+| 32  | MED  | ModerationView  | Date was `toLocaleDateString()` — the only use in the app — so the open report read `8/10/2026`: 8 October in most of the world, 10 August in the US | Fixed `6b34d0d` |
+| 33  | MED  | ModerationView  | No middle tier: below a text-xl heading everything was `text-xs` except one `text-sm` line, the reported entry included — the evidence set at chrome size | Fixed `6b34d0d` |
+
+**33 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
 
@@ -277,7 +287,7 @@ from a single maximum-length entry (9–11), one document-breaking layout bug
 | Surface                    | Needs                                                                 |
 | -------------------------- | --------------------------------------------------------------------- |
 | `EmptyState`               | Sign-in as a zero-post account. `EmptyState` renders only at `posts.length === 0`; a chapter filter with no matches renders the archive-empty branch instead, not this component. `blankslate` exists but needs its password |
-| `ModerationView`           | The admin account, as before                                          |
+| `ModerationView` actions   | A decision, not access: `~ hide entry ~` and `~ dismiss ~` act on real production data, and dismissing consumes the only open report. The screen itself is audited |
 | Sidebar stats labels       | ≥1024px. `hidden lg:block`, and the phone is 440pt — the finding 29 fix there is verified by reading, not photographed |
 
 ## Deferred — seen on this pass, not filed as findings
