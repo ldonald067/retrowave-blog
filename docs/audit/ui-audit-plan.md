@@ -151,6 +151,13 @@ Truncation is only acceptable where the full value is reachable somewhere else.
 
 ## Carried over — re-confirm next pass
 
+- [ ] **Photograph a 100-char chapter truncating in `PublicPostCard`.** Finding
+      21 is fixed with the `min-w-0` + `max-w-[14rem]` + `truncate` combination
+      already proven on the entry detail in `1266721`, but it is verified at
+      code level only — none of the three public accounts has a chapter long
+      enough, and the overflow fixture lives on an account whose page is not
+      public. Needs a long-chapter public entry to photograph.
+
 - [ ] **Photograph the truncated filter pill.** Finding 12 (a 100-char chapter
       forcing the whole document into horizontal scroll) is verified by the page
       no longer shifting plus the code change — not by a screenshot of the pill
@@ -179,7 +186,7 @@ The system:
 | Surface                    | Looked at | Applied | Notes                                        |
 | -------------------------- | --------- | ------- | -------------------------------------------- |
 | `PostCard`                 | [x]       | [x]     | `74c20b7` — findings 18, 19                  |
-| `PublicProfileView`        | [ ]       | [ ]     | Visitor-facing; stat pills flagged earlier   |
+| `PublicProfileView`        | [x]       | [x]     | findings 20-24; 2 deferred                   |
 | `ProfileModal`             | [ ]       | [ ]     | Three tabs                                   |
 | `SettingsModal`            | [ ]       | [ ]     | Also revisit the reserved-but-unused height  |
 | `ModerationView`           | [ ]       | [ ]     | Needs the admin account                      |
@@ -246,9 +253,22 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 18  | MED  | Feed card       | Chapter is genuinely tappable but painted `--accent-primary` on the header gradient (2.38 classic-xanga, 3.13 myspace-blue, 3.20 cottage-core) with `hover:underline` as its only affordance on a platform without hover | Fixed `74c20b7` |
 | 19  | MED  | Feed card       | `📅` carried a dead `color: var(--accent-primary)` (emoji ignore colour); byline semibold in accent made the least consequential fact the loudest in the footer | Fixed `74c20b7` |
 
-**19 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
+| 20  | MED  | Public profile  | Entry chapter `--accent-primary` on the card header gradient — 2.38:1 classic-xanga, 3.13 myspace-blue, 3.20 cottage-core, 4.31 grunge. Not a control here, so it takes the `name` treatment: italic `--text-subtitle`, 4.51 worst case | Fixed `abe31f8` |
+| 21  | MED  | Public profile  | Entry chapter had no `min-w-0`/`max-w`/`truncate` — a 100-char chapter overflows the card header. Same class as 11, never applied here. `gap-y-0.5` also collapsed the band's rows once it wrapped | Fixed `abe31f8` |
+| 22  | MED  | Public profile  | No middle tier: 18px title over 14px body over 12px chrome, with the body on a bare `text-sm` that is on neither the scanning nor the reading step. Now `.prose-reading` + `text-xl` | Fixed `abe31f8` |
+| 23  | MED  | Public profile  | The marquee used `.marquee`, **a class defined nowhere in `index.css`** — so on the app's most visitor-facing screen it never scrolled, never clipped, and wrapped onto two static lines. `Header` uses `.marquee-banner`/`.marquee-banner-inner` correctly | Fixed `abe31f8` |
+| 24  | MED  | Public profile  | Action row at `gap-2` put a bold underlined caution link 8px beneath a filled primary button, on three wrapped rows | Fixed `abe31f8` |
+
+**24 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
+
+## Deferred — seen on this pass, not filed as findings
+
+| Surface        | Observation                                                                 | Why deferred                                                        |
+| -------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Public profile | `~ report entry ~` gets its own full-width footer bar on every card, bold and underlined — on a stranger's page it is the loudest control, repeated once per entry | Guideline 1.2 compliance control. Its prominence is a `/mobile` call, not a `/frontend` one, and it is not worth re-tiering a reporting affordance for style alone right before submission |
+| Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice | Removing a conversion CTA is a product decision, not a hierarchy fix |
 
 ## Dismissed — looked at, deliberately not filed
 
