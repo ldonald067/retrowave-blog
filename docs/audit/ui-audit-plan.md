@@ -187,12 +187,12 @@ The system:
 | -------------------------- | --------- | ------- | -------------------------------------------- |
 | `PostCard`                 | [x]       | [x]     | `74c20b7` — findings 18, 19                  |
 | `PublicProfileView`        | [x]       | [x]     | findings 20-24; 2 deferred                   |
-| `ProfileModal`             | [ ]       | [ ]     | Three tabs                                   |
-| `SettingsModal`            | [ ]       | [ ]     | Also revisit the reserved-but-unused height  |
+| `ProfileModal`             | [x]       | [x]     | `b09d127` — findings 25, 26; all three tabs   |
+| `SettingsModal`            | [x]       | [x]     | No findings — icons already correct          |
 | `ModerationView`           | [ ]       | [ ]     | Needs the admin account                      |
-| `LoginForm` / `SignUpForm` | [ ]       | [ ]     | Link tiers already partly done               |
-| `EmptyState`               | [ ]       | [ ]     |                                              |
-| `Sidebar`                  | [ ]       | [ ]     | Desktop only                                 |
+| `LoginForm` / `SignUpForm` | [ ]       | [ ]     | **Blocked** — needs sign-out; see below      |
+| `EmptyState`               | [ ]       | [ ]     | **Blocked** — needs a zero-post account      |
+| `Sidebar`                  | [x]       | [x]     | `5728fa2` — findings 28, 29. **Not desktop-only** |
 
 ## Phase 8 — Adverse states
 
@@ -259,15 +259,31 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 23  | MED  | Public profile  | The marquee used `.marquee`, **a class defined nowhere in `index.css`** — so on the app's most visitor-facing screen it never scrolled, never clipped, and wrapped onto two static lines. `Header` uses `.marquee-banner`/`.marquee-banner-inner` correctly | Fixed `abe31f8` |
 | 24  | MED  | Public profile  | Action row at `gap-2` put a bold underlined caution link 8px beneath a filled primary button, on three wrapped rows | Fixed `abe31f8` |
 
-**24 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
+| 25  | MED  | ProfileModal    | Eleven section headings rendered three ways — seven 20px retro icons, three 14px Pepicons, two bare. Retro icons mark sections here and Pepicons mark controls, so these were the control system doing a section's job | Fixed `b09d127` |
+| 26  | MED  | ProfileModal    | `status message` and `emoji style` carried the *same* stars glyph, so the icon encoded nothing | Fixed `b09d127` |
+| 27  | MED  | Public page tab | `private by default` rendered as a bordered, rounded, filled, bold span a thumb's width above a real button — third occurrence of an inert status dressed as a control, after finding 8 and the public profile's stat pills | Fixed `b09d127` |
+| 28  | MED  | Sidebar         | Expanded, the summary row repeats the card beneath it — same avatar, name and @username, with `Hi, <name>!` above that: the identity three times in the top third. Persists in localStorage, so permanent for anyone who expands once | Fixed `5728fa2` |
+| 29  | MED  | Sidebar         | `About Me`, `Stats`, `📖 Chapters`, `Current Mood:`, `Entries:` in Title Case against ~14 lowercase headings elsewhere — and ProfileModal labels the same field `about me` | Fixed `5728fa2` |
+
+**29 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
+
+## Blocked — cannot be reached from this session
+
+| Surface                    | Needs                                                                 |
+| -------------------------- | --------------------------------------------------------------------- |
+| `LoginForm` / `SignUpForm` | A sign-out. The account password is no longer in `settings.local.json` (removed this session), and authenticating is not something an agent should do — so signing out would end the session with no way back in |
+| `EmptyState`               | An account with zero posts. `EmptyState` renders only at `posts.length === 0`; a chapter filter with no matches renders the archive-empty branch instead, not this component. `blankslate` exists but needs its password |
+| `ModerationView`           | The admin account, as before                                          |
+| Sidebar stats labels       | ≥1024px. `hidden lg:block`, and the phone is 440pt — the finding 29 fix there is verified by reading, not photographed |
 
 ## Deferred — seen on this pass, not filed as findings
 
 | Surface        | Observation                                                                 | Why deferred                                                        |
 | -------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
 | Public profile | `~ report entry ~` gets its own full-width footer bar on every card, bold and underlined — on a stranger's page it is the loudest control, repeated once per entry | Guideline 1.2 compliance control. Its prominence is a `/mobile` call, not a `/frontend` one, and it is not worth re-tiering a reporting affordance for style alone right before submission |
+| Feed           | The floating `new entry` button sits over the last reaction in a card's reaction bar at rest. Whether that actually blocks the control is a touch-target question for `/mobile`, and Phase 4 still has `ReactionBar` unexercised |
 | Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice | Removing a conversion CTA is a product decision, not a hierarchy fix |
 
 ## Dismissed — looked at, deliberately not filed
