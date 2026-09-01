@@ -308,24 +308,35 @@ from a single maximum-length entry (9–11), one document-breaking layout bug
 | Feed           | The floating `new entry` button sits over the last reaction in a card's reaction bar at rest. Whether that actually blocks the control is a touch-target question for `/mobile`, and Phase 4 still has `ReactionBar` unexercised |
 | Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice | Removing a conversion CTA is a product decision, not a hierarchy fix |
 
-## For `/ios` — observed, not diagnosed
+## Cold-launch deep link — diagnosed and fixed, `0a3db5c`
 
-**A deep link to a not-running app does not route.** `com.retrowave.journal://#/report/<id>`
-delivered to a cold app landed on the feed twice; the identical link delivered
-to a warm app routed correctly every time. That is the emailed "Review in app"
-link's own case — `capacitor.ts` says so directly: "That is the common case for
-an emailed link: the app is usually not already open", which is why
-`getLaunchUrl` exists alongside the `appUrlOpen` listener.
+Recorded because the *method* is the reusable part, not the bug.
 
-Ruled out on inspection, so do not re-check these: `App.tsx` does listen for
-`hashchange` and updates `reportRoute` (325-336), and `consumeAuthCallback`
-returns `none` without clearing a hash it does not recognise, so auth-callback
-is not eating it. Not diagnosed further — this is native bridge and lifecycle,
-`/ios` rather than `/frontend`, and it wants instrumenting rather than guessing.
+A deep link opened while the app was closed landed on the wrong screen — the
+emailed "Review in app" link's own case, and any shared `#/u/<name>` link.
 
-Note when reproducing: re-issuing the *same* hash is a no-op, because
-`routeDeepLink` returns early when `window.location.hash` already equals it. Use
-a different UUID each time or you will think the link is dead when it is not.
+**Cause.** `initCapacitor`'s `getLaunchUrl()` is async and assigns
+`window.location.hash` whenever it resolves. `useState(getPublicUsername)` reads
+the hash during the initial render; the `hashchange` listener is not attached
+until the effect runs after paint. An assignment landing in that gap fires into
+nothing, and the initial state already read an empty hash. Fixed by re-reading
+once inside the effect, after the listener exists.
+
+**The compounding part:** the hash stays set to the route that never rendered,
+so retrying the same url is a no-op on `routeDeepLink`'s identical-hash bail.
+
+**How it was isolated**, which is the bit worth reusing: the report route is
+gated on `reportRoute && user && profile?.is_admin`, so a failure there could be
+the link, the session, or `is_admin`. `#/u/<name>` uses the same `routeDeepLink`
+and the same listener, needs no auth, and its branch sits above the `!user`
+branch in `App.tsx` — so a cold launch into it isolates the mechanism. Four
+results, one explanation: cold fails; warm with the same hash fails (the bail);
+warm with a different hash works; cold works after the fix.
+
+**Two wrong readings on the way, both recorded so they are not repeated.** The
+first cold-start failures were read as the auth gate — they were not. And one
+run was contaminated: the app had been signed out, so it proved nothing either
+way and was discarded rather than counted.
 
 ## Dismissed — looked at, deliberately not filed
 
