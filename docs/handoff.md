@@ -6,7 +6,7 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-08-28, at `74c20b7`.
+Last rewritten 2026-09-01, at `4f1b83e`.
 
 ---
 
@@ -33,25 +33,40 @@ enrollment.
 
 ## What is in flight
 
-A **full UI audit** is roughly half done, run as `/mobile` and `/frontend`
-together. `docs/audit/ui-audit-plan.md` is the live checklist, the phase plan,
-and the findings log — **start there, not here**, for anything UI.
+The **full UI audit** — `docs/audit/ui-audit-plan.md` is the live checklist and
+findings log. **Start there, not here**, for anything UI.
 
-- **19 findings, all fixed.** Four contrast failures (one on the default theme's
-  sign-in screen), three overflow bugs from a single maximum-length entry, one
-  that forced the whole document into horizontal scroll, and a set of hierarchy
-  problems across the entry detail and the feed card.
-- **3 dismissals**, recorded so they are not re-raised: two "muddy" headings
-  that measured 8.04 and 14.3, and one misdiagnosis of mine.
-- **Phase 7c (hierarchy sweep) is 1 of 8 surfaces done** — `PostCard` is
-  applied; `PublicProfileView`, `ProfileModal`, `SettingsModal`,
-  `ModerationView`, the auth forms, `EmptyState` and `Sidebar` are not.
-- **Phase 8 (adverse states) is barely started.** `ErrorMessage` was seen by
-  accident and is fine. Toasts, skeletons, offline and rapid-tap are untouched.
+- **34 findings, all fixed.** **Phase 7c (the hierarchy sweep) is COMPLETE** —
+  all eight surfaces.
+- **4 dismissals** recorded so they are not re-raised, including one that
+  matters: `EmptyState`'s `toLocaleDateString('en-US', …)` looks exactly like
+  finding 32 and is deliberately different. Do not "fix" it.
+- **Phase 8 (adverse states) is where the work is now.** `ErrorMessage` is done.
+  Toasts, skeletons, rapid-tap cooldown, session expiry and offline are not.
+- **Phase 10 has four themes never rendered**: `myspace-blue`, `y2k-cyber`,
+  `grunge`, `pastel-goth`.
 
 The design system that came out of it is written into `/frontend`: three size
 tiers, style encoding kind, colour mapped to the same kinds, and space as a
 material. Apply it from there rather than re-deriving it.
+
+## Two bugs this audit found that tests could never have
+
+Both were invisible to 322 passing tests, and both needed looking rather than
+reading. They are the argument for the whole method.
+
+- **Auth field labels failed WCAG on the default theme** — `--accent-primary` at
+  **4.11:1** on the auth gradient, 4.14 on cottage-core. Those are the same two
+  numbers finding 2 recorded, because it is the same failure: `d683a7a` fixed it
+  by changing `--link-color` and left the accent where it was. **Fixing one
+  token does not fix the pairing.** Fixed in `cc3fed1` by moving the form onto
+  `--card-bg`, where the accent is 4.82 at worst.
+- **A cold-launch deep link was silently dropped** — the emailed "Review in app"
+  link's own case, and every shared `#/u/<name>` link opened from a closed app.
+  `getLaunchUrl()` resolves async and set the hash in the gap between the initial
+  render reading it and the effect attaching the `hashchange` listener. Fixed in
+  `0a3db5c`. The write-up in the audit plan keeps the isolation method, which is
+  the reusable part.
 
 ## Verified on device
 
@@ -59,7 +74,7 @@ iPhone 17 Pro Max simulator unless noted.
 
 - **Session survives web-storage eviction.** Deleted the whole
   `localstorage.sqlite3` and relaunched: still signed in. The token lives in
-  `UserDefaults` only. This closes the silent sign-out.
+  `UserDefaults` only. Survives a full device reboot too.
 - **Composer with the full software keyboard raised** — textarea keeps its
   height, draft autosaves while typing, panel clear of the accessory bar.
 - **Dynamic Type 0% → 130%**, capped at 1.3×, no truncation. Native-only, so a
@@ -69,13 +84,18 @@ iPhone 17 Pro Max simulator unless noted.
 - **First-run intro** appears once per install and never again; all four slides
   hold at max Dynamic Type.
 - **Cold start** median 1.94s (Debug, warm, n=5). Treat past ~3s as a finding.
+- **Deep links route cold and warm**, signed in and signed out, after `0a3db5c`.
+- **The moderation queue works end to end** — rendered, `~ dismiss ~` run, and
+  confirmed server-side by remounting and re-querying `admin_list_reports`.
 - **Privacy smoke checks 9/9 green against prod.**
 - **Anonymous clients read 0 rows** from every table.
 
 ## Open work
 
-- **Finish the audit.** Phase 7c has 7 surfaces left, Phase 8 is open, and 4 of
-  8 themes have never been rendered. The plan lists every one.
+- **Phase 8, then Phase 10.** The plan lists every item.
+- **`~ hide entry ~` has never been run.** Both moderation buttons call the same
+  `admin_resolve_report` and both consume the report, and there was one to
+  spend. **A new report must be filed before that path can be exercised.**
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. A half-built ban is worse than none.
 - **Renaming a chapter republishes its entries** and nothing warns. Deliberate —
@@ -84,26 +104,31 @@ iPhone 17 Pro Max simulator unless noted.
 - **The offline path cannot be tested on a simulator.** It shares the Mac's
   connection. `useOnlineStatus` uses `@capacitor/network` now, but that needs a
   device in Airplane Mode to confirm.
+- **Finding 21's truncation is code-level only.** No public account has a chapter
+  long enough to photograph `PublicPostCard` truncating one.
 
 ## Waiting for you, not for a session
 
 - **Apple Developer Program enrollment**, as above.
-- **One open report sits in the moderation queue** (confirmed still `open`) so
-  the screen can be exercised. Admin is `ldonald0234` and nobody else. That
-  account's password is in a `curl` entry in `.claude/settings.local.json`
-  around line 65 — **worth deleting; a plaintext password does not belong in a
-  config file**, even a gitignored one.
-- **`ModerationView` has never been rendered** because it needs that account.
+- **The moderation queue is now empty.** File a report from a non-admin account
+  against a public entry if you want `~ hide entry ~` exercised.
+- **Signing in.** An agent cannot authenticate, so any surface needing a
+  particular account needs you to sign in first and say which one.
 
-## Test data on the signed-in account
+## Accounts, and what each is for
 
-`@ldonald234` has two entries, both deliberate:
+| Account                                         | Use                                                                     |
+| ----------------------------------------------- | ----------------------------------------------------------------------- |
+| `ldonald234`                                    | **The test data.** cottage-core, 2 entries, incl. the overflow fixture  |
+| `ldonald0234`                                   | **Admin — the only one.** emo-dark, 3 entries, reaches `ModerationView` |
+| `retrodemo`                                     | Public page, emo-dark, mood + music + bio, 3 public entries             |
+| `codex-qa-24e3a82f`                             | Public page, **classic-xanga** — the light-theme public fixture         |
+| `blankslate`, `nonoabc2345`, `ldonald234_xanga` | Zero posts — reach `EmptyState`                                         |
 
-1. A normal one in chapter `summer 2026`, with markdown in the body.
-2. **`Supercalifragilistic…` — a 200-character title, a 100-character
-   space-free chapter, and an unbreakable token in the body.** This is an
-   overflow fixture, not junk. It is the only thing that exercises the wrapping
-   paths, and it found four bugs. Keep it unless you have a reason not to.
+`@ldonald234`'s second entry — **`Supercalifragilistic…`, a 200-character title,
+a 100-character space-free chapter, and an unbreakable token in the body** — is
+an overflow fixture, not junk. It is the only thing that exercises the wrapping
+paths, and it found four bugs. Keep it unless you have a reason not to.
 
 ## Things that will waste your time if you do not know them
 
@@ -115,24 +140,39 @@ iPhone 17 Pro Max simulator unless noted.
   nine `select`s reports one row and hides eight, silently, looking like
   success. `privacy_smoke.sql` is a single `union` for that reason.
 - **Do not trust a check that matches on SQL text.** Prod writes the same
-  guarantee differently — `v_user_id := auth.uid()`, `public.normalize_chapter()`
-  — and two smoke checks reported FAIL against correct code because of it.
+  guarantee differently — `v_user_id := auth.uid()`,
+  `public.normalize_chapter()` — and two smoke checks reported FAIL against
+  correct code because of it.
+- **The reports table is not called `reports`.** A query against that name
+  errors; find the real name before assuming the table is missing.
 - **A colour verified on one surface is not verified on another.** The accent
   that clears 4.5:1 on `--card-bg` measures 2.38 on a modal header gradient.
-  That single mistake accounts for three of this audit's findings.
-- **Emoji ignore `color`.** Two places styled an emoji and silently did nothing.
-  If a glyph must be themed, use a text glyph like `✦`.
+  And fixing one token does not fix the pairing — see the auth labels above.
+- **Emoji ignore `color`.** Several places styled an emoji and silently did
+  nothing. If a glyph must be themed, use a text glyph like `✦`.
+- **Grep a class name before trusting it.** `PublicProfileView` used `.marquee`,
+  which is defined nowhere, so its banner never scrolled — the component looks
+  correct until you check the stylesheet.
+- **Retro icons mark sections; `Pepicon` marks controls.** Both families are
+  used app-wide, so neither is legacy. Give each glyph one meaning.
+- **The simulator's tap space is points; screenshots are ~2.09× that.** Reading
+  a control's position off a screenshot and passing it to `tap` lands in empty
+  space and looks exactly like a dead button.
+- **Check which simulator is booted and which build it runs.** A second sim
+  carrying a build several commits back showed already-fixed bugs. `simctl
+install` over a running install keeps the container, so the session survives.
+- **Re-issuing the same deep-link hash is a no-op** by design — `routeDeepLink`
+  bails when the hash already matches. Vary the id or it looks like a dead link.
 - **There is no `.xcworkspace`.** SPM project — pass
   `-project ios/App/App.xcodeproj`. Commands are in `/release`.
 - **Simulator names move with each Xcode release.** Target the booted UDID.
-- **The simulator wedges on long sessions** — `machPortNotConnected`, or
-  "Timeout waiting for screen surfaces". A full `shutdown` + `boot` clears it;
-  a relaunch does not.
-- **The scratchpad gets cleaned mid-session.** `mkdir -p` before writing
-  screenshots, and do not rely on captures from earlier in a session.
+- **The scratchpad gets cleaned mid-session.** It took the built `.app` with it
+  once. `mkdir -p` before writing, and rebuild rather than trusting a path from
+  earlier in the session.
 - **Green tests are not proof.** Suites mock the thing under test —
   `PostModal.test.tsx` mocks `useFocusTrap`, both card suites mock
-  `react-markdown` — and anything native-only is inert in jsdom.
+  `react-markdown` — and anything native-only is inert in jsdom. The two bugs at
+  the top of this file are the proof.
 - **Watch the test count, not just red/green.** CI silently ran 241 of 265 for
   over a week. Currently **322**.
 - **The software keyboard needs Simulator.app open**, not just the streaming
