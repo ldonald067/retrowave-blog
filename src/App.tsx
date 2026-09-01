@@ -319,7 +319,7 @@ function PostList({
   );
 }
 
-function App() {
+function AppInner() {
   // ── Public profile routing via hash ──────────────────────────────────────
   const [publicUsername, setPublicUsername] = useState<string | null>(getPublicUsername);
   const [reportRoute, setReportRoute] = useState<string | null>(getReportRoute);
@@ -1171,7 +1171,6 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <MotionConfig reducedMotion="user">
         {/* page-fab-clearance, not page-safe-bottom: this is the only page that
             renders the floating "new entry" button, and it needs that button's
             height reserved so the last line can be scrolled clear of it. */}
@@ -1627,8 +1626,29 @@ function App() {
             </div>
           </footer>
         </div>
-      </MotionConfig>
     </ErrorBoundary>
+  );
+}
+
+/**
+ * MotionConfig wraps AppInner rather than living inside its main return.
+ *
+ * It used to sit inside that return, which meant it covered the signed-in feed
+ * and nothing else: AuthModal, PublicProfileView, ModerationView and
+ * AgeVerification are all top-level early returns *above* it, and all four run
+ * Framer entrance animations. The global `prefers-reduced-motion` block in
+ * index.css does not cover them — it neutralises `animation-duration` and
+ * `transition-duration`, and Framer's initial/animate are JS-driven inline
+ * style writes, not CSS animations. So a reader with Reduce Motion on still got
+ * full motion on the first screen they ever see, and on any shared public page.
+ *
+ * All three reduced-motion layers existed; this one's scope was the gap.
+ */
+function App() {
+  return (
+    <MotionConfig reducedMotion="user">
+      <AppInner />
+    </MotionConfig>
   );
 }
 
