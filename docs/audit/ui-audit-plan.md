@@ -173,9 +173,9 @@ Truncation is only acceptable where the full value is reachable somewhere else.
       itself truncating, because the tap toggled the filter off rather than on.
       Apply the chapter filter and capture it.
 
-## Phase 7c — Hierarchy sweep — **complete except `EmptyState`**
+## Phase 7c — Hierarchy sweep — **COMPLETE**
 
-All eight rows below are done bar `EmptyState`, which needs a zero-post account.
+All eight surfaces are done.
 `ModerationView` is reachable any time the admin account is signed in: deep-link
 `#/report/<any well-formed uuid>`, because `focusReportId` only highlights a row
 and the queue loads from `admin_list_reports` independently.
@@ -206,7 +206,7 @@ The system:
 | `SettingsModal`            | [x]       | [x]     | No findings — icons already correct          |
 | `ModerationView`           | [x]       | [x]     | `6b34d0d` — findings 32, 33                  |
 | `LoginForm` / `SignUpForm` | [x]       | [x]     | `cc3fed1` — findings 30, 31                  |
-| `EmptyState`               | [ ]       | [ ]     | **Blocked** — needs a zero-post account      |
+| `EmptyState`               | [x]       | [x]     | No findings — clean                          |
 | `Sidebar`                  | [x]       | [x]     | `5728fa2` — findings 28, 29. **Not desktop-only** |
 
 ## Phase 8 — Adverse states
@@ -296,7 +296,6 @@ from a single maximum-length entry (9–11), one document-breaking layout bug
 
 | Surface                    | Needs                                                                 |
 | -------------------------- | --------------------------------------------------------------------- |
-| `EmptyState`               | Sign-in as a zero-post account. `EmptyState` renders only at `posts.length === 0`; a chapter filter with no matches renders the archive-empty branch instead, not this component. `blankslate` exists but needs its password |
 | `ModerationView` actions   | A decision, not access: `~ hide entry ~` and `~ dismiss ~` act on real production data, and dismissing consumes the only open report. The screen itself is audited |
 | Sidebar stats labels       | ≥1024px. `hidden lg:block`, and the phone is 440pt — the finding 29 fix there is verified by reading, not photographed |
 
@@ -346,4 +345,5 @@ Recorded so they are not re-raised.
 | ---------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
 | scene-kid title        | Looked muddy                        | Measured **14.3:1** at its brightest stops. The muddiness is `.xanga-title`'s retro text-shadow doing its job |
 | cottage-core headings  | Looked muddy                        | Measured **8.04** and **7.28**                                             |
+| `EmptyState` date      | `toLocaleDateString('en-US', ...)`  | Looks like finding 32 and is not. That was an ambiguous numeric date on a triage screen; this is the diary-page header, where the long form is the point and the pinned `en-US` makes it unambiguous rather than locale-dependent. Do **not** mechanically convert it to `formatDate` — the idiom is the feature |
 | Entry detail metadata  | "The metadata colours are wrong"    | My own misdiagnosis. The flatness was a missing size tier — 13px body copy that could not outrank 12px chrome — not colour. Fixing colour first (`83be72e`) had to be partly reversed in `95aa9bb`. Measure and check the scale before reaching for a third grey |
