@@ -36,8 +36,9 @@ enrollment.
 The **full UI audit** — `docs/audit/ui-audit-plan.md` is the live checklist and
 findings log. **Start there, not here**, for anything UI.
 
-- **39 findings: 37 fixed, 2 open.** **Phases 7c, 9 and 10 are COMPLETE** — all
-  eight themes have now been rendered.
+- **40 findings: 39 fixed, 1 open.** **Phases 7c, 9 and 10 are COMPLETE** — all
+  eight themes rendered, and all eight now clear 4.5:1 for the card title on
+  both the header gradient and `--card-bg` (worst value anywhere: 4.53).
 - **4 dismissals** recorded so they are not re-raised, including one that
   matters: `EmptyState`'s `toLocaleDateString('en-US', …)` looks exactly like
   finding 32 and is deliberately different. Do not "fix" it.
@@ -49,11 +50,12 @@ findings log. **Start there, not here**, for anything UI.
   Reduce Motion was ignored on the auth screen, public profiles, the moderation
   queue and the age gate. Fixed in `7270da9`. Dynamic Type, focus traps and
   `aria-label`s all came back clean.
-- **Finding 38 is open and is a design call, not a defect to patch.** On the
-  default theme the feed card title measures **2.20:1** on the card header
-  gradient, and at the size a phone renders it the bar is 4.5:1. It is the
-  signature hot pink on the signature surface; the plan costs four routes and
-  recommends none. Read it before touching `--text-title`.
+- **Findings 38 and 39 fixed by darkening `--text-title`** on classic-xanga
+  (2.20 → 4.77) and lightening it on myspace-blue (4.00 → 5.25, a dark theme).
+  Only the title text moved; the accent still fills chips, buttons and borders,
+  so the identity is intact. **The card title's bar is 4.5:1, not 3:1** — on a
+  phone it renders at `text-lg`, 18px bold, under WCAG's 18.66px bold cutoff.
+  Comparing it against 3:1 is what let myspace-blue pass a sweep it failed.
 
 The design system that came out of it is written into `/frontend`: three size
 tiers, style encoding kind, colour mapped to the same kinds, and space as a
