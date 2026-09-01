@@ -36,8 +36,8 @@ enrollment.
 The **full UI audit** — `docs/audit/ui-audit-plan.md` is the live checklist and
 findings log. **Start there, not here**, for anything UI.
 
-- **36 findings: 35 fixed, 1 open.** **Phase 7c (the hierarchy sweep) is
-  COMPLETE** — all eight surfaces.
+- **37 findings: 36 fixed, 1 open.** **Phase 7c (the hierarchy sweep) and
+  Phase 9 (accessibility) are both COMPLETE.**
 - **4 dismissals** recorded so they are not re-raised, including one that
   matters: `EmptyState`'s `toLocaleDateString('en-US', …)` looks exactly like
   finding 32 and is deliberately different. Do not "fix" it.
@@ -45,6 +45,10 @@ findings log. **Start there, not here**, for anything UI.
   the error toast are verified on device. The success toast, an isolated
   `LoadingSpinner`, a genuine sub-400ms rapid tap, offline and session expiry
   are not — the plan says why for each.
+- **Phase 9 found one real gap**: `MotionConfig` covered only the feed, so
+  Reduce Motion was ignored on the auth screen, public profiles, the moderation
+  queue and the age gate. Fixed in `7270da9`. Dynamic Type, focus traps and
+  `aria-label`s all came back clean.
 - **Phase 10 has four themes never rendered**: `myspace-blue`, `y2k-cyber`,
   `grunge`, `pastel-goth`.
 
