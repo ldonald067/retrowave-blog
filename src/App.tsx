@@ -333,6 +333,19 @@ function App() {
       setReportRoute(getReportRoute());
     };
     window.addEventListener('hashchange', onHashChange);
+    // Re-read once, now that the listener exists. On a cold launch from a deep
+    // link, initCapacitor's getLaunchUrl() is async and assigns
+    // window.location.hash whenever it resolves. If that lands after the initial
+    // render — which read the hash as empty — but before this effect attaches
+    // the listener, the hashchange fires into nothing and the link is dropped
+    // silently. The app shows the feed (or the auth screen) while the hash still
+    // says #/report/<id>, which then makes any retry of the SAME url a no-op,
+    // because routeDeepLink bails when the hash already matches.
+    //
+    // That is the emailed "Review in app" link's own case, and any shared
+    // #/u/<name> link opened from a cold app. Verified both: cold launch landed
+    // on the wrong screen, warm launch with a different hash routed correctly.
+    onHashChange();
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
