@@ -210,9 +210,15 @@ export default function ModerationView({ focusReportId, onGoHome }: ModerationVi
           </motion.div>
         ))}
 
-        <p className="text-xs text-center mt-6" style={{ color: 'var(--text-muted)' }}>
-          hiding an entry makes it private. it is reversible and the author keeps their writing.
-        </p>
+        {/* Only when there is something to hide. With an empty queue this sat
+            under `~ nothing to review ~` explaining an action the screen was no
+            longer offering — visible for the first time once the last open
+            report was dismissed. */}
+        {reports.length > 0 && (
+          <p className="text-xs text-center mt-6" style={{ color: 'var(--text-muted)' }}>
+            hiding an entry makes it private. it is reversible and the author keeps their writing.
+          </p>
+        )}
       </div>
     </div>
   );
