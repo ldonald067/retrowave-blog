@@ -122,7 +122,15 @@ than tightening until it squeezes in.
 ## Phase 7 — Moderation
 
 - [x] `ModerationView` queue rendered and audited — `6b34d0d`
-- [ ] hide entry / dismiss — **not exercised**: both act on real prod moderation data, and dismissing consumes the only open report
+- [x] **dismiss** — exercised end to end on the open report, `325afd0`. Confirmed
+      server-side: left the route and came back so the component remounted, and
+      `admin_list_reports` returned zero rows from prod
+- [x] Empty state `~ nothing to review ~` seen for the first time
+- [ ] **hide entry** — still unexercised. Both buttons call the same
+      `admin_resolve_report` and both consume the report; there was one to spend,
+      and `remove` would have flipped @codex-qa-24e3a82f's only public entry to
+      private, emptying the light-theme public-profile fixture. **Needs a new
+      report to be filed before this path can be run**
 
 ## Phase 7b — Overflow: what a legal maximum does to the layout
 
@@ -278,7 +286,9 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 32  | MED  | ModerationView  | Date was `toLocaleDateString()` — the only use in the app — so the open report read `8/10/2026`: 8 October in most of the world, 10 August in the US | Fixed `6b34d0d` |
 | 33  | MED  | ModerationView  | No middle tier: below a text-xl heading everything was `text-xs` except one `text-sm` line, the reported entry included — the evidence set at chrome size | Fixed `6b34d0d` |
 
-**33 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
+| 34  | MED  | ModerationView  | With the queue empty, the "hiding an entry makes it private" footnote sat under `~ nothing to review ~`, explaining an action the screen no longer offered | Fixed `325afd0` |
+
+**34 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
 
@@ -297,6 +307,25 @@ from a single maximum-length entry (9–11), one document-breaking layout bug
 | Public profile | `~ report entry ~` gets its own full-width footer bar on every card, bold and underlined — on a stranger's page it is the loudest control, repeated once per entry | Guideline 1.2 compliance control. Its prominence is a `/mobile` call, not a `/frontend` one, and it is not worth re-tiering a reporting affordance for style alone right before submission |
 | Feed           | The floating `new entry` button sits over the last reaction in a card's reaction bar at rest. Whether that actually blocks the control is a touch-target question for `/mobile`, and Phase 4 still has `ReactionBar` unexercised |
 | Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice | Removing a conversion CTA is a product decision, not a hierarchy fix |
+
+## For `/ios` — observed, not diagnosed
+
+**A deep link to a not-running app does not route.** `com.retrowave.journal://#/report/<id>`
+delivered to a cold app landed on the feed twice; the identical link delivered
+to a warm app routed correctly every time. That is the emailed "Review in app"
+link's own case — `capacitor.ts` says so directly: "That is the common case for
+an emailed link: the app is usually not already open", which is why
+`getLaunchUrl` exists alongside the `appUrlOpen` listener.
+
+Ruled out on inspection, so do not re-check these: `App.tsx` does listen for
+`hashchange` and updates `reportRoute` (325-336), and `consumeAuthCallback`
+returns `none` without clearing a hash it does not recognise, so auth-callback
+is not eating it. Not diagnosed further — this is native bridge and lifecycle,
+`/ios` rather than `/frontend`, and it wants instrumenting rather than guessing.
+
+Note when reproducing: re-issuing the *same* hash is a no-op, because
+`routeDeepLink` returns early when `window.location.hash` already equals it. Use
+a different UUID each time or you will think the link is dead when it is not.
 
 ## Dismissed — looked at, deliberately not filed
 
