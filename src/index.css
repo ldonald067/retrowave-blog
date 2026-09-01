@@ -1185,6 +1185,24 @@ select:focus-visible {
   }
 }
 
+/* Toasts clear the floating "new entry" button.
+   The FAB is `fixed right-4` at `bottom: 1rem + safe-area` and roughly 3rem
+   tall; the toast was at `1.5rem + safe-area`, so it sat inside the FAB's band
+   and painted over it — and because the pill is pointer-events-auto and z-100
+   against the FAB's z-30, it also swallowed taps aimed at the button, for the
+   5s an error toast lasts. Caught by triggering a real error toast on the feed.
+   The FAB is `lg:hidden`, so above that breakpoint there is nothing to clear
+   and the toast returns to its original offset. */
+:root {
+  --toast-bottom-base: 4.5rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --toast-bottom-base: 1.5rem;
+  }
+}
+
 /* ===== Lined Paper Background ===== */
 .lined-paper {
   background-image: repeating-linear-gradient(

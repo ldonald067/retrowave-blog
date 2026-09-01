@@ -45,7 +45,7 @@ export default function Toast({
     <div
       className="fixed inset-x-0 z-[100] flex justify-center px-4 pointer-events-none"
       style={{
-        bottom: `max(${1.5 + index * 2.75}rem, calc(env(safe-area-inset-bottom) + ${1.5 + index * 2.75}rem))`,
+        bottom: `max(calc(var(--toast-bottom-base) + ${index * 2.75}rem), calc(env(safe-area-inset-bottom) + var(--toast-bottom-base) + ${index * 2.75}rem))`,
       }}
     >
       <motion.div
