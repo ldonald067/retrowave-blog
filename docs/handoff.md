@@ -36,13 +36,15 @@ enrollment.
 The **full UI audit** — `docs/audit/ui-audit-plan.md` is the live checklist and
 findings log. **Start there, not here**, for anything UI.
 
-- **34 findings, all fixed.** **Phase 7c (the hierarchy sweep) is COMPLETE** —
-  all eight surfaces.
+- **36 findings: 35 fixed, 1 open.** **Phase 7c (the hierarchy sweep) is
+  COMPLETE** — all eight surfaces.
 - **4 dismissals** recorded so they are not re-raised, including one that
   matters: `EmptyState`'s `toLocaleDateString('en-US', …)` looks exactly like
   finding 32 and is deliberately different. Do not "fix" it.
-- **Phase 8 (adverse states) is where the work is now.** `ErrorMessage` is done.
-  Toasts, skeletons, rapid-tap cooldown, session expiry and offline are not.
+- **Phase 8 (adverse states) is part done.** `ErrorMessage`, the skeletons and
+  the error toast are verified on device. The success toast, an isolated
+  `LoadingSpinner`, a genuine sub-400ms rapid tap, offline and session expiry
+  are not — the plan says why for each.
 - **Phase 10 has four themes never rendered**: `myspace-blue`, `y2k-cyber`,
   `grunge`, `pastel-goth`.
 
@@ -92,6 +94,13 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
+- **Finding 36 — reactions do not work, and never have.** Tapping ❤️ fails with
+  the generic error toast, and `post_reactions` has held **one row in all of
+  prod since July**. RLS, the emoji `CHECK` constraint, column drift and a
+  duplicate-key collision are all ruled out and written up in the plan; the raw
+  error is still swallowed by `toUserMessage`. Leading hypothesis is an expired
+  JWT making `auth.uid()` null while cached reads still render — which would
+  also explain why session expiry has never been seen. `/feature` work.
 - **Phase 8, then Phase 10.** The plan lists every item.
 - **`~ hide entry ~` has never been run.** Both moderation buttons call the same
   `admin_resolve_report` and both consume the report, and there was one to
