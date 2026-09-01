@@ -250,7 +250,7 @@ Render one dense screen (feed with an entry) in each theme and look.
 - [x] classic-xanga
 - [x] emo-dark
 - [x] scene-kid — title measured 14.3:1 at its brightest stops; legible
-- [x] myspace-blue — clean. Card title 4.00 on its header gradient
+- [x] myspace-blue — **not clean, see finding 39.** Reported clean here first because this sweep was run against the 3:1 large-text bar; at the size a phone renders the title the bar is 4.5, and 4.00 fails it
 - [x] y2k-cyber — clean, 7.70. The silver primary buttons are deliberate
       ("Metallic futurism"), not a token failure
 - [x] cottage-core — headings measured 8.04 / 7.28
@@ -317,9 +317,10 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 
 | 37  | MED  | App-wide        | `MotionConfig reducedMotion="user"` sat inside the main return, covering the feed only — `AuthModal`, `PublicProfileView`, `ModerationView` and `AgeVerification` are early returns above it and all run Framer entrance animations. The CSS `prefers-reduced-motion` block does not reach Framer's JS-driven inline styles, so Reduce Motion was ignored on the first screen a user ever sees | Fixed `7270da9` |
 
-| 38  | **HIGH** | Feed card, classic-xanga | `.xanga-title` is `--text-title` (`#e5007c`), and `PostCard` renders it on the header gradient: **2.20:1** worst stop. On a phone the title is `text-lg` = 18px bold, below WCAG's 18.66px bold cutoff, so it needs **4.5:1**, not 3:1. The default theme, on the most-seen text in the app. **OPEN — needs a design call** | **OPEN** |
+| 38  | **HIGH** | Feed card, classic-xanga | `.xanga-title` is `--text-title` (`#e5007c`) and `PostCard` renders it on the header gradient: **2.20:1**. On a phone the title is `text-lg` = 18px bold, under WCAG's 18.66px bold cutoff, so the bar is **4.5:1** | Fixed `df7aee1` |
+| 39  | **HIGH** | Feed card, myspace-blue | Same pairing, **4.00:1** — missed on the Phase 10 pass because that sweep was run against 3:1. Title lightened rather than darkened; it is a dark theme | Fixed `df7aee1` |
 
-**37 fixed, 2 open (36, 38).** Four contrast failures (1–4), three overflow bugs
+**39 fixed, 1 open (36).** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
 
@@ -345,32 +346,35 @@ from a single maximum-length entry (9–11), one document-breaking layout bug
 | Feed           | The floating `new entry` button sits over the last reaction in a card's reaction bar at rest. Whether that actually blocks the control is a touch-target question for `/mobile`, and Phase 4 still has `ReactionBar` unexercised |
 | Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice | Removing a conversion CTA is a product decision, not a hierarchy fix |
 
-## Finding 38 — the default theme's card title. OPEN, needs a design call
+## Findings 38 and 39 — card titles on the header gradient. Fixed `df7aee1`
 
-`--text-title` on classic-xanga is `#e5007c`, the hot pink that is the app's
-signature colour. It measures **4.54 on `--card-bg`** — fine — and **2.20 on the
-card header gradient**, which is where `PostCard`, `PostModal` and
-`PublicPostCard` all put it. On a phone that title is `text-lg` (18px bold),
-under WCAG's 18.66px bold cutoff, so the bar is 4.5:1 rather than 3:1.
+`.xanga-title` is `--text-title`, and `PostCard`, `PostModal` and
+`PublicPostCard` all render it on the card header gradient. The bar there is
+**4.5:1, not 3:1**: on a phone the title is `text-lg`, 18px bold, under WCAG's
+18.66px bold cutoff for large text. classic-xanga measured 2.20 and myspace-blue
+4.00.
 
-`.xanga-title`'s `text-shadow` helps perceptually and is why this reads as
-acceptable on screen. WCAG gives it no credit, and this audit's own rule from
-the scene-kid and cottage-core dismissals is that **measurement beats
-impression** — those two were dismissed because they measured 14.3 and 8.04
-despite looking muddy. This is the same rule pointing the other way.
+Fixed by moving the token, per your call — `#e5007c` → `#7d1a4d` on
+classic-xanga (4.77 gradient / 9.87 card-bg) and `#3399ff` → `#66b2ff` on
+myspace-blue, which is a dark theme so the direction that adds contrast is
+lighter, not darker (5.25 / 8.31). **All eight themes now clear 4.5 on both
+surfaces; worst value anywhere is 4.53.**
 
-Costed options, none of them free:
+The identity survives because only the title text moved — the accent still fills
+the chips, buttons, borders and FAB, so the screen reads the same. Every other
+`--text-title` consumer was checked first: `.prose` headings and `.glitter-text`
+sit on `--card-bg` and improve, and the `var(--button-text, var(--text-title))`
+fallback at `index.css:737` never fires because all eight themes define
+`--button-text`.
 
-| Option                                   | Result                                                      |
-| ---------------------------------------- | ------------------------------------------------------------ |
-| Darken `--text-title` to ~`#8e1a56`      | 4.17 gradient / 8.63 card-bg. Clears everything, but drains the signature hot pink — `/frontend` names muted palettes an anti-pattern |
-| Lighten the header gradient 45%          | Reaches only **3.10**, so it fixes the `sm:` size and not the phone size, and washes out the pink→purple→blue |
-| Lighten the gradient **and** raise the title to `text-xl` | 24px bold qualifies as large text, so 3:1 applies and 3.10 passes — two changes, both visible |
-| Accept it, documented                    | Relies on the text-shadow, which WCAG does not credit         |
-
-Not fixed unilaterally: this is the app's identity colour on its signature
-surface, and every route costs something visible. **A decision, not a defect to
-quietly patch.**
+**Two process notes, because both nearly shipped a still-failing value.** The
+option originally costed as "clears everything" was `#8e1a56` at 4.17, compared
+against 3:1 two paragraphs after establishing the bar was 4.5. And the Phase 10
+sweep was run against 3:1 as well, which is why myspace-blue's 4.00 printed as
+clean and got reported that way. **State the threshold once, then compare
+against that number every time** — the earlier lesson was that a colour verified
+on one surface is not verified on another; this one is that a colour verified
+against one threshold is not verified against another.
 
 ## Finding 36 — reactions do not work. OPEN
 
