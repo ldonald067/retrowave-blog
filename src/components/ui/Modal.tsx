@@ -121,7 +121,7 @@ export function ModalCloseButton({ onClick, label = 'Close' }: ModalCloseButtonP
   return (
     <button
       onClick={onClick}
-      className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
+      className="icon-btn-hover p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
       style={{ color: 'var(--text-muted)' }}
       aria-label={label}
     >

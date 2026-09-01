@@ -418,7 +418,7 @@ export default function Sidebar({
                         e.stopPropagation();
                         onToggleChapterPrivacy(ch.chapter);
                       }}
-                      className="flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded transition hover:opacity-80"
+                      className="icon-btn-hover flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg transition"
                       style={{ color: 'var(--text-muted)' }}
                       aria-label={
                         isPrivate ? `Make "${ch.chapter}" public` : `Make "${ch.chapter}" private`

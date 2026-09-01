@@ -144,7 +144,7 @@ export default function Header({
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={onSettingsClick}
-                  className="transition min-h-[44px] min-w-[44px] flex items-center justify-center px-1"
+                  className="icon-btn-hover transition rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center px-1"
                   style={{ color: 'inherit' }}
                   aria-label="Open settings"
                 >
@@ -154,7 +154,7 @@ export default function Header({
                 <motion.button
                   whileTap={{ scale: 0.95 }}
                   onClick={onSignOut}
-                  className="transition min-h-[44px] min-w-[44px] flex items-center justify-center px-1"
+                  className="icon-btn-hover transition rounded-lg min-h-[44px] min-w-[44px] flex items-center justify-center px-1"
                   style={{ color: 'inherit' }}
                   aria-label="Sign out of your account"
                 >

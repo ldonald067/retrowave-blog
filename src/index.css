@@ -817,6 +817,13 @@ a:active,
 .xanga-link:active,
 .xanga-link-caution:active {
   background-color: color-mix(in srgb, var(--accent-primary) 18%, transparent);
+}
+
+/* Only the inline links need a shape invented for them. Buttons already have
+   one, and forcing 0.5rem here squared off every `rounded-full` icon button for
+   the moment of the press. */
+.xanga-link:active,
+.xanga-link-caution:active {
   border-radius: 0.5rem;
 }
 

@@ -442,7 +442,7 @@ export default function PostModal({
                       aria-label="More options"
                       aria-expanded={showMoreMenu}
                       aria-haspopup="true"
-                      className="p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center hover:opacity-70"
+                      className="icon-btn-hover p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
                       style={{ color: 'var(--text-muted)' }}
                     >
                       <span className="text-lg font-bold leading-none">⋮</span>
