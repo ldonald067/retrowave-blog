@@ -227,13 +227,21 @@ The system:
       harness taps are ~1s apart. Code-verified only
 - [ ] Session expiry message
 
-## Phase 9 — Accessibility
+## Phase 9 — Accessibility — **COMPLETE**
 
 - [x] Dynamic Type at `accessibility-extra-extra-extra-large` — onboarding
-- [ ] Same across feed, composer, settings, profile
-- [ ] Reduce Motion on
-- [ ] Focus traps in every modal
-- [ ] `aria-label` present and in plain English on all icon-only controls
+- [x] Same across **feed, composer, settings, profile** — all four hold at max.
+      Nothing truncates, both modal footers keep their buttons on one row, the
+      three profile tabs still fit, and `[data-text-scaled]` correctly drops the
+      title's ✨. The reaction bar wraps to two rows, which incidentally lifts
+      the sixth reaction clear of the floating button
+- [x] Reduce Motion on — verified with it **actually enabled**, not just read:
+      two frames two seconds apart are byte-identical. Produced finding 37
+- [x] Focus traps in every modal — all seven (`AuthModal`, `ConfirmDialog`,
+      `PostModal`, `NewPasswordModal`, `ProfileModal`, `ReportDialog`,
+      `SettingsModal`) plus `OnboardingFlow`
+- [x] `aria-label` present and in plain English on all icon-only controls — no
+      findings; every label is plain English with no voice leakage
 
 ## Phase 10 — Theme sweep
 
@@ -300,9 +308,18 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 35  | MED  | Toast / feed    | Toast and the floating `new entry` button are both bottom-anchored ~0.5rem apart, so the toast painted over the FAB and, being `pointer-events-auto` at z-100 vs z-30, swallowed taps aimed at it for the 5s an error toast lasts | Fixed `b9832aa` |
 | 36  | **HIGH** | Reactions  | **Reactions do not work.** Tapping ❤️ on an own post as `ldonald234` fails and raises an error toast; `post_reactions` holds exactly one row in all of prod, from July. **OPEN — undiagnosed** | **OPEN** |
 
-**35 fixed, 1 open (36).** Four contrast failures (1–4), three overflow bugs
+| 37  | MED  | App-wide        | `MotionConfig reducedMotion="user"` sat inside the main return, covering the feed only — `AuthModal`, `PublicProfileView`, `ModerationView` and `AgeVerification` are early returns above it and all run Framer entrance animations. The CSS `prefers-reduced-motion` block does not reach Framer's JS-driven inline styles, so Reduce Motion was ignored on the first screen a user ever sees | Fixed `7270da9` |
+
+**36 fixed, 1 open (36).** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
+
+## Phase 9 — two dismissals
+
+| Checked                | Why it is not a finding                                                    |
+| ---------------------- | --------------------------------------------------------------------------- |
+| `AgeVerification` has no focus trap and no `role="dialog"` | It is a top-level **early return** — it replaces the whole tree, so nothing renders behind it for focus to escape to. A trap would be redundant and `dialog` semantically wrong for a full page |
+| The floating button partly covers the sixth reaction at default text size | A scroll moves it, and at max Dynamic Type the bar wraps and clears it entirely. The app already hides the FAB on the empty state for this reason, so the pattern is understood. The **toast** overlap was filed (35) because a toast is transient and steals taps with no way for the user to move it |
 
 ## Blocked — cannot be reached from this session
 
