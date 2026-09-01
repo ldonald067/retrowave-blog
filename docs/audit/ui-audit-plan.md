@@ -213,9 +213,18 @@ The system:
 
 - [ ] Offline banner (device or Network Link Conditioner, not the simulator)
 - [x] `ErrorMessage` — seen after a simulator reboot: 🥴 hero, bold `error:` label, muted message, full-width `~ try again ~`. Hierarchy reads correctly; recovery worked
-- [ ] `LoadingSpinner`, `PostSkeleton`
-- [ ] `Toast` — success and error, caught within 2.5s
-- [ ] Rapid taps on reactions (cooldown)
+- [x] `PostSkeleton` / `SidebarSkeleton` — captured on device. Structure mirrors
+      the real layout (avatar circle, title bar, body lines, six reaction
+      circles) rather than a generic spinner. **Caveat:** only ever visible
+      during the splash crossfade, so its colours were not judged in isolation
+- [ ] `LoadingSpinner` on its own — the splash covers it; not isolated
+- [x] `Toast` — **error** caught on device, and it was a real failure rather than
+      a simulated one. Finding 35 came out of it
+- [ ] `Toast` — **success** not captured; could not drive a successful write
+- [~] Rapid taps on reactions — the cooldown is `REACTION_COOLDOWN_MS = 400` and
+      is a **silent** no-op by design (both guards `return { error: null }`),
+      which is right for a double-tap guard. **Could not be driven** below 400ms:
+      harness taps are ~1s apart. Code-verified only
 - [ ] Session expiry message
 
 ## Phase 9 — Accessibility
@@ -288,7 +297,10 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 
 | 34  | MED  | ModerationView  | With the queue empty, the "hiding an entry makes it private" footnote sat under `~ nothing to review ~`, explaining an action the screen no longer offered | Fixed `325afd0` |
 
-**34 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
+| 35  | MED  | Toast / feed    | Toast and the floating `new entry` button are both bottom-anchored ~0.5rem apart, so the toast painted over the FAB and, being `pointer-events-auto` at z-100 vs z-30, swallowed taps aimed at it for the 5s an error toast lasts | Fixed `b9832aa` |
+| 36  | **HIGH** | Reactions  | **Reactions do not work.** Tapping ❤️ on an own post as `ldonald234` fails and raises an error toast; `post_reactions` holds exactly one row in all of prod, from July. **OPEN — undiagnosed** | **OPEN** |
+
+**35 fixed, 1 open (36).** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
 
@@ -306,6 +318,34 @@ from a single maximum-length entry (9–11), one document-breaking layout bug
 | Public profile | `~ report entry ~` gets its own full-width footer bar on every card, bold and underlined — on a stranger's page it is the loudest control, repeated once per entry | Guideline 1.2 compliance control. Its prominence is a `/mobile` call, not a `/frontend` one, and it is not worth re-tiering a reporting affordance for style alone right before submission |
 | Feed           | The floating `new entry` button sits over the last reaction in a card's reaction bar at rest. Whether that actually blocks the control is a touch-target question for `/mobile`, and Phase 4 still has `ReactionBar` unexercised |
 | Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice | Removing a conversion CTA is a product decision, not a hierarchy fix |
+
+## Finding 36 — reactions do not work. OPEN
+
+Phase 4 listed `ReactionBar` as "never exercised". It has been now, and it
+fails: tapping ❤️ on an own post as `ldonald234` raises
+`~ Something went wrong. Please try again. ~` and writes nothing. The whole
+`post_reactions` table holds **one row in all of prod**, created 2026-07-09 by
+`ldonald0234` — so this is not new, and the feature has effectively never worked.
+
+**Ruled out, so do not re-check these:**
+
+- The INSERT policy's three clauses all pass: `auth.uid() = user_id`; the
+  block check (`user_blocks` is **empty**); the rate limit (<60/min, and there
+  were 0 recent rows).
+- The `CHECK` constraint on `reaction_type` — the six allowed emoji match the
+  app's `REACTION_EMOJIS` **codepoint for codepoint**, verified rather than
+  eyeballed (`❤️` is `U+2764 U+FE0F` on both sides).
+- Column drift — the app writes `reaction_type`, which is what prod has. Not a
+  `PGRST204`-class mismatch.
+- A duplicate-key collision on the `(post_id, user_id, reaction_type)` unique
+  constraint — nothing was ever inserted to collide with.
+
+**Not established:** the actual error. `toUserMessage` swallows it and the toast
+shows the generic fallback. The next step is to surface the raw error — the same
+temporary-instrumentation approach that cracked the deep link — and the leading
+hypothesis is an expired JWT making `auth.uid()` null while cached reads still
+render, which would also explain why Phase 8's session-expiry row has never been
+seen. **This is `/feature` or `/fullstack` territory, not `/frontend`.**
 
 ## Cold-launch deep link — diagnosed and fixed, `0a3db5c`
 
