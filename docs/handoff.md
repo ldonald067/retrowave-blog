@@ -36,8 +36,8 @@ enrollment.
 The **full UI audit** — `docs/audit/ui-audit-plan.md` is the live checklist and
 findings log. **Start there, not here**, for anything UI.
 
-- **37 findings: 36 fixed, 1 open.** **Phase 7c (the hierarchy sweep) and
-  Phase 9 (accessibility) are both COMPLETE.**
+- **39 findings: 37 fixed, 2 open.** **Phases 7c, 9 and 10 are COMPLETE** — all
+  eight themes have now been rendered.
 - **4 dismissals** recorded so they are not re-raised, including one that
   matters: `EmptyState`'s `toLocaleDateString('en-US', …)` looks exactly like
   finding 32 and is deliberately different. Do not "fix" it.
@@ -49,8 +49,11 @@ findings log. **Start there, not here**, for anything UI.
   Reduce Motion was ignored on the auth screen, public profiles, the moderation
   queue and the age gate. Fixed in `7270da9`. Dynamic Type, focus traps and
   `aria-label`s all came back clean.
-- **Phase 10 has four themes never rendered**: `myspace-blue`, `y2k-cyber`,
-  `grunge`, `pastel-goth`.
+- **Finding 38 is open and is a design call, not a defect to patch.** On the
+  default theme the feed card title measures **2.20:1** on the card header
+  gradient, and at the size a phone renders it the bar is 4.5:1. It is the
+  signature hot pink on the signature surface; the plan costs four routes and
+  recommends none. Read it before touching `--text-title`.
 
 The design system that came out of it is written into `/frontend`: three size
 tiers, style encoding kind, colour mapped to the same kinds, and space as a
