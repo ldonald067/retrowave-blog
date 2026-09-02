@@ -313,14 +313,14 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 34  | MED  | ModerationView  | With the queue empty, the "hiding an entry makes it private" footnote sat under `~ nothing to review ~`, explaining an action the screen no longer offered | Fixed `325afd0` |
 
 | 35  | MED  | Toast / feed    | Toast and the floating `new entry` button are both bottom-anchored ~0.5rem apart, so the toast painted over the FAB and, being `pointer-events-auto` at z-100 vs z-30, swallowed taps aimed at it for the 5s an error toast lasts | Fixed `b9832aa` |
-| 36  | **HIGH** | Reactions  | **Reactions do not work.** Tapping ❤️ on an own post as `ldonald234` fails and raises an error toast; `post_reactions` holds exactly one row in all of prod, from July. **OPEN — undiagnosed** | **OPEN** |
+| 36  | **HIGH** | Reactions  | **Reactions never worked.** `42P17: infinite recursion detected in policy for relation "post_reactions"` — the INSERT policy rate-limited by selecting from the table it guards. Count moved into a `SECURITY DEFINER` function | Fixed, applied to prod |
 
 | 37  | MED  | App-wide        | `MotionConfig reducedMotion="user"` sat inside the main return, covering the feed only — `AuthModal`, `PublicProfileView`, `ModerationView` and `AgeVerification` are early returns above it and all run Framer entrance animations. The CSS `prefers-reduced-motion` block does not reach Framer's JS-driven inline styles, so Reduce Motion was ignored on the first screen a user ever sees | Fixed `7270da9` |
 
 | 38  | **HIGH** | Feed card, classic-xanga | `.xanga-title` is `--text-title` (`#e5007c`) and `PostCard` renders it on the header gradient: **2.20:1**. On a phone the title is `text-lg` = 18px bold, under WCAG's 18.66px bold cutoff, so the bar is **4.5:1** | Fixed `df7aee1` |
 | 39  | **HIGH** | Feed card, myspace-blue | Same pairing, **4.00:1** — missed on the Phase 10 pass because that sweep was run against 3:1. Title lightened rather than darkened; it is a dark theme | Fixed `df7aee1` |
 
-**41 fixed, 1 diagnosed-not-applied (36).** Four contrast failures (1–4), three overflow bugs
+**42 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
 
@@ -376,46 +376,38 @@ against that number every time** — the earlier lesson was that a colour verifi
 on one surface is not verified on another; this one is that a colour verified
 against one threshold is not verified against another.
 
-## Finding 36 — reactions do not work. DIAGNOSED, fix written, **not applied**
-
-The error, captured on device by temporarily surfacing the raw PostgrestError
-instead of `toUserMessage`'s generic fallback — which is exactly what had hidden
-it for two months:
+## Finding 36 — reactions never worked. Fixed and applied
 
     42P17: infinite recursion detected in policy for relation "post_reactions"
 
-**Cause.** The INSERT policy rate-limits by counting the caller's recent rows:
-`(select count(*) from post_reactions where user_id = auth.uid() and ...) < 60`.
-That is a policy **on** `post_reactions` that **selects from** `post_reactions`,
-so evaluating it requires evaluating the same table's SELECT policy, which
-requires evaluating it again. Postgres detects the cycle and raises rather than
-looping, so the insert never happens. The table has held one row since
-2026-07-09, so the feature has been broken since about the day it shipped.
+Caught by temporarily replacing `toUserMessage` with the raw PostgrestError —
+the generic toast is precisely what hid this for two months.
 
-**Fix written** to `supabase/migrations/20260901000000_fix_post_reactions_policy_recursion.sql`:
-move the count into a `SECURITY DEFINER` function so it runs outside RLS on that
-table. It takes the user id as an argument rather than reading `auth.uid()`
-internally, so it cannot be repurposed to count another user. The ownership and
-block clauses are untouched.
+**Cause.** The INSERT policy rate-limited by counting the caller's recent rows:
+a policy **on** `post_reactions` that **selects from** `post_reactions`.
+Evaluating it requires evaluating the same table's SELECT policy, which requires
+evaluating it again; Postgres raises rather than looping, so no insert ever
+landed. The table held one row from 2026-07-09 — it broke at or near ship.
 
-**NOT APPLIED**, because prod became unreachable: the keychain stopped releasing
-the Management API token. The item is still there — `security
-find-generic-password -s "Supabase CLI" -a supabase` prints its metadata — but
-the `-w` secret read returns empty, so macOS is denying it without an
-interactive approval. The API itself is fine; an empty token just makes it
-answer `Format is Authorization: Bearer [token]`, which is what three "timeouts"
-actually were.
+**Confirmed sole cause**, not half of one: the SELECT policy queries `posts`, not
+itself, and no policy on `posts` or `user_blocks` references `post_reactions`.
+There is no second loop.
 
-Even with a token this wants a human: it is the app's security boundary, and
-writing an RLS policy that cannot be tested against the database it guards is
-how the next silent two-month bug gets made. Apply through the dashboard SQL
-editor, then run the four checks at the bottom of the file.
+**Fix**, in `20260901000000_fix_post_reactions_policy_recursion.sql`, applied to
+prod: the count moved into a `SECURITY DEFINER` function that runs outside RLS
+on that table. It takes the user id as an argument rather than reading
+`auth.uid()` internally, so it cannot be repurposed to count another user.
+Ownership and block clauses untouched.
 
-**One thing still unverified:** whether the SELECT policy contributes to the
-cycle as well. The self-reference above is sufficient to explain 42P17 on its
-own, but the query to read that policy's text is one of the ones that died on
-the empty token. If reactions
-still fail after applying this, that is where to look next.
+**Verified end to end:** reaction inserted on device, survived a full app
+relaunch (server state, not optimistic UI), then deleted. `post_reactions` back
+to 1 row, 3 policies present, SELECT policy unchanged.
+
+**Also ruled out on the way, so nobody re-walks them:** the ownership clause; the
+block check (`user_blocks` is empty); the rate limit genuinely tripping; the
+`reaction_type` CHECK constraint — the six allowed emoji match the app's
+`REACTION_EMOJIS` codepoint for codepoint, `❤️` being `U+2764 U+FE0F` on both
+sides; column drift; and a duplicate-key collision.
 
 ## Cold-launch deep link — diagnosed and fixed, `0a3db5c`
 

@@ -1,3 +1,9 @@
+-- APPLIED to prod 2026-09-02 via the Management API, and verified: reaction
+-- inserted, survived a full app relaunch (so it is server state, not optimistic
+-- UI), then deleted. post_reactions back to 1 row, 3 policies intact, SELECT
+-- policy unchanged. Recorded here because in this project a migration file's
+-- existence is NOT evidence it is live.
+--
 -- Fix finding 36: reactions have never worked.
 --
 -- Tapping any reaction fails with:

@@ -36,7 +36,7 @@ enrollment.
 The **full UI audit** — `docs/audit/ui-audit-plan.md` is the live checklist and
 findings log. **Start there, not here**, for anything UI.
 
-- **40 findings: 39 fixed, 1 open.** **Phases 7c, 9 and 10 are COMPLETE** — all
+- **42 findings, all fixed.** **Phases 7c, 9 and 10 are COMPLETE** — all
   eight themes rendered, and all eight now clear 4.5:1 for the card title on
   both the header gradient and `--card-bg` (worst value anywhere: 4.53).
 - **4 dismissals** recorded so they are not re-raised, including one that
@@ -100,17 +100,13 @@ iPhone 17 Pro Max simulator unless noted.
   confirmed server-side by remounting and re-querying `admin_list_reports`.
 - **Privacy smoke checks 9/9 green against prod.**
 - **Anonymous clients read 0 rows** from every table.
+- **Reactions work**, after `post_reactions`' INSERT policy stopped recursing on
+  itself — inserted on device, survived a relaunch, then deleted, with the table
+  and its three policies confirmed afterwards.
 
 ## Open work
 
-- **Finding 36 — reactions do not work, and never have.** Tapping ❤️ fails with
-  the generic error toast, and `post_reactions` has held **one row in all of
-  prod since July**. RLS, the emoji `CHECK` constraint, column drift and a
-  duplicate-key collision are all ruled out and written up in the plan; the raw
-  error is still swallowed by `toUserMessage`. Leading hypothesis is an expired
-  JWT making `auth.uid()` null while cached reads still render — which would
-  also explain why session expiry has never been seen. `/feature` work.
-- **Phase 8, then Phase 10.** The plan lists every item.
+- **Phase 8 is the only audit phase left.** The plan lists every item.
 - **`~ hide entry ~` has never been run.** Both moderation buttons call the same
   `admin_resolve_report` and both consume the report, and there was one to
   spend. **A new report must be filed before that path can be exercised.**
