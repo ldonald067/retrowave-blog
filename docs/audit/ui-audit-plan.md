@@ -320,7 +320,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 38  | **HIGH** | Feed card, classic-xanga | `.xanga-title` is `--text-title` (`#e5007c`) and `PostCard` renders it on the header gradient: **2.20:1**. On a phone the title is `text-lg` = 18px bold, under WCAG's 18.66px bold cutoff, so the bar is **4.5:1** | Fixed `df7aee1` |
 | 39  | **HIGH** | Feed card, myspace-blue | Same pairing, **4.00:1** — missed on the Phase 10 pass because that sweep was run against 3:1. Title lightened rather than darkened; it is a dark theme | Fixed `df7aee1` |
 
-**39 fixed, 1 open (36).** Four contrast failures (1–4), three overflow bugs
+**41 fixed, 1 diagnosed-not-applied (36).** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
 
@@ -376,33 +376,38 @@ against that number every time** — the earlier lesson was that a colour verifi
 on one surface is not verified on another; this one is that a colour verified
 against one threshold is not verified against another.
 
-## Finding 36 — reactions do not work. OPEN
+## Finding 36 — reactions do not work. DIAGNOSED, fix written, **not applied**
 
-Phase 4 listed `ReactionBar` as "never exercised". It has been now, and it
-fails: tapping ❤️ on an own post as `ldonald234` raises
-`~ Something went wrong. Please try again. ~` and writes nothing. The whole
-`post_reactions` table holds **one row in all of prod**, created 2026-07-09 by
-`ldonald0234` — so this is not new, and the feature has effectively never worked.
+The error, captured on device by temporarily surfacing the raw PostgrestError
+instead of `toUserMessage`'s generic fallback — which is exactly what had hidden
+it for two months:
 
-**Ruled out, so do not re-check these:**
+    42P17: infinite recursion detected in policy for relation "post_reactions"
 
-- The INSERT policy's three clauses all pass: `auth.uid() = user_id`; the
-  block check (`user_blocks` is **empty**); the rate limit (<60/min, and there
-  were 0 recent rows).
-- The `CHECK` constraint on `reaction_type` — the six allowed emoji match the
-  app's `REACTION_EMOJIS` **codepoint for codepoint**, verified rather than
-  eyeballed (`❤️` is `U+2764 U+FE0F` on both sides).
-- Column drift — the app writes `reaction_type`, which is what prod has. Not a
-  `PGRST204`-class mismatch.
-- A duplicate-key collision on the `(post_id, user_id, reaction_type)` unique
-  constraint — nothing was ever inserted to collide with.
+**Cause.** The INSERT policy rate-limits by counting the caller's recent rows:
+`(select count(*) from post_reactions where user_id = auth.uid() and ...) < 60`.
+That is a policy **on** `post_reactions` that **selects from** `post_reactions`,
+so evaluating it requires evaluating the same table's SELECT policy, which
+requires evaluating it again. Postgres detects the cycle and raises rather than
+looping, so the insert never happens. The table has held one row since
+2026-07-09, so the feature has been broken since about the day it shipped.
 
-**Not established:** the actual error. `toUserMessage` swallows it and the toast
-shows the generic fallback. The next step is to surface the raw error — the same
-temporary-instrumentation approach that cracked the deep link — and the leading
-hypothesis is an expired JWT making `auth.uid()` null while cached reads still
-render, which would also explain why Phase 8's session-expiry row has never been
-seen. **This is `/feature` or `/fullstack` territory, not `/frontend`.**
+**Fix written** to `supabase/migrations/20260901000000_fix_post_reactions_policy_recursion.sql`:
+move the count into a `SECURITY DEFINER` function so it runs outside RLS on that
+table. It takes the user id as an argument rather than reading `auth.uid()`
+internally, so it cannot be repurposed to count another user. The ownership and
+block clauses are untouched.
+
+**NOT APPLIED.** The Management API stopped responding partway through (three
+consecutive timeouts after working all session), and this is the app's security
+boundary — writing an RLS policy that cannot be tested against the database it
+guards is how the next silent two-month bug gets made. Apply it through the
+dashboard SQL editor, then run the four checks at the bottom of the file.
+
+**One thing still unverified:** whether the SELECT policy contributes to the
+cycle as well. The self-reference above is sufficient to explain 42P17 on its
+own, but the query to read that policy's text is what timed out. If reactions
+still fail after applying this, that is where to look next.
 
 ## Cold-launch deep link — diagnosed and fixed, `0a3db5c`
 
