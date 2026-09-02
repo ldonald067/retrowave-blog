@@ -398,15 +398,23 @@ table. It takes the user id as an argument rather than reading `auth.uid()`
 internally, so it cannot be repurposed to count another user. The ownership and
 block clauses are untouched.
 
-**NOT APPLIED.** The Management API stopped responding partway through (three
-consecutive timeouts after working all session), and this is the app's security
-boundary — writing an RLS policy that cannot be tested against the database it
-guards is how the next silent two-month bug gets made. Apply it through the
-dashboard SQL editor, then run the four checks at the bottom of the file.
+**NOT APPLIED**, because prod became unreachable: the keychain stopped releasing
+the Management API token. The item is still there — `security
+find-generic-password -s "Supabase CLI" -a supabase` prints its metadata — but
+the `-w` secret read returns empty, so macOS is denying it without an
+interactive approval. The API itself is fine; an empty token just makes it
+answer `Format is Authorization: Bearer [token]`, which is what three "timeouts"
+actually were.
+
+Even with a token this wants a human: it is the app's security boundary, and
+writing an RLS policy that cannot be tested against the database it guards is
+how the next silent two-month bug gets made. Apply through the dashboard SQL
+editor, then run the four checks at the bottom of the file.
 
 **One thing still unverified:** whether the SELECT policy contributes to the
 cycle as well. The self-reference above is sufficient to explain 42P17 on its
-own, but the query to read that policy's text is what timed out. If reactions
+own, but the query to read that policy's text is one of the ones that died on
+the empty token. If reactions
 still fail after applying this, that is where to look next.
 
 ## Cold-launch deep link — diagnosed and fixed, `0a3db5c`
