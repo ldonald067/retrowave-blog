@@ -148,6 +148,7 @@ overlapped when it does.**
 | chapter  | 100 chars              | chip, filter pill, metadata row, sidebar, chapter detail bar       |
 | author   | 50 chars               | feed footer, metadata row                                          |
 | mood     | 100 chars              | feed card, sidebar, profile                                        |
+| status   | 100 chars              | header row, sidebar, public profile                                |
 | music    | 200 chars              | feed card, YouTube card fallback, profile                          |
 | username | per `USERNAME_PATTERN` | header, profile card, public URL, block button label               |
 
@@ -158,6 +159,12 @@ Truncation is only acceptable where the full value is reachable somewhere else.
 - [x] Chapter at 100 — chip truncates, metadata row truncates, chip row scrolls horizontally
 - [ ] Author at 50 — feed footer
 - [x] A single unbroken token — body copy wraps correctly in card, detail and textarea
+- [x] Status at 100 — public profile, 440pt. Wraps to two lines at full width,
+      no overflow or truncation. Verified with a real 100-char value set on the
+      QA account and reverted afterwards. The limit is enforced in both layers:
+      `PROFILE_LIMITS.status_message.max` and a live `CHECK` constraint,
+      `profiles_status_message_length`, confirmed against prod rather than read
+      from the migration
 - [ ] Long values at max Dynamic Type, where they wrap to many more lines
 
 ## Carried over — re-confirm next pass
