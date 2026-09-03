@@ -42,10 +42,12 @@ findings log. **Start there, not here**, for anything UI.
 - **4 dismissals** recorded so they are not re-raised, including one that
   matters: `EmptyState`'s `toLocaleDateString('en-US', …)` looks exactly like
   finding 32 and is deliberately different. Do not "fix" it.
-- **Phase 8 (adverse states) is part done.** `ErrorMessage`, the skeletons and
-  the error toast are verified on device. The success toast, an isolated
-  `LoadingSpinner`, a genuine sub-400ms rapid tap, offline and session expiry
-  are not — the plan says why for each.
+- **Phase 8 is as complete as this rig allows, so the audit is done.**
+  `ErrorMessage`, the skeletons and the error toast are verified on device. Five
+  rows are not, each with a specific reason in the plan — the two that need
+  something you have are **session expiry** (fires only on a failed token
+  *refresh*, so it needs the service_role key or a dashboard sign-out; waiting
+  will not do it) and **offline** (a real device in Airplane Mode).
 - **Phase 9 found one real gap**: `MotionConfig` covered only the feed, so
   Reduce Motion was ignored on the auth screen, public profiles, the moderation
   queue and the age gate. Fixed in `7270da9`. Dynamic Type, focus traps and
@@ -106,7 +108,8 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
-- **Phase 8 is the only audit phase left.** The plan lists every item.
+- **The audit has no phases left.** What remains are the five Phase 8 rows the
+  rig cannot reach, listed in the plan with why.
 - **`~ hide entry ~` has never been run.** Both moderation buttons call the same
   `admin_resolve_report` and both consume the report, and there was one to
   spend. **A new report must be filed before that path can be exercised.**
@@ -119,7 +122,8 @@ iPhone 17 Pro Max simulator unless noted.
   connection. `useOnlineStatus` uses `@capacitor/network` now, but that needs a
   device in Airplane Mode to confirm.
 - **Finding 21's truncation is code-level only.** No public account has a chapter
-  long enough to photograph `PublicPostCard` truncating one.
+  long enough to photograph `PublicPostCard` truncating one. (Finding 12's filter
+  pill **is** photographed now — that carried-over item is closed.)
 
 ## Waiting for you, not for a session
 
@@ -128,6 +132,9 @@ iPhone 17 Pro Max simulator unless noted.
   against a public entry if you want `~ hide entry ~` exercised.
 - **Signing in.** An agent cannot authenticate, so any surface needing a
   particular account needs you to sign in first and say which one.
+- **Session expiry**, if you want it exercised: revoke the session from the
+  Supabase dashboard (Auth → Users → sign out) while the app is backgrounded,
+  then foreground it.
 
 ## Accounts, and what each is for
 
