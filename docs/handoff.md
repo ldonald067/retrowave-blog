@@ -36,7 +36,7 @@ enrollment.
 The **full UI audit** — `docs/audit/ui-audit-plan.md` is the live checklist and
 findings log. **Start there, not here**, for anything UI.
 
-- **42 findings, all fixed.** **Phases 7c, 9 and 10 are COMPLETE** — all
+- **43 findings, all fixed.** **Phases 7c, 9 and 10 are COMPLETE** — all
   eight themes rendered, and all eight now clear 4.5:1 for the card title on
   both the header gradient and `--card-bg` (worst value anywhere: 4.53).
 - **4 dismissals** recorded so they are not re-raised, including one that
@@ -110,9 +110,11 @@ iPhone 17 Pro Max simulator unless noted.
 
 - **The audit has no phases left.** What remains are the five Phase 8 rows the
   rig cannot reach, listed in the plan with why.
-- **`~ hide entry ~` has never been run.** Both moderation buttons call the same
-  `admin_resolve_report` and both consume the report, and there was one to
-  spend. **A new report must be filed before that path can be exercised.**
+- **`~ hide entry ~` has never been run, but a report is now waiting for it.**
+  Filed against one of `retrodemo`'s three public entries — so hiding it leaves
+  that fixture with two, rather than emptying `codex-qa-24e3a82f`'s single-entry
+  light-theme page — and confirmed `open` in `content_reports` with a QA note.
+  **Sign in as `ldonald0234` and deep-link `#/report/<any uuid>` to run it.**
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. A half-built ban is worse than none.
 - **Renaming a chapter republishes its entries** and nothing warns. Deliberate —
@@ -128,8 +130,8 @@ iPhone 17 Pro Max simulator unless noted.
 ## Waiting for you, not for a session
 
 - **Apple Developer Program enrollment**, as above.
-- **The moderation queue is now empty.** File a report from a non-admin account
-  against a public entry if you want `~ hide entry ~` exercised.
+- **A report is filed and open**, ready for `~ hide entry ~`. It needs
+  `ldonald0234` signed in — neither simulator has the admin account right now.
 - **Signing in.** An agent cannot authenticate, so any surface needing a
   particular account needs you to sign in first and say which one.
 - **Session expiry**, if you want it exercised: revoke the session from the
