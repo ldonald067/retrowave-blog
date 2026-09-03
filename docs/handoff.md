@@ -36,7 +36,7 @@ enrollment.
 `docs/audit/ui-audit-plan.md` is the checklist and findings log. **Start there,
 not here**, for anything UI.
 
-**43 findings, all fixed.** Every phase is complete. The only unticked rows are
+**44 findings, all fixed.** Every phase is complete. The only unticked rows are
 Phase 8 states this rig physically cannot produce — they are under "Waiting for
 you" below, each with why.
 
