@@ -254,7 +254,19 @@ export default function PublicProfileView({
           animate={{ opacity: 1, y: 0 }}
           className="xanga-box p-6 mb-6"
         >
-          <div className="flex items-start gap-4 stack-when-scaled">
+          {/* Identity beside the avatar; everything else full width beneath it.
+              The avatar is w-24 — 96pt — and the old single column next to it
+              ran past 400pt, so a third of this card was an empty strip under
+              the avatar that nothing ever filled. `.stack-when-scaled` had
+              already diagnosed exactly that ("a tall empty gap under the
+              avatar") and fixed it only for Dynamic Type; at default size the
+              gap was simply less obvious.
+
+              Only the name and handle stay in the row, because they are the two
+              things short enough to sit beside a 96pt square without being
+              squeezed. `items-center` because the text is now shorter than the
+              avatar rather than taller than it. */}
+          <div className="flex items-center gap-4 stack-when-scaled">
             <Avatar
               src={profile.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${username}`}
               alt={profile.username}
@@ -266,12 +278,18 @@ export default function PublicProfileView({
                 {profile.display_name || profile.username}
               </h1>
               <p className="xanga-subtitle">@{profile.username}</p>
-              {profile.status_message && (
-                <p className="aim-status mt-2">📟 ~ {profile.status_message} ~</p>
-              )}
+            </div>
+          </div>
+
+          {/* mt-6 sets the identity apart from the content; space-y-4 keeps the
+              content blocks a group rather than a stack of loose paragraphs. */}
+          <div className="mt-6 space-y-4">
+            {profile.status_message && (
+              <p className="aim-status">📟 ~ {profile.status_message} ~</p>
+            )}
               {profile.bio && (
                 <p
-                  className="text-sm mt-2 italic break-words"
+                  className="text-sm italic break-words"
                   style={{ color: 'var(--text-body)' }}
                 >
                   {profile.bio}
@@ -292,7 +310,7 @@ export default function PublicProfileView({
                   the emphasis lands on "nostalgic", not on "feeling". */}
               {(profile.current_mood || profile.current_music) && (
                 <div
-                  className="mt-3 rounded-lg border px-3 py-2.5 space-y-1.5"
+                  className="rounded-lg border px-3 py-2.5 space-y-1.5"
                   style={{
                     backgroundColor:
                       'color-mix(in srgb, var(--accent-primary) 10%, var(--card-bg))',
@@ -337,13 +355,16 @@ export default function PublicProfileView({
                   for every profile until the app has been live a second year,
                   so it is worth deleting outright if it still reads as filler
                   then. */}
-              <p className="mt-3 text-xs" style={{ color: 'var(--text-muted)' }}>
-                {publicEntryLabel} · writing since {joinedYear}
-              </p>
-              {/* gap-x-4/gap-y-3, not gap-2: these three wrap onto three rows
-                  on a phone, and at 8px a caution link sits hard under a filled
-                  primary button and reads as part of it. */}
-              <div className="mt-4 flex flex-wrap gap-x-4 gap-y-3">
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {publicEntryLabel} · writing since {joinedYear}
+            </p>
+          </div>
+
+          {/* Its own group, mt-6 from the content above: these are controls, not
+              more of the profile. gap-x-4/gap-y-3, not gap-2 — the three wrap
+              onto three rows on a phone, and at 8px a caution link sits hard
+              under a filled primary button and reads as part of it. */}
+          <div className="mt-6 flex flex-wrap gap-x-4 gap-y-3">
                 <button
                   onClick={onGoHome}
                   className="xanga-link inline-flex items-center justify-center text-xs min-h-[44px] px-3"
@@ -373,13 +394,11 @@ export default function PublicProfileView({
                   </button>
                 )}
               </div>
-              {blockError && (
-                <p className="text-xs mt-2" style={{ color: 'var(--accent-primary)' }} role="alert">
-                  {blockError}
-                </p>
-              )}
-            </div>
-          </div>
+          {blockError && (
+            <p className="text-xs mt-3" style={{ color: 'var(--accent-primary)' }} role="alert">
+              {blockError}
+            </p>
+          )}
         </motion.div>
 
         {/* Posts */}

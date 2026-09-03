@@ -501,14 +501,17 @@ body {
   display: none;
 }
 
-/* A two-column row has a text column narrow enough to fight the words once
-   they grow. On the public profile at the 1.3x cap the avatar kept its fixed
-   width and squeezed the rest to about half the screen, so the display name
-   broke mid-phrase — "retro demo ☆" put its ☆ alone on the next line — the bio
-   ran to two lines and the now-playing line to three, all beside a tall empty
-   gap under the avatar. Stacking hands the text the full width, which is the
-   entire point of having scaled it up. Centring matches the signed-in profile
-   card, which already stacks avatar over name at every size. */
+/* A two-column row has a text column narrow enough to fight the words once they
+   grow. At the 1.3x cap the avatar keeps its fixed 96pt and squeezes the rest,
+   so the display name breaks mid-phrase — "retro demo ☆" puts its ☆ alone on
+   the next line. Stacking hands it the full width, which is the entire point of
+   having scaled it up, and centring matches the signed-in profile card, which
+   stacks avatar over name at every size.
+
+   This rule used to carry more weight: the bio, the now-playing line and the
+   whole rest of the profile lived in that same column, beside a tall empty gap
+   under the avatar. They are full width at every size now, so all this has left
+   to fix is the name and the handle. */
 [data-text-scaled] .stack-when-scaled {
   flex-direction: column;
   align-items: center;

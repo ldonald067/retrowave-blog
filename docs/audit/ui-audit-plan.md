@@ -340,7 +340,9 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 
 | 43  | MED  | ReportDialog    | The confirmation promised "We remove content that breaks the rules **and can ban repeat offenders**" — prod has `admin_list_reports` and `admin_resolve_report` only, so there is no ban. A promise the product cannot keep, in copy App Review reads | Fixed `96af7a4` |
 
-**43 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
+| 44  | MED  | Public profile  | The profile card was one 96pt avatar beside a 400pt column, so roughly a third of the card was an empty strip under the avatar that nothing filled — and the mood/music panel was squeezed into the remaining ~230pt, wrapping the now-playing line to three. Identity row now holds the name and handle only; everything else is full width | Fixed `PENDING` |
+
+**44 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
 
