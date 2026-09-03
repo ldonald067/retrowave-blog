@@ -98,8 +98,11 @@ iPhone 17 Pro Max simulator unless noted.
   hold at max Dynamic Type.
 - **Cold start** median 1.94s (Debug, warm, n=5). Treat past ~3s as a finding.
 - **Deep links route cold and warm**, signed in and signed out, after `0a3db5c`.
-- **The moderation queue works end to end** — rendered, `~ dismiss ~` run, and
-  confirmed server-side by remounting and re-querying `admin_list_reports`.
+- **The moderation queue works end to end, both actions.** `~ dismiss ~` and
+  `~ hide entry ~` have each been run against a real report and confirmed
+  server-side — hide set the report to `actioned` and the entry's `is_private`
+  to true. The entry was restored afterwards, so `retrodemo` still has its three
+  public entries and the report still reads `actioned`.
 - **Privacy smoke checks 9/9 green against prod.**
 - **Anonymous clients read 0 rows** from every table.
 - **Reactions work**, after `post_reactions`' INSERT policy stopped recursing on
@@ -110,11 +113,7 @@ iPhone 17 Pro Max simulator unless noted.
 
 - **The audit has no phases left.** What remains are the five Phase 8 rows the
   rig cannot reach, listed in the plan with why.
-- **`~ hide entry ~` has never been run, but a report is now waiting for it.**
-  Filed against one of `retrodemo`'s three public entries — so hiding it leaves
-  that fixture with two, rather than emptying `codex-qa-24e3a82f`'s single-entry
-  light-theme page — and confirmed `open` in `content_reports` with a QA note.
-  **Sign in as `ldonald0234` and deep-link `#/report/<any uuid>` to run it.**
+
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. A half-built ban is worse than none.
 - **Renaming a chapter republishes its entries** and nothing warns. Deliberate —
@@ -130,8 +129,7 @@ iPhone 17 Pro Max simulator unless noted.
 ## Waiting for you, not for a session
 
 - **Apple Developer Program enrollment**, as above.
-- **A report is filed and open**, ready for `~ hide entry ~`. It needs
-  `ldonald0234` signed in — neither simulator has the admin account right now.
+
 - **Signing in.** An agent cannot authenticate, so any surface needing a
   particular account needs you to sign in first and say which one.
 - **Session expiry**, if you want it exercised: revoke the session from the

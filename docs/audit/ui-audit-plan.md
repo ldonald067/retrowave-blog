@@ -126,12 +126,13 @@ than tightening until it squeezes in.
       server-side: left the route and came back so the component remounted, and
       `admin_list_reports` returned zero rows from prod
 - [x] Empty state `~ nothing to review ~` seen for the first time
-- [~] **hide entry** — **a report is now filed and waiting**, deliberately
-      against one of `retrodemo`'s three public entries so hiding it leaves the
-      fixture with two (rather than emptying `codex-qa-24e3a82f`'s single-entry
-      light-theme page). Confirmed `open` in `content_reports` with a QA note.
-      **Running it needs `ldonald0234` signed in** — neither simulator currently
-      has the admin account
+- [x] **hide entry** — exercised end to end and verified server-side: report
+      status → `actioned`, the entry's `is_private` → true, and retrodemo's
+      public count 3 → 2. The `~ entry hidden ~` notice showed and the queue fell
+      through to `~ nothing to review ~` with finding 34's footnote correctly
+      absent. **Phase 7 is complete — both moderation actions are now run.**
+      The entry was restored to public afterwards so the retrodemo fixture keeps
+      its three; the report stays `actioned`, so the record of the test survives
 
 ## Phase 7b — Overflow: what a legal maximum does to the layout
 
