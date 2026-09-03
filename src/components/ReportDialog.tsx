@@ -77,9 +77,15 @@ export default function ReportDialog({ postId, postTitle, onClose }: ReportDialo
               <h3 id={titleId} className="xanga-title text-lg mb-2">
                 ~ thanks, we got it ~
               </h3>
+              {/* Says only what the app can actually do. It used to promise "and
+                  can ban repeat offenders" — prod has `admin_list_reports` and
+                  `admin_resolve_report` and nothing else, so there is no ban to
+                  carry out. Telling a reporter their report can get someone
+                  banned, when it cannot, is a promise the product does not
+                  keep, and it is the kind of claim App Review reads. Restore
+                  the sentence when a ban actually exists. */}
               <p className="text-sm mb-5" style={{ color: 'var(--text-body)' }}>
-                This entry has been sent to us for review. We remove content that breaks the rules
-                and can ban repeat offenders.
+                This entry has been sent to us for review. We remove content that breaks the rules.
               </p>
               <button
                 type="button"
