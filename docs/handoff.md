@@ -6,7 +6,7 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-02, at `2fd9c15`.
+Last rewritten 2026-09-02, at `6dd9ed5`.
 
 ---
 
@@ -51,6 +51,14 @@ you" below, each with why.
 `toLocaleDateString('en-US', …)` looks exactly like finding 32 and is
 deliberately different — **do not "fix" it**; and `AgeVerification` correctly has
 no focus trap, because it is an early return with nothing behind it.
+
+**Finding 44 landed after the sweep had closed**, and is worth knowing about
+because it is the newest shape on a visitor-facing screen: the public profile
+card used to be a 96pt avatar beside a 400pt column, so a third of it was an
+empty strip under the avatar. The identity row now holds the display name and
+handle only; status, bio, the mood/music panel, the stat line and the actions
+are all full width beneath. `.stack-when-scaled` still stacks and centres the
+identity at large Dynamic Type, and its comment has been corrected to match.
 
 The design system is written into `/frontend`: three size tiers, style encoding
 kind, colour mapped to the same kinds, space as a material. Apply it from there
@@ -105,6 +113,10 @@ iPhone 17 Pro Max simulator unless noted.
   both the header gradient and `--card-bg` (worst value anywhere: 4.53).
 - **The overflow fixture's filter pill truncates** without the page shifting into
   horizontal scroll.
+- **The redesigned profile card** at 393pt and 440pt, emo-dark and classic-xanga,
+  a full profile and a sparse one, and at max Dynamic Type.
+- **A 100-character status** — the field maximum — wraps to two lines at full
+  width on that card with no overflow. Set on the QA account and reverted.
 - **Cold start** median 1.94s (Debug, warm, n=5). Treat past ~3s as a finding.
 - **Privacy smoke checks 9/9 green against prod**; anonymous clients read 0 rows
   from every table.
@@ -145,6 +157,11 @@ iPhone 17 Pro Max simulator unless noted.
 | `retrodemo`                                     | Public page, emo-dark, mood + music + bio, **3 public entries**        |
 | `codex-qa-24e3a82f`                             | Public page, **classic-xanga** — the light-theme public fixture        |
 | `blankslate`, `nonoabc2345`, `ldonald234_xanga` | Zero posts — reach `EmptyState`                                        |
+
+**Last known simulator state** (sessions live in `UserDefaults`, so they survive
+a reboot): iPhone 17 Pro Max signed in as `ldonald234`, iPhone 17 as
+`ldonald0234`. Both were shut down at the end of the session. Check which sim is
+booted and which build it carries before trusting anything you see on one.
 
 `@ldonald234`'s second entry — **`Supercalifragilistic…`, a 200-character title,
 a 100-character space-free chapter, and an unbreakable token in the body** — is
