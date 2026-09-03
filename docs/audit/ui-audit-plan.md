@@ -167,11 +167,7 @@ Truncation is only acceptable where the full value is reachable somewhere else.
       enough, and the overflow fixture lives on an account whose page is not
       public. Needs a long-chapter public entry to photograph.
 
-- [ ] **Photograph the truncated filter pill.** Finding 12 (a 100-char chapter
-      forcing the whole document into horizontal scroll) is verified by the page
-      no longer shifting plus the code change — not by a screenshot of the pill
-      itself truncating, because the tap toggled the filter off rather than on.
-      Apply the chapter filter and capture it.
+- [x] **Photograph the truncated filter pill** — done, see Phase 8.
 
 ## Phase 7c — Hierarchy sweep — **COMPLETE**
 
@@ -209,23 +205,43 @@ The system:
 | `EmptyState`               | [x]       | [x]     | No findings — clean                          |
 | `Sidebar`                  | [x]       | [x]     | `5728fa2` — findings 28, 29. **Not desktop-only** |
 
-## Phase 8 — Adverse states
+## Phase 8 — Adverse states — **as complete as this rig allows**
 
-- [ ] Offline banner (device or Network Link Conditioner, not the simulator)
-- [x] `ErrorMessage` — seen after a simulator reboot: 🥴 hero, bold `error:` label, muted message, full-width `~ try again ~`. Hierarchy reads correctly; recovery worked
-- [x] `PostSkeleton` / `SidebarSkeleton` — captured on device. Structure mirrors
-      the real layout (avatar circle, title bar, body lines, six reaction
-      circles) rather than a generic spinner. **Caveat:** only ever visible
-      during the splash crossfade, so its colours were not judged in isolation
-- [ ] `LoadingSpinner` on its own — the splash covers it; not isolated
-- [x] `Toast` — **error** caught on device, and it was a real failure rather than
-      a simulated one. Finding 35 came out of it
-- [ ] `Toast` — **success** not captured; could not drive a successful write
-- [~] Rapid taps on reactions — the cooldown is `REACTION_COOLDOWN_MS = 400` and
-      is a **silent** no-op by design (both guards `return { error: null }`),
-      which is right for a double-tap guard. **Could not be driven** below 400ms:
-      harness taps are ~1s apart. Code-verified only
-- [ ] Session expiry message
+- [x] `ErrorMessage` — seen after a simulator reboot: 🥴 hero, bold `error:`
+      label, muted message, full-width `~ try again ~`. Recovery worked
+- [x] `PostSkeleton` / `SidebarSkeleton` — captured. Structure mirrors the real
+      layout (avatar circle, title bar, body lines, six reaction circles) rather
+      than a generic spinner. **Caveat:** only visible during the splash
+      crossfade, so its colours were not judged in isolation
+- [x] `Toast` — **error** caught on device, from a real failure rather than a
+      simulated one. Produced finding 35 (it was painting over the FAB and
+      swallowing taps aimed at it)
+- [~] `Toast` — **success** not photographed. Same component, same wrapper, same
+      positioning; only `type` (icon + colour) and `duration` (3000 vs 5000)
+      differ from the error variant that *was* photographed. Verified by reading,
+      not by camera — say so rather than claiming the screenshot
+- [ ] `LoadingSpinner` in isolation — the native splash covers the whole window
+      it would occupy. Not reachable without disabling the splash
+- [~] Rapid taps on reactions — **inconclusive, and honestly so.** The cooldown is
+      `REACTION_COOLDOWN_MS = 400`, a **silent** no-op by design (both guards
+      `return { error: null }`), which is correct for a double-tap guard. Two taps
+      issued back-to-back produced a net-zero result, which is equally consistent
+      with "both landed >400ms apart and toggled twice" and "neither landed".
+      Harness tap delivery is roughly 1-in-3 and its timing is not controllable,
+      so **this cannot be driven from here.** Code-verified only
+- [ ] Session expiry — **not reachable.** It fires only when a token *refresh*
+      fails (`getSession()` erroring on resume → `AUTH_SESSION_EXPIRED`), i.e. a
+      revoked or rotated refresh token. Simply waiting past expiry does **not**
+      trigger it: the refresh succeeds. Needs the service_role key to revoke, or
+      a "sign out user" from the Supabase dashboard
+- [ ] Offline banner — needs a real device in Airplane Mode. The simulator shares
+      the Mac's connection
+
+**Also cleared this pass:** the carried-over filter-pill photograph. Applying the
+100-character chapter filter shows `chapter: AVeryLongUnbrokenChapterNameWithN…`
+truncating with the `×` outside the ellipsis, and the header, chips and cards all
+stay aligned — no horizontal document scroll. **Finding 12 is now verified
+visually**, not just by code plus the absence of a shift.
 
 ## Phase 9 — Accessibility — **COMPLETE**
 
