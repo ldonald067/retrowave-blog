@@ -337,7 +337,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 | 38  | **HIGH** | Feed card, classic-xanga | `.xanga-title` is `--text-title` (`#e5007c`) and `PostCard` renders it on the header gradient: **2.20:1**. On a phone the title is `text-lg` = 18px bold, under WCAG's 18.66px bold cutoff, so the bar is **4.5:1** | Fixed `df7aee1` |
 | 39  | **HIGH** | Feed card, myspace-blue | Same pairing, **4.00:1** — missed on the Phase 10 pass because that sweep was run against 3:1. Title lightened rather than darkened; it is a dark theme | Fixed `df7aee1` |
 
-| 43  | MED  | ReportDialog    | The confirmation promised "We remove content that breaks the rules **and can ban repeat offenders**" — prod has `admin_list_reports` and `admin_resolve_report` only, so there is no ban. A promise the product cannot keep, in copy App Review reads | Fixed `PENDING` |
+| 43  | MED  | ReportDialog    | The confirmation promised "We remove content that breaks the rules **and can ban repeat offenders**" — prod has `admin_list_reports` and `admin_resolve_report` only, so there is no ban. A promise the product cannot keep, in copy App Review reads | Fixed `96af7a4` |
 
 **43 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
