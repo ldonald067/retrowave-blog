@@ -1513,6 +1513,8 @@ function AppInner() {
                 onDelete={handleDeletePost}
                 onEdit={handleEditPost}
                 isOwner={!!user && !!selectedPost && user.id === selectedPost.user_id}
+                privateChapters={profile?.private_chapters ?? []}
+                profileIsPublic={profile?.is_public ?? false}
               />
             </Suspense>
           )}

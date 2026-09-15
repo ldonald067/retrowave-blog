@@ -6,7 +6,7 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-02, at `6dd9ed5`.
+Last rewritten 2026-09-15, at `e3134ab` plus the chapter-rename work below.
 
 ---
 
@@ -20,8 +20,7 @@ and the App Store Connect listing.
 submission. All six screenshots are captured at 1320 × 2868 in
 `store-assets/screenshots/`.
 
-CI is green. `main` is current; everything below is pushed.
-**322 tests across 39 files.**
+CI is green. **337 tests across 39 files.**
 
 ## The one blocker
 
@@ -121,15 +120,28 @@ iPhone 17 Pro Max simulator unless noted.
 - **Privacy smoke checks 9/9 green against prod**; anonymous clients read 0 rows
   from every table.
 
+## Chapter privacy
+
+- **The chapter-rename confirmation** landed 2026-09-15. Renaming a chapter out of
+  `private_chapters` — or clearing the chapter — publishes the entry on save,
+  and nothing warned. `PostModal` now gates that save on a `ConfirmDialog`.
+  `chapterChangeRepublishes()` in `utils/chapterPrivacy.ts` is the decision, kept
+  as a pure function so it is testable apart from the modal. It stays silent on
+  a case variant, on an entry saved private, on a private profile, and on a
+  hand-flipped `is_private` — see `gotchas.md` for why each one matters.
+  **337 tests** now (was 322). The four positive tests were mutation-checked:
+  stubbing the gate to `false` turns all four red.
+- **The chapter padlock now matches the server.** `Sidebar` and `ChapterChips`
+  compared raw strings while the toggle and the RPC compared normalized, so a
+  case variant drew 📖 on a chapter that was genuinely private and the toggle's
+  label inverted. Both call `isChapterPrivate()`.
+
 ## Open work
 
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. `ReportDialog` used to promise reporters it could
   ban and no longer does (finding 43) — **restore that sentence when a ban
   exists**, not before.
-- **Renaming a chapter republishes its entries** and nothing warns. Deliberate —
-  a rename is a real content move and the post's own `is_private` is the control
-  — but a confirmation step is worth building.
 - **Finding 21's truncation is code-level only.** No public account has a chapter
   long enough to photograph `PublicPostCard` truncating one. (Finding 12's filter
   pill _is_ photographed now.)
@@ -247,5 +259,5 @@ accessibility-extra-extra-extra-large`. Underscore, not hyphen. Read the
   `react-markdown` — and anything native-only is inert in jsdom. The four bugs
   at the top of this file are the proof.
 - **Watch the test count, not just red/green.** CI silently ran 241 of 265 for
-  over a week. Currently **322**.
+  over a week. Currently **337**.
 - **The env file is `.env.local`**, not `.env`.

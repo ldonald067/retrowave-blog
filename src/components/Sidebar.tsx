@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
+import { isChapterPrivate } from '../utils/chapterPrivacy';
 import {
   Avatar,
   YouTubeCard,
@@ -381,7 +382,11 @@ export default function Sidebar({
               </button>
             )}
             {chapters.map((ch) => {
-              const isPrivate = privateChapters.includes(ch.chapter);
+              // Normalized, to match toggleChapterPrivacy and get_public_profile.
+              // Raw .includes() showed an unlocked book on a chapter the server was
+              // hiding, and the toggle beside it then offered to "make private" a
+              // chapter it would actually have made public.
+              const isPrivate = isChapterPrivate(privateChapters, ch.chapter);
               return (
                 <div key={ch.chapter} className="flex items-center gap-1">
                   <button

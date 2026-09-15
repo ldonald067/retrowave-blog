@@ -301,3 +301,120 @@ describe('PostModal Draft Storage', () => {
     expect(screen.getByLabelText(/ur thoughts/i)).toHaveValue('');
   });
 });
+
+describe('PostModal chapter-rename confirmation', () => {
+  // mockPost sits in "test chapter" and is public at the post level, so the
+  // chapter rule is the only thing keeping it off the public page.
+  const renameProps = {
+    post: mockPost,
+    onClose: vi.fn(),
+    mode: 'edit' as const,
+    isOwner: true,
+    privateChapters: ['test chapter'],
+    profileIsPublic: true,
+  };
+
+  const renameChapterTo = (value: string) =>
+    fireEvent.change(screen.getByLabelText(/chapter/i), { target: { value } });
+
+  const save = () => fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+  it('does not write the rename until it is confirmed', async () => {
+    // The whole point: once updatePost lands the entry is already public, so
+    // the dialog has to sit in front of onSave, not after it.
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...renameProps} onSave={onSave} />);
+
+    renameChapterTo('test chapter 2026');
+    save();
+
+    expect(await screen.findByText(/this goes public/i)).toBeInTheDocument();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('writes the rename once confirmed', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...renameProps} onSave={onSave} />);
+
+    renameChapterTo('test chapter 2026');
+    save();
+    fireEvent.click(await screen.findByRole('button', { name: /yes, publish it/i }));
+
+    await waitFor(() => {
+      expect(onSave).toHaveBeenCalledWith(
+        expect.objectContaining({ chapter: 'test chapter 2026', is_private: false })
+      );
+    });
+  });
+
+  it('leaves the entry alone when the rename is cancelled', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...renameProps} onSave={onSave} />);
+
+    renameChapterTo('test chapter 2026');
+    save();
+    fireEvent.click(await screen.findByRole('button', { name: /go back/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByText(/this goes public/i)).not.toBeInTheDocument();
+    });
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('asks when the chapter is cleared, which publishes just as surely', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...renameProps} onSave={onSave} />);
+
+    renameChapterTo('');
+    save();
+
+    expect(await screen.findByText(/this goes public/i)).toBeInTheDocument();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
+  it('does not ask when the entry is saved private', async () => {
+    // is_private outranks the chapter rule, so the rename publishes nothing.
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...renameProps} onSave={onSave} />);
+
+    renameChapterTo('test chapter 2026');
+    fireEvent.click(screen.getByRole('button', { name: /^private$/i }));
+    save();
+
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    expect(screen.queryByText(/this goes public/i)).not.toBeInTheDocument();
+  });
+
+  it('does not ask on a case variant, which the server still hides', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...renameProps} onSave={onSave} />);
+
+    renameChapterTo('TEST CHAPTER');
+    save();
+
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    expect(screen.queryByText(/this goes public/i)).not.toBeInTheDocument();
+  });
+
+  it('does not ask when the journal has no public page', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...renameProps} profileIsPublic={false} onSave={onSave} />);
+
+    renameChapterTo('test chapter 2026');
+    save();
+
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    expect(screen.queryByText(/this goes public/i)).not.toBeInTheDocument();
+  });
+
+  it('does not ask for an edit that leaves the chapter alone', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...renameProps} onSave={onSave} />);
+
+    fireEvent.change(screen.getByLabelText(/entry title/i), { target: { value: 'New title' } });
+    save();
+
+    await waitFor(() => expect(onSave).toHaveBeenCalled());
+    expect(screen.queryByText(/this goes public/i)).not.toBeInTheDocument();
+  });
+});

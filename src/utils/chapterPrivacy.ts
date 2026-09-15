@@ -30,3 +30,42 @@ export function isChapterPrivate(
 ): boolean {
   return (privateChapters ?? []).some((c) => isSameChapter(c, chapter));
 }
+/**
+ * True when saving an edit moves an entry out of a private chapter and onto the
+ * owner's public page.
+ *
+ * There is no chapter table, so "renaming a chapter" means retyping the name on
+ * each entry. get_public_profile hides an entry whose chapter is in
+ * private_chapters and nothing else, so retyping "Therapy" as "Therapy 2026" —
+ * or clearing the chapter outright — publishes the entry the moment it saves.
+ * The rename stays allowed (it is a real content move, per
+ * 20260729030000_chapter_privacy_normalized_match.sql); this only reports the
+ * transition so the UI can confirm it first.
+ *
+ * Deliberately NOT reported: flipping is_private from true to false. That is an
+ * explicit two-state toggle the user just operated, so confirming it would ask
+ * twice about a choice already made.
+ */
+export function chapterChangeRepublishes(args: {
+  privateChapters: readonly string[] | null | undefined;
+  previousChapter: string | null | undefined;
+  nextChapter: string | null | undefined;
+  nextIsPrivate: boolean;
+  profileIsPublic: boolean;
+}): boolean {
+  const { privateChapters, previousChapter, nextChapter, nextIsPrivate, profileIsPublic } = args;
+
+  // An entry the public page never serves cannot be republished by a rename:
+  // a private profile has no public page, and is_private outranks the chapter
+  // rule in get_public_profile.
+  if (!profileIsPublic || nextIsPrivate) return false;
+
+  // Normalized, so a case or whitespace variant is not a rename at all — the
+  // server still treats it as the same private chapter.
+  if (isSameChapter(previousChapter, nextChapter)) return false;
+
+  return (
+    isChapterPrivate(privateChapters, previousChapter) &&
+    !isChapterPrivate(privateChapters, nextChapter)
+  );
+}

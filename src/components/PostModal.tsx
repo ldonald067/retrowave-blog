@@ -21,6 +21,7 @@ import { MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { formatDate } from '../utils/formatDate';
 import { quickContentCheck } from '../lib/moderation';
 import { POST_LIMITS } from '../lib/validation';
+import { chapterChangeRepublishes } from '../utils/chapterPrivacy';
 
 interface PostModalProps {
   post?: Post | null;
@@ -39,6 +40,10 @@ interface PostModalProps {
   onEdit?: (post: Post) => void;
   /** Whether the current user owns this post. */
   isOwner?: boolean;
+  /** Owner's private chapter names — used to warn before a rename republishes. */
+  privateChapters?: readonly string[];
+  /** Whether the owner's journal has a public page at all. */
+  profileIsPublic?: boolean;
 }
 
 export default function PostModal({
@@ -52,6 +57,8 @@ export default function PostModal({
   onDelete,
   onEdit,
   isOwner,
+  privateChapters = [],
+  profileIsPublic = false,
 }: PostModalProps) {
   const draftStorageKey = draftUserId ? `post-draft:${draftUserId}` : null;
   const [title, setTitle] = useState('');
@@ -78,6 +85,7 @@ export default function PostModal({
   const [fullContentError, setFullContentError] = useState(false);
   const [fullContentReloadKey, setFullContentReloadKey] = useState(0);
   const [showUnsavedConfirm, setShowUnsavedConfirm] = useState(false);
+  const [showRepublishConfirm, setShowRepublishConfirm] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const draftRestoredTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -250,11 +258,21 @@ export default function PostModal({
     };
   }, [title, content, author, chapter, mood, music, mode, draftStorageKey]);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    // Never save while the full entry hasn't loaded — the textarea may hold
-    // only the truncated preview, and saving it would clobber the real entry.
-    if (fullContentError || loadingFullContent) return;
+  // A rename out of a private chapter publishes the entry the moment it saves.
+  // Computed from the SAVED chapter, not the draft, so it stays true while the
+  // confirmation is open and the user is looking at what they typed.
+  const republishesEntry =
+    mode === 'edit' &&
+    !!post &&
+    chapterChangeRepublishes({
+      privateChapters,
+      previousChapter: post.chapter,
+      nextChapter: chapter.trim() || null,
+      nextIsPrivate: isPrivate,
+      profileIsPublic,
+    });
+
+  const performSave = async () => {
     setModerationError(null);
     setSaving(true);
 
@@ -299,6 +317,20 @@ export default function PostModal({
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    // Never save while the full entry hasn't loaded — the textarea may hold
+    // only the truncated preview, and saving it would clobber the real entry.
+    if (fullContentError || loadingFullContent) return;
+    // Confirm before the write, not after: once updatePost lands the entry is
+    // already on the public page, and there is no undo for having been seen.
+    if (republishesEntry) {
+      setShowRepublishConfirm(true);
+      return;
+    }
+    void performSave();
   };
 
   const isViewMode = mode === 'view';
@@ -1130,6 +1162,46 @@ export default function PostModal({
               onClose();
             }}
             onCancel={() => setShowUnsavedConfirm(false)}
+          />
+        )}
+
+        {/* Renaming a chapter is a real content move and stays allowed, but it
+            drops the entry out of private_chapters and onto the public page —
+            so it gets confirmed rather than blocked. See chapterPrivacy.ts. */}
+        {showRepublishConfirm && post && (
+          <ConfirmDialog
+            title="~ this goes public ~"
+            message={
+              <div className="space-y-3 break-words">
+                <p>
+                  <em style={{ color: 'var(--text-subtitle)' }}>{post.chapter}</em> is a private
+                  chapter, so this entry never showed up on ur public page.
+                </p>
+                <p>
+                  saving moves it{' '}
+                  {chapter.trim() ? (
+                    <>
+                      2 <em style={{ color: 'var(--text-subtitle)' }}>{chapter.trim()}</em>, which
+                      isnt private
+                    </>
+                  ) : (
+                    <>out of every chapter</>
+                  )}{' '}
+                  — so anyone who visits ur page will be able 2 read it.
+                </p>
+                <p>
+                  want it hidden? go back and set the entry itself 2{' '}
+                  <strong style={{ color: 'var(--accent-primary)' }}>private</strong>.
+                </p>
+              </div>
+            }
+            confirmLabel="~ yes, publish it ~"
+            cancelLabel="go back"
+            onConfirm={() => {
+              setShowRepublishConfirm(false);
+              void performSave();
+            }}
+            onCancel={() => setShowRepublishConfirm(false)}
           />
         )}
       </ModalOverlay>

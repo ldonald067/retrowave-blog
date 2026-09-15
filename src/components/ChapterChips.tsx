@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import type { Chapter } from '../hooks/useChapters';
+import { isChapterPrivate } from '../utils/chapterPrivacy';
 
 interface ChapterChipsProps {
   chapters: Chapter[];
@@ -105,7 +106,8 @@ export default function ChapterChips({
         ]
       : []),
     ...chapters.map((ch) => {
-      const priv = privateChapters.includes(ch.chapter);
+      // Normalized — see the note in Sidebar.tsx; raw equality under-reports.
+      const priv = isChapterPrivate(privateChapters, ch.chapter);
       return {
         id: ch.chapter as string | null,
         label: ch.chapter,

@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeChapter, isSameChapter, isChapterPrivate } from '../chapterPrivacy';
+import {
+  normalizeChapter,
+  isSameChapter,
+  isChapterPrivate,
+  chapterChangeRepublishes,
+} from '../chapterPrivacy';
 
 describe('chapterPrivacy', () => {
   it('normalizes case and surrounding whitespace', () => {
@@ -49,5 +54,57 @@ describe('chapterPrivacy', () => {
     expect(isChapterPrivate(priv, null)).toBe(false);
     expect(isChapterPrivate([], 'Therapy')).toBe(false);
     expect(isChapterPrivate(undefined, 'Therapy')).toBe(false);
+  });
+});
+
+describe('chapterChangeRepublishes', () => {
+  const priv = ['Therapy'];
+  const base = {
+    privateChapters: priv,
+    previousChapter: 'Therapy',
+    nextChapter: 'Therapy 2026',
+    nextIsPrivate: false,
+    profileIsPublic: true,
+  };
+
+  it('reports a rename that moves an entry out of a private chapter', () => {
+    expect(chapterChangeRepublishes(base)).toBe(true);
+  });
+
+  it('reports clearing the chapter, which publishes just as surely', () => {
+    // No chapter means get_public_profile has nothing to match against
+    // private_chapters, so the entry is served.
+    expect(chapterChangeRepublishes({ ...base, nextChapter: null })).toBe(true);
+    expect(chapterChangeRepublishes({ ...base, nextChapter: '   ' })).toBe(true);
+  });
+
+  it('stays silent when the entry itself is saved private', () => {
+    // is_private outranks the chapter rule, so nothing becomes visible.
+    expect(chapterChangeRepublishes({ ...base, nextIsPrivate: true })).toBe(false);
+  });
+
+  it('stays silent when the journal has no public page', () => {
+    expect(chapterChangeRepublishes({ ...base, profileIsPublic: false })).toBe(false);
+  });
+
+  it('stays silent on a case or whitespace variant of the same chapter', () => {
+    // The server normalizes, so these are not renames and publish nothing.
+    expect(chapterChangeRepublishes({ ...base, nextChapter: 'therapy' })).toBe(false);
+    expect(chapterChangeRepublishes({ ...base, nextChapter: '  THERAPY  ' })).toBe(false);
+  });
+
+  it('stays silent when the new chapter is also private', () => {
+    expect(
+      chapterChangeRepublishes({
+        ...base,
+        privateChapters: ['Therapy', 'Therapy 2026'],
+      })
+    ).toBe(false);
+  });
+
+  it('stays silent when the entry was never in a private chapter', () => {
+    // Already public, so saving changes nothing about who can see it.
+    expect(chapterChangeRepublishes({ ...base, previousChapter: 'Recipes' })).toBe(false);
+    expect(chapterChangeRepublishes({ ...base, previousChapter: null })).toBe(false);
   });
 });
