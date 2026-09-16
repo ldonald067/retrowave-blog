@@ -7,7 +7,7 @@ the screenshot plan.
 - **Store name:** Retrowave Journal · **Home-screen name:** My Journal
 - **Bundle ID:** `com.retrowave.journal` · **Version:** 1.0 (1)
 - **iPhone-only, portrait.** · **Live web app:** https://retrowaveblog.com
-- Dev machine: Xcode 26.6, Node 24, iOS 26.5 simulator, `gh` CLI, `xcode-select`
+- Dev machine: Xcode 27.0, Node 24, iOS 26.5 simulator, `gh` CLI, `xcode-select`
   pointed at `/Applications/Xcode.app/Contents/Developer`.
 
 ---
@@ -160,7 +160,7 @@ Capability/context:
 1. **Filter** — client + server slur/hate regex + adult-URL/domain blocklists, **plus live OpenAI moderation** on every **public** entry (the `moderate-content` edge function; the API key is set and verified active in production). Private entries are deliberately not sent to OpenAI — they have no audience to protect, and shipping a user's diary to a third party for no benefit would contradict the privacy promise in the listing.
 2. **Report** — an in-app report dialog on every public entry (5 reason categories + optional detail) writes a durable row to `content_reports` via the `report_public_post` RPC, and confirms to the user. Works signed-out, since a public page is reachable from a shared link. A database webhook fires the `notify-report` edge function, which emails support@retrowaveblog.com so the queue is not left unread.
 3. **Block** — a `block @username` control on the public profile page, via the `block_user_by_username` RPC. Blocked authors' content is excluded from the feed RPCs.
-4. **Policy + action** — Terms/Privacy published and reachable in-app via SFSafariViewController; solo operator reviews `content_reports` and removes content / bans accounts.
+4. **Policy + action** — Terms/Privacy published and reachable in-app via SFSafariViewController; solo operator reviews `content_reports` and hides reported entries from the in-app moderation queue. **There is no account ban** — do not claim one (see finding 43).
 
 **Report queue operations.** Reports land in `public.content_reports` (`status` = `open` → `actioned` / `dismissed`). RLS is enabled with **no policies**, so the table is unreadable via the API.
 
@@ -195,10 +195,11 @@ them). A user may optionally opt in to a public profile and make individual entr
 public. Emoji reactions on public entries. No ads, no analytics, no external browser.
 
 CREATE AN ENTRY: after signing in, tap "new entry" → add title/body, optionally set
-mood, music (YouTube link), chapter → save. Default is PRIVATE (padlock shows
-"make public").
+mood, music (YouTube link), chapter → save. New entries are PRIVATE by default.
 
-MAKE PUBLIC: in the editor, tap "🔓 make public" before saving.
+MAKE PUBLIC: in the editor, under "entry privacy", tap "public" before saving.
+Public entries appear on the user's public page once it is turned on: tap the
+profile icon, open the "public page" tab.
 
 UGC SAFETY (Guideline 1.2): FILTER = automated moderation on every public entry
 (client + server slur/hate + adult-URL blocklist, plus OpenAI moderation via a
@@ -206,8 +207,8 @@ Supabase edge function). REPORT = a report dialog on every public entry writes a
 durable record, and a database webhook emails support@retrowaveblog.com so it is
 seen promptly. BLOCK = a "block @username" control on the public profile page hides
 that author's content. Policy: Terms https://retrowaveblog.com/terms, Privacy
-https://retrowaveblog.com/privacy. We monitor the report queue and remove content /
-ban accounts as needed.
+https://retrowaveblog.com/privacy. We monitor the report queue and remove reported
+content as needed.
 
 AGE GATE: signup collects birth year and blocks under-13 (COPPA). Birth year is
 used only for age verification and is never shown publicly.
@@ -256,6 +257,8 @@ Captions are optional and must be baked into the image (App Store Connect has no
 
 - [ ] Re-run `npm run check` on the submission commit, and confirm CI is green for it.
 - [ ] Confirm the reviewer demo account still signs in and still has its public entries.
+- [ ] Confirm the Supabase project is **active**, and keep it active for the whole review. It was found paused on 2026-09-15 after 13 idle days, and while paused the app cannot sign in or load anything — a reviewer would see a broken app. Check with the Management API (`GET /v1/projects/<ref>` → `"status":"ACTIVE_HEALTHY"`) or the dashboard.
+- [ ] Re-read Part 5 against the current build. Its steps name real controls, and those controls get renamed: it told reviewers to tap "make public" for months after that button became the "entry privacy" toggle.
 - [ ] Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` if this is not the first upload — the build number must increase on every upload.
 
 ## Remaining human checklist
