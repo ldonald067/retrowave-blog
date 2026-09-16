@@ -177,6 +177,31 @@ body {
   min-height: 100%;
 }
 
+/* A material behind the status bar. StatusBar overlays the web view
+   (capacitor.config.ts) and is transparent, so scrolled content used to pass
+   straight under the clock — an entry's date drawn over "9:41". Every screen
+   paints something different up there (gradients, a dark card, a header band),
+   so a solid strip would show as a band at rest. A blur is invisible over flat
+   colour and diffuses text that scrolls beneath it: the same material an iOS
+   navigation bar uses.
+   On body, not in a component, because the auth wall, onboarding, public
+   profile, moderation and age gate are early returns that never render the
+   main layout. z-index 45 sits above the header (10) and FAB (30) and below
+   every modal overlay (50+), so a modal's dimming still covers it. Height is
+   the top safe area, which is 0 on the web. */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 45;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
 .min-h-screen {
   min-height: 100dvh;
 }
@@ -505,6 +530,29 @@ body {
 @media (min-width: 640px) and (min-height: 700px) {
   .short-viewport-start {
     justify-content: center;
+  }
+}
+
+/* Short screens — the iPhone SE is 667pt. The last slide's footer holds three
+   controls, so the space left for the card is smallest there, and its subject
+   (the empty-journal preview) started ~100pt below the fold with nothing to say
+   it scrolled. Remove before squeezing: the decorative divider goes, exactly as
+   decoration yields at large Dynamic Type, then the scene floor, card padding
+   and gaps tighten. Every current Face ID iPhone is 812pt or taller and never
+   matches. */
+@media (max-height: 700px) {
+  .onboarding-divider {
+    display: none;
+  }
+  .ob-scene {
+    min-height: 5rem;
+    margin-bottom: 0.75rem;
+  }
+  .onboarding-panel .xanga-box {
+    padding-block: 1.5rem;
+  }
+  .onboarding-panel .onboarding-title {
+    margin-bottom: 0.75rem;
   }
 }
 
@@ -1560,7 +1608,13 @@ input[type='submit'],
     padding-bottom: calc(1rem + var(--safe-area-bottom));
   }
 
+  /* On a Face ID iPhone the top inset (47–62pt) already includes clearance
+     below the notch or island. On a home-button iPhone (the SE) it is exactly
+     the 20pt status bar, so a short header row sat touching it — the intro and
+     age-gate headers read as crammed under the clock. The clamp adds up to
+     0.5rem only while the inset is under 44px: web (0) → 0.5rem, as before;
+     SE (20) → +0.5rem; every notched phone (≥44) → +0, unchanged. */
   .safe-area-top {
-    padding-top: max(0.5rem, var(--safe-area-top));
+    padding-top: calc(var(--safe-area-top) + clamp(0px, 44px - var(--safe-area-top), 0.5rem));
   }
 }

@@ -157,6 +157,17 @@ iPhone 17 Pro Max simulator unless noted.
   this fixture** — every `private_chapters` in prod is empty — so re-testing
   means building it again and reverting it. Ask before each fixture: approval
   for one test does not cover the next.
+- **The iPhone SE (375 × 667pt), signed out** (2026-09-16) — intro, sign in with
+  the keyboard up, a public profile as a visitor, and the report dialog (opened
+  and cancelled; prod confirmed no report written). Five findings, all fixed and
+  re-verified the same day: content scrolling under the status bar on every
+  iPhone (now a blur strip, pixel-identical at rest), "powered by YourJournal"
+  in two footers (now Retrowave Journal), grey dialog cancel buttons (now the
+  outline tier), slide 4's preview below the fold on short screens, and the
+  intro header crammed under the SE's status bar. **The signed-in half of the
+  SE pass is not done** — feed, composer, settings and profile need you to sign
+  in on the SE first. The rename dialog's "go back" shares ConfirmDialog's fixed
+  cancel style but was only seen on the report dialog.
 - **The sign-in screen with no grey** (iPhone 17 Pro, signed out, 2026-09-16) —
   both links and the inactive tab in accent, both tab states checked, and a
   before/after crop showing the tab and field labels now read bold.

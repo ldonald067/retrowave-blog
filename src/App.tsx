@@ -1603,7 +1603,8 @@ function AppInner() {
               <span>powered by</span>
               <Windows95MyComputer size={16} alt="" />
               <span className="xanga-subtitle">
-                <span className="blink">✨</span> YourJournal <span className="blink">✨</span>
+                <span className="blink">✨</span> Retrowave Journal{' '}
+                <span className="blink">✨</span>
               </span>
             </div>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>

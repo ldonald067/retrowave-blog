@@ -153,6 +153,10 @@ failure mode `reporting.ts` was rewritten to remove.
   letting WKWebView resize instead fights it.
 - `contentInset: 'never'` is load-bearing — the app pads for the notch itself via
   `env(safe-area-inset-*)` + `viewport-fit=cover`.
+- The status bar is transparent and overlays the page, so `body::before` puts a
+  blur-only strip behind it. Check any change to page chrome by **scrolling**
+  content under the clock, and at rest against a before screenshot — it must stay
+  invisible at rest.
 - Safe areas have **one owner per edge**: the shell applies the inset, descendants
   use ordinary spacing. Two elements applying the same `env()` for the same reason
   is the bug, not the pattern.

@@ -430,7 +430,7 @@ export default function PublicProfileView({
             </button>
           </div>
           <p className="text-xs mt-4" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
-            powered by ✨ YourJournal
+            powered by ✨ Retrowave Journal
           </p>
           {/* No "report public page" control. It used to alias to posts[0], so
               reporting a profile whose BIO was abusive filed a report against an

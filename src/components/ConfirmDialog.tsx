@@ -66,14 +66,11 @@ export default function ConfirmDialog({
               onClick={onCancel}
               disabled={loading}
               whileTap={{ scale: 0.95 }}
-              className="w-full sm:w-auto px-4 py-2.5 rounded-lg transition text-xs font-bold border-2 border-dotted hover:opacity-80 min-h-[44px]"
-              style={{
-                backgroundColor: 'var(--card-bg)',
-                color: 'var(--text-muted)',
-                borderColor: 'var(--border-primary)',
-                fontFamily: 'var(--title-font)',
-                opacity: loading ? 0.5 : 1,
-              }}
+              // Outline tier, not grey: .xanga-button-ghost is accent text on
+              // --card-bg with a dotted border — the same shape this button had,
+              // without draining it to --text-muted. No grey controls (gotchas).
+              className="xanga-button-ghost title-bold w-full sm:w-auto px-4 py-2.5 text-xs min-h-[44px]"
+              style={{ opacity: loading ? 0.5 : 1 }}
             >
               {cancelLabel}
             </motion.button>

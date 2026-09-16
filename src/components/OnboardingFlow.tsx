@@ -247,7 +247,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
                 {/* Decorative divider */}
                 <p
-                  className="onboarding-wrap text-xs mb-5 tracking-wider"
+                  className="onboarding-wrap onboarding-divider text-xs mb-5 tracking-wider"
                   style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
                 >
                   {slide.decoration}
@@ -258,7 +258,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                   initial={direction === 0 ? false : { opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="onboarding-wrap xanga-title text-2xl sm:text-3xl mb-5"
+                  className="onboarding-wrap onboarding-title xanga-title text-2xl sm:text-3xl mb-5"
                 >
                   {slide.title}
                 </motion.h2>

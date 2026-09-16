@@ -163,13 +163,8 @@ export default function ReportDialog({ postId, postTitle, onClose }: ReportDialo
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-lg text-xs font-bold border-2 border-dotted min-h-[44px]"
-                  style={{
-                    backgroundColor: 'var(--card-bg)',
-                    color: 'var(--text-muted)',
-                    borderColor: 'var(--border-primary)',
-                    fontFamily: 'var(--title-font)',
-                  }}
+                  // Outline tier, not grey — see ConfirmDialog.
+                  className="xanga-button-ghost title-bold px-4 py-2 text-xs min-h-[44px]"
                 >
                   cancel
                 </button>
