@@ -27,7 +27,7 @@ rating, review notes, and screenshot plan. Update it as items complete.
 ## Phase 2: Build & Sync
 
 ```bash
-npx tsc --noEmit && npm run build && npm run test   # full pipeline first
+npm run check                                        # the same checks as CI, first
 npx cap sync ios                                     # copy dist/ + plugins into ios/
 npx cap open ios                                     # open Xcode (user drives GUI)
 ```

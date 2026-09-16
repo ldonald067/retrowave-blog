@@ -239,7 +239,7 @@ be universal links. Both are blocked on Apple Developer enrolment.
 ## Phase 4 — Gate
 
 ```bash
-npx tsc --noEmit && npm run lint && npm run build && npm run test
+npm run check
 ```
 
 Watch the test **count**, not just red/green — CI silently ran 241 of 265 for over

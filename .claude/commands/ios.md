@@ -291,7 +291,7 @@ When adding a bridge call, decide which of the two it is before writing it.
 ## Phase 7 — Gate
 
 ```bash
-npx tsc --noEmit && npm run lint && npm run test
+npm run check
 ```
 
 Then rebuild and relaunch, because none of this is exercised by jsdom:

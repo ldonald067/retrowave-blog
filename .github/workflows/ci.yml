@@ -16,6 +16,8 @@ jobs:
     name: Validate
     runs-on: ubuntu-latest
 
+    # These steps mirror `npm run check` in package.json, which is what every
+    # doc tells you to run locally. Change the two together.
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -25,6 +25,9 @@ npm run lint           # Step 4: ESLint
 npm run format:check   # Step 5: Prettier
 ```
 
+`npm run check` runs all five in one command, in CI's order, stopping at the
+first failure. Run the steps one at a time, as above, when diagnosing one.
+
 These are the same five checks CI runs. Step 1 is deliberately `npm run
 typecheck` rather than a bare `npx tsc --noEmit`: the bare form reads only
 `tsconfig.json`, so it never type-checks `vite.config.ts`, which CI does.

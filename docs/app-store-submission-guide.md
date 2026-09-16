@@ -254,7 +254,7 @@ Captions are optional and must be baked into the image (App Store Connect has no
 
 ## Before you submit
 
-- [ ] Re-run `npx tsc --noEmit && npm run build && npm run test` and `npm run lint` on the submission commit.
+- [ ] Re-run `npm run check` on the submission commit, and confirm CI is green for it.
 - [ ] Confirm the reviewer demo account still signs in and still has its public entries.
 - [ ] Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` if this is not the first upload — the build number must increase on every upload.
 

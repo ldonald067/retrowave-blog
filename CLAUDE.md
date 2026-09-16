@@ -7,6 +7,7 @@ Xanga/LiveJournal nostalgia blog. Solo operator, zero overhead. If a feature req
 ## Commands
 
 ```bash
+npm run check          # Everything CI runs — use this before committing
 npm run build          # Production build
 npm run test           # Vitest (run once)
 npm run typecheck      # Type check (app + vite.config.ts, same as CI)
@@ -16,7 +17,7 @@ npm run format         # Prettier (singleQuote, printWidth: 100)
 npm run format:check   # Prettier check — CI fails on drift
 ```
 
-Run `npm run typecheck && npm run format:check && npm run build && npm run test` before committing.
+Run `npm run check` before committing. It runs exactly what CI runs — lint, format check, typecheck, tests, build — and stops at the first failure.
 
 **Green tests are not proof the feature works.** Several suites mock the very
 thing under test — `PostModal.test.tsx` mocks `useFocusTrap`, which is why a bug

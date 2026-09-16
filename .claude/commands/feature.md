@@ -145,7 +145,7 @@ Add wrappers in `capacitor.ts` with dynamic `await import()`.
 - [ ] `database.ts` types match SQL (see `/migration`)
 - [ ] UI uses theme variables, 44px touch targets
 - [ ] `localStorage` in try/catch, Capacitor calls guarded
-- [ ] Build passes: `npx tsc --noEmit && npm run build && npm run test`
+- [ ] `npm run check` passes (the same checks as CI)
 
 ---
 

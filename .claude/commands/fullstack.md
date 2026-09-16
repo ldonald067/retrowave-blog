@@ -108,9 +108,7 @@ Verify these fields can't be set directly via PostgREST:
 ### 6. Build Verification
 
 ```bash
-npx tsc --noEmit       # 0 errors expected
-npm run build          # Should succeed
-npm run test           # All tests should pass
+npm run check          # lint, format, typecheck, tests, build — the same checks as CI
 ```
 
 **NEVER run `npm run dev`** — it crashes the environment. Use `npm run build` only.

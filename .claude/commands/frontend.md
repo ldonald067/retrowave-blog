@@ -319,7 +319,7 @@ title's ✨, an oversized hero — never to shrink the words themselves.
 ## Gate
 
 ```bash
-npx tsc --noEmit && npm run build && npm run test && npm run lint
+npm run check
 ```
 
 Then the part the gate cannot do:

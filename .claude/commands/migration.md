@@ -142,7 +142,7 @@ Prod also carries columns that exist in no migration (`birthdate`, `about`,
 4. Update `validation.ts` limits (if CHECK constraints changed)
 5. Update domain types in `src/types/` (if shape changed)
 6. Wire up in hook (if new RPC)
-7. Verify: `npx tsc --noEmit && npm run build && npm run test && npm run lint`
+7. Verify: `npm run check` (the same checks as CI)
 8. If RLS or the public-profile path changed, run
    `supabase/tests/privacy_smoke.sql` — see
    `docs/audit/backend-privacy-smoke-checks.md`
