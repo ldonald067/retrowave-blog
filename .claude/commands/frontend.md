@@ -250,11 +250,11 @@ Both are handled globally in `index.css`; a new button needs nothing added.
   page the press should be the loudest that control ever gets.
 - **Why `filter` and not `color`/`background`:** nearly every button here is
   coloured by an inline `style` from a theme variable, and inline beats a
-  stylesheet. Filter and transform are set by neither, so one rule reaches all 96. Saturation also preserves meaning — a caution link gets more amber rather
+  stylesheet. Filter and transform are set by neither, so one rule reaches every button. Saturation also preserves meaning — a caution link gets more amber rather
   than turning into the accent.
 - `whileTap={{ scale: 0.95 }}` is still worth adding to significant controls,
   but it is no longer the only thing standing between a button and silence.
-  71 of 96 buttons had neither before this was made global.
+  71 of the 96 buttons at the time had neither before this was made global.
 
 `--link-caution` is amber (`#b45309` light / `#ffb347` dark) and clears 4.5:1 on
 all 8 themes. Use it for delete and report, never for ordinary navigation.
@@ -301,7 +301,10 @@ title's ✨, an oversized hero — never to shrink the words themselves.
 ### New modals
 
 - `drag="x"` swipe dismiss with `SWIPE_DISMISS_THRESHOLD`
-- `onTouchMove` blurs the focused field so the keyboard drops
+- A `flex flex-col` frame with a `flex-1 min-h-0` body, or the panel cannot absorb
+  the keyboard shortening it and the footer is clipped. Copy PostModal or
+  ProfileModal. (There is deliberately no `onTouchMove` blur — it was removed in
+  `a93a123`.)
 - `useFocusTrap`
 - Safe-area classes: `.modal-panel-safe`, `.modal-overlay-safe`,
   `.modal-footer-safe`, `.keyboard-safe-pad`, `.keyboard-safe-scroll`,

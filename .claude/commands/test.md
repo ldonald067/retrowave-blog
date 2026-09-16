@@ -21,7 +21,8 @@ npm run test                                           # All tests
 npm run test -- src/hooks/__tests__/usePosts.test.ts   # Single file
 ```
 
-64 tests across 10 files. All 8 hooks have tests.
+All 10 hooks have a test file in `src/hooks/__tests__/`. For the current total,
+run the suite — and compare it to the last known count, per `/preflight`.
 
 ---
 

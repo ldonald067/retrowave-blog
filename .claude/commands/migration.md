@@ -69,11 +69,13 @@ corresponding `validatePostInput()` / `validateProfileInput()` function.
 
 ### 3. `src/lib/constants.ts`
 
-Re-exports `POST_LIMITS` and `PROFILE_LIMITS`. Update if adding a new limits object.
+Derives `VALIDATION` from `PROFILE_LIMITS`. Check it if a profile limit changes.
 
-### 4. `src/components/ui/ReactionBar.tsx` + `src/lib/emojiStyles.ts`
+### 4. `src/components/ui/ReactionBar.tsx`
 
-If emoji CHECK constraint changes, update `REACTION_EMOJIS` and the preload set.
+If the emoji CHECK constraint changes, update `REACTION_EMOJIS`. Match codepoint
+for codepoint — `❤️` is `U+2764 U+FE0F` on both sides, and a bare `U+2764` fails
+the constraint.
 
 ### 5. RLS Policies
 
@@ -82,10 +84,10 @@ New UGC tables may need `is_blocked_pair()` enforcement and rate limiting
 
 ### 6. Trigger-Protected Fields
 
-| Field                                           | Trigger            | Bypass                     |
-| ----------------------------------------------- | ------------------ | -------------------------- |
-| `profiles.is_admin`                             | Silently preserves | SECURITY DEFINER only      |
-| `profiles.age_verified/tos_accepted/birth_year` | Blocks UPDATE      | `set_age_verification` RPC |
+| Field                                           | Trigger                          | Bypass                                                   |
+| ----------------------------------------------- | -------------------------------- | -------------------------------------------------------- |
+| `profiles.is_admin`                             | Silently reverts, for every role | Disable the trigger inside one transaction — see gotchas |
+| `profiles.age_verified/tos_accepted/birth_year` | Blocks UPDATE                    | `set_age_verification` RPC                               |
 
 ---
 

@@ -1,3 +1,8 @@
+---
+name: mobile
+description: iPhone layout and App Store compliance — touch targets, safe areas, the keyboard inset, Dynamic Type, Reduce Motion, modals, visual hierarchy on a phone. Verified on the simulator, not in jsdom.
+---
+
 # Mobile Agent
 
 Audit and improve the app for iPhone responsiveness and iOS native quality.
@@ -9,7 +14,7 @@ sections) and `.claude/docs/false-positives.md` before filing anything.
 verified until it has been seen on the simulator. `initCapacitor()` returns early
 off native, so `--keyboard-inset` is permanently `0px` in jsdom and in the
 browser — the whole class of bug this skill exists to catch is invisible to the
-test suite by construction. See `prove-it-works` in the review principles.
+test suite by construction.
 
 ---
 
@@ -70,7 +75,7 @@ screenshot` works throughout either way.
   mid-flight — an entrance stalls at partial opacity and `mode="wait"` never
   completes its swap, which renders as a convincing phantom bug.
   `read_page` reporting `Viewport: 0x0` is the giveaway.
-- A toast auto-dismisses in 2.5s. Trigger and capture in one shell command
+- A success toast auto-dismisses in 3s, an error toast in 5s. Trigger and capture in one shell command
   (`xcrun simctl io … screenshot`) rather than round-tripping.
 
 ---
@@ -101,9 +106,8 @@ screenshot` works throughout either way.
 ### Breakpoints
 
 480px (custom CSS in `index.css`), 640px `sm:`, 1024px `lg:` (sidebar becomes
-fixed). Note the gap the responsive foundation still has: a 430–440pt phone sits
-above the 480px "phone" rules and below every `sm:`, so it receives neither on
-some surfaces. Worth a finding only with a concrete victim.
+fixed). Every current iPhone, up to the 440pt Pro Max, is at or below 480 and so
+receives the phone rules.
 
 ### Modals
 
@@ -224,7 +228,7 @@ which decision the reader is being asked to make. "Looks cluttered" is not one.
 ### Accessibility
 
 `<MotionConfig reducedMotion="user">` (App.tsx) covers framer; the
-`prefers-reduced-motion` block in `index.css` covers all 12 `@keyframes`;
+`prefers-reduced-motion` block in `index.css` covers all 13 `@keyframes`;
 `prefersReducedMotion()` in `lib/motion.ts` covers hand-built DOM. **All three
 exist — do not file Reduce Motion as missing.** Also: `aria-label` on icon-only
 buttons, `aria-pressed` on toggles, focus traps via `useFocusTrap`, and no

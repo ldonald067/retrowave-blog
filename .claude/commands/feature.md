@@ -96,16 +96,18 @@ means touching sign-in and every feed RPC; a half-built one is worse than none.
 
 ### Hook Quick Reference
 
-| Hook              | Key Returns                                                   |
-| ----------------- | ------------------------------------------------------------- |
-| `useAuth`         | `user`, `profile`, `signIn`, `signOut`, `updateProfile`       |
-| `usePosts`        | `posts`, `createPost`, `updatePost`, `deletePost`, `loadMore` |
-| `useReactions`    | `toggleReaction`                                              |
-| `useBlocks`       | `toggleBlock`, `fetchBlockedUsers`                            |
-| `useToast`        | `success`, `error`, `info`                                    |
-| `useFocusTrap`    | Focus trap for modals                                         |
-| `useOnlineStatus` | `boolean`                                                     |
-| `useYouTubeInfo`  | `YouTubeInfoWithTitle \| null`                                |
+| Hook               | Key Returns                                                   |
+| ------------------ | ------------------------------------------------------------- |
+| `useAuth`          | `user`, `profile`, `signIn`, `signOut`, `updateProfile`       |
+| `usePosts`         | `posts`, `createPost`, `updatePost`, `deletePost`, `loadMore` |
+| `useReactions`     | `toggleReaction`                                              |
+| `useBlocks`        | `toggleBlock`, `fetchBlockedUsers`                            |
+| `useToast`         | `success`, `error`, `info`                                    |
+| `useChapters`      | `chapters`, `loading`, `refetch`                              |
+| `usePublicProfile` | `data`, `loading`, `notFound`                                 |
+| `useFocusTrap`     | Focus trap for modals                                         |
+| `useOnlineStatus`  | `boolean`                                                     |
+| `useYouTubeInfo`   | `YouTubeInfoWithTitle \| null`                                |
 
 ---
 
@@ -131,7 +133,9 @@ If your feature mutates cached data, call `postsCache.invalidateAll()`.
 ## Capacitor Guards
 
 All native API calls guarded by `Capacitor.isNativePlatform()`.
-Add wrappers in `capacitor.ts` with dynamic `await import()`.
+Plugins are statically imported in `capacitor.ts`. Wrap a call in `requiredNative`
+if a silent failure would look like a CSS bug, `nativeOnly` if it is decorative
+— see `/ios` Phase 6.
 
 ---
 

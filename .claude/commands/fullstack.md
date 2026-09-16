@@ -7,7 +7,7 @@ description: Run fullstack integration audit — verifies RPC types, RLS policie
 
 Run a fullstack integration audit across the Retrowave Blog codebase. Verify that frontend and backend are correctly wired together.
 
-Read `CLAUDE.md` first — it contains the shared data contracts table, architecture patterns, and known tech debt. Don't re-discover what's already documented.
+Read `CLAUDE.md` first for architecture. The shared data contracts table is in `.claude/docs/data-contracts.md`. Don't re-discover what's already documented.
 Read `.claude/docs/gotchas.md` for integration knowledge, and `.claude/docs/false-positives.md` for known false
 positives. Check the "False Positives" section to avoid repeating previously
 dismissed findings.
@@ -52,17 +52,19 @@ flagging, also read `.claude/docs/false-positives.md`.
 
 ### 2. RLS Policy Coverage
 
-- For each table (`posts`, `profiles`, `post_reactions`, `user_blocks`), verify RLS is enabled
+- For each table (`posts`, `profiles`, `post_reactions`, `user_blocks`, `content_reports`), verify RLS is enabled. `content_reports` has RLS on and **no policies**, on purpose — it is only reachable through the report and admin RPCs
 - Check that INSERT/UPDATE/DELETE policies exist and reference `auth.uid()`
-- Verify rate limiting policies match the limits documented in CLAUDE.md
+- Verify rate limits by reading the live policy and function bodies — they are not documented elsewhere
 
 **Known gotcha**: Rate limiting policies don't need explicit `TO authenticated` grants. Anon users may pass the rate limit check, but they'll fail the ownership policy (`user_id = auth.uid()`) which is the real guard. Don't flag missing `TO authenticated` on rate limit policies — it's a minor improvement, not a bug.
 
-**Known gotcha**: The reactions INSERT policy combines BOTH the block check (`is_blocked_pair()`) AND rate limiting in a single combined policy. Don't flag "missing separate rate limit policy" on reactions — it's intentionally merged.
+**Known gotcha**: The reactions INSERT policy combines ownership, an inline block check and rate limiting in one policy. Don't flag "missing separate rate limit policy" on reactions — it's intentionally merged.
+
+**Never rate-limit a table by selecting from it inside its own policy.** That is finding 36: the reactions policy counted recent `post_reactions` rows, Postgres raised `42P17` infinite recursion, and no reaction ever saved. The count now lives in the `SECURITY DEFINER` function `recent_reaction_count`, which runs outside RLS. Any new rate limit needs the same shape.
 
 ### 3. Shared Data Contracts
 
-Cross-check the contracts listed in CLAUDE.md:
+Cross-check the contracts in `.claude/docs/data-contracts.md`:
 
 | Data                    | Frontend File                                                  | Backend File                                   |
 | ----------------------- | -------------------------------------------------------------- | ---------------------------------------------- |
@@ -72,7 +74,7 @@ Cross-check the contracts listed in CLAUDE.md:
 | Moderation blocklists   | `src/lib/moderation.ts` `BLOCKED_DOMAINS` + `BLOCKED_PATTERNS` | `supabase/functions/moderate-content/index.ts` |
 | `ModerationResult` type | `src/lib/moderation.ts`                                        | `supabase/functions/moderate-content/index.ts` |
 
-**Known gotcha**: `ModerationResult` is intentionally duplicated between client and edge function. Deno can't share Vite imports. Don't flag this as tech debt — it's documented in CLAUDE.md.
+**Known gotcha**: `ModerationResult` is intentionally duplicated between client and edge function. Deno can't share Vite imports. Don't flag this as tech debt — it's documented in `.claude/docs/gotchas.md`.
 
 ### 4. Frontend-Backend Integration Points
 
@@ -81,16 +83,13 @@ Cross-check the contracts listed in CLAUDE.md:
 - Auth guards use `requireAuth()` from `src/lib/auth-guard.ts`
 - Retry logic wraps Supabase calls with `async () =>` (Supabase returns `PromiseLike`, not `Promise`)
 
-**Complete RPC ↔ Caller map** (verify ALL of these):
+**RPC ↔ caller map:** the complete list of 12 lives in `/feature` under
+"Existing RPCs" — verify all of them, and regenerate the list from source rather
+than trusting either doc:
 
-| RPC                        | Caller              | Access Pattern                              |
-| -------------------------- | ------------------- | ------------------------------------------- |
-| `set_age_verification`     | `App.tsx`           | SECURITY DEFINER (trigger-protected fields) |
-| `get_posts_with_reactions` | `usePosts.ts`       | Read-only, cursor pagination                |
-| `get_post_by_id`           | `usePosts.ts`       | Read-only, full post content                |
-| `toggle_user_block`        | `useBlocks.ts`      | Mutation, returns `is_blocked`              |
-| `export_user_data`         | `SettingsModal.tsx` | SECURITY DEFINER, returns jsonb             |
-| `delete_user_account`      | `SettingsModal.tsx` | SECURITY DEFINER, cascading delete          |
+```bash
+grep -rhno "rpc('[a-z_]*'" src --include='*.ts*' | grep -v __tests__ | sed "s/.*rpc('//;s/'//" | sort -u
+```
 
 **Direct table access** (no RPC):
 
@@ -111,7 +110,7 @@ Verify these fields can't be set directly via PostgREST:
 npm run check          # lint, format, typecheck, tests, build — the same checks as CI
 ```
 
-**NEVER run `npm run dev`** — it crashes the environment. Use `npm run build` only.
+An audit verifies with `npm run build`, not a dev server — the dev server proves nothing about the production bundle.
 
 ## Output Format
 
@@ -134,7 +133,7 @@ Before completing your audit:
 ## Learning Contribution
 
 After completing your audit, append NEW findings to the relevant `.claude/docs/*.md` topic doc under
-the appropriate section (usually "Architecture & Integration" or "False Positives").
+the appropriate section — usually `gotchas.md`, or `false-positives.md` for a dismissal.
 Use the format:
 
 ```

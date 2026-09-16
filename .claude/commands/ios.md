@@ -103,8 +103,9 @@ small**. Two reasons, and both apply to any measurement you take here:
 Use the eager-KB number as the optimisation target, since it is measured
 precisely and directly. Only claim a startup win from a physical-device
 measurement, and only when the delta clears the noise band of at least five runs.
-Only the modals and route views are split. `vendor-markdown` (120 KB) and
-`vendor-motion` (125 KB) are both eager; neither is needed to paint the shell.
+Modals and route views are split, and `vendor-markdown` is deferred behind
+`MarkdownContent`. `vendor-motion` (125 KB) is still eager and is not needed to
+paint the shell.
 
 ## Phase 2 — Lifecycle: what happens on resume
 
@@ -127,7 +128,7 @@ Check each of these:
   `addListener('appUrlOpen')` only fires for a _running_ app. A link that
   launches the app from cold delivers its URL through `CapApp.getLaunchUrl()`,
   and an app handling only the listener looks like "deep links are broken
-  sometimes". Already handled here (`capacitor.ts:177`) — keep it that way.
+  sometimes". Already handled in `capacitor.ts` — keep it that way.
 - **Anything reading an OS setting must re-read on foreground.** Dynamic Type is
   the example: it only changes while the app is backgrounded, so a one-shot read
   at startup is permanently stale. `dynamic-type.ts` uses `visibilitychange`.
@@ -162,11 +163,11 @@ Both defaults are shakier on iOS than on the web:
 - **`localStorage` in WKWebView is evictable.** iOS reclaims web storage under
   disk pressure and after long idle periods. A native app that stores its only
   auth token there can be signed out by the OS with no user action and no error.
-  The durable option is a Capacitor storage plugin backed by the Keychain,
-  passed to `createClient` as a custom `storage` adapter.
+  The fix here is a custom `storage` adapter on `createClient` backed by
+  `@capacitor/preferences` (`UserDefaults`) — see `lib/auth-storage.ts`.
 - **The refresh timer does not run while backgrounded.** JS timers are suspended
   in a background WKWebView, so a token can expire mid-suspension. Recovery
-  depends on something firing on resume — which, per Phase 2, nothing here does.
+  depends on the `appStateChange` listener from Phase 2.
 
 Test eviction directly rather than waiting for it in the wild. Sign in first,
 then delete only the auth key from the **evictable** store:
@@ -209,10 +210,9 @@ Four harness traps, all of which produced a wrong answer first:
 grep -rn "onAuthStateChange" -A 12 src/hooks/useAuth.ts
 ```
 
-`useAuth` handles `INITIAL_SESSION` and `PASSWORD_RECOVERY` explicitly and
-funnels everything else into `syncAuthState`, so an involuntary sign-out is
-indistinguishable from a deliberate one. Distinguishing them is what would turn
-the silent-sign-out report into a diagnosable bug.
+`useAuth` distinguishes them: an unrequested `SIGNED_OUT` sets `sessionExpired`
+and raises `AUTH_SESSION_EXPIRED`, so the user is told the session expired
+instead of being silently dropped on the auth screen. Keep that distinction.
 
 ## Phase 4 — Offline and network
 
@@ -259,13 +259,14 @@ one leans on Framer Motion.
   suppresses transforms:
 
 ```bash
-xcrun simctl ui <UDID> increase_contrast enabled   # and check Settings > Accessibility > Motion
+xcrun simctl spawn <UDID> defaults write com.apple.Accessibility ReduceMotionEnabled -bool true
 ```
 
-- Long feeds are not virtualized. That is fine at the current entry counts; it
-  becomes a finding when a feed of a few hundred entries janks on scroll.
-  Measure before adding a windowing library — it costs complexity and breaks
-  `ChapterChips` scroll anchoring.
+Relaunch after setting it, and restore it to `false` when done.
+
+- The feed is virtualized with `@tanstack/react-virtual`. `ESTIMATED_POST_HEIGHT`
+  in `App.tsx` must stay close to a real `PostCard`'s height, or rows overlap
+  before they are measured.
 
 ## Phase 6 — Bridge hygiene
 
