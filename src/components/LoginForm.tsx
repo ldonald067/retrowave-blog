@@ -126,28 +126,47 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
           />
 
           {mode === 'password' && (
-            <Input
-              label="ur password:"
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setPasswordError('');
-              }}
-              placeholder="shhh it's a secret..."
-              error={passwordError}
-              autoComplete="current-password"
-            />
+            <div>
+              <Input
+                label="ur password:"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setPasswordError('');
+                }}
+                placeholder="shhh it's a secret..."
+                error={passwordError}
+                autoComplete="current-password"
+              />
+              {/* Attached to the field it rescues, right-aligned, where iOS
+                  users look for it. Position is what sets it apart from the
+                  magic link below — not colour. It used to be --text-muted,
+                  and grey is hard to read here and off-brand: this app ranks
+                  controls by how much accent they carry, never by draining the
+                  accent out (see /frontend). */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('reset');
+                    clearErrors();
+                  }}
+                  className="xanga-link text-xs"
+                >
+                  forgot ur password?
+                </button>
+              </div>
+            </div>
           )}
 
           {mode === 'password' ? (
-            /* These two are not peers and should not look like peers. A magic
-               link is another way to do the thing you came to do; a reset is
-               what you reach for when that has failed. Rendered identically and
-               stacked, they read as one list of equal options and you have to
-               read both to find the one you want. The magic link keeps the link
-               styling; the reset is quieter, set apart by a rule, and reads as
-               a fallback. */
+            /* The magic link and the password reset are not peers: one is
+               another way to do what you came to do, the other is what you
+               reach for when that failed. They used to sit stacked here in one
+               link style and read as a list of equal options. The reset now
+               lives under the password field instead, so each sits beside the
+               thing it relates to. */
             <div className="text-center flex flex-col">
               <button
                 type="button"
@@ -158,21 +177,6 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
                 className="xanga-link text-xs min-h-[44px] inline-flex items-center justify-center"
               >
                 ~ or use a magic link ~
-              </button>
-              <div
-                className="border-t border-dotted mx-auto w-2/3 my-1"
-                style={{ borderColor: 'var(--border-primary)' }}
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('reset');
-                  clearErrors();
-                }}
-                className="text-xs min-h-[44px] inline-flex items-center justify-center underline underline-offset-2 transition hover:opacity-70"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                forgot ur password?
               </button>
             </div>
           ) : mode === 'reset' ? (

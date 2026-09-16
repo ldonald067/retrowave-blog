@@ -168,12 +168,13 @@ The measurable checks above pass on screens that still read badly. Take a
 screenshot of each state and ask:
 
 - **Do two controls that do different things look identical?** Sign-in had
-  "~ or use a magic link ~" and "~ forgot ur password? ~" stacked in the same
-  link style. One is another way to do what you came for; the other is what you
-  reach for when that failed. Rendered as peers they read as a list of equal
-  options and you have to read both to find the one you want. Rank them: keep
-  the primary alternative styled as a link, make the fallback quieter and set it
-  apart.
+  "~ or use a magic link ~" and "forgot ur password?" stacked in the same link
+  style. One is another way to do what you came for; the other is what you reach
+  for when that failed. Rendered as peers they read as a list of equal options.
+  The fix that held was **position**, not colour: the reset link now sits
+  right-aligned under the password field it rescues, and the magic link stays
+  centred as the alternative. Do not rank them by greying one out — see the tier
+  table below.
 - **Is anything offering the same action twice?** The empty journal had "write
   ur first entry" in the card _and_ a floating "new entry" button — on a phone
   the floating one lands on top of the card it duplicates. A desktop layout can
@@ -193,12 +194,20 @@ screenshot of each state and ask:
 - **Do links of different consequence look different?** There are four tiers,
   and a control should be in the one that matches what it does:
 
-  | Tier     | Treatment                                            | Used for                               |
-  | -------- | ---------------------------------------------------- | -------------------------------------- |
-  | Primary  | `.xanga-button`, solid fill                          | the action the screen exists for       |
-  | Standard | `.xanga-link`, link colour + underline               | ordinary navigation                    |
-  | Caution  | `.xanga-link-caution`, `--link-caution` amber + bold | block, report — anything consequential |
-  | Quiet    | `--text-muted` + underline                           | fallbacks, e.g. "forgot ur password?"  |
+  | Tier      | Treatment                                            | Used for                               |
+  | --------- | ---------------------------------------------------- | -------------------------------------- |
+  | Primary   | `.xanga-button`, solid fill                          | the action the screen exists for       |
+  | Secondary | `.xanga-button-ghost`, accent text + dotted outline  | a supporting action                    |
+  | Link      | `.xanga-link`, link colour + underline               | navigation, fallbacks                  |
+  | Caution   | `.xanga-link-caution`, `--link-caution` amber + bold | block, report — anything consequential |
+
+  **There is no grey tier.** A quieter control carries less accent _area_ — an
+  outline instead of a fill, a link instead of a button — never accent drained
+  out into `--text-muted`. `/frontend` owns this table. "forgot ur password?"
+  was grey until 2026-09-16: it measured 9.74:1, so it passed contrast easily,
+  and it still read as disabled fine print on a pink maximalist screen and was
+  off-brand. A contrast ratio proves legibility, not that a control looks
+  tappable.
 
   Caution is amber because no palette here uses that hue for anything else, and
   **bold as well as coloured** because hue alone excludes anyone who cannot
