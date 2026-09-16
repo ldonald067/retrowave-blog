@@ -59,7 +59,13 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
         {/* Content */}
         <div className="flex-1 overflow-y-auto keyboard-safe-pad safe-area-bottom px-4 sm:px-6 py-4 sm:py-8">
           <div className="max-w-sm mx-auto sm:min-h-full sm:flex sm:flex-col sm:justify-center">
-            {/* Xanga-style Tab Selector */}
+            {/* Xanga-style Tab Selector.
+                Active is a fill, inactive an outline — the same fill > outline
+                tiering as .xanga-button / .xanga-button-ghost. The inactive tab
+                is accent text on --card-bg, never --text-muted: grey read as
+                disabled and does not fit this app. It stays distinct from a link
+                by what a link has and it lacks — no underline — plus bold title
+                type inside a bordered segment. */}
             <div
               className="flex border-2 border-dotted rounded-lg overflow-hidden mb-6"
               role="tablist"
@@ -80,7 +86,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
                   color:
                     activeTab === 'login'
                       ? 'var(--button-text, var(--text-title))'
-                      : 'var(--text-muted)',
+                      : 'var(--accent-primary)',
                 }}
               >
                 ~ sign in ~
@@ -100,7 +106,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
                   color:
                     activeTab === 'signup'
                       ? 'var(--button-text, var(--text-title))'
-                      : 'var(--text-muted)',
+                      : 'var(--accent-primary)',
                 }}
               >
                 ~ sign up ~
