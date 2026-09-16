@@ -32,6 +32,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # ESLint does not check formatting, so drift went unnoticed until an
+      # unrelated format run produced an 800-line diff in App.tsx.
+      - name: Format check
+        run: npm run format:check
+
       - name: Typecheck
         run: npm run typecheck
 

@@ -13,9 +13,10 @@ npx tsc --noEmit       # Type check
 npm run dev            # Vite dev server (port 5174)
 npm run lint           # ESLint
 npm run format         # Prettier (singleQuote, printWidth: 100)
+npm run format:check   # Prettier check — CI fails on drift
 ```
 
-Run `npx tsc --noEmit && npm run build && npm run test` before committing.
+Run `npx tsc --noEmit && npm run format:check && npm run build && npm run test` before committing.
 
 **Green tests are not proof the feature works.** Several suites mock the very
 thing under test — `PostModal.test.tsx` mocks `useFocusTrap`, which is why a bug
