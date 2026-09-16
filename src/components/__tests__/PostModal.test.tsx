@@ -418,3 +418,37 @@ describe('PostModal chapter-rename confirmation', () => {
     expect(screen.queryByText(/this goes public/i)).not.toBeInTheDocument();
   });
 });
+
+describe('PostModal entry view privacy badge', () => {
+  // mockPost: chapter "test chapter", is_private false.
+  const viewProps = {
+    post: mockPost,
+    onSave: vi.fn().mockResolvedValue(undefined),
+    onClose: vi.fn(),
+    mode: 'view' as const,
+    isOwner: true,
+  };
+
+  it('does not call an entry public when its chapter hides it', () => {
+    render(<PostModal {...viewProps} privateChapters={['Test Chapter']} />);
+    expect(screen.getByText('hidden by chapter')).toBeInTheDocument();
+    expect(screen.queryByText(/^public$/)).not.toBeInTheDocument();
+  });
+
+  it('calls an entry public when nothing hides it', () => {
+    render(<PostModal {...viewProps} privateChapters={['something else']} />);
+    expect(screen.getByText(/^public$/)).toBeInTheDocument();
+  });
+
+  it('calls a private entry private even inside a private chapter', () => {
+    render(
+      <PostModal
+        {...viewProps}
+        post={{ ...mockPost, is_private: true }}
+        privateChapters={['test chapter']}
+      />
+    );
+    expect(screen.getByText(/^private$/)).toBeInTheDocument();
+    expect(screen.queryByText('hidden by chapter')).not.toBeInTheDocument();
+  });
+});

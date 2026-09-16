@@ -20,7 +20,7 @@ and the App Store Connect listing.
 submission. All six screenshots are captured at 1320 × 2868 in
 `store-assets/screenshots/`.
 
-CI is green. **337 tests across 39 files.**
+CI is green. **344 tests across 39 files.**
 
 ## The one blocker
 
@@ -142,19 +142,20 @@ iPhone 17 Pro Max simulator unless noted.
   **337 tests** now (was 322). The four positive tests were mutation-checked:
   stubbing the gate to `false` turns all four red. Verified on device — see
   below.
+- **The entry view's privacy badge reports effective visibility.** It read
+  `🌐 public` on a public entry in a private chapter while `get_public_profile`
+  served it 0 times — and so gave no hint that renaming the chapter would publish
+  it. `entryVisibility()` in `utils/chapterPrivacy.ts` now yields `private`,
+  `hidden-by-chapter` or `public`; the entry's own flag wins when both apply, and
+  the profile's `is_public` is deliberately ignored. Verified on device
+  2026-09-16 with the profile kept private throughout: the same entry read
+  `🔒 hidden by chapter`, then `🔒 private` after the fixture was reverted.
 - **The chapter padlock now matches the server.** `Sidebar` and `ChapterChips`
   compared raw strings while the toggle and the RPC compared normalized, so a
   case variant drew 📖 on a chapter that was genuinely private and the toggle's
   label inverted. Both call `isChapterPrivate()`.
 
 ## Open work
-
-- **The entry view's privacy badge ignores the chapter.** `PostModal`'s read
-  view showed `🌐 public` on an entry that `get_public_profile` was serving 0
-  times, because the badge reads `post.is_private` alone. The composer's
-  moderation check already mirrors the server with `isChapterPrivate`; the badge
-  should too — probably a third state, since "public, but its chapter hides it"
-  is exactly what an owner needs to know before renaming that chapter.
 
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. `ReportDialog` used to promise reporters it could
@@ -277,5 +278,5 @@ accessibility-extra-extra-extra-large`. Underscore, not hyphen. Read the
   `react-markdown` — and anything native-only is inert in jsdom. The four bugs
   at the top of this file are the proof.
 - **Watch the test count, not just red/green.** CI silently ran 241 of 265 for
-  over a week. Currently **337**.
+  over a week. Currently **344**.
 - **The env file is `.env.local`**, not `.env`.

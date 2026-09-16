@@ -69,3 +69,29 @@ export function chapterChangeRepublishes(args: {
     !isChapterPrivate(privateChapters, nextChapter)
   );
 }
+
+/**
+ * What an owner should be told about an entry's visibility.
+ *
+ * `is_private` alone is not the answer: get_public_profile also hides a public
+ * entry whose chapter is in private_chapters. Reporting that entry as plainly
+ * "public" is wrong twice over — it is not on the public page, and the owner
+ * gets no hint that renaming the chapter will put it there.
+ *
+ * The entry's own flag wins when both apply, since that is the choice the owner
+ * made about this entry and it survives any rename.
+ *
+ * Deliberately ignores whether the profile is public. An entry on a private
+ * profile keeps its own setting, which is what takes effect the moment the page
+ * goes public; the chapter rule is a separate layer that can quietly change.
+ */
+export type EntryVisibility = 'private' | 'hidden-by-chapter' | 'public';
+
+export function entryVisibility(
+  isPrivate: boolean | null | undefined,
+  chapter: string | null | undefined,
+  privateChapters: readonly string[] | null | undefined
+): EntryVisibility {
+  if (isPrivate) return 'private';
+  return isChapterPrivate(privateChapters, chapter) ? 'hidden-by-chapter' : 'public';
+}

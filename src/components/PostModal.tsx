@@ -21,7 +21,7 @@ import { MOOD_SELECT_OPTIONS, SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { formatDate } from '../utils/formatDate';
 import { quickContentCheck } from '../lib/moderation';
 import { POST_LIMITS } from '../lib/validation';
-import { chapterChangeRepublishes } from '../utils/chapterPrivacy';
+import { chapterChangeRepublishes, entryVisibility } from '../utils/chapterPrivacy';
 
 interface PostModalProps {
   post?: Post | null;
@@ -334,6 +334,7 @@ export default function PostModal({
   };
 
   const isViewMode = mode === 'view';
+  const visibility = entryVisibility(post?.is_private, post?.chapter, privateChapters);
   const privacyLabelId = useId();
   // The ⋮ menu holds exactly one item — delete — so it has nothing to open
   // when that item is unavailable. Gate the button on the item, not the mode,
@@ -574,14 +575,26 @@ export default function PostModal({
                     </span>
                   )}
                   {post && (
+                    /* Effective visibility, not is_private alone. A public entry
+                       in a private chapter used to read `🌐 public` while the
+                       public page served it zero times — and gave no hint that
+                       renaming the chapter would publish it. It keeps the padlock
+                       and body colour of `private`, because nobody can see it,
+                       but names the chapter as the reason, because that is the
+                       part that can change. */
                     <span
                       className="flex items-center gap-1.5 font-bold"
                       style={{
-                        color: post.is_private ? 'var(--text-body)' : 'var(--accent-primary)',
+                        color:
+                          visibility === 'public' ? 'var(--accent-primary)' : 'var(--text-body)',
                       }}
                     >
-                      <span aria-hidden="true">{post.is_private ? '🔒' : '🌐'}</span>
-                      {post.is_private ? 'private' : 'public'}
+                      <span aria-hidden="true">{visibility === 'public' ? '🌐' : '🔒'}</span>
+                      {visibility === 'private'
+                        ? 'private'
+                        : visibility === 'hidden-by-chapter'
+                          ? 'hidden by chapter'
+                          : 'public'}
                     </span>
                   )}
                   {post?.chapter && (

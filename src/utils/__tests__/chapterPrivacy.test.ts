@@ -4,6 +4,7 @@ import {
   isSameChapter,
   isChapterPrivate,
   chapterChangeRepublishes,
+  entryVisibility,
 } from '../chapterPrivacy';
 
 describe('chapterPrivacy', () => {
@@ -106,5 +107,27 @@ describe('chapterChangeRepublishes', () => {
     // Already public, so saving changes nothing about who can see it.
     expect(chapterChangeRepublishes({ ...base, previousChapter: 'Recipes' })).toBe(false);
     expect(chapterChangeRepublishes({ ...base, previousChapter: null })).toBe(false);
+  });
+});
+
+describe('entryVisibility', () => {
+  it('reports a public entry in a private chapter as hidden by that chapter', () => {
+    // The exact case that read "public" while get_public_profile served it 0 times.
+    expect(entryVisibility(false, 'summer 2026', ['summer 2026'])).toBe('hidden-by-chapter');
+  });
+
+  it('matches the chapter the way the server does', () => {
+    expect(entryVisibility(false, '  SUMMER 2026 ', ['summer 2026'])).toBe('hidden-by-chapter');
+  });
+
+  it("lets the entry's own flag win over its chapter", () => {
+    expect(entryVisibility(true, 'summer 2026', ['summer 2026'])).toBe('private');
+    expect(entryVisibility(true, null, [])).toBe('private');
+  });
+
+  it('reports public only when nothing hides the entry', () => {
+    expect(entryVisibility(false, 'summer 2026 v2', ['summer 2026'])).toBe('public');
+    expect(entryVisibility(false, null, ['summer 2026'])).toBe('public');
+    expect(entryVisibility(false, 'summer 2026', undefined)).toBe('public');
   });
 });
