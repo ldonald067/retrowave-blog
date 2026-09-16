@@ -7,7 +7,6 @@ These have been investigated and confirmed as non-issues:
 - `/fullstack`: `ModerationResult` type duplication — architectural constraint (Deno can't share Vite imports).
 - `/fullstack`: `jsonb` SQL return type vs structured TypeScript objects — PostgREST parses jsonb automatically.
 - `/fullstack`: Edge function `moderate-content/index.ts` "double-read bug" — `.text()` on error path, `.json()` on success path. Never execute on same response.
-- ~~`/mobile`: Capacitor plugins using dynamic `await import(...)` — intentionally lazy-loaded.~~ **Stale, removed 2026-08-16.** Every plugin in `src/lib/capacitor.ts` is a static top-level import; there is no dynamic import left in that file. The entry was dismissing a pattern the code no longer uses.
 - `/mobile`: `createProfileForUser` hand-rolled retry — intentional `23505` (unique violation) handling with re-fetch fallback.
 - `/mobile`: `handleSubmit` type mismatch in ProfileModal (`onClick` passes `MouseEvent`, handler expects `FormEvent`) — tsc doesn't flag it, works at runtime.
 - `/mobile`: Winamp button touch targets (20x16px) — decorative only. `aria-hidden="true"` + `tabIndex={-1}`.
@@ -28,9 +27,9 @@ These have been investigated and confirmed as non-issues:
 ## From the 2026-08-10 mobile-UX review
 
 - **Reduce Motion is fully implemented. Do not file it as missing.** Three
-  non-overlapping layers: `<MotionConfig reducedMotion="user">` (App.tsx:1096)
+  non-overlapping layers: `<MotionConfig reducedMotion="user">` (App.tsx)
   covers all ~29 framer-motion files; the `prefers-reduced-motion` block in
-  `index.css` covers all 12 `@keyframes`, including per-animation overrides
+  `index.css` covers all 13 `@keyframes`, including per-animation overrides
   where killing the animation alone would leave a broken end state
   (`.glitter-text` restores `-webkit-text-fill-color`, `.winamp-progress-bar`
   pins a width); and `prefersReducedMotion()` in `lib/motion.ts` covers the two
@@ -45,4 +44,4 @@ These have been investigated and confirmed as non-issues:
 - **The age-gate checkbox is not an undersized tap target.** The `<input>` is
   20×20, but its row is `min-h-[44px]` and the adjacent `<label htmlFor="tos">`
   is `flex-1` and clickable, so the effective target spans the row
-  (AgeVerification.tsx:136).
+  (AgeVerification.tsx).

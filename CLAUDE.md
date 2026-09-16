@@ -33,8 +33,8 @@ React 19 + TypeScript 5.9 + Vite 7 + Tailwind CSS 4 + Framer Motion + Supabase (
 
 ```
 src/components/    # PostCard, Header, Sidebar, ChapterChips, modals, ui/
-src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useChapters, useToast, useFocusTrap, useOnlineStatus
-src/lib/           # supabase, auth-guard, errors, retry, validation, cache, moderation, themes, capacitor, celebrations
+src/hooks/         # useAuth, usePosts, useReactions, useBlocks, useChapters, usePublicProfile, useToast, useFocusTrap, useOnlineStatus, useYouTubeInfo
+src/lib/           # supabase, auth-*, errors, retry, validation, cache, moderation, reporting, themes, capacitor, dynamic-type, motion
 src/types/         # post, profile, database
 supabase/          # migrations/ + functions/ (moderate-content, notify-report)
 ios/               # Capacitor iOS app
@@ -100,7 +100,7 @@ CLAUDE.md is the always-loaded layer. Deeper context lives in topic-specific doc
 | Topic | `.claude/docs/false-positives.md` | Before flagging audit issues                                   |
 | Skill | `.claude/commands/*.md`           | Auto-loaded by `/skill` commands                               |
 | Code  | `src/lib/validation.ts`           | Field limits (POST_LIMITS, PROFILE_LIMITS)                     |
-| Code  | `src/lib/themes.ts`               | 8 theme definitions (42 CSS vars each)                         |
+| Code  | `src/lib/themes.ts`               | 8 theme definitions (43 CSS vars each)                         |
 
 # Compact instructions
 

@@ -13,14 +13,14 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 
 - Touch targets: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never bare `min-h-[36px]` — fails Apple HIG.
 - `ESTIMATED_POST_HEIGHT` (380px) must match real PostCard height or virtualizer overlaps.
-- WCAG AA: `--accent-primary` must hit 4.5:1 on `--card-bg`. `--text-title` only needs 3:1 (large text).
+- WCAG AA: `--accent-primary` must hit 4.5:1 on `--card-bg`. So must `--text-title` on the card header gradient: on a phone the title is `text-lg`, 18px bold, under WCAG's 18.66px bold cutoff for large text. Treating it as 3:1 is what let myspace-blue ship at 4.00 (finding 39).
 - Input `font-size: max(1rem, 16px) !important` at mobile breakpoint prevents iOS Safari auto-zoom. NEVER let the computed input font drop below 16px on mobile. Use `max()`, not a flat `16px` — an absolute unit does not follow the root scaling that carries Dynamic Type, so a flat value froze every field at 16px while its label grew to 20.8px.
 - [2026-07-05 /mobile] RESOLVED: Mojibake (double-encoded UTF-8, cp1252 round-trip) in Sidebar, Header, ProfileModal, PublicProfileView — from Windows-era edits (`npm.cmd` in audit logs). Two waves fixed 2026-07-05: 10× 4-byte emoji (`ðŸ..`) and 20× 3-byte chars (`â..`: ✨ ♥ ☆ ⏮▶⏸⏹⏭, em-dashes). If editing on Windows again, keep files UTF-8 and grep `ðŸ\|â\|Ã\|Â` before committing.
 - [2026-07-05 /mobile] RESOLVED: ChapterChips.tsx conditional hook (early return before `useMemo`) crashed on first-chapter creation. Fixed 2026-07-05; regression test added ("survives the 0 → 1 chapters transition").
 - [2026-07-05 /mobile] `npm run lint` covered NOTHING until 2026-07-05 — eslint.config.js only matched `**/*.{js,jsx}` but all source is `.ts/.tsx`. Now fixed (typescript-eslint added); all findings triaged 2026-07-05 and rules run at full recommended strictness (0 problems). Keep it that way.
 - [2026-07-05 /mobile] For "reset/sync state when a prop changes" use the guarded adjust-during-render pattern (prev-value in useState, compare, set) — passes react-hooks v7 compiler rules and avoids a stale paint. Don't reintroduce reset-effects; see Avatar.tsx / Header.tsx / ProfileModal.tsx for house examples.
 - [2026-07-05 /mobile] react-hooks v7 compiler rules (set-state-in-effect, immutability, refs, …) report ONE bail-out per component at a time — fixing one can surface more on the next lint run. Keep re-running lint until stable.
-- [2026-07-05 /mobile] RESOLVED: Sidebar chapter privacy toggle was a bare `min-h-[36px]`, below 44px HIG on mobile. It is now `min-h-[44px] min-w-[44px]` at every breakpoint (Sidebar.tsx:412). Verified 2026-08-10 that no unguarded sub-44px tap target remains: every `min-h-[36px]` in the codebase is prefixed `min-h-[44px] lg:`.
+- [2026-07-05 /mobile] RESOLVED: Sidebar chapter privacy toggle was a bare `min-h-[36px]`, below 44px HIG on mobile. It is now `min-h-[44px] min-w-[44px]` at every breakpoint. Verified 2026-08-10 that no unguarded sub-44px tap target remains: every `min-h-[36px]` in the codebase is prefixed `min-h-[44px] lg:`.
 - [2026-08-10 /mobile] Reduce Motion is settable from the CLI: `xcrun simctl spawn <udid> defaults write com.apple.Accessibility ReduceMotionEnabled -bool true`, then relaunch the app. The visible tell that WKWebView honoured it is the Winamp progress bar sitting at 65% — that width comes only from the reduced-motion override in `index.css`. Restore it to `false` afterwards.
 - [2026-08-10 /mobile] **The browser pane cannot verify anything behind `AnimatePresence`.** Its tab reports `document.visibilityState === "hidden"`, so rAF is throttled and Framer Motion animations freeze mid-flight: entrance animations stall at partial opacity (the auth screen sat at `opacity: 0.196`) and `AnimatePresence mode="wait"` never finishes its exit, so the outgoing child never unmounts and the incoming one never mounts. That renders as a genuine-looking bug — the AuthModal showed "Welcome Back" with SignUpForm's fields still mounted, because the heading lives outside the AnimatePresence and updated on its own. `read_page` reporting `Viewport: 0x0` is the giveaway. Assert on such panels with a component test instead.
 - [2026-08-10 /mobile] iOS Password AutoFill needs `autoComplete` tokens, and the pairing is what matters: `username` + `current-password` on sign-in, `email` + `new-password` on sign-up. `new-password` is what makes iOS offer a generated password — worth keeping, since Supabase enforces lower+upper+digit+symbol server-side and a suggested password always satisfies it. Email fields also need `autoCapitalize="none"`; WKWebView capitalises the first letter otherwise.
@@ -45,7 +45,7 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 
 - `tos_accepted` defaults to `false` in the trigger. `set_age_verification()` is the only legitimate path to flip it.
 - `useReactions`' in-flight guard only prevents sequential duplicates — the 400ms cooldown is the real rapid-tap protection.
-- Every hook routes failures through `toUserMessage()`; no raw `error.message` reaches the UI. 27 patterns plus a fallback in `lib/errors.ts`.
+- Every hook routes failures through `toUserMessage()`; no raw `error.message` reaches the UI. `lib/errors.ts` maps 7 PostgREST codes and 13 message patterns, plus a fallback.
 
 ## Features
 
@@ -60,11 +60,11 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 
 ## Performance
 
-- Tree-shaking pepicons cut the main bundle from 3,130 KB to 672 KB (-78%). Code splitting since brought it to **316 KB raw / 97 KB gzipped** (`index-*.js`), with vendor chunks split out — 904 KB of JS total. Measured 2026-08-28; re-run `npm run build` rather than trusting this number.
+- Tree-shaking pepicons cut the main bundle from 3,130 KB to 672 KB (-78%). Code splitting since brought it to **328 KB raw / 101 KB gzipped** (`index-*.js`), with vendor chunks split out — 906 KB of JS total. Measured 2026-09-16; re-run `npm run build` rather than trusting this number.
 - **76% of that JS is on the critical path** — 684 KB eager, down from 802 KB since `react-markdown` moved behind `MarkdownContent`. On Capacitor the bytes are local, so cold-start cost is JS parse/eval on the device CPU, not transfer. See `/ios`.
 - **Post bodies render through `ui/MarkdownContent`, never `react-markdown` directly.** It lazy-loads the renderer and prefetches it on idle, so the ~120 KB is off the startup path but resident before the feed request resolves. Importing `react-markdown` directly anywhere puts it straight back on the critical path.
 - `PostCard.test.tsx` and `PostModal.test.tsx` both **mock `react-markdown`**, so neither would notice the lazy chunk failing to resolve — the Suspense fallback renders the same text. `ui/__tests__/MarkdownContent.test.tsx` uses the real renderer and is what actually guards it.
-- `filteredPosts` and `looseCount` are memoized with `useMemo` in App.tsx.
+- `looseCount`, `chapterFilteredPosts` and `visiblePosts` are memoized with `useMemo` in App.tsx.
 
 ## Signed-out states
 
@@ -76,7 +76,7 @@ Non-obvious behaviors and footguns. Read before making changes in these areas.
 - The hero is `clamp(3.5rem, 11vh, 6rem)` so it scales with the device rather than one phone, and drops to `2.5rem` under `[data-text-scaled]` where the words need the room. A minimum height on the card was tried and reverted: it produced a tall white box with the content pooled in the middle.
 - **The intro always renders in `classic-xanga`.** A signed-out user has no theme, so `syncAuthState` applies `DEFAULT_THEME`. The slide scenes are still written in theme variables rather than hex, so they survive if that ever changes — but a dark-theme check on the intro is not applicable today.
 - Slide scenes (`.ob-paper`, `.ob-eq`, `.ob-swatch`) are CSS, not artwork: eight themes make a baked image wrong in seven of them, and `react-old-icons` already shows what remote assets cost — it fetches from GitHub at runtime and renders nothing offline. Slide 3's swatches are the real `previewColors` from `THEMES`, so "8 unique themes" is demonstrated rather than claimed.
-- The intro's three footer actions use three _shapes_, not three colours: solid `.xanga-button` forward, dotted-outline `.ob-ghost` back, bare underlined text to skip. `next` and `back` were previously both `.xanga-button` — identical weight for opposite directions.
+- The intro's three footer actions use three _shapes_, not three colours: solid `.xanga-button` forward, dotted-outline `.xanga-button-ghost` back, bare `.xanga-link` to skip. `next` and `back` were previously both `.xanga-button` — identical weight for opposite directions.
 
 ## Session storage (iOS)
 
