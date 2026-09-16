@@ -56,7 +56,8 @@ than tightening until it squeezes in.
 - [x] Simulator boots, `content_size` read and recorded for restoration
 - [x] Status bar pinned to 9:41
 - [x] Current build installed and signed in
-- [ ] Simulator.app open for real-keyboard tests (`ConnectHardwareKeyboard false`)
+- [x] Simulator.app open for real-keyboard tests (`ConnectHardwareKeyboard false`) —
+      done 2026-08-17, when the composer was verified with the full software keyboard
 
 ## Phase 1 — Token sweep (no device needed)
 
@@ -87,37 +88,41 @@ than tightening until it squeezes in.
 
 ## Phase 4 — Core loop
 
-| Surface                          | `/mobile` | `/frontend` | Notes                       |
-| -------------------------------- | --------- | ----------- | --------------------------- |
-| Feed with entries                | [x]       | [x]         | classic + emo-dark          |
-| Composer                         | [x]       | [x]         | keyboard up, draft autosave |
-| Composer preview                 | [x]       | [x]         | markdown verified           |
-| Entry detail                     | [x]       | [x]         |                             |
-| Entry edit + ⋮ menu              | [x]       | [x]         |                             |
-| Delete confirm (`ConfirmDialog`) | [ ]       | [ ]         | Never rendered              |
-| Chapter chips + filter           | [x]       | [x]         |                             |
-| Reactions (`ReactionBar`)        | [ ]       | [ ]         | Never exercised             |
-| YouTube card                     | [ ]       | [ ]         | Never exercised             |
-| Long entry / many entries        | [ ]       | [ ]         | Only ever 1 short entry     |
+| Surface                          | `/mobile` | `/frontend` | Notes                                                                                         |
+| -------------------------------- | --------- | ----------- | --------------------------------------------------------------------------------------------- |
+| Feed with entries                | [x]       | [x]         | classic + emo-dark                                                                            |
+| Composer                         | [x]       | [x]         | keyboard up, draft autosave                                                                   |
+| Composer preview                 | [x]       | [x]         | markdown verified                                                                             |
+| Entry detail                     | [x]       | [x]         |                                                                                               |
+| Entry edit + ⋮ menu              | [x]       | [x]         |                                                                                               |
+| Delete confirm (`ConfirmDialog`) | [ ]       | [ ]         | Never rendered                                                                                |
+| Chapter chips + filter           | [x]       | [x]         |                                                                                               |
+| Reactions (`ReactionBar`)        | [x]       | [ ]         | Exercised on device for finding 36 — insert, relaunch, delete. Not yet looked at as a surface |
+| YouTube card                     | [ ]       | [ ]         | Never exercised                                                                               |
+| Long entry / many entries        | [ ]       | [ ]         | Only ever 1 short entry                                                                       |
 
 ## Phase 5 — Identity and settings
 
-| Surface                         | `/mobile` | `/frontend` | Notes                   |
-| ------------------------------- | --------- | ----------- | ----------------------- |
-| Profile modal — profile tab     | [x]       | [x]         |                         |
-| Profile modal — vibe tab        | [x]       | [ ]         | theme picker            |
-| Profile modal — public page tab | [ ]       | [ ]         | `PublicPageSettings`    |
-| Avatar picker                   | [ ]       | [ ]         |                         |
-| Settings                        | [x]       | [x]         | emo-dark                |
-| Export data                     | [ ]       | [ ]         | writes a file on device |
-| Delete account confirm          | [ ]       | [ ]         | **do not confirm**      |
+| Surface                         | `/mobile` | `/frontend` | Notes                                                      |
+| ------------------------------- | --------- | ----------- | ---------------------------------------------------------- |
+| Profile modal — profile tab     | [x]       | [x]         |                                                            |
+| Profile modal — vibe tab        | [x]       | [x]         | theme picker; `/frontend` via Phase 7c                     |
+| Profile modal — public page tab | [ ]       | [x]         | `PublicPageSettings`; `/frontend` via Phase 7c, finding 27 |
+| Avatar picker                   | [ ]       | [ ]         |                                                            |
+| Settings                        | [x]       | [x]         | emo-dark                                                   |
+| Export data                     | [ ]       | [ ]         | writes a file on device                                    |
+| Delete account confirm          | [ ]       | [ ]         | **do not confirm**                                         |
 
 ## Phase 6 — Public and social
 
 - [ ] Publish a page, view it signed out, view it as another account
-- [ ] Report an entry end to end
+- [ ] Report an entry end to end — the dialog was submitted (Phase 2) and both
+      moderation actions ran on real reports (Phase 7), but the `notify-report`
+      email has not been confirmed received as part of one run
 - [ ] Block from a public profile
-- [ ] Private chapter excluded from the public page
+- [ ] Private chapter excluded from the public page — **verified against prod's
+      `get_public_profile` on 2026-09-16** (0 entries served, then 1 after the
+      rename), but not yet looked at as a signed-out visitor on the simulator
 
 ## Phase 7 — Moderation
 
@@ -348,7 +353,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 
 | 44 | MED | Public profile | The profile card was one 96pt avatar beside a 400pt column, so roughly a third of the card was an empty strip under the avatar that nothing filled — and the mood/music panel was squeezed into the remaining ~230pt, wrapping the now-playing line to three. Identity row now holds the name and handle only; everything else is full width | Fixed `a2c1df1` |
 
-**44 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
+**41 findings, all fixed** — numbered to 44, because numbers 40–42 were never assigned here or in any commit. Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
 (12), and the entry-detail/feed-card hierarchy set (14–19).
 
@@ -361,18 +366,17 @@ from a single maximum-length entry (9–11), one document-breaking layout bug
 
 ## Blocked — cannot be reached from this session
 
-| Surface                  | Needs                                                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ModerationView` actions | A decision, not access: `~ hide entry ~` and `~ dismiss ~` act on real production data, and dismissing consumes the only open report. The screen itself is audited |
-| Sidebar stats labels     | ≥1024px. `hidden lg:block`, and the phone is 440pt — the finding 29 fix there is verified by reading, not photographed                                             |
+| Surface              | Needs                                                                                                                  |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Sidebar stats labels | ≥1024px. `hidden lg:block`, and the phone is 440pt — the finding 29 fix there is verified by reading, not photographed |
 
 ## Deferred — seen on this pass, not filed as findings
 
-| Surface        | Observation                                                                                                                                                                                                                      | Why deferred                                                                                                                                                                               |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Public profile | `~ report entry ~` gets its own full-width footer bar on every card, bold and underlined — on a stranger's page it is the loudest control, repeated once per entry                                                               | Guideline 1.2 compliance control. Its prominence is a `/mobile` call, not a `/frontend` one, and it is not worth re-tiering a reporting affordance for style alone right before submission |
-| Feed           | The floating `new entry` button sits over the last reaction in a card's reaction bar at rest. Whether that actually blocks the control is a touch-target question for `/mobile`, and Phase 4 still has `ReactionBar` unexercised |
-| Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice                                                       | Removing a conversion CTA is a product decision, not a hierarchy fix                                                                                                                       |
+| Surface        | Observation                                                                                                                                                                | Why deferred                                                                                                                                                                               |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Public profile | `~ report entry ~` gets its own full-width footer bar on every card, bold and underlined — on a stranger's page it is the loudest control, repeated once per entry         | Guideline 1.2 compliance control. Its prominence is a `/mobile` call, not a `/frontend` one, and it is not worth re-tiering a reporting affordance for style alone right before submission |
+| Feed           | The floating `new entry` button sits over the last reaction in a card's reaction bar at rest.                                                                              | Resolved as a dismissal — see "Phase 9 — two dismissals" below: a scroll moves it, and at max Dynamic Type the bar wraps clear                                                             |
+| Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice | Removing a conversion CTA is a product decision, not a hierarchy fix                                                                                                                       |
 
 ## Findings 38 and 39 — card titles on the header gradient. Fixed `df7aee1`
 

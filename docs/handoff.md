@@ -6,15 +6,21 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-15, at `e3134ab` plus the chapter-rename work below.
+Last rewritten 2026-09-16, after the docs cleanup.
 
 ---
 
 ## Where the project is
 
 The web app and backend are done and live at https://retrowaveblog.com. The UI
-audit is finished. **What remains is Apple-side only**: signing, archive/upload,
-and the App Store Connect listing.
+audit's sweeps are finished and every finding is fixed; some journeys in it were
+never exercised (see below). **What remains for submission is Apple-side
+only**: signing, archive/upload, and the App Store Connect listing.
+
+**The Supabase project pauses when idle.** It was found `INACTIVE` on 2026-09-15
+after 13 quiet days, which takes the whole app down — sign-in, entries,
+everything. Check it before any device session, and keep it active through App
+Review.
 
 `docs/app-store-submission-guide.md` is the single source of truth for
 submission. All six screenshots are captured at 1320 × 2868 in
@@ -30,14 +36,20 @@ nothing can be signed, archived, or uploaded. Every other submission input is
 ready. Nothing in the repo moves it forward — it needs your Apple ID and a paid
 enrollment.
 
-## The audit is finished
+## The UI audit
 
 `docs/audit/ui-audit-plan.md` is the checklist and findings log. **Start there,
 not here**, for anything UI.
 
-**44 findings, all fixed.** Every phase is complete. The only unticked rows are
-Phase 8 states this rig physically cannot produce — they are under "Waiting for
-you" below, each with why.
+**41 findings, all fixed** — numbered to 44, because 40–42 were never assigned.
+The sweeps are complete: hierarchy (7c), accessibility (9) and themes (10).
+
+**Journey coverage is not.** This file used to say every phase was complete with
+only Phase 8 left; the plan itself still has unticked rows in Phases 2–7b.
+Never exercised: age verification, the whole first-run flow, delete confirm, the
+YouTube card, a long feed, the avatar picker, data export, block from a public
+profile, and a page viewed as a signed-out visitor. Read the plan's checkboxes,
+not this summary, before calling a surface done.
 
 - **Phase 7** — both moderation actions run against real reports, confirmed in
   the database.
