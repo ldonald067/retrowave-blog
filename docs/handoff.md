@@ -238,8 +238,8 @@ before trusting anything you see on one.
 | Simulator                  | State at end of session    | Session       | Build                             |
 | -------------------------- | -------------------------- | ------------- | --------------------------------- |
 | iPhone 17 Pro Max          | booted                     | `ldonald234`  | current, `e276a48`                |
-| iPhone 17 Pro              | booted                     | signed out    | current, `e276a48`                |
-| iPhone 17                  | booted                     | `ldonald0234` | current, `09dc20e`                |
+| iPhone 17 Pro              | booted                     | signed out    | `09dc20e` — before the ✕ recolour |
+| iPhone 17                  | booted                     | `ldonald0234` | current, `e276a48`                |
 | iPhone SE (3rd generation) | booted, created 2026-09-16 | signed out    | `09dc20e` — before the ✕ recolour |
 
 The iPhone 17 Pro is the one to use for anything on the signed-out screens: an
