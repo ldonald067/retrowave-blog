@@ -25,7 +25,7 @@ Already handled in code and backend:
 
 - App icon **alpha channel stripped** (App Store rejects icons with transparency). Opaque 1024×1024.
 - `TARGETED_DEVICE_FAMILY = "1"` (iPhone-only), portrait-locked, iPad orientation key removed.
-- Bundle ID, version/build, launch screen, deep-link URL scheme, `ITSAppUsesNonExemptEncryption = NO`, deployment target (iOS 15) — all correct.
+- Bundle ID, version/build, launch screen, deep-link URL scheme, `ITSAppUsesNonExemptEncryption = NO`, deployment target (**iOS 16.4**, raised from 15.0 on 2026-09-16 to match the CSS — see gotchas) — all correct.
 - **Reviewer demo account** created, pre-confirmed, age-verified, 3 public sample entries. Credentials in Part 5.
 - **Support page** live (App Store requires a support URL): https://retrowaveblog.com/support
 - Privacy + Terms pages live and current.
