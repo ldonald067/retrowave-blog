@@ -115,8 +115,8 @@ export default function AgeVerification({
               {/* Birth Year Selector */}
               <div className="xanga-box p-3 sm:p-4">
                 <label
-                  className="block text-xs font-bold mb-2"
-                  style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+                  className="block text-xs title-bold mb-2"
+                  style={{ color: 'var(--text-title)' }}
                 >
                   📅 birth year:
                 </label>

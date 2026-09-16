@@ -264,8 +264,8 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
       <div>
         <label
           htmlFor="avatar-custom-seed"
-          className="text-xs font-bold mb-1 block"
-          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
+          className="text-xs title-bold mb-1 block"
+          style={{ color: 'var(--accent-primary)' }}
         >
           or type a custom word:
         </label>

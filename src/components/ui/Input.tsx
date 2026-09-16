@@ -25,10 +25,10 @@ export default function Input({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-xs font-bold mb-1"
+          className="block text-xs title-bold mb-1"
           // --accent-primary (not --text-title) — meets AA 4.5:1 on card/modal
           // backgrounds in every theme; --text-title only guarantees 3:1.
-          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
+          style={{ color: 'var(--accent-primary)' }}
         >
           {label}
         </label>

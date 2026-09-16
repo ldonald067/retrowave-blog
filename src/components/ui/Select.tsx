@@ -29,8 +29,8 @@ export default function Select({
       {label && (
         <label
           htmlFor={selectId}
-          className="block text-xs font-bold mb-1"
-          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
+          className="block text-xs title-bold mb-1"
+          style={{ color: 'var(--accent-primary)' }}
         >
           {label}
         </label>

@@ -988,8 +988,8 @@ export default function PostModal({
                     <div className="flex items-center justify-between mb-1">
                       <label
                         htmlFor="post-content"
-                        className="block text-xs font-bold"
-                        style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+                        className="block text-xs title-bold"
+                        style={{ color: 'var(--text-title)' }}
                       >
                         ur thoughts: * (markdown supported)
                       </label>

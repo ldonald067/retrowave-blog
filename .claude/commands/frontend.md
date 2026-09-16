@@ -134,8 +134,8 @@ Defined in `src/index.css`; read it before inventing anything.
 **`font-bold` in the title font does not look bold on the default theme.**
 Comic Neue's Bold is 1.8% wider than its Regular at 14px (Verdana's is 9%)
 and there is no heavier weight, so `font-weight: 700` computes correctly and
-still reads as regular — the field labels and, until 2026-09-16, the auth tabs
-both did. Use `.title-bold`: it adds `-webkit-text-stroke` by
+still reads as regular — the auth tabs and every form field label did until
+2026-09-16. Use `.title-bold`: it adds `-webkit-text-stroke` by
 `--title-font-bold-stroke`, which is `0.45px` on classic-xanga and `0px` on the
 themes whose title font has a real bold.
 
