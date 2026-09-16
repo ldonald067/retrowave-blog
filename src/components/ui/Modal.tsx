@@ -122,7 +122,13 @@ export function ModalCloseButton({ onClick, label = 'Close' }: ModalCloseButtonP
     <button
       onClick={onClick}
       className="icon-btn-hover p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
-      style={{ color: 'var(--text-muted)' }}
+      // --text-title, not --text-muted: no grey controls (gotchas). It matches
+      // the modal title beside it, and it is the one non-grey token that clears
+      // the 3:1 icon bar across the whole header gradient in all eight themes —
+      // worst 4.70 on emo-dark. --accent-primary drops to 2.38 on classic-xanga.
+      // A coloured icon also gets the global press bloom, which does nothing to
+      // a grey.
+      style={{ color: 'var(--text-title)' }}
       aria-label={label}
     >
       <X size={18} />
