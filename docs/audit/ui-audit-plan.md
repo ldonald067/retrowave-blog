@@ -70,14 +70,14 @@ than tightening until it squeezes in.
 
 ## Phase 2 — Signed-out journey
 
-| Surface                   | `/mobile` | `/frontend` | Notes                                     |
-| ------------------------- | --------- | ----------- | ----------------------------------------- |
-| Onboarding, 4 slides      | [x]       | [x]         | Also at max Dynamic Type                  |
-| Auth — sign up            | [x]       | [x]         | `cc3fed1` — form moved onto --card-bg     |
-| Auth — sign in            | [x]       | [x]         | Link tiers deliberate and documented      |
-| Age verification          | [ ]       | [ ]         | Never rendered                            |
-| Public profile as visitor | [x]       | [x]         |                                           |
-| Report dialog             | [x]       | [x]         | Rendered + submitted; finding 43          |
+| Surface                   | `/mobile` | `/frontend` | Notes                                 |
+| ------------------------- | --------- | ----------- | ------------------------------------- |
+| Onboarding, 4 slides      | [x]       | [x]         | Also at max Dynamic Type              |
+| Auth — sign up            | [x]       | [x]         | `cc3fed1` — form moved onto --card-bg |
+| Auth — sign in            | [x]       | [x]         | Link tiers deliberate and documented  |
+| Age verification          | [ ]       | [ ]         | Never rendered                        |
+| Public profile as visitor | [x]       | [x]         |                                       |
+| Report dialog             | [x]       | [x]         | Rendered + submitted; finding 43      |
 
 ## Phase 3 — First run
 
@@ -185,7 +185,6 @@ All eight surfaces are done.
 `#/report/<any well-formed uuid>`, because `focusReportId` only highlights a row
 and the queue loads from `admin_list_reports` independently.
 
-
 Apply the system settled on the entry detail to every other surface. **Surface
 by surface with a screenshot each, not a find-and-replace** — the whole lesson
 from that modal was that the right fix depended on looking at the specific
@@ -203,15 +202,15 @@ The system:
 4. **Space is a material** — a real break between groups, a row gap that survives
    wrapping.
 
-| Surface                    | Looked at | Applied | Notes                                        |
-| -------------------------- | --------- | ------- | -------------------------------------------- |
-| `PostCard`                 | [x]       | [x]     | `74c20b7` — findings 18, 19                  |
-| `PublicProfileView`        | [x]       | [x]     | findings 20-24; 2 deferred                   |
-| `ProfileModal`             | [x]       | [x]     | `b09d127` — findings 25, 26; all three tabs   |
-| `SettingsModal`            | [x]       | [x]     | No findings — icons already correct          |
-| `ModerationView`           | [x]       | [x]     | `6b34d0d` — findings 32, 33                  |
-| `LoginForm` / `SignUpForm` | [x]       | [x]     | `cc3fed1` — findings 30, 31                  |
-| `EmptyState`               | [x]       | [x]     | No findings — clean                          |
+| Surface                    | Looked at | Applied | Notes                                             |
+| -------------------------- | --------- | ------- | ------------------------------------------------- |
+| `PostCard`                 | [x]       | [x]     | `74c20b7` — findings 18, 19                       |
+| `PublicProfileView`        | [x]       | [x]     | findings 20-24; 2 deferred                        |
+| `ProfileModal`             | [x]       | [x]     | `b09d127` — findings 25, 26; all three tabs       |
+| `SettingsModal`            | [x]       | [x]     | No findings — icons already correct               |
+| `ModerationView`           | [x]       | [x]     | `6b34d0d` — findings 32, 33                       |
+| `LoginForm` / `SignUpForm` | [x]       | [x]     | `cc3fed1` — findings 30, 31                       |
+| `EmptyState`               | [x]       | [x]     | No findings — clean                               |
 | `Sidebar`                  | [x]       | [x]     | `5728fa2` — findings 28, 29. **Not desktop-only** |
 
 ## Phase 8 — Adverse states — **as complete as this rig allows**
@@ -226,19 +225,19 @@ The system:
       simulated one. Produced finding 35 (it was painting over the FAB and
       swallowing taps aimed at it)
 - [~] `Toast` — **success** not photographed. Same component, same wrapper, same
-      positioning; only `type` (icon + colour) and `duration` (3000 vs 5000)
-      differ from the error variant that *was* photographed. Verified by reading,
-      not by camera — say so rather than claiming the screenshot
+  positioning; only `type` (icon + colour) and `duration` (3000 vs 5000)
+  differ from the error variant that _was_ photographed. Verified by reading,
+  not by camera — say so rather than claiming the screenshot
 - [ ] `LoadingSpinner` in isolation — the native splash covers the whole window
       it would occupy. Not reachable without disabling the splash
 - [~] Rapid taps on reactions — **inconclusive, and honestly so.** The cooldown is
-      `REACTION_COOLDOWN_MS = 400`, a **silent** no-op by design (both guards
-      `return { error: null }`), which is correct for a double-tap guard. Two taps
-      issued back-to-back produced a net-zero result, which is equally consistent
-      with "both landed >400ms apart and toggled twice" and "neither landed".
-      Harness tap delivery is roughly 1-in-3 and its timing is not controllable,
-      so **this cannot be driven from here.** Code-verified only
-- [ ] Session expiry — **not reachable.** It fires only when a token *refresh*
+  `REACTION_COOLDOWN_MS = 400`, a **silent** no-op by design (both guards
+  `return { error: null }`), which is correct for a double-tap guard. Two taps
+  issued back-to-back produced a net-zero result, which is equally consistent
+  with "both landed >400ms apart and toggled twice" and "neither landed".
+  Harness tap delivery is roughly 1-in-3 and its timing is not controllable,
+  so **this cannot be driven from here.** Code-verified only
+- [ ] Session expiry — **not reachable.** It fires only when a token _refresh_
       fails (`getSession()` erroring on resume → `AUTH_SESSION_EXPIRED`), i.e. a
       revoked or rotated refresh token. Simply waiting past expiry does **not**
       trigger it: the refresh succeeds. Needs the service_role key to revoke, or
@@ -295,59 +294,59 @@ looked at first and least sceptically.
 Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish.
 
-| #   | Sev  | Surface         | Finding                                                             | Status          |
-| --- | ---- | --------------- | ------------------------------------------------------------------- | --------------- |
-| 1   | MED  | Chapter chips   | Active badge 3.61:1 on the default theme                            | Fixed `df02d73` |
-| 2   | MED  | Auth screen     | `--link-color` 4.11:1 on the classic gradient, 4.14 on cottage-core | Fixed `d683a7a` |
-| 3   | MED  | Links, emo-dark | `--link-hover` darker than resting on a dark theme, 3.69:1          | Fixed `d683a7a` |
-| 4   | MED  | Chapter chips   | Inactive badge 4.47:1 on emo-dark                                   | Fixed `d683a7a` |
-| 5   | MED  | Header nav      | Home/Profile/New Entry identical, labels hidden on mobile           | Fixed `52d94df` |
-| 6   | MED  | App-wide        | 71 of 96 buttons had no pressed state                               | Fixed `52d94df` |
-| 7   | HIGH | App-wide        | 8 `:hover` rules unguarded; marquee pause latched on tap            | Fixed `47ff34d` |
-| 8   | MED  | Entry detail    | Chapter dressed as a filter chip — inert control in a real control's costume | Fixed `c6c6696` |
-| 9   | HIGH | Feed card       | `line-clamp-2` defeated by `flex` on the same element; a 200-char title ran 5 lines past the card padding | Fixed `1266721` |
-| 10  | MED  | Entry detail    | A 200-char title squeezed `~ edit entry ~` into a 3-line, one-word column; header now stacked | Fixed `1266721` / `b7e67de` |
-| 11  | MED  | Entry detail    | 100-char chapter ran off the right edge with no ellipsis — flex item without `min-w-0` — pushing date and author out of view | Fixed `1266721` |
-| 12  | HIGH | Filter pill     | `chapter: <name>` had no width constraint and forced the **whole document** into horizontal scroll, clipping header, journal title and every card | Fixed `b7e67de` |
-| 13  | MED  | App-wide        | `.xanga-button-ghost` labels `--accent-primary`: 2.38:1 on a modal header gradient (3.20 cottage-core, 3.93 myspace-blue, 4.31 grunge). Now paints `--card-bg` beneath | Fixed `b7e67de` |
-| 14  | MED  | Entry detail    | Action row hard left under the title at `gap-2` — read as one segmented control continuing the text block | Fixed `3b0a718` / `8767deb` |
-| 15  | MED  | Entry detail    | No middle tier: 20–24px title, 13px `.prose` body, 12px metadata — the entry read no louder than its byline. `.prose-reading` added | Fixed `95aa9bb` |
-| 16  | MED  | Entry detail    | Four metadata facts at one size, weight and colour joined by `·`; separators orphaned onto a new line when the chapter wrapped | Fixed `83be72e`, refined `fca81c5` `4e8f90b` `4fa4c95` |
-| 17  | MED  | Entry detail    | Corner sparkles were `✨`, which ignores `color` — the intended tint did nothing, pale gold on a cream band. Now `✦` | Fixed `1342690` |
-| 18  | MED  | Feed card       | Chapter is genuinely tappable but painted `--accent-primary` on the header gradient (2.38 classic-xanga, 3.13 myspace-blue, 3.20 cottage-core) with `hover:underline` as its only affordance on a platform without hover | Fixed `74c20b7` |
-| 19  | MED  | Feed card       | `📅` carried a dead `color: var(--accent-primary)` (emoji ignore colour); byline semibold in accent made the least consequential fact the loudest in the footer | Fixed `74c20b7` |
+| #   | Sev  | Surface         | Finding                                                                                                                                                                                                                  | Status                                                 |
+| --- | ---- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ |
+| 1   | MED  | Chapter chips   | Active badge 3.61:1 on the default theme                                                                                                                                                                                 | Fixed `df02d73`                                        |
+| 2   | MED  | Auth screen     | `--link-color` 4.11:1 on the classic gradient, 4.14 on cottage-core                                                                                                                                                      | Fixed `d683a7a`                                        |
+| 3   | MED  | Links, emo-dark | `--link-hover` darker than resting on a dark theme, 3.69:1                                                                                                                                                               | Fixed `d683a7a`                                        |
+| 4   | MED  | Chapter chips   | Inactive badge 4.47:1 on emo-dark                                                                                                                                                                                        | Fixed `d683a7a`                                        |
+| 5   | MED  | Header nav      | Home/Profile/New Entry identical, labels hidden on mobile                                                                                                                                                                | Fixed `52d94df`                                        |
+| 6   | MED  | App-wide        | 71 of 96 buttons had no pressed state                                                                                                                                                                                    | Fixed `52d94df`                                        |
+| 7   | HIGH | App-wide        | 8 `:hover` rules unguarded; marquee pause latched on tap                                                                                                                                                                 | Fixed `47ff34d`                                        |
+| 8   | MED  | Entry detail    | Chapter dressed as a filter chip — inert control in a real control's costume                                                                                                                                             | Fixed `c6c6696`                                        |
+| 9   | HIGH | Feed card       | `line-clamp-2` defeated by `flex` on the same element; a 200-char title ran 5 lines past the card padding                                                                                                                | Fixed `1266721`                                        |
+| 10  | MED  | Entry detail    | A 200-char title squeezed `~ edit entry ~` into a 3-line, one-word column; header now stacked                                                                                                                            | Fixed `1266721` / `b7e67de`                            |
+| 11  | MED  | Entry detail    | 100-char chapter ran off the right edge with no ellipsis — flex item without `min-w-0` — pushing date and author out of view                                                                                             | Fixed `1266721`                                        |
+| 12  | HIGH | Filter pill     | `chapter: <name>` had no width constraint and forced the **whole document** into horizontal scroll, clipping header, journal title and every card                                                                        | Fixed `b7e67de`                                        |
+| 13  | MED  | App-wide        | `.xanga-button-ghost` labels `--accent-primary`: 2.38:1 on a modal header gradient (3.20 cottage-core, 3.93 myspace-blue, 4.31 grunge). Now paints `--card-bg` beneath                                                   | Fixed `b7e67de`                                        |
+| 14  | MED  | Entry detail    | Action row hard left under the title at `gap-2` — read as one segmented control continuing the text block                                                                                                                | Fixed `3b0a718` / `8767deb`                            |
+| 15  | MED  | Entry detail    | No middle tier: 20–24px title, 13px `.prose` body, 12px metadata — the entry read no louder than its byline. `.prose-reading` added                                                                                      | Fixed `95aa9bb`                                        |
+| 16  | MED  | Entry detail    | Four metadata facts at one size, weight and colour joined by `·`; separators orphaned onto a new line when the chapter wrapped                                                                                           | Fixed `83be72e`, refined `fca81c5` `4e8f90b` `4fa4c95` |
+| 17  | MED  | Entry detail    | Corner sparkles were `✨`, which ignores `color` — the intended tint did nothing, pale gold on a cream band. Now `✦`                                                                                                     | Fixed `1342690`                                        |
+| 18  | MED  | Feed card       | Chapter is genuinely tappable but painted `--accent-primary` on the header gradient (2.38 classic-xanga, 3.13 myspace-blue, 3.20 cottage-core) with `hover:underline` as its only affordance on a platform without hover | Fixed `74c20b7`                                        |
+| 19  | MED  | Feed card       | `📅` carried a dead `color: var(--accent-primary)` (emoji ignore colour); byline semibold in accent made the least consequential fact the loudest in the footer                                                          | Fixed `74c20b7`                                        |
 
-| 20  | MED  | Public profile  | Entry chapter `--accent-primary` on the card header gradient — 2.38:1 classic-xanga, 3.13 myspace-blue, 3.20 cottage-core, 4.31 grunge. Not a control here, so it takes the `name` treatment: italic `--text-subtitle`, 4.51 worst case | Fixed `abe31f8` |
-| 21  | MED  | Public profile  | Entry chapter had no `min-w-0`/`max-w`/`truncate` — a 100-char chapter overflows the card header. Same class as 11, never applied here. `gap-y-0.5` also collapsed the band's rows once it wrapped | Fixed `abe31f8` |
-| 22  | MED  | Public profile  | No middle tier: 18px title over 14px body over 12px chrome, with the body on a bare `text-sm` that is on neither the scanning nor the reading step. Now `.prose-reading` + `text-xl` | Fixed `abe31f8` |
-| 23  | MED  | Public profile  | The marquee used `.marquee`, **a class defined nowhere in `index.css`** — so on the app's most visitor-facing screen it never scrolled, never clipped, and wrapped onto two static lines. `Header` uses `.marquee-banner`/`.marquee-banner-inner` correctly | Fixed `abe31f8` |
-| 24  | MED  | Public profile  | Action row at `gap-2` put a bold underlined caution link 8px beneath a filled primary button, on three wrapped rows | Fixed `abe31f8` |
+| 20 | MED | Public profile | Entry chapter `--accent-primary` on the card header gradient — 2.38:1 classic-xanga, 3.13 myspace-blue, 3.20 cottage-core, 4.31 grunge. Not a control here, so it takes the `name` treatment: italic `--text-subtitle`, 4.51 worst case | Fixed `abe31f8` |
+| 21 | MED | Public profile | Entry chapter had no `min-w-0`/`max-w`/`truncate` — a 100-char chapter overflows the card header. Same class as 11, never applied here. `gap-y-0.5` also collapsed the band's rows once it wrapped | Fixed `abe31f8` |
+| 22 | MED | Public profile | No middle tier: 18px title over 14px body over 12px chrome, with the body on a bare `text-sm` that is on neither the scanning nor the reading step. Now `.prose-reading` + `text-xl` | Fixed `abe31f8` |
+| 23 | MED | Public profile | The marquee used `.marquee`, **a class defined nowhere in `index.css`** — so on the app's most visitor-facing screen it never scrolled, never clipped, and wrapped onto two static lines. `Header` uses `.marquee-banner`/`.marquee-banner-inner` correctly | Fixed `abe31f8` |
+| 24 | MED | Public profile | Action row at `gap-2` put a bold underlined caution link 8px beneath a filled primary button, on three wrapped rows | Fixed `abe31f8` |
 
-| 25  | MED  | ProfileModal    | Eleven section headings rendered three ways — seven 20px retro icons, three 14px Pepicons, two bare. Retro icons mark sections here and Pepicons mark controls, so these were the control system doing a section's job | Fixed `b09d127` |
-| 26  | MED  | ProfileModal    | `status message` and `emoji style` carried the *same* stars glyph, so the icon encoded nothing | Fixed `b09d127` |
-| 27  | MED  | Public page tab | `private by default` rendered as a bordered, rounded, filled, bold span a thumb's width above a real button — third occurrence of an inert status dressed as a control, after finding 8 and the public profile's stat pills | Fixed `b09d127` |
-| 28  | MED  | Sidebar         | Expanded, the summary row repeats the card beneath it — same avatar, name and @username, with `Hi, <name>!` above that: the identity three times in the top third. Persists in localStorage, so permanent for anyone who expands once | Fixed `5728fa2` |
-| 29  | MED  | Sidebar         | `About Me`, `Stats`, `📖 Chapters`, `Current Mood:`, `Entries:` in Title Case against ~14 lowercase headings elsewhere — and ProfileModal labels the same field `about me` | Fixed `5728fa2` |
+| 25 | MED | ProfileModal | Eleven section headings rendered three ways — seven 20px retro icons, three 14px Pepicons, two bare. Retro icons mark sections here and Pepicons mark controls, so these were the control system doing a section's job | Fixed `b09d127` |
+| 26 | MED | ProfileModal | `status message` and `emoji style` carried the _same_ stars glyph, so the icon encoded nothing | Fixed `b09d127` |
+| 27 | MED | Public page tab | `private by default` rendered as a bordered, rounded, filled, bold span a thumb's width above a real button — third occurrence of an inert status dressed as a control, after finding 8 and the public profile's stat pills | Fixed `b09d127` |
+| 28 | MED | Sidebar | Expanded, the summary row repeats the card beneath it — same avatar, name and @username, with `Hi, <name>!` above that: the identity three times in the top third. Persists in localStorage, so permanent for anyone who expands once | Fixed `5728fa2` |
+| 29 | MED | Sidebar | `About Me`, `Stats`, `📖 Chapters`, `Current Mood:`, `Entries:` in Title Case against ~14 lowercase headings elsewhere — and ProfileModal labels the same field `about me` | Fixed `5728fa2` |
 
-| 30  | MED  | Auth screen     | `Input`'s label is `--accent-primary`, and the form sat bare on the auth gradient: **4.11:1 classic-xanga, 4.14 cottage-core** — the same numbers as finding 2, which `d683a7a` fixed by changing `--link-color` only. Form now sits on `--card-bg` (4.82 worst) | Fixed `cc3fed1` |
-| 31  | MED  | Auth screen     | Header read `Welcome Back` directly above a heading reading `~ welcome back ~`; both tabs Title Case too | Fixed `cc3fed1` |
+| 30 | MED | Auth screen | `Input`'s label is `--accent-primary`, and the form sat bare on the auth gradient: **4.11:1 classic-xanga, 4.14 cottage-core** — the same numbers as finding 2, which `d683a7a` fixed by changing `--link-color` only. Form now sits on `--card-bg` (4.82 worst) | Fixed `cc3fed1` |
+| 31 | MED | Auth screen | Header read `Welcome Back` directly above a heading reading `~ welcome back ~`; both tabs Title Case too | Fixed `cc3fed1` |
 
-| 32  | MED  | ModerationView  | Date was `toLocaleDateString()` — the only use in the app — so the open report read `8/10/2026`: 8 October in most of the world, 10 August in the US | Fixed `6b34d0d` |
-| 33  | MED  | ModerationView  | No middle tier: below a text-xl heading everything was `text-xs` except one `text-sm` line, the reported entry included — the evidence set at chrome size | Fixed `6b34d0d` |
+| 32 | MED | ModerationView | Date was `toLocaleDateString()` — the only use in the app — so the open report read `8/10/2026`: 8 October in most of the world, 10 August in the US | Fixed `6b34d0d` |
+| 33 | MED | ModerationView | No middle tier: below a text-xl heading everything was `text-xs` except one `text-sm` line, the reported entry included — the evidence set at chrome size | Fixed `6b34d0d` |
 
-| 34  | MED  | ModerationView  | With the queue empty, the "hiding an entry makes it private" footnote sat under `~ nothing to review ~`, explaining an action the screen no longer offered | Fixed `325afd0` |
+| 34 | MED | ModerationView | With the queue empty, the "hiding an entry makes it private" footnote sat under `~ nothing to review ~`, explaining an action the screen no longer offered | Fixed `325afd0` |
 
-| 35  | MED  | Toast / feed    | Toast and the floating `new entry` button are both bottom-anchored ~0.5rem apart, so the toast painted over the FAB and, being `pointer-events-auto` at z-100 vs z-30, swallowed taps aimed at it for the 5s an error toast lasts | Fixed `b9832aa` |
-| 36  | **HIGH** | Reactions  | **Reactions never worked.** `42P17: infinite recursion detected in policy for relation "post_reactions"` — the INSERT policy rate-limited by selecting from the table it guards. Count moved into a `SECURITY DEFINER` function | Fixed, applied to prod |
+| 35 | MED | Toast / feed | Toast and the floating `new entry` button are both bottom-anchored ~0.5rem apart, so the toast painted over the FAB and, being `pointer-events-auto` at z-100 vs z-30, swallowed taps aimed at it for the 5s an error toast lasts | Fixed `b9832aa` |
+| 36 | **HIGH** | Reactions | **Reactions never worked.** `42P17: infinite recursion detected in policy for relation "post_reactions"` — the INSERT policy rate-limited by selecting from the table it guards. Count moved into a `SECURITY DEFINER` function | Fixed, applied to prod |
 
-| 37  | MED  | App-wide        | `MotionConfig reducedMotion="user"` sat inside the main return, covering the feed only — `AuthModal`, `PublicProfileView`, `ModerationView` and `AgeVerification` are early returns above it and all run Framer entrance animations. The CSS `prefers-reduced-motion` block does not reach Framer's JS-driven inline styles, so Reduce Motion was ignored on the first screen a user ever sees | Fixed `7270da9` |
+| 37 | MED | App-wide | `MotionConfig reducedMotion="user"` sat inside the main return, covering the feed only — `AuthModal`, `PublicProfileView`, `ModerationView` and `AgeVerification` are early returns above it and all run Framer entrance animations. The CSS `prefers-reduced-motion` block does not reach Framer's JS-driven inline styles, so Reduce Motion was ignored on the first screen a user ever sees | Fixed `7270da9` |
 
-| 38  | **HIGH** | Feed card, classic-xanga | `.xanga-title` is `--text-title` (`#e5007c`) and `PostCard` renders it on the header gradient: **2.20:1**. On a phone the title is `text-lg` = 18px bold, under WCAG's 18.66px bold cutoff, so the bar is **4.5:1** | Fixed `df7aee1` |
-| 39  | **HIGH** | Feed card, myspace-blue | Same pairing, **4.00:1** — missed on the Phase 10 pass because that sweep was run against 3:1. Title lightened rather than darkened; it is a dark theme | Fixed `df7aee1` |
+| 38 | **HIGH** | Feed card, classic-xanga | `.xanga-title` is `--text-title` (`#e5007c`) and `PostCard` renders it on the header gradient: **2.20:1**. On a phone the title is `text-lg` = 18px bold, under WCAG's 18.66px bold cutoff, so the bar is **4.5:1** | Fixed `df7aee1` |
+| 39 | **HIGH** | Feed card, myspace-blue | Same pairing, **4.00:1** — missed on the Phase 10 pass because that sweep was run against 3:1. Title lightened rather than darkened; it is a dark theme | Fixed `df7aee1` |
 
-| 43  | MED  | ReportDialog    | The confirmation promised "We remove content that breaks the rules **and can ban repeat offenders**" — prod has `admin_list_reports` and `admin_resolve_report` only, so there is no ban. A promise the product cannot keep, in copy App Review reads | Fixed `96af7a4` |
+| 43 | MED | ReportDialog | The confirmation promised "We remove content that breaks the rules **and can ban repeat offenders**" — prod has `admin_list_reports` and `admin_resolve_report` only, so there is no ban. A promise the product cannot keep, in copy App Review reads | Fixed `96af7a4` |
 
-| 44  | MED  | Public profile  | The profile card was one 96pt avatar beside a 400pt column, so roughly a third of the card was an empty strip under the avatar that nothing filled — and the mood/music panel was squeezed into the remaining ~230pt, wrapping the now-playing line to three. Identity row now holds the name and handle only; everything else is full width | Fixed `a2c1df1` |
+| 44 | MED | Public profile | The profile card was one 96pt avatar beside a 400pt column, so roughly a third of the card was an empty strip under the avatar that nothing filled — and the mood/music panel was squeezed into the remaining ~230pt, wrapping the now-playing line to three. Identity row now holds the name and handle only; everything else is full width | Fixed `a2c1df1` |
 
 **44 findings, all fixed.** Four contrast failures (1–4), three overflow bugs
 from a single maximum-length entry (9–11), one document-breaking layout bug
@@ -355,25 +354,25 @@ from a single maximum-length entry (9–11), one document-breaking layout bug
 
 ## Phase 9 — two dismissals
 
-| Checked                | Why it is not a finding                                                    |
-| ---------------------- | --------------------------------------------------------------------------- |
-| `AgeVerification` has no focus trap and no `role="dialog"` | It is a top-level **early return** — it replaces the whole tree, so nothing renders behind it for focus to escape to. A trap would be redundant and `dialog` semantically wrong for a full page |
+| Checked                                                                   | Why it is not a finding                                                                                                                                                                                                                                                                                |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `AgeVerification` has no focus trap and no `role="dialog"`                | It is a top-level **early return** — it replaces the whole tree, so nothing renders behind it for focus to escape to. A trap would be redundant and `dialog` semantically wrong for a full page                                                                                                        |
 | The floating button partly covers the sixth reaction at default text size | A scroll moves it, and at max Dynamic Type the bar wraps and clears it entirely. The app already hides the FAB on the empty state for this reason, so the pattern is understood. The **toast** overlap was filed (35) because a toast is transient and steals taps with no way for the user to move it |
 
 ## Blocked — cannot be reached from this session
 
-| Surface                    | Needs                                                                 |
-| -------------------------- | --------------------------------------------------------------------- |
-| `ModerationView` actions   | A decision, not access: `~ hide entry ~` and `~ dismiss ~` act on real production data, and dismissing consumes the only open report. The screen itself is audited |
-| Sidebar stats labels       | ≥1024px. `hidden lg:block`, and the phone is 440pt — the finding 29 fix there is verified by reading, not photographed |
+| Surface                  | Needs                                                                                                                                                              |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `ModerationView` actions | A decision, not access: `~ hide entry ~` and `~ dismiss ~` act on real production data, and dismissing consumes the only open report. The screen itself is audited |
+| Sidebar stats labels     | ≥1024px. `hidden lg:block`, and the phone is 440pt — the finding 29 fix there is verified by reading, not photographed                                             |
 
 ## Deferred — seen on this pass, not filed as findings
 
-| Surface        | Observation                                                                 | Why deferred                                                        |
-| -------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| Public profile | `~ report entry ~` gets its own full-width footer bar on every card, bold and underlined — on a stranger's page it is the loudest control, repeated once per entry | Guideline 1.2 compliance control. Its prominence is a `/mobile` call, not a `/frontend` one, and it is not worth re-tiering a reporting affordance for style alone right before submission |
+| Surface        | Observation                                                                                                                                                                                                                      | Why deferred                                                                                                                                                                               |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Public profile | `~ report entry ~` gets its own full-width footer bar on every card, bold and underlined — on a stranger's page it is the loudest control, repeated once per entry                                                               | Guideline 1.2 compliance control. Its prominence is a `/mobile` call, not a `/frontend` one, and it is not worth re-tiering a reporting affordance for style alone right before submission |
 | Feed           | The floating `new entry` button sits over the last reaction in a card's reaction bar at rest. Whether that actually blocks the control is a touch-target question for `/mobile`, and Phase 4 still has `ReactionBar` unexercised |
-| Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice | Removing a conversion CTA is a product decision, not a hierarchy fix |
+| Public profile | `start your own journal` appears twice — once in the profile card, once in the footer CTA card. On a one-entry page they are a screen apart and read as the same ask twice                                                       | Removing a conversion CTA is a product decision, not a hierarchy fix                                                                                                                       |
 
 ## Findings 38 and 39 — card titles on the header gradient. Fixed `df7aee1`
 
@@ -440,7 +439,7 @@ sides; column drift; and a duplicate-key collision.
 
 ## Cold-launch deep link — diagnosed and fixed, `0a3db5c`
 
-Recorded because the *method* is the reusable part, not the bug.
+Recorded because the _method_ is the reusable part, not the bug.
 
 A deep link opened while the app was closed landed on the wrong screen — the
 emailed "Review in app" link's own case, and any shared `#/u/<name>` link.
@@ -472,9 +471,9 @@ way and was discarded rather than counted.
 
 Recorded so they are not re-raised.
 
-| Surface                | Impression                          | Why dismissed                                                              |
-| ---------------------- | ----------------------------------- | -------------------------------------------------------------------------- |
-| scene-kid title        | Looked muddy                        | Measured **14.3:1** at its brightest stops. The muddiness is `.xanga-title`'s retro text-shadow doing its job |
-| cottage-core headings  | Looked muddy                        | Measured **8.04** and **7.28**                                             |
-| `EmptyState` date      | `toLocaleDateString('en-US', ...)`  | Looks like finding 32 and is not. That was an ambiguous numeric date on a triage screen; this is the diary-page header, where the long form is the point and the pinned `en-US` makes it unambiguous rather than locale-dependent. Do **not** mechanically convert it to `formatDate` — the idiom is the feature |
-| Entry detail metadata  | "The metadata colours are wrong"    | My own misdiagnosis. The flatness was a missing size tier — 13px body copy that could not outrank 12px chrome — not colour. Fixing colour first (`83be72e`) had to be partly reversed in `95aa9bb`. Measure and check the scale before reaching for a third grey |
+| Surface               | Impression                         | Why dismissed                                                                                                                                                                                                                                                                                                    |
+| --------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| scene-kid title       | Looked muddy                       | Measured **14.3:1** at its brightest stops. The muddiness is `.xanga-title`'s retro text-shadow doing its job                                                                                                                                                                                                    |
+| cottage-core headings | Looked muddy                       | Measured **8.04** and **7.28**                                                                                                                                                                                                                                                                                   |
+| `EmptyState` date     | `toLocaleDateString('en-US', ...)` | Looks like finding 32 and is not. That was an ambiguous numeric date on a triage screen; this is the diary-page header, where the long form is the point and the pinned `en-US` makes it unambiguous rather than locale-dependent. Do **not** mechanically convert it to `formatDate` — the idiom is the feature |
+| Entry detail metadata | "The metadata colours are wrong"   | My own misdiagnosis. The flatness was a missing size tier — 13px body copy that could not outrank 12px chrome — not colour. Fixing colour first (`83be72e`) had to be partly reversed in `95aa9bb`. Measure and check the scale before reaching for a third grey                                                 |
