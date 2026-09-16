@@ -287,15 +287,12 @@ export default function PublicProfileView({
             {profile.status_message && (
               <p className="aim-status">📟 ~ {profile.status_message} ~</p>
             )}
-              {profile.bio && (
-                <p
-                  className="text-sm italic break-words"
-                  style={{ color: 'var(--text-body)' }}
-                >
-                  {profile.bio}
-                </p>
-              )}
-              {/* Mood and music get a panel, not two grey lines.
+            {profile.bio && (
+              <p className="text-sm italic break-words" style={{ color: 'var(--text-body)' }}>
+                {profile.bio}
+              </p>
+            )}
+            {/* Mood and music get a panel, not two grey lines.
                   These are the two most Xanga things on the page — the whole
                   point of visiting someone's journal is to see what they are
                   feeling and what they have on repeat — and they were rendered
@@ -308,44 +305,43 @@ export default function PublicProfileView({
                   spending two boxes' worth of a 390pt screen, and it keeps them
                   reading as a pair, which is what they are. Labels stay quiet so
                   the emphasis lands on "nostalgic", not on "feeling". */}
-              {(profile.current_mood || profile.current_music) && (
-                <div
-                  className="rounded-lg border px-3 py-2.5 space-y-1.5"
-                  style={{
-                    backgroundColor:
-                      'color-mix(in srgb, var(--accent-primary) 10%, var(--card-bg))',
-                    borderColor: 'var(--border-primary)',
-                  }}
-                >
-                  {profile.current_mood && (
-                    <p className="text-sm flex flex-wrap items-baseline gap-x-1.5">
-                      <span aria-hidden="true" style={{ color: 'var(--accent-primary)' }}>
-                        ♡
-                      </span>
-                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                        feeling
-                      </span>
-                      <span className="font-bold" style={{ color: 'var(--text-body)' }}>
-                        {profile.current_mood}
-                      </span>
-                    </p>
-                  )}
-                  {profile.current_music && (
-                    <p className="text-sm flex flex-wrap items-baseline gap-x-1.5">
-                      <span aria-hidden="true" style={{ color: 'var(--accent-primary)' }}>
-                        ♫
-                      </span>
-                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                        on repeat
-                      </span>
-                      <span className="font-bold break-words" style={{ color: 'var(--text-body)' }}>
-                        {profile.current_music}
-                      </span>
-                    </p>
-                  )}
-                </div>
-              )}
-              {/* Plain text, not pills. These were bordered, filled, rounded
+            {(profile.current_mood || profile.current_music) && (
+              <div
+                className="rounded-lg border px-3 py-2.5 space-y-1.5"
+                style={{
+                  backgroundColor: 'color-mix(in srgb, var(--accent-primary) 10%, var(--card-bg))',
+                  borderColor: 'var(--border-primary)',
+                }}
+              >
+                {profile.current_mood && (
+                  <p className="text-sm flex flex-wrap items-baseline gap-x-1.5">
+                    <span aria-hidden="true" style={{ color: 'var(--accent-primary)' }}>
+                      ♡
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      feeling
+                    </span>
+                    <span className="font-bold" style={{ color: 'var(--text-body)' }}>
+                      {profile.current_mood}
+                    </span>
+                  </p>
+                )}
+                {profile.current_music && (
+                  <p className="text-sm flex flex-wrap items-baseline gap-x-1.5">
+                    <span aria-hidden="true" style={{ color: 'var(--accent-primary)' }}>
+                      ♫
+                    </span>
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      on repeat
+                    </span>
+                    <span className="font-bold break-words" style={{ color: 'var(--text-body)' }}>
+                      {profile.current_music}
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
+            {/* Plain text, not pills. These were bordered, filled, rounded
                   spans — chip styling, which on this screen sits inches from
                   real chips and reads as a tappable filter. Nothing happens
                   when you tap them, and on a phone they took a whole row of the
@@ -365,35 +361,35 @@ export default function PublicProfileView({
               onto three rows on a phone, and at 8px a caution link sits hard
               under a filled primary button and reads as part of it. */}
           <div className="mt-6 flex flex-wrap gap-x-4 gap-y-3">
-                <button
-                  onClick={onGoHome}
-                  className="xanga-link inline-flex items-center justify-center text-xs min-h-[44px] px-3"
-                >
-                  browse home
-                </button>
-                <button onClick={onSignUp} className="xanga-button text-xs px-4 py-2 min-h-[44px]">
-                  start your own journal
-                </button>
-                {/* Guideline 1.2: blocking must be reachable where you actually
+            <button
+              onClick={onGoHome}
+              className="xanga-link inline-flex items-center justify-center text-xs min-h-[44px] px-3"
+            >
+              browse home
+            </button>
+            <button onClick={onSignUp} className="xanga-button text-xs px-4 py-2 min-h-[44px]">
+              start your own journal
+            </button>
+            {/* Guideline 1.2: blocking must be reachable where you actually
                     encounter someone else's content. The PostCard block button
                     can never render here — the feed RPC returns only own posts. */}
-                {blocked ? (
-                  <span
-                    className="inline-flex items-center text-xs min-h-[44px] px-3"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    ✓ blocked — their entries are hidden from your journal
-                  </span>
-                ) : (
-                  <button
-                    onClick={() => (isAuthenticated ? setConfirmingBlock(true) : onSignUp())}
-                    className="xanga-link-caution inline-flex items-center justify-center text-xs min-h-[44px] px-3"
-                    aria-label={`Block @${profile.username}`}
-                  >
-                    block @{profile.username}
-                  </button>
-                )}
-              </div>
+            {blocked ? (
+              <span
+                className="inline-flex items-center text-xs min-h-[44px] px-3"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                ✓ blocked — their entries are hidden from your journal
+              </span>
+            ) : (
+              <button
+                onClick={() => (isAuthenticated ? setConfirmingBlock(true) : onSignUp())}
+                className="xanga-link-caution inline-flex items-center justify-center text-xs min-h-[44px] px-3"
+                aria-label={`Block @${profile.username}`}
+              >
+                block @{profile.username}
+              </button>
+            )}
+          </div>
           {blockError && (
             <p className="text-xs mt-3" style={{ color: 'var(--accent-primary)' }} role="alert">
               {blockError}
