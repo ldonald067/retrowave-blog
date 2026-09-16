@@ -6,7 +6,7 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-16, after the docs cleanup.
+Last rewritten 2026-09-16, at `962729c` — after the no-grey and bold-label work.
 
 ---
 
@@ -26,7 +26,9 @@ Review.
 submission. All six screenshots are captured at 1320 × 2868 in
 `store-assets/screenshots/`.
 
-CI is green. **344 tests across 39 files.**
+CI is green. **344 tests across 39 files.** Before committing, run
+**`npm run check`** — lint, format check, typecheck, tests, build, in exactly the
+order CI runs them. CI now fails on Prettier drift; `npm run format` fixes it.
 
 ## The one blocker
 
@@ -73,7 +75,20 @@ identity at large Dynamic Type, and its comment has been corrected to match.
 
 The design system is written into `/frontend`: three size tiers, style encoding
 kind, colour mapped to the same kinds, space as a material. Apply it from there
-rather than re-deriving it.
+rather than re-deriving it. Two rules were settled on 2026-09-16 and are easy to
+break by reflex:
+
+- **No grey controls.** Rank controls by how much accent they carry — fill, then
+  outline, then link — never by switching one to `--text-muted`. Your call: grey
+  reads as disabled fine print here and does not fit the aesthetic. "forgot ur
+  password?" now sits right-aligned under the password field instead of greyed
+  out beneath the magic link, and the inactive sign in / sign up tab is accent
+  text on `--card-bg`, kept distinct from a link by having no underline.
+- **`font-bold` in the title font does not look bold on classic-xanga.** Comic
+  Neue's Bold is 1.8% wider than its Regular and there is no heavier weight. Use
+  `.title-bold`, which adds a text stroke by `--title-font-bold-stroke` (`0.45px`
+  on classic-xanga, `0px` on the seven themes whose font has a real bold). The
+  auth tabs and all six form field labels use it. Theme variables are now **44**.
 
 ## The four bugs that mattered
 
@@ -140,7 +155,11 @@ iPhone 17 Pro Max simulator unless noted.
   three fixture writes reverted and re-diffed; the one residue is that entry's
   `updated_at`, which a trigger restamps on any update. **No account carries
   this fixture** — every `private_chapters` in prod is empty — so re-testing
-  means building it again and reverting it.
+  means building it again and reverting it. Ask before each fixture: approval
+  for one test does not cover the next.
+- **The sign-in screen with no grey** (iPhone 17 Pro, signed out, 2026-09-16) —
+  both links and the inactive tab in accent, both tab states checked, and a
+  before/after crop showing the tab and field labels now read bold.
 
 ## Chapter privacy
 
@@ -201,10 +220,19 @@ iPhone 17 Pro Max simulator unless noted.
 | `codex-qa-24e3a82f`                             | Public page, **classic-xanga** — the light-theme public fixture        |
 | `blankslate`, `nonoabc2345`, `ldonald234_xanga` | Zero posts — reach `EmptyState`                                        |
 
-**Last known simulator state** (sessions live in `UserDefaults`, so they survive
-a reboot): iPhone 17 Pro Max signed in as `ldonald234`, iPhone 17 as
-`ldonald0234`. Both were shut down at the end of the session. Check which sim is
-booted and which build it carries before trusting anything you see on one.
+**Last known simulator state, 2026-09-16** (sessions live in `UserDefaults`, so
+they survive a reboot). Check which sim is booted and which build it carries
+before trusting anything you see on one.
+
+| Simulator         | State at end of session | Session       | Build                                           |
+| ----------------- | ----------------------- | ------------- | ----------------------------------------------- |
+| iPhone 17 Pro Max | booted                  | `ldonald234`  | **stale** — before the no-grey and bold changes |
+| iPhone 17 Pro     | booted                  | signed out    | current, `962729c`                              |
+| iPhone 17         | shut down               | `ldonald0234` | not checked this session                        |
+
+The iPhone 17 Pro is the one to use for anything on the signed-out screens: an
+agent cannot sign back in, so signing a session out to reach the auth wall
+cannot be undone from here.
 
 `@ldonald234`'s second entry — **`Supercalifragilistic…`, a 200-character title,
 a 100-character space-free chapter, and an unbreakable token in the body** — is
@@ -241,6 +269,8 @@ paths, and it found four bugs. Keep it unless you have a reason not to.
   under WCAG's 18.66px bold cutoff. Comparing against 3:1 let myspace-blue pass
   a sweep it failed.
 - **Emoji ignore `color`.** If a glyph must be themed, use a text glyph like `✦`.
+- **No grey controls**, and **`font-bold` is not bold in Comic Neue** — see the
+  design system notes under "The UI audit" above.
 
 ### Code
 
@@ -260,10 +290,18 @@ paths, and it found four bugs. Keep it unless you have a reason not to.
   concluded it had not. **Read state from a screenshot after every tap**, and
   re-check before assuming your own earlier action failed. This is why the
   success toast and the sub-400ms rapid tap are not drivable from here.
-- **The tap space is points; screenshots are ~2.09× that** on the Pro Max.
-  Reading a control's position off a screenshot and passing it to `tap` lands in
-  empty space and looks exactly like a dead button. `touch_path` does **not**
-  share `tap`'s mapping.
+- **The tap space is points; screenshots are larger, by a factor that depends
+  on the device** — about 2.09× as displayed on the Pro Max, 2.29× on the Pro.
+  Divide by the ratio of the screenshot's width to the device's point width (440
+  and 402 respectively). Reading a position off a screenshot and passing it
+  straight to `tap` lands in empty space and looks exactly like a dead button.
+  `touch_path` does **not** share `tap`'s mapping.
+- **An Xcode update blocks `git` and the simulator.** `git` here is Xcode's shim
+  at `/usr/bin/git`, so after an update every `git`, `xcrun` and `xcodebuild`
+  call fails with "You have not agreed to the Xcode license agreements" until
+  you run `sudo xcodebuild -license` (space to page, then type `agree`). This
+  happened on 2026-09-15 with Xcode 27.0. Until then, git state can still be
+  read from `.git/HEAD`, `.git/refs/` and `.git/logs/HEAD`.
 - **Catching a transient needs the screenshot armed first:**
   `( sleep N; xcrun simctl io <udid> screenshot f.png ) &` then fire the tap.
   MCP round trips are ~1.5–2s, so bracket 1.6–3.4s.
@@ -291,4 +329,9 @@ accessibility-extra-extra-extra-large`. Underscore, not hyphen. Read the
   at the top of this file are the proof.
 - **Watch the test count, not just red/green.** CI silently ran 241 of 265 for
   over a week. Currently **344**.
+- **Mutation-check a new guard.** Stub the condition to `false` and confirm the
+  tests that name it go red — the chapter-rename and privacy-badge tests were
+  both checked this way.
+- **A contrast ratio proves legibility, not that a control reads as tappable.**
+  The grey reset link measured 9.74:1 and still looked like disabled fine print.
 - **The env file is `.env.local`**, not `.env`.
