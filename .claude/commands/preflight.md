@@ -1,6 +1,6 @@
 ---
 name: preflight
-description: Run pre-commit validation pipeline — type check, build, tests — then diagnose and fix any failures
+description: Run pre-commit validation pipeline — type check, build, tests, lint, formatting — then diagnose and fix any failures
 ---
 
 # Preflight Agent
@@ -15,19 +15,24 @@ Read `.claude/docs/gotchas.md` for accumulated knowledge and known footguns.
 
 ## Pipeline
 
-Run all four checks in sequence (each depends on the previous passing):
+Run all five checks in sequence (each depends on the previous passing):
 
 ```bash
-npx tsc --noEmit       # Step 1: Type check
+npm run typecheck      # Step 1: Type check (app + vite.config.ts)
 npm run build          # Step 2: Production build (Vite)
 npm run test           # Step 3: All tests (Vitest)
 npm run lint           # Step 4: ESLint
+npm run format:check   # Step 5: Prettier
 ```
+
+These are the same five checks CI runs. Step 1 is deliberately `npm run
+typecheck` rather than a bare `npx tsc --noEmit`: the bare form reads only
+`tsconfig.json`, so it never type-checks `vite.config.ts`, which CI does.
 
 **NEVER run `npm run dev`** — use `npm run build` only.
 
 **Lint is part of the gate, not an afterthought.** It has caught two real
-problems that the other three steps passed clean over: a `react-refresh`
+problems that the other checks passed clean over: a `react-refresh`
 violation from exporting a helper beside a component, and — after an Xcode
 build wrote DerivedData into `ios/` — 266 errors from ESLint walking minified
 vendor bundles, with nothing wrong in `src/` at all.
@@ -42,7 +47,7 @@ is necessary and not sufficient — verify on the simulator (`/mobile`, `/ios`).
 
 ---
 
-## Step 1: Type Check (`npx tsc --noEmit`)
+## Step 1: Type Check (`npm run typecheck`)
 
 ### Common Failures and Fixes
 
@@ -128,6 +133,36 @@ npm run test -- --reporter=verbose
 
 ---
 
+## Step 5: Formatting (`npm run format:check`)
+
+ESLint does not check formatting, which is why this is its own step. CI fails
+on drift, so skipping it here means a red run after the push.
+
+### Fixing it
+
+Unlike the other steps, the fix is mechanical: run `npm run format`, then
+re-run the check. Do not hand-edit whitespace to satisfy it.
+
+### Keep the formatting out of the feature diff
+
+Before formatting, look at **which** files the check flags. If a file you did
+not touch is flagged, or a file you touched in a few lines comes back with
+hundreds of changed lines, the drift predates your change. Formatting it inside
+a feature commit buries a real change under unrelated reindentation — this
+happened once, a 2-line prop addition to `App.tsx` arriving as an 800-line diff.
+Put the formatting in its own commit.
+
+A reformat can re-wrap JSX, which in principle changes rendered whitespace. To
+prove one is formatting only, compile both versions under the **same filename**
+(esbuild names the default export after the file) and compare the output:
+
+```bash
+npx esbuild Before.tsx --loader:.tsx=tsx --jsx=automatic --minify-whitespace --format=esm > before.js
+cmp before.js after.js   # identical = formatting only
+```
+
+---
+
 ## Fix Strategy
 
 When failures are found:
@@ -148,13 +183,14 @@ When failures are found:
 
 ## Post-Preflight
 
-If all four steps pass, report:
+If all five steps pass, report:
 
 ```
-✅ tsc:   0 errors
-✅ build: success
-✅ test:  XX tests passed  (was YY — state the delta, or that it is unchanged)
-✅ lint:  0 errors
+✅ tsc:    0 errors
+✅ build:  success
+✅ test:   XX tests passed  (was YY — state the delta, or that it is unchanged)
+✅ lint:   0 errors
+✅ format: all files formatted
 ```
 
 A test count that dropped without tests being deleted is a failure wearing a
