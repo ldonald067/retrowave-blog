@@ -78,9 +78,8 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
                 aria-selected={activeTab === 'login'}
                 id="tab-login"
                 aria-controls="tabpanel-login"
-                className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition min-h-[44px] hover:brightness-95 active:brightness-90"
+                className="flex-1 py-3 px-3 title-bold text-xs sm:text-sm transition min-h-[44px] hover:brightness-95 active:brightness-90"
                 style={{
-                  fontFamily: 'var(--title-font)',
                   backgroundColor:
                     activeTab === 'login' ? 'var(--button-gradient-from)' : 'var(--card-bg)',
                   color:
@@ -97,9 +96,8 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
                 aria-selected={activeTab === 'signup'}
                 id="tab-signup"
                 aria-controls="tabpanel-signup"
-                className="flex-1 py-3 px-3 font-bold text-xs sm:text-sm transition border-l-2 border-dotted min-h-[44px] hover:brightness-95 active:brightness-90"
+                className="flex-1 py-3 px-3 title-bold text-xs sm:text-sm transition border-l-2 border-dotted min-h-[44px] hover:brightness-95 active:brightness-90"
                 style={{
-                  fontFamily: 'var(--title-font)',
                   borderColor: 'var(--border-primary)',
                   backgroundColor:
                     activeTab === 'signup' ? 'var(--button-gradient-from)' : 'var(--card-bg)',

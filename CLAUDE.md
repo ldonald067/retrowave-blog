@@ -100,7 +100,7 @@ CLAUDE.md is the always-loaded layer. Deeper context lives in topic-specific doc
 | Topic | `.claude/docs/false-positives.md` | Before flagging audit issues                                   |
 | Skill | `.claude/commands/*.md`           | Auto-loaded by `/skill` commands                               |
 | Code  | `src/lib/validation.ts`           | Field limits (POST_LIMITS, PROFILE_LIMITS)                     |
-| Code  | `src/lib/themes.ts`               | 8 theme definitions (43 CSS vars each)                         |
+| Code  | `src/lib/themes.ts`               | 8 theme definitions (44 CSS vars each)                         |
 
 # Compact instructions
 

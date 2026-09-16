@@ -23,6 +23,11 @@
   --button-gradient-from: #cc3388;
   --button-gradient-to: #aa2266;
   --title-font: 'Comic Neue', 'Comic Sans MS', cursive;
+  /* Comic Neue's Bold is barely heavier than its Regular — 1.8% wider at 14px,
+     against 9% for Verdana — and it ships no heavier weight, so font-weight: 700
+     computes correctly and still reads as regular. Themes whose title font has a
+     real bold set this to 0px. */
+  --title-font-bold-stroke: 0.45px;
   --header-gradient-from: #ffb6c1;
   --header-gradient-via: #dda0dd;
   --header-gradient-to: #add8e6;
@@ -425,6 +430,15 @@ body {
  * `next` and `back` were identical; so were Home, Profile and New Entry.
  * Shape carries the hierarchy: solid for the primary action, outlined for the
  * supporting one, bare text for leaving. */
+/* Bold in the theme's title font that actually looks bold. font-weight alone
+   is not enough for Comic Neue (see --title-font-bold-stroke in :root), so the
+   stroke thickens the glyphs by the amount the theme says its font needs. */
+.title-bold {
+  font-family: var(--title-font);
+  font-weight: 700;
+  -webkit-text-stroke: var(--title-font-bold-stroke, 0px) currentColor;
+}
+
 .xanga-button-ghost {
   border: 2px dotted var(--border-primary);
   border-radius: 0.5rem;

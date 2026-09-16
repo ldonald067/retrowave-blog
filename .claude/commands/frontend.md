@@ -67,7 +67,7 @@ reader users and future maintainers get plain English.
 
 ## The theme system
 
-**8 themes × 43 CSS variables each**, in `src/lib/themes.ts`. Every colour must
+**8 themes × 44 CSS variables each**, in `src/lib/themes.ts`. Every colour must
 come from a variable. A hardcoded colour is invisible in the theme you wrote it
 in and wrong in the other seven.
 
@@ -129,7 +129,15 @@ Defined in `src/index.css`; read it before inventing anything.
 
 `.xanga-box` `.xanga-button` `.xanga-link` `.xanga-link-caution` `.xanga-title`
 `.xanga-subtitle` `.xanga-border` `.xanga-border-solid` `.xanga-auth-bg`
-`.icon-btn-hover`
+`.icon-btn-hover` `.title-bold`
+
+**`font-bold` in the title font does not look bold on the default theme.**
+Comic Neue's Bold is 1.8% wider than its Regular at 14px (Verdana's is 9%)
+and there is no heavier weight, so `font-weight: 700` computes correctly and
+still reads as regular — the field labels and, until 2026-09-16, the auth tabs
+both did. Use `.title-bold`: it adds `-webkit-text-stroke` by
+`--title-font-bold-stroke`, which is `0.45px` on classic-xanga and `0px` on the
+themes whose title font has a real bold.
 
 ### Link tiers — not every link is the same link
 

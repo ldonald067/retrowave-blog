@@ -2,7 +2,7 @@
 
 ## Theme System
 
-- All 8 themes define 43 CSS variables in `themes.ts`. When adding a new variable, add it to ALL 8 themes AND `:root` defaults in `index.css`. Missing variables silently fall back to `initial`.
+- All 8 themes define 44 CSS variables in `themes.ts`. When adding a new variable, add it to ALL 8 themes AND `:root` defaults in `index.css`. Missing variables silently fall back to `initial`.
 - Never use alpha-channel hex colors (`#rrggbbaa`) for text — fails WCAG AA unpredictably.
 - `color-mix(in srgb, ...)` for derived colors (hover states, subtle backgrounds). Prefer over hardcoded intermediate colors.
 - Minimum readable text: 12px (`text-xs`). Decorative pixel badges: 11px. Winamp/sparkle: exempt (`aria-hidden`).
