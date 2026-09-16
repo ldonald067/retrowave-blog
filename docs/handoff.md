@@ -6,7 +6,8 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-16, at `962729c` — after the no-grey and bold-label work.
+Last rewritten 2026-09-16, at `e276a48` — after the iPhone SE pass, its five fixes, and
+the iOS 16.4 deployment target.
 
 ---
 
@@ -25,6 +26,11 @@ Review.
 `docs/app-store-submission-guide.md` is the single source of truth for
 submission. All six screenshots are captured at 1320 × 2868 in
 `store-assets/screenshots/`.
+
+**The iOS deployment target is 16.4**, raised from 15.0 on 2026-09-16 because
+the CSS cannot run earlier: Tailwind 4 and the theme system's `color-mix()` need
+Safari 16.2–16.4. The iPhone 6s, 7 and first-generation SE lose the app. Do not
+lower it without re-checking the built CSS — gotchas has the detail.
 
 CI is green. **344 tests across 39 files.** Before committing, run
 **`npm run check`** — lint, format check, typecheck, tests, build, in exactly the
@@ -49,9 +55,11 @@ The sweeps are complete: hierarchy (7c), accessibility (9) and themes (10).
 **Journey coverage is not.** This file used to say every phase was complete with
 only Phase 8 left; the plan itself still has unticked rows in Phases 2–7b.
 Never exercised: age verification, the whole first-run flow, delete confirm, the
-YouTube card, a long feed, the avatar picker, data export, block from a public
-profile, and a page viewed as a signed-out visitor. Read the plan's checkboxes,
-not this summary, before calling a surface done.
+YouTube card, a long feed, the avatar picker, data export, and block from a public
+profile. A public page **was** viewed as a signed-out visitor during the iPhone SE
+pass on 2026-09-16, but the plan's Phase 6 row also asks for publishing a page
+and viewing it as another account, so it stays unticked. Read the plan's
+checkboxes, not this summary, before calling a surface done.
 
 - **Phase 7** — both moderation actions run against real reports, confirmed in
   the database.
@@ -80,10 +88,13 @@ break by reflex:
 
 - **No grey controls.** Rank controls by how much accent they carry — fill, then
   outline, then link — never by switching one to `--text-muted`. Your call: grey
-  reads as disabled fine print here and does not fit the aesthetic. "forgot ur
-  password?" now sits right-aligned under the password field instead of greyed
-  out beneath the magic link, and the inactive sign in / sign up tab is accent
-  text on `--card-bg`, kept distinct from a link by having no underline.
+  reads as disabled fine print here and does not fit the aesthetic. Every grey
+  control that rendered grey is gone: "forgot ur password?" (moved under the
+  password field), the inactive sign in / sign up tab (accent, no underline), the
+  cancel buttons in `ConfirmDialog` and `ReportDialog` (now `.xanga-button-ghost`),
+  and the modal close ✕ (`--text-title`, because the accent fails 3:1 on the
+  header gradient). The sidebar's 🔒/🔓 toggle is still set to `--text-muted`, but
+  its only child is an emoji, which ignores `color`, so it never renders grey.
 - **`font-bold` in the title font does not look bold on classic-xanga.** Comic
   Neue's Bold is 1.8% wider than its Regular and there is no heavier weight. Use
   `.title-bold`, which adds a text stroke by `--title-font-bold-stroke` (`0.45px`
@@ -164,10 +175,12 @@ iPhone 17 Pro Max simulator unless noted.
   iPhone (now a blur strip, pixel-identical at rest), "powered by YourJournal"
   in two footers (now Retrowave Journal), grey dialog cancel buttons (now the
   outline tier), slide 4's preview below the fold on short screens, and the
-  intro header crammed under the SE's status bar. **The signed-in half of the
-  SE pass is not done** — feed, composer, settings and profile need you to sign
-  in on the SE first. The rename dialog's "go back" shares ConfirmDialog's fixed
-  cancel style but was only seen on the report dialog.
+  intro header crammed under the SE's status bar. The rename dialog's "go back"
+  shares `ConfirmDialog`'s fixed cancel style but was only seen on the report
+  dialog. The signed-in half is still open — see below.
+- **The modal close ✕ in accent-family colour** (2026-09-16) — Settings opened on
+  the Pro Max in cottage-core and the iPhone 17 in emo-dark, where it went from
+  `#858585` grey to the theme's red; both modals closed from it.
 - **The sign-in screen with no grey** (iPhone 17 Pro, signed out, 2026-09-16) —
   both links and the inactive tab in accent, both tab states checked, and a
   before/after crop showing the tab and field labels now read bold.
@@ -180,10 +193,9 @@ iPhone 17 Pro Max simulator unless noted.
   `chapterChangeRepublishes()` in `utils/chapterPrivacy.ts` is the decision, kept
   as a pure function so it is testable apart from the modal. It stays silent on
   a case variant, on an entry saved private, on a private profile, and on a
-  hand-flipped `is_private` — see `gotchas.md` for why each one matters.
-  **337 tests** now (was 322). The four positive tests were mutation-checked:
-  stubbing the gate to `false` turns all four red. Verified on device — see
-  below.
+  hand-flipped `is_private` — see `gotchas.md` for why each one matters. The
+  four positive tests were mutation-checked: stubbing the gate to `false` turns
+  all four red. Verified on device — see above.
 - **The entry view's privacy badge reports effective visibility.** It read
   `🌐 public` on a public entry in a private chapter while `get_public_profile`
   served it 0 times — and so gave no hint that renaming the chapter would publish
@@ -199,6 +211,10 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
+- **The signed-in half of the iPhone SE pass.** Feed, composer, settings, the
+  profile modal and the rename dialog at 375 × 667pt have not been looked at.
+  Needs a sign-in on the SE first; `ldonald234` is the best account for it,
+  because its overflow fixture exercises the wrapping paths.
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. `ReportDialog` used to promise reporters it could
   ban and no longer does (finding 43) — **restore that sentence when a ban
@@ -219,7 +235,8 @@ iPhone 17 Pro Max simulator unless noted.
 - **Success toast and sub-400ms rapid taps** — not drivable from here; see the
   tap-reliability note below. Both are code-verified only.
 - **Signing in.** An agent cannot authenticate, so any surface needing a
-  particular account needs you to sign in first and say which one.
+  particular account needs you to sign in first and say which one. The next one
+  needed is **`ldonald234` on the iPhone SE**, for the open signed-in pass.
 
 ## Accounts, and what each is for
 
@@ -242,9 +259,9 @@ before trusting anything you see on one.
 | iPhone 17                  | booted                     | `ldonald0234`                      | current, `e276a48` |
 | iPhone SE (3rd generation) | booted, created 2026-09-16 | signed out, intro not yet finished | current, `e276a48` |
 
-The iPhone 17 Pro is the one to use for anything on the signed-out screens: an
-agent cannot sign back in, so signing a session out to reach the auth wall
-cannot be undone from here.
+The iPhone 17 Pro and SE are the ones to use for signed-out screens: an agent
+cannot sign back in, so signing a session out to reach the auth wall cannot be
+undone from here. The SE never finished the intro, so it opens on the intro.
 
 `@ldonald234`'s second entry — **`Supercalifragilistic…`, a 200-character title,
 a 100-character space-free chapter, and an unbreakable token in the body** — is
@@ -291,9 +308,14 @@ paths, and it found four bugs. Keep it unless you have a reason not to.
   until you check the stylesheet.
 - **Retro icons mark sections; `Pepicon` marks controls.** Both are used
   app-wide, so neither is legacy. Give each glyph one meaning.
-- **The press bloom is `saturate() brightness()`, which does nothing to a grey.**
-  A bare `--text-muted` icon button needs `.icon-btn-hover` or it has no visible
-  press state at all.
+- **The press bloom is `saturate() brightness()`, which does nothing to a grey**
+  — one more reason there are no grey controls. A bare icon button still needs
+  `.icon-btn-hover` for its press fill.
+- **Scan for grey controls in the built bundle, not only in source.** A source
+  scan for `<button>` elements missed the sidebar toggle, whose style sits in a
+  nested attribute, and matched comments that merely mention `--text-muted`.
+  Grepping `dist/assets/*.js` for `color:"var(--text-muted)"` next to an
+  `onClick` or `aria-label` finds what actually ships.
 
 ### Simulator
 
@@ -302,12 +324,13 @@ paths, and it found four bugs. Keep it unless you have a reason not to.
   concluded it had not. **Read state from a screenshot after every tap**, and
   re-check before assuming your own earlier action failed. This is why the
   success toast and the sub-400ms rapid tap are not drivable from here.
-- **The tap space is points; screenshots are larger, by a factor that depends
-  on the device** — about 2.09× as displayed on the Pro Max, 2.29× on the Pro.
-  Divide by the ratio of the screenshot's width to the device's point width (440
-  and 402 respectively). Reading a position off a screenshot and passing it
-  straight to `tap` lands in empty space and looks exactly like a dead button.
-  `touch_path` does **not** share `tap`'s mapping.
+- **The tap space is points; screenshots are pixels.** Divide a position read
+  off a screenshot by (screenshot width ÷ point width): 440pt on the Pro Max,
+  402pt on the Pro and iPhone 17, 375pt on the SE. A raw `simctl io` capture is
+  3× on the Face ID phones and 2× on the SE; an image shown scaled down has its
+  own ratio, so always compute from the width you are looking at. Passing
+  screenshot numbers straight to `tap` lands in empty space and looks exactly
+  like a dead button. `touch_path` does **not** share `tap`'s mapping.
 - **An Xcode update blocks `git` and the simulator.** `git` here is Xcode's shim
   at `/usr/bin/git`, so after an update every `git`, `xcrun` and `xcodebuild`
   call fails with "You have not agreed to the Xcode license agreements" until
@@ -318,9 +341,28 @@ paths, and it found four bugs. Keep it unless you have a reason not to.
   `( sleep N; xcrun simctl io <udid> screenshot f.png ) &` then fire the tap.
   MCP round trips are ~1.5–2s, so bracket 1.6–3.4s.
 - **Check which simulator is booted and which build it runs.** A second sim
-  carrying a build several commits back showed already-fixed bugs.
-  `xcrun simctl install` over a running install keeps the container, so the
-  session survives.
+  carrying a build several commits back showed already-fixed bugs. Verify from
+  the **installed** bundle, not the build output: `xcrun simctl
+get_app_container <udid> com.retrowave.journal app`, then compare its
+  `public/assets/index-*.js` name with the current build's. `xcrun simctl
+install` over an existing install keeps the container, so the session
+  survives. `simctl listapps` reports nothing for a shut-down device, which
+  looks like "not installed" and is not.
+- **The first keyboard on a fresh simulator is covered by an iOS tutorial**
+  ("Speed up your typing…"). It is the OS, not the app — tap Continue.
+
+### iOS layout
+
+- **Content scrolls under a transparent status bar.** `body::before` is a
+  blur-only strip behind it, on `body` because five screens are early returns.
+  Test any change to page chrome twice: scrolled content under the clock, and at
+  rest against a before screenshot, where it must be pixel-identical. No tint,
+  no `saturate()` — both show at rest.
+- **`.safe-area-top` adds space only on home-button iPhones**:
+  `inset + clamp(0px, 44px - inset, 0.5rem)`. Web and every notched phone are
+  unchanged by construction.
+- **The intro compacts below 700pt of height** so slide 4's preview fits on the
+  SE. Face ID phones never match.
 - **Re-issuing the same deep-link hash is a no-op** by design. Vary the id.
 - **There is no `.xcworkspace`.** SPM project — pass
   `-project ios/App/App.xcodeproj`. Commands are in `/release`.
