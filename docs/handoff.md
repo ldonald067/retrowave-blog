@@ -119,6 +119,16 @@ iPhone 17 Pro Max simulator unless noted.
 - **Cold start** median 1.94s (Debug, warm, n=5). Treat past ~3s as a finding.
 - **Privacy smoke checks 9/9 green against prod**; anonymous clients read 0 rows
   from every table.
+- **The chapter-rename confirmation, end to end against prod** (2026-09-16).
+  Fixture on `ldonald234`: profile public, `summer 2026` private, one entry
+  public inside it — `get_public_profile` served 0 entries. Renaming to
+  `summer 2026 v2` raised the dialog, and the row was confirmed unchanged in the
+  database. `go back` closed it with the typed name intact, still no write.
+  `yes, publish it` saved, and `get_public_profile` then served the entry. All
+  three fixture writes reverted and re-diffed; the one residue is that entry's
+  `updated_at`, which a trigger restamps on any update. **No account carries
+  this fixture** — every `private_chapters` in prod is empty — so re-testing
+  means building it again and reverting it.
 
 ## Chapter privacy
 
@@ -130,13 +140,21 @@ iPhone 17 Pro Max simulator unless noted.
   a case variant, on an entry saved private, on a private profile, and on a
   hand-flipped `is_private` — see `gotchas.md` for why each one matters.
   **337 tests** now (was 322). The four positive tests were mutation-checked:
-  stubbing the gate to `false` turns all four red.
+  stubbing the gate to `false` turns all four red. Verified on device — see
+  below.
 - **The chapter padlock now matches the server.** `Sidebar` and `ChapterChips`
   compared raw strings while the toggle and the RPC compared normalized, so a
   case variant drew 📖 on a chapter that was genuinely private and the toggle's
   label inverted. Both call `isChapterPrivate()`.
 
 ## Open work
+
+- **The entry view's privacy badge ignores the chapter.** `PostModal`'s read
+  view showed `🌐 public` on an entry that `get_public_profile` was serving 0
+  times, because the badge reads `post.is_private` alone. The composer's
+  moderation check already mirrors the server with `isChapterPrivate`; the badge
+  should too — probably a third state, since "public, but its chapter hides it"
+  is exactly what an owner needs to know before renaming that chapter.
 
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. `ReportDialog` used to promise reporters it could
