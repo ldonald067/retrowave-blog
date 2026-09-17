@@ -40,8 +40,10 @@ Then drive the states that only exist on device:
 | Reduce Motion on                              | CSS + `MotionConfig` + `lib/motion.ts` are three separate layers |
 | A deep link arriving while the app runs       | `detectSessionInUrl` has already run by then                     |
 
-CLI levers, all of which need the app relaunched afterwards (it only re-reads on
-foreground) and all of which must be **restored when done**:
+CLI levers, all of which must be **restored when done**. Dynamic Type and the
+status bar need the app relaunched (it re-reads on foreground); **Reduce Motion
+needs the whole device rebooted** — written and relaunched only, WKWebView keeps
+the old value and `prefers-reduced-motion` silently never matches:
 
 ```bash
 xcrun simctl ui $UDID content_size accessibility-extra-extra-extra-large  # NOTE: underscore

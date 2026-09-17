@@ -26,6 +26,8 @@ import { withRetry } from './lib/retry';
 import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact } from './lib/capacitor';
+import { markAppReady } from './lib/splash';
+import SplashCurtain from './components/SplashCurtain';
 import { AUTH_CALLBACK_ERROR } from './lib/auth-callback';
 import { hasSeenOnboarding, markOnboardingSeen } from './lib/onboarding';
 import NewPasswordModal from './components/NewPasswordModal';
@@ -493,9 +495,14 @@ function AppInner() {
     }
   }, [profileError, showError]);
 
-  // Hide native splash screen once auth state is resolved
+  // Auth resolved: let the splash curtain start its exit, and hide the native
+  // splash in case the curtain never mounted (it hides it itself once painted;
+  // SplashScreen.hide is idempotent).
   useEffect(() => {
-    if (!authLoading) void hideSplashScreen();
+    if (!authLoading) {
+      markAppReady();
+      void hideSplashScreen();
+    }
   }, [authLoading]);
 
   // Show auth modal if not authenticated — adjusted during render on auth
@@ -1668,6 +1675,10 @@ function AppInner() {
 function App() {
   return (
     <MotionConfig reducedMotion="user">
+      {/* Beside AppInner, not inside it: every top-level early return — auth
+          wall, intro, public profile, moderation, age gate — would otherwise
+          render before the curtain and flash underneath it. */}
+      <SplashCurtain />
       <AppInner />
     </MotionConfig>
   );

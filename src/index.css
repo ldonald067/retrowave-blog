@@ -1058,6 +1058,111 @@ select:focus-visible {
   }
 }
 
+/* ===== Splash curtain ===== */
+
+/* Draws what LaunchScreen.storyboard shows, so hiding the native splash over
+   the top of it is invisible — see SplashCurtain.tsx. Fixed classic-xanga
+   colours on purpose: the launch image cannot know the reader's theme, so the
+   curtain matches the image and the theme arrives during the fade-out.
+   z-index 80 sits above the header (10), FAB (30), the status-bar strip (45)
+   and modal overlays (50-70), below the toast layer (100). */
+.splash-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(to bottom right, #ffe4ec, #f3e8ff, #e8f4ff);
+  opacity: 1;
+  transition: opacity var(--splash-fade, 400ms) ease-out;
+}
+
+.splash-curtain.is-leaving {
+  opacity: 0;
+}
+
+/* Sized in dvh, not vw, so it lands on the launch image's own proportions:
+   that image is a square scaled scaleAspectFill, so it is scaled by the
+   screen's HEIGHT and cropped horizontally. The frame is 1150/2732 of the
+   square wide and 1322/2732 tall, the icon 760/2732 — hence 42, 48.4 and 27.8
+   dvh. Matching this is what makes hiding the native splash invisible. */
+.splash-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42dvh;
+  height: 48.4dvh;
+  border: 4px dotted #ff99cc;
+  border-radius: 1rem;
+}
+
+.splash-icon {
+  width: 27.8dvh;
+  height: auto;
+  border-radius: 20%;
+  box-shadow: 0 10px 28px rgba(214, 21, 126, 0.28);
+  animation: splash-pop 620ms cubic-bezier(0.22, 1.3, 0.4, 1) both;
+}
+
+.splash-sparkle {
+  position: absolute;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #d6157e;
+  animation: splash-twinkle 1.6s ease-in-out infinite;
+}
+
+.splash-sparkle-1 {
+  top: 8%;
+  left: 12%;
+  animation-delay: 120ms;
+}
+
+.splash-sparkle-2 {
+  top: 16%;
+  right: 10%;
+  color: #ff99cc;
+  font-size: 1.1rem;
+  animation-delay: 420ms;
+}
+
+.splash-sparkle-3 {
+  bottom: 12%;
+  left: 16%;
+  color: #ff99cc;
+  font-size: 1.25rem;
+  animation-delay: 680ms;
+}
+
+.splash-sparkle-4 {
+  bottom: 9%;
+  right: 14%;
+  animation-delay: 300ms;
+}
+
+@keyframes splash-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.72) rotate(-6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes splash-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.85) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(45deg);
+  }
+}
+
 /* ===== Marquee Banner ===== */
 .marquee-banner {
   overflow: hidden;

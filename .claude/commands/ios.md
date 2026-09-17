@@ -58,8 +58,17 @@ python3 scripts/ios-coldstart.py <UDID> com.retrowave.journal 3 <scratchpad>
 It terminates, relaunches, and samples a strip of pixels each frame until the
 splash gives way to the app. **Do not discriminate frames by file size** — the
 splash and a loaded screen land in the same size band once the status bar is
-overridden, and a size gate will report the splash as content. Luminance of a
-fixed strip separates them cleanly (splash ≈ 20, loaded header ≈ 110–180).
+overridden, and a size gate will report the splash as content.
+
+**Its luminance gate is stale as of 2026-09-17 and must be re-tuned before the
+next run.** It was written when the splash was dark navy (≈ 20 against a loaded
+header of 110–180). The launch image is now the icon on the light classic-xanga
+gradient, and `SplashCurtain` continues that composition in the web view, so
+both boot frames are bright. Separate them by hue or by a region the curtain
+owns (the dotted frame), not by brightness.
+
+Note also that the curtain holds for `MIN_VISIBLE_MS` (850) plus a 400ms fade,
+so it puts a floor of roughly 1.25s under any time-to-content number.
 
 The number is an **upper bound**: granularity is one screenshot round-trip,
 about 1.5s.
