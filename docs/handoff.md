@@ -6,8 +6,8 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `c0c1a15` — after both halves of the iPhone SE pass,
-their fixes, and the sidebar mood row and search-card spacing.
+Last rewritten 2026-09-17, at `d1dbacb` — after both halves of the iPhone SE pass,
+their fixes, the sidebar mood row, search-card spacing and feed end clearance.
 
 ---
 
@@ -273,10 +273,10 @@ and check which build each carries before trusting anything you see on one.
 
 | Simulator                  | Session       | Build              |
 | -------------------------- | ------------- | ------------------ |
-| iPhone 17 Pro Max          | `ldonald234`  | current, `c0c1a15` |
-| iPhone 17 Pro              | signed out    | current, `c0c1a15` |
-| iPhone 17                  | `ldonald0234` | current, `c0c1a15` |
-| iPhone SE (3rd generation) | `ldonald234`  | current, `c0c1a15` |
+| iPhone 17 Pro Max          | `ldonald234`  | current, `d1dbacb` |
+| iPhone 17 Pro              | signed out    | current, `d1dbacb` |
+| iPhone 17                  | `ldonald0234` | current, `d1dbacb` |
+| iPhone SE (3rd generation) | `ldonald234`  | current, `d1dbacb` |
 
 The iPhone 17 Pro is the one to use for signed-out screens: an agent cannot sign
 back in, so signing a session out to reach the auth wall cannot be undone from
