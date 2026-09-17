@@ -274,8 +274,9 @@ iPhone 17 Pro Max simulator unless noted.
 | `codex-qa-24e3a82f`                             | Public page, **classic-xanga** — the light-theme public fixture        |
 | `blankslate`, `nonoabc2345`, `ldonald234_xanga` | Zero posts — reach `EmptyState`                                        |
 
-**Last known simulator state, 2026-09-17** (sessions live in `UserDefaults`, so
-they survive a reboot). **Simulators shut down between sessions** — all four were
+**Last known simulator state, 2026-09-17** — all four booted, and each build read
+from the installed bundle (`index-CH77kfNo.js`), not from this table (sessions
+live in `UserDefaults`, so they survive a reboot). **Simulators shut down between sessions** — all four were
 found shut down the next morning — so boot before installing or screenshotting,
 and check which build each carries before trusting anything you see on one.
 
