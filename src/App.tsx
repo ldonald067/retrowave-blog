@@ -314,6 +314,12 @@ function PostList({
             </p>
           </div>
         )}
+
+        {/* The feed scrolls inside its own box, which ends just above the bottom
+              of the screen, so .page-fab-clearance on the page never reaches it:
+              the floating "new entry" button sat over the last post's reactions
+              with nothing left to scroll. This lets the end of the list clear it. */}
+        <div className="feed-fab-clearance" aria-hidden="true" />
       </div>
     </div>
   );

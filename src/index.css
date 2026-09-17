@@ -287,6 +287,20 @@ body::before {
   }
 }
 
+/* The same reservation, inside the feed's own scroll box. That box already
+   stops 1rem (computeFeedHeight's gap) above the screen's bottom edge, where the
+   button's own 1rem offset starts, so it needs the button plus a gap: 4.5rem,
+   not 5.5rem. rem for the same Dynamic Type reason as above. */
+.feed-fab-clearance {
+  height: calc(4.5rem + var(--safe-area-bottom));
+}
+
+@media (min-width: 1024px) {
+  .feed-fab-clearance {
+    height: 0;
+  }
+}
+
 /* Sole owner of keyboard compensation for every modal. */
 .modal-panel-safe {
   max-height: calc(
