@@ -6,8 +6,8 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-16, at `e276a48` — after the iPhone SE pass, its five fixes, and
-the iOS 16.4 deployment target.
+Last rewritten 2026-09-17, at `ffb85b5` — after both halves of the iPhone SE pass and
+their fixes.
 
 ---
 
@@ -98,9 +98,9 @@ break by reflex:
 - **`font-bold` in the title font does not look bold on classic-xanga.** Comic
   Neue's Bold is 1.8% wider than its Regular and there is no heavier weight. Use
   `.title-bold`, which adds a text stroke by `--title-font-bold-stroke` (`0.45px`
-  on classic-xanga, `0px` on the seven themes whose font has a real bold). The
-  every bold title-font element uses it (auth tabs, form labels, and 29 more sites
-  fixed 2026-09-17). Theme variables are now **44**.
+  on classic-xanga, `0px` on the seven themes whose font has a real bold). Every
+  bold title-font element uses it — the auth tabs, the form labels, and 29 more
+  sites fixed 2026-09-17. Theme variables are now **44**.
 
 ## The four bugs that mattered
 
@@ -144,7 +144,8 @@ iPhone 17 Pro Max simulator unless noted.
 - **Composer with the full software keyboard raised** — textarea keeps its
   height, draft autosaves, panel clear of the accessory bar. `ReportDialog` too.
 - **Dynamic Type at max** across feed, composer, settings and profile — nothing
-  truncates, modal footers keep their buttons on one row.
+  truncates. Modal footers keep their buttons on one row on the 440pt Pro Max; on
+  the 375pt SE the composer footer wraps to two rows, by design since 2026-09-17.
 - **Reduce Motion** verified with it actually enabled: two frames two seconds
   apart are byte-identical.
 - **All eight themes rendered**, and all eight clear 4.5:1 for the card title on
@@ -176,10 +177,18 @@ iPhone 17 Pro Max simulator unless noted.
   iPhone (now a blur strip, pixel-identical at rest), "powered by YourJournal"
   in two footers (now Retrowave Journal), grey dialog cancel buttons (now the
   outline tier), slide 4's preview below the fold on short screens, and the
-  intro header crammed under the SE's status bar. The signed-in half followed
-  the same day, as `ldonald234` — its findings are under Open work. The
-  `ConfirmDialog` cancel style was confirmed there too, on the composer's
-  unsaved-changes dialog.
+  intro header crammed under the SE's status bar.
+- **The iPhone SE, signed in as `ldonald234`** (2026-09-16, fixes re-checked
+  2026-09-17), including max Dynamic Type. Held up: the entry view with the
+  overflow fixture, the composer with the keyboard up (textarea keeps its height,
+  draft autosaves), Settings, all three profile tabs and their two-column grids,
+  and `ConfirmDialog`'s outline cancel. Seven findings; six fixed and seen on the
+  SE — the composer footer now wraps instead of clipping, "find old entries" keeps
+  its heading on one line, dialog titles balance instead of orphaning `~`, and the
+  public page copy uses the voice. The other two fixes: the "new entry" button
+  disappearing after sign-in (verified in code only — see "Waiting for you") and
+  `.title-bold` at 29 more sites. Nothing was saved to prod; test drafts left on
+  the device were deleted.
 - **The modal close ✕ in accent-family colour** (2026-09-16) — Settings opened on
   the Pro Max in cottage-core and the iPhone 17 in emo-dark, where it went from
   `#858585` grey to the theme's red; both modals closed from it.
@@ -213,30 +222,16 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
-- **The signed-in iPhone SE pass (2026-09-16) found seven issues; six are fixed**
-  (2026-09-17). Kept brief on purpose — smaller phones are a shrinking share, so
-  this was a time-boxed fix, not a redesign.
-  - Fixed: **the floating "new entry" button vanished after signing in** until a
-    restart (`showAuthModal` was never cleared on sign-in). **Verified in code
-    only** — proving it on device needs a fresh sign-in, which an agent cannot do.
-    Sign out and back in once to confirm the button stays.
-  - Fixed and seen on the SE at max Dynamic Type: the composer footer (buttons now
-    wrap instead of clipping), "find old entries" (the count drops to its own line
-    instead of crushing the heading mid-word), and `ConfirmDialog` titles
-    (`text-wrap: balance`, no orphaned `~`).
-  - Fixed: **`font-bold` in the title font** now uses `.title-bold` at all 29
-    remaining sites, so bold reads as bold on classic-xanga everywhere.
-  - Fixed and seen on the SE: the public page tab and its publish dialog now use
-    the voice (`ur`, `u`, `2`, tildes on actions).
-  - **Not fixed — the feed reads through a ~105pt slot on the SE at rest.** The
-    feed is its own scroll container, and the virtualizer, the load-more observer
-    and the height maths all depend on that; changing it means a window-scrolling
-    virtualizer and re-verifying scroll on iOS, which is not worth it for a small
-    phone. Swiping on the header scrolls the page and the feed grows, so it works.
-  - **Known trade-off:** at max Dynamic Type on the SE **with the keyboard up**,
-    the now-wrapped composer footer leaves little room above the keyboard, so the
-    field being typed in scrolls out of view. Typing and saving still work. Only
-    that triple extreme is affected.
+- **The feed reads through a ~105pt slot on the iPhone SE at rest — left as is
+  on purpose.** The feed is its own scroll container, and the virtualizer, the
+  load-more observer and the height maths all depend on that; changing it means a
+  window-scrolling virtualizer and re-verifying scroll on iOS, which you judged not
+  worth it for a shrinking class of phone. Swiping on the header scrolls the page
+  and the feed grows, so it works.
+- **Known trade-off on the SE:** at max Dynamic Type **with the keyboard up**, the
+  wrapped composer footer leaves little room above the keyboard, so the field
+  being typed in scrolls out of view. Typing and saving still work; only that
+  triple extreme is affected.
 
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. `ReportDialog` used to promise reporters it could
@@ -257,6 +252,9 @@ iPhone 17 Pro Max simulator unless noted.
   foreground it.
 - **Success toast and sub-400ms rapid taps** — not drivable from here; see the
   tap-reliability note below. Both are code-verified only.
+- **Confirm the "new entry" button fix** (`ffb85b5`) — sign out and back in on
+  any simulator, and the floating button should still be there. It is verified in
+  code only, because proving it needs a fresh sign-in.
 - **Signing in.** An agent cannot authenticate, so any surface needing a
   particular account needs you to sign in first and say which one.
 
@@ -270,20 +268,21 @@ iPhone 17 Pro Max simulator unless noted.
 | `codex-qa-24e3a82f`                             | Public page, **classic-xanga** — the light-theme public fixture        |
 | `blankslate`, `nonoabc2345`, `ldonald234_xanga` | Zero posts — reach `EmptyState`                                        |
 
-**Last known simulator state, 2026-09-16** (sessions live in `UserDefaults`, so
-they survive a reboot). Check which sim is booted and which build it carries
-before trusting anything you see on one.
+**Last known simulator state, 2026-09-17** (sessions live in `UserDefaults`, so
+they survive a reboot). **Simulators shut down between sessions** — all four were
+found shut down the next morning — so boot before installing or screenshotting,
+and check which build each carries before trusting anything you see on one.
 
-| Simulator                  | State at end of session    | Session       | Build              |
-| -------------------------- | -------------------------- | ------------- | ------------------ |
-| iPhone 17 Pro Max          | booted                     | `ldonald234`  | current, `ffb85b5` |
-| iPhone 17 Pro              | booted                     | signed out    | current, `ffb85b5` |
-| iPhone 17                  | booted                     | `ldonald0234` | current, `ffb85b5` |
-| iPhone SE (3rd generation) | booted, created 2026-09-16 | `ldonald234`  | current, `ffb85b5` |
+| Simulator                  | Session       | Build              |
+| -------------------------- | ------------- | ------------------ |
+| iPhone 17 Pro Max          | `ldonald234`  | current, `ffb85b5` |
+| iPhone 17 Pro              | signed out    | current, `ffb85b5` |
+| iPhone 17                  | `ldonald0234` | current, `ffb85b5` |
+| iPhone SE (3rd generation) | `ldonald234`  | current, `ffb85b5` |
 
-The iPhone 17 Pro and SE are the ones to use for signed-out screens: an agent
-cannot sign back in, so signing a session out to reach the auth wall cannot be
-undone from here. The SE never finished the intro, so it opens on the intro.
+The iPhone 17 Pro is the one to use for signed-out screens: an agent cannot sign
+back in, so signing a session out to reach the auth wall cannot be undone from
+here. The SE was created 2026-09-16 for the 375pt pass.
 
 `@ldonald234`'s second entry — **`Supercalifragilistic…`, a 200-character title,
 a 100-character space-free chapter, and an unbreakable token in the body** — is
@@ -372,6 +371,25 @@ install` over an existing install keeps the container, so the session
   looks like "not installed" and is not.
 - **The first keyboard on a fresh simulator is covered by an iOS tutorial**
   ("Speed up your typing…"). It is the OS, not the app — tap Continue.
+- **Re-issuing the same deep-link hash is a no-op** by design. Vary the id.
+- **There is no `.xcworkspace`.** SPM project — pass
+  `-project ios/App/App.xcodeproj`. Commands are in `/release`.
+- **The scratchpad gets cleaned** — mid-session it took the built `.app`, and
+  overnight it took a Management API helper script. Rebuild or recreate rather
+  than trusting a path from earlier.
+- **The software keyboard needs Simulator.app open**, not just the streaming
+  panel: `defaults write com.apple.iphonesimulator ConnectHardwareKeyboard
+-bool false` **and** `open -a Simulator`.
+- **Dynamic Type from the CLI:** `xcrun simctl ui <udid> content_size
+accessibility-extra-extra-extra-large`. Underscore, not hyphen. Read the
+  current value first, relaunch the app (it only re-reads on foreground), and
+  restore it when done.
+- **Discarding the composer does not clear its autosaved draft.** Anything typed
+  during a test reappears next time the composer opens. It lives in WebKit's
+  `localStorage`, which can only be edited with the device **shut down**:
+  `find` the container's `localstorage.sqlite3`, `xcrun simctl shutdown`, remove
+  the `-wal`/`-shm` files, then `delete from ItemTable where key like
+'post-draft%'`, and boot. The session survives, since it is in `UserDefaults`.
 
 ### iOS layout
 
@@ -385,17 +403,6 @@ install` over an existing install keeps the container, so the session
   unchanged by construction.
 - **The intro compacts below 700pt of height** so slide 4's preview fits on the
   SE. Face ID phones never match.
-- **Re-issuing the same deep-link hash is a no-op** by design. Vary the id.
-- **There is no `.xcworkspace`.** SPM project — pass
-  `-project ios/App/App.xcodeproj`. Commands are in `/release`.
-- **The scratchpad gets cleaned mid-session** — it took the built `.app` once.
-  Rebuild rather than trusting a path from earlier in the session.
-- **The software keyboard needs Simulator.app open**, not just the streaming
-  panel: `defaults write com.apple.iphonesimulator ConnectHardwareKeyboard
--bool false` **and** `open -a Simulator`.
-- **Dynamic Type from the CLI:** `xcrun simctl ui <udid> content_size
-accessibility-extra-extra-extra-large`. Underscore, not hyphen. Read the
-  current value first and restore it.
 
 ### Testing
 
