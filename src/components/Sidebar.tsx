@@ -198,14 +198,16 @@ export default function Sidebar({
                 borderColor: 'var(--border-primary)',
               }}
             >
-              <div className="flex items-center gap-2">
+              {/* One row, like "current mood:" on an entry; a long mood wraps
+                  under the label instead of forcing a second row every time. */}
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 <Pepicon name="heartFilled" size={14} color="var(--accent-primary)" />
                 <span className="font-bold" style={{ color: 'var(--text-body)' }}>
                   current mood:
                 </span>
-              </div>
-              <div className="ml-6 mt-1" style={{ color: 'var(--text-muted)' }}>
-                {userData.mood}
+                <span className="min-w-0 break-words" style={{ color: 'var(--text-muted)' }}>
+                  {userData.mood}
+                </span>
               </div>
             </div>
           )}

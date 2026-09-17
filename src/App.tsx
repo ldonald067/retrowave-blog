@@ -1393,35 +1393,38 @@ function AppInner() {
                     </>
                   )}
 
-                  <div className="mt-3 flex flex-col gap-2 text-xs">
-                    {/* Bulk clears live inside the panel; the chips below stay
+                  {(filtersOpen || activeFeedFilters.length > 0) && (
+                    <div className="mt-3 flex flex-col gap-2 text-xs">
+                      {/* Bulk clears live inside the panel; the chips below stay
                           visible either way. Collapsed, three rows of
                           filter-management outweighed the one row of filters
                           they managed — and each chip already carries its own ×,
                           so nothing is lost by folding these away. */}
-                    {filtersOpen && (
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                        <span style={{ color: 'var(--text-muted)' }}>{activeFeedSummaryText}</span>
-                        {hasFeedFilters && (
-                          <button
-                            onClick={clearFeedFilters}
-                            className="xanga-link text-xs min-h-[44px]"
-                          >
-                            ~ clear search + filters ~
-                          </button>
-                        )}
-                        {(hasFeedFilters || chapterFilter) && (
-                          <button
-                            onClick={clearAllFilters}
-                            className="xanga-link text-xs min-h-[44px]"
-                          >
-                            ~ reset everything ~
-                          </button>
-                        )}
-                      </div>
-                    )}
+                      {filtersOpen && (
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                          <span style={{ color: 'var(--text-muted)' }}>
+                            {activeFeedSummaryText}
+                          </span>
+                          {hasFeedFilters && (
+                            <button
+                              onClick={clearFeedFilters}
+                              className="xanga-link text-xs min-h-[44px]"
+                            >
+                              ~ clear search + filters ~
+                            </button>
+                          )}
+                          {(hasFeedFilters || chapterFilter) && (
+                            <button
+                              onClick={clearAllFilters}
+                              className="xanga-link text-xs min-h-[44px]"
+                            >
+                              ~ reset everything ~
+                            </button>
+                          )}
+                        </div>
+                      )}
 
-                    {/* `max-w-full` + `min-w-0` + `truncate` on the label below:
+                      {/* `max-w-full` + `min-w-0` + `truncate` on the label below:
                           a chapter can be 100 characters with no spaces, and the
                           label embeds it as `chapter: <name>`. Without these the
                           pill grew past the viewport and forced the whole
@@ -1429,31 +1432,32 @@ function AppInner() {
                           journal title and every card shifted left and were
                           clipped. The × stays outside the truncated span or it
                           gets ellipsed away with the text. */}
-                    {activeFeedFilters.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {activeFeedFilters.map((filter) => (
-                          <button
-                            key={filter.key}
-                            type="button"
-                            onClick={() => clearSingleFeedFilter(filter.key)}
-                            className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs title-bold transition hover:opacity-80 min-h-[44px] max-w-full min-w-0"
-                            style={{
-                              borderColor: 'var(--border-primary)',
-                              backgroundColor:
-                                'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
-                              color: 'var(--text-body)',
-                            }}
-                            aria-label={`Clear filter ${filter.label}`}
-                          >
-                            <span className="truncate min-w-0">{filter.label}</span>
-                            <span aria-hidden="true" className="flex-shrink-0">
-                              ×
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                      {activeFeedFilters.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {activeFeedFilters.map((filter) => (
+                            <button
+                              key={filter.key}
+                              type="button"
+                              onClick={() => clearSingleFeedFilter(filter.key)}
+                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs title-bold transition hover:opacity-80 min-h-[44px] max-w-full min-w-0"
+                              style={{
+                                borderColor: 'var(--border-primary)',
+                                backgroundColor:
+                                  'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
+                                color: 'var(--text-body)',
+                              }}
+                              aria-label={`Clear filter ${filter.label}`}
+                            >
+                              <span className="truncate min-w-0">{filter.label}</span>
+                              <span aria-hidden="true" className="flex-shrink-0">
+                                ×
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </motion.section>
               )}
 
