@@ -6,7 +6,7 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `32138fe` (code) — after the iPhone SE pass, its
+Last rewritten 2026-09-17, at `92ef0c2` (code) — after the iPhone SE pass, its
 fixes, a round of feed spacing and both marquees from your screenshots, and a
 full docs cleanup.
 
@@ -107,10 +107,13 @@ iPhone 17 Pro Max simulator unless noted.
   Pro against prod with a temporary status on `codex-qa-24e3a82f` (approved,
   reverted, re-diffed clean but `updated_at`) — short and 100-character statuses
   scroll, Reduce Motion wraps it static, no status means no banner.
-- **Launch screen** (2026-09-17, `32138fe`, Pro Max and SE): the icon now sits on
-  the classic-xanga gradient inside the dotted frame, instead of alone on dark
-  navy. `scripts/make-splash.py` regenerates it — see `/release` for the crop
-  rule.
+- **Launch screen** (2026-09-17, Pro Max and SE): the icon sits on the
+  classic-xanga gradient inside the dotted frame instead of alone on dark navy
+  (`32138fe`, `scripts/make-splash.py` regenerates it — crop rule in
+  `/release`), and `SplashCurtain` continues that composition in the web view
+  with the icon popping in and sparkles twinkling before it fades into the app
+  (`92ef0c2`). Cold-launch frames show still image → curtain at the same size →
+  feed; with Reduce Motion on, two frames are identical below the status bar.
 
 ## Open work
 
@@ -167,16 +170,16 @@ junk**. It found four bugs. Keep it.
 ## Simulators
 
 Last known state, 2026-09-17 — all four booted, each build read from the
-installed bundle (`index-saWQQgQf.js`). Sessions live in `UserDefaults` and
+installed bundle (`index-DVN9MRxQ.js`). Sessions live in `UserDefaults` and
 survive reboots, but **simulators shut down between sessions**, so boot before
 installing, and re-check the installed build before trusting this table.
 
 | Simulator                  | Session       | Build              |
 | -------------------------- | ------------- | ------------------ |
-| iPhone 17 Pro Max          | `ldonald234`  | current, `32138fe` |
-| iPhone 17 Pro              | signed out    | current, `32138fe` |
-| iPhone 17                  | `ldonald0234` | current, `32138fe` |
-| iPhone SE (3rd generation) | signed out    | current, `32138fe` |
+| iPhone 17 Pro Max          | `ldonald234`  | current, `92ef0c2` |
+| iPhone 17 Pro              | signed out    | current, `92ef0c2` |
+| iPhone 17                  | `ldonald0234` | current, `92ef0c2` |
+| iPhone SE (3rd generation) | signed out    | current, `92ef0c2` |
 
 Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
 in, so signing another simulator out cannot be undone from here. The SE lost
