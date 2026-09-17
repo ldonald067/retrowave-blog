@@ -7,7 +7,7 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
 Last rewritten 2026-09-17, at `fbb4840` — after both halves of the iPhone SE pass,
-their fixes, the sidebar mood row, search-card spacing, and the feed's end clearance and footer gap.
+their fixes, and a round of feed spacing from your screenshots.
 
 ---
 
@@ -185,11 +185,19 @@ iPhone 17 Pro Max simulator unless noted.
   and `ConfirmDialog`'s outline cancel. Seven findings; six fixed and seen on the
   SE — the composer footer now wraps instead of clipping, "find old entries" keeps
   its heading on one line, dialog titles balance instead of orphaning `~`, and the
-  public page copy uses the voice. The other two fixes: the "new entry" button
-  disappearing after sign-in (confirmed 2026-09-17: you signed in fresh on the Pro
-  Max and iPhone 17 and it was there) and
-  `.title-bold` at 29 more sites. Nothing was saved to prod; test drafts left on
+  public page copy uses the voice. The other two fixes: `.title-bold` at 29 more
+  sites, and the "new entry" button disappearing after sign-in — confirmed
+  2026-09-17 when you signed in fresh on the Pro Max and iPhone 17 and it was there. Nothing was saved to prod; test drafts left on
   the device were deleted.
+- **Feed spacing from your screenshots** (2026-09-17, `c0c1a15`, `d1dbacb`,
+  `fbb4840`). The sidebar's "current mood:" and the mood now share a row (iPhone
+  17, `ldonald0234`). The collapsed "find old entries" card lost 12pt of empty
+  margin from an always-rendered filter-chip container (Pro Max). The feed now
+  ends in `.feed-fab-clearance`, so the last post's reactions scroll clear of the
+  "new entry" button, and the gap from the end of the feed to the footer went
+  160pt → 91pt on the Pro Max and 82pt → 57pt on the SE. On the SE, with the feed
+  scrolled to its end and flush with the screen bottom, the closing line clears
+  the button by ~6pt — that spacing is the floor, see "iOS layout".
 - **The modal close ✕ in accent-family colour** (2026-09-16) — Settings opened on
   the Pro Max in cottage-core and the iPhone 17 in emo-dark, where it went from
   `#858585` grey to the theme's red; both modals closed from it.
@@ -356,6 +364,9 @@ paths, and it found four bugs. Keep it unless you have a reason not to.
   you run `sudo xcodebuild -license` (space to page, then type `agree`). This
   happened on 2026-09-15 with Xcode 27.0. Until then, git state can still be
   read from `.git/HEAD`, `.git/refs/` and `.git/logs/HEAD`.
+- **Swipes land reliably where taps do not.** Where a swipe starts matters: on
+  the feed it scrolls the feed's own box first, on the header or chips it scrolls
+  the page.
 - **Catching a transient needs the screenshot armed first:**
   `( sleep N; xcrun simctl io <udid> screenshot f.png ) &` then fire the tap.
   MCP round trips are ~1.5–2s, so bracket 1.6–3.4s.
@@ -399,6 +410,14 @@ accessibility-extra-extra-extra-large`. Underscore, not hyphen. Read the
 - **`.safe-area-top` adds space only on home-button iPhones**:
   `inset + clamp(0px, 44px - inset, 0.5rem)`. Web and every notched phone are
   unchanged by construction.
+- **The feed scrolls in its own box, so page padding never reaches its end.**
+  `.page-fab-clearance` pads the page; the feed's last post still sat under the
+  floating button. `.feed-fab-clearance` (`3rem` + bottom safe area, `0` at
+  `lg`) ends the feed instead, and while posts show, the layout's bottom padding
+  and the footer's top margin shrink on phones so the spacing does not stack.
+  Do not trim `3rem`: it is measured, not guessed. Test both ends — the feed
+  scrolled to its end with its box flush to the screen bottom (the SE, swiping on
+  the feed from the top of the page), and the page scrolled to the footer.
 - **The intro compacts below 700pt of height** so slide 4's preview fits on the
   SE. Face ID phones never match.
 
