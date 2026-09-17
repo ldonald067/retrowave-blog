@@ -21,10 +21,8 @@ npm install
 
 ### 2. Configure Supabase
 
-Follow `docs/development/supabase-local-setup.md` for the current local setup
-flow.
-
-Copy `.env.example` to `.env.local` and fill in:
+Copy `.env.example` to `.env.local` and fill in (details in
+`docs/development/supabase-local-setup.md`):
 
 ```env
 VITE_SUPABASE_URL=https://your-project-ref.supabase.co
@@ -34,11 +32,12 @@ VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
 `VITE_SUPABASE_ANON_KEY` is still supported as a legacy fallback if your
 project has not moved to publishable keys yet.
 
-### 3. Apply Backend Setup
+### 3. Backend
 
-- Run the SQL migrations in `supabase/migrations/`
-- Enable the email auth provider in Supabase
-- Deploy `supabase/functions/moderate-content` when you want hosted AI moderation
+The hosted project already runs the backend. `supabase db push` does not work on
+it, so schema changes are applied by hand — and `supabase/migrations/` is a
+statement of intent, not a description of production. Read `CLAUDE.md` before
+touching the database.
 
 ### 4. Run The App
 
@@ -56,13 +55,14 @@ npm run dev
 
 ## Scripts
 
+- `npm run check` - everything CI runs: lint, format check, typecheck, tests, build
 - `npm run dev` - development server
 - `npm run build` - production build
 - `npm run preview` - preview the production build
 - `npm run lint` - ESLint
-- `npm run typecheck` - TypeScript checks
+- `npm run format` / `npm run format:check` - Prettier
+- `npm run typecheck` - TypeScript (app + `vite.config.ts`)
 - `npm run test` - Vitest
-- `npm run format` - Prettier for source files
 - `npm run supabase -- --version` - local Supabase CLI version check
 
 ## Notes
@@ -74,9 +74,8 @@ npm run dev
 - `docs/supabase-snippet-archive/` is a historical record of SQL actually run
   against production. Read-only — see its README before touching the database.
 - `.env.example` mirrors the current frontend Supabase environment shape.
-- Migrations are **not** applied by `supabase db push` on this project; a file in
-  `supabase/migrations/` does not mean it is live. See
-  `docs/development/supabase-local-setup.md`.
+- `docs/handoff.md` is the current state of the project; `CLAUDE.md` is the
+  working guide.
 
 ## License
 

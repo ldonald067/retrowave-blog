@@ -26,17 +26,8 @@ weaker version than the one live in prod.
 
 ## Verify prod instead
 
-Never infer the live schema from a file — query it. The recipe is in
-`CLAUDE.md`; the short form:
-
-```bash
-TOKEN=$(security find-generic-password -s "Supabase CLI" -a supabase -w)
-curl -s -X POST "https://api.supabase.com/v1/projects/$(cat supabase/.temp/project-ref)/database/query" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"query":"select column_name from information_schema.columns where table_name='"'"'profiles'"'"';"}'
-```
-
-For a function, read its live body rather than grepping for an idiom — prod may
+Never infer the live schema from a file — query it, with the recipe in
+`CLAUDE.md`. For a function, read its live body rather than grepping for an idiom — prod may
 implement the same behaviour a different way. Checking `get_public_profile` for
 a literal `lower(btrim` reports a false negative, because prod factors that into
 a `public.normalize_chapter()` helper:

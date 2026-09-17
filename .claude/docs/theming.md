@@ -6,6 +6,8 @@
 - Never use alpha-channel hex colors (`#rrggbbaa`) for text — fails WCAG AA unpredictably.
 - `color-mix(in srgb, ...)` for derived colors (hover states, subtle backgrounds). Prefer over hardcoded intermediate colors.
 - Minimum readable text: 12px (`text-xs`). Decorative pixel badges: 11px. Winamp/sparkle: exempt (`aria-hidden`).
+- **Emoji ignore `color`.** A glyph that must take a theme colour has to be a text glyph like `✦`, not `✨` (finding 17).
+- A colour verified on one surface is not verified on another, and fixing one token does not fix the pairing — re-measure on the surface it actually paints.
 
 ## [2026-08-25 /frontend] Composited colours need their own sweep
 
@@ -32,7 +34,7 @@ a theme-neutral box-shadow.
 
 ## Responsive Breakpoints
 
-- 480px: only custom CSS breakpoint (in `index.css`). Everything else uses Tailwind `sm:` (640px) and `lg:` (1024px).
+- Custom width breakpoint in `index.css`: `max-width: 480px` (every current iPhone matches). Everything else follows Tailwind `sm:` (640px) and `lg:` (1024px), which `index.css` mirrors in plain `min-width: 1024px` rules. Height: `max-height: 700px` compacts the intro on the SE.
 - Nav labels show at `lg:` (1024px), not `sm:` — three labeled buttons overflow at tablet widths.
 - Sidebar switches from collapsible to fixed at `lg:`.
 - Modal height comes from `.modal-panel-safe`, which subtracts the safe areas and `--keyboard-inset`. Do not add a `max-h-[…vh]` on top of it.

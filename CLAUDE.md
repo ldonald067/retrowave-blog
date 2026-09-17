@@ -84,7 +84,7 @@ config that would otherwise be invisible to the repo.
 | `/ios`       | Cold start, lifecycle, session/storage durability, bridge |
 | `/migration` | SQL migrations, syncing database.ts + validation.ts       |
 | `/test`      | Vitest mock patterns, Supabase chain mocking              |
-| `/preflight` | Pre-commit: tsc + build + tests, diagnose failures        |
+| `/preflight` | Pre-commit gate in CI order, diagnose failures            |
 | `/release`   | iOS build, Capacitor sync, App Store submission checklist |
 
 ## Key Docs (Progressive Disclosure)

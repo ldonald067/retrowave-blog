@@ -7,10 +7,11 @@ description: Run fullstack integration audit — verifies RPC types, RLS policie
 
 Run a fullstack integration audit across the Retrowave Blog codebase. Verify that frontend and backend are correctly wired together.
 
-Read `CLAUDE.md` first for architecture. The shared data contracts table is in `.claude/docs/data-contracts.md`. Don't re-discover what's already documented.
-Read `.claude/docs/gotchas.md` for integration knowledge, and `.claude/docs/false-positives.md` for known false
-positives. Check the "False Positives" section to avoid repeating previously
-dismissed findings.
+Read `CLAUDE.md` first, then `.claude/docs/gotchas.md` ("Supabase and RPCs").
+**Read `.claude/docs/false-positives.md` before flagging anything** — jsonb
+return types, `TO authenticated` on rate-limit policies, the merged reactions
+policy and the duplicated `ModerationResult` have all been filed and dismissed
+before.
 
 ## Audit against prod, not against `supabase/migrations/`
 
@@ -35,8 +36,7 @@ Q "select table_name, column_name from information_schema.columns where table_sc
 **Read a function's body before calling anything missing.** Prod implements the
 same guarantee its own way — `v_user_id := auth.uid()` rather than inline,
 `public.normalize_chapter()` rather than `lower(btrim(...))`. Two privacy smoke
-checks reported FAIL against correct code for exactly that reason. Before
-flagging, also read `.claude/docs/false-positives.md`.
+checks reported FAIL against correct code for exactly that reason.
 
 ## Audit Checklist
 
@@ -45,10 +45,7 @@ flagging, also read `.claude/docs/false-positives.md`.
 - Compare every function in `src/types/database.ts` `Functions` section against **the live list above**, then read the definition of anything that looks wrong
 - Verify Args and Returns types match the SQL parameter and return types
 - Flag any RPCs defined in SQL but missing from TypeScript (or vice versa)
-
-**Known gotcha**: RPCs returning `jsonb` in SQL map to structured TypeScript objects because PostgREST parses jsonb automatically. Don't flag `jsonb` vs `{ profile: ..., posts: ... }` as a mismatch — it's correct.
-
-**Known gotcha**: SECURITY DEFINER functions with `SET search_path = public, pg_temp` need fully-qualified references to `auth.users` (it's in the `auth` schema, not `public`). Verify this in any function that touches `auth.users`.
+- In any SECURITY DEFINER function with `SET search_path = public, pg_temp`, verify `auth.users` is fully qualified
 
 ### 2. RLS Policy Coverage
 
@@ -56,25 +53,12 @@ flagging, also read `.claude/docs/false-positives.md`.
 - Check that INSERT/UPDATE/DELETE policies exist and reference `auth.uid()`
 - Verify rate limits by reading the live policy and function bodies — they are not documented elsewhere
 
-**Known gotcha**: Rate limiting policies don't need explicit `TO authenticated` grants. Anon users may pass the rate limit check, but they'll fail the ownership policy (`user_id = auth.uid()`) which is the real guard. Don't flag missing `TO authenticated` on rate limit policies — it's a minor improvement, not a bug.
-
-**Known gotcha**: The reactions INSERT policy combines ownership, an inline block check and rate limiting in one policy. Don't flag "missing separate rate limit policy" on reactions — it's intentionally merged.
-
 **Never rate-limit a table by selecting from it inside its own policy.** That is finding 36: the reactions policy counted recent `post_reactions` rows, Postgres raised `42P17` infinite recursion, and no reaction ever saved. The count now lives in the `SECURITY DEFINER` function `recent_reaction_count`, which runs outside RLS. Any new rate limit needs the same shape.
 
 ### 3. Shared Data Contracts
 
-Cross-check the contracts in `.claude/docs/data-contracts.md`:
-
-| Data                    | Frontend File                                                  | Backend File                                   |
-| ----------------------- | -------------------------------------------------------------- | ---------------------------------------------- |
-| Post field limits       | `src/lib/validation.ts` `POST_LIMITS`                          | `20260223000001_post_constraints.sql`          |
-| Profile field limits    | `src/lib/validation.ts` `PROFILE_LIMITS`                       | `20260224000004` + `20260224000008`            |
-| Reaction emoji set      | `src/components/ui/ReactionBar.tsx` `REACTION_EMOJIS`          | `20260224000004` CHECK constraint              |
-| Moderation blocklists   | `src/lib/moderation.ts` `BLOCKED_DOMAINS` + `BLOCKED_PATTERNS` | `supabase/functions/moderate-content/index.ts` |
-| `ModerationResult` type | `src/lib/moderation.ts`                                        | `supabase/functions/moderate-content/index.ts` |
-
-**Known gotcha**: `ModerationResult` is intentionally duplicated between client and edge function. Deno can't share Vite imports. Don't flag this as tech debt — it's documented in `.claude/docs/gotchas.md`.
+Cross-check every row of `.claude/docs/data-contracts.md` against prod — the
+constraints live there, not in the migration named beside them.
 
 ### 4. Frontend-Backend Integration Points
 
@@ -120,7 +104,7 @@ Present findings as a table:
 | ----- | -------------- | ------- |
 | ...   | PASS/WARN/FAIL | ...     |
 
-Flag only genuine issues. Distinguish between actual bugs vs minor improvements vs false positives. Reference the "Known gotcha" notes above and `.claude/docs/false-positives.md` to avoid repeating false alarms from previous audits.
+Flag only genuine issues. Distinguish actual bugs from minor improvements and from entries already in `.claude/docs/false-positives.md`.
 
 ## Cross-Domain Checks
 

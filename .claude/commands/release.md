@@ -16,13 +16,13 @@ rating, review notes, and screenshot plan. Update it as items complete.
 
 ## Phase 1: Prerequisites (verify before building)
 
-| Check                            | Command                              | Fix if missing                                      |
-| -------------------------------- | ------------------------------------ | --------------------------------------------------- |
-| Node                             | `node --version`                     | `brew install node`                                 |
-| Xcode                            | `xcodebuild -version`                | Install from App Store                              |
-| iOS simulator runtime            | `xcrun simctl runtime list`          | `xcodebuild -downloadPlatform iOS`                  |
-| `.env.local` with Supabase creds | file exists (do NOT read or edit it) | Copy `.env.example` → `.env.local`, user fills keys |
-| Dependencies                     | `node_modules/` exists               | `npm install`                                       |
+| Check                            | Command                              | Fix if missing                                                                         |
+| -------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------- |
+| Node                             | `node --version`                     | `brew install node`                                                                    |
+| Xcode                            | `xcodebuild -version`                | Install from App Store; after an update, `sudo xcodebuild -license` (blocks `git` too) |
+| iOS simulator runtime            | `xcrun simctl runtime list`          | `xcodebuild -downloadPlatform iOS`                                                     |
+| `.env.local` with Supabase creds | file exists (do NOT read or edit it) | Copy `.env.example` → `.env.local`, user fills keys                                    |
+| Dependencies                     | `node_modules/` exists               | `npm install`                                                                          |
 
 ## Phase 2: Build & Sync
 
@@ -73,7 +73,7 @@ xcrun simctl install booted ios/DerivedData/Build/Products/Debug-iphonesimulator
 Work from `docs/app-store-submission-guide.md`. The recurring gates:
 
 - Signing: team selected in Xcode Signing & Capabilities; bundle ID `com.retrowave.journal` registered.
-- Supabase: auth redirect URL `com.retrowave.journal://` configured; `moderate-content` edge function deployed; `OPENAI_API_KEY` secret set.
+- Supabase: project **active** (it pauses when idle); auth redirect URL `com.retrowave.journal://` configured; `moderate-content` edge function deployed; `OPENAI_API_KEY` secret set.
 - Legal: `privacy.html` + `terms.html` hosted at public HTTPS URLs.
 - App Store Connect: listing, description, screenshots (capture on simulator), working reviewer/demo account.
 - `ITSAppUsesNonExemptEncryption` is already `NO` in Info.plist.

@@ -91,9 +91,11 @@ background: color-mix(in srgb, var(--accent-secondary) 15%, var(--card-bg));
 
 ### Contrast: sweep it, don't eyeball it
 
-WCAG AA is 4.5:1 for body text, 3:1 for large text. This project has shipped
-failures more than once — `--accent-secondary` was 3.9:1 on emo-dark and 4.1:1 on
-cottage-core while looking perfectly fine to the eye. Compute it:
+WCAG AA is 4.5:1 for body text, 3:1 for large text — and a phone's card title
+is 18px bold, under the 18.66px cutoff, so it needs 4.5. State the threshold
+once and compare against that number every time. This project has shipped
+failures that looked fine to the eye (`--accent-secondary` fails on emo-dark and
+cottage-core). Compute it:
 
 ```bash
 python3 - <<'PY'
@@ -127,21 +129,22 @@ Only handles hex pairs — a `color-mix()` value has to be checked in the browse
 
 Defined in `src/index.css`; read it before inventing anything.
 
-`.xanga-box` `.xanga-button` `.xanga-link` `.xanga-link-caution` `.xanga-title`
-`.xanga-subtitle` `.xanga-border` `.xanga-border-solid` `.xanga-auth-bg`
-`.icon-btn-hover` `.title-bold`
+`.xanga-box` `.xanga-button` `.xanga-button-ghost` `.xanga-link`
+`.xanga-link-caution` `.xanga-title` `.xanga-subtitle` `.xanga-border`
+`.xanga-border-solid` `.xanga-auth-bg` `.icon-btn-hover` `.title-bold`
 
 **`font-bold` in the title font does not look bold on the default theme.**
 Comic Neue's Bold is 1.8% wider than its Regular at 14px (Verdana's is 9%)
 and there is no heavier weight, so `font-weight: 700` computes correctly and
-still reads as regular. Every bold title-font element now uses `.title-bold`
-(fixed across 31 sites on 2026-09-16/17) — keep it that way for new ones. Use `.title-bold`: it adds `-webkit-text-stroke` by
-`--title-font-bold-stroke`, which is `0.45px` on classic-xanga and `0px` on the
-themes whose title font has a real bold.
+still reads as regular. Use `.title-bold` for every bold title-font element: it
+adds `-webkit-text-stroke` by `--title-font-bold-stroke`, `0.45px` on
+classic-xanga and `0px` on the themes whose title font has a real bold. Every
+existing site was converted on 2026-09-16/17.
 
-### Link tiers — not every link is the same link
+### Control tiers — not every control is the same control
 
-One colour for every clickable thing gives a screen no hierarchy. Three tiers:
+One colour for every clickable thing gives a screen no hierarchy. Five tiers,
+and this table is the canonical one (`/mobile` points here):
 
 | Tier      | Use                      | Treatment                                                       |
 | --------- | ------------------------ | --------------------------------------------------------------- |
@@ -244,7 +247,8 @@ the spacing until it all squeezes in.
 
 ### Hover and press
 
-Both are handled globally in `index.css`; a new button needs nothing added.
+Both are handled globally in `index.css`; a new button needs nothing added
+(a bare icon button still needs `.icon-btn-hover` for its press fill).
 
 - **Every `:hover` rule must sit inside `@media (hover: hover) and (pointer: fine)`.**
   Without it iOS applies hover on tap and leaves it applied — the control stays
@@ -258,8 +262,10 @@ Both are handled globally in `index.css`; a new button needs nothing added.
   page the press should be the loudest that control ever gets.
 - **Why `filter` and not `color`/`background`:** nearly every button here is
   coloured by an inline `style` from a theme variable, and inline beats a
-  stylesheet. Filter and transform are set by neither, so one rule reaches every button. Saturation also preserves meaning — a caution link gets more amber rather
-  than turning into the accent.
+  stylesheet. Filter and transform are set by neither, so one rule reaches
+  every button. Saturation also preserves meaning — a caution link gets more
+  amber rather than turning into the accent — and it does nothing to a grey,
+  one more reason there are no grey controls.
 - `whileTap={{ scale: 0.95 }}` is still worth adding to significant controls,
   but it is no longer the only thing standing between a button and silence.
   71 of the 96 buttons at the time had neither before this was made global.
@@ -340,7 +346,8 @@ Then the part the gate cannot do:
 - [ ] Contrast sweep re-run if any colour variable changed
 - [ ] New variables added to all 8 themes
 - [ ] Copy uses the voice — and does not, in aria-labels
-- [ ] CSS animations wrapped for `prefers-reduced-motion`
+- [ ] A new animation that must be _replaced_ (not just stopped) under Reduce
+      Motion has its own override — everything else is covered globally
 
 ## Cross-domain
 

@@ -158,6 +158,12 @@ uses the real implementation.
 Dynamic Type, safe areas, `Capacitor.isNativePlatform()`. A passing test says
 nothing about them; verify on the simulator (`/mobile`, `/ios`).
 
+### Mutation-check a new guard
+
+Stub the condition to `false` and confirm the tests that name it go red, then
+restore it. The chapter-rename and privacy-badge tests were both checked this
+way — a guard test that stays green with the guard removed tests nothing.
+
 ### What to Test
 
 1. Happy path

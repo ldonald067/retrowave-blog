@@ -31,11 +31,7 @@ Already handled in code and backend:
 - Privacy + Terms pages live and current.
 - Cloudflare "Always Use HTTPS" enabled; http→https 301 verified, single redirect.
 
-## What only you can do (needs your Apple ID / GUI)
-
-1. Set the signing **Team** in Xcode and archive/upload the build.
-2. Create the app record + fill the listing in **App Store Connect** (all copy below is paste-ready).
-3. Upload the screenshots — all 6 are captured, see Part 6.
+The steps, in order, are the **Submission checklist** at the end.
 
 ---
 
@@ -186,7 +182,8 @@ Supabase backend.
 SIGN IN (demo account, already confirmed & age-verified, log in immediately):
   Email:    appreview@retrowaveblog.com
   Password: AppReview!2026rw
-On the auth screen tap "Sign In" (not Sign Up), enter the above, tap sign in.
+On the auth screen tap the "~ sign in ~" tab (not sign up), enter the above,
+and sign in.
 Email confirmation is enabled for real users, but this demo account is already
 confirmed, so no inbox access is needed. The account has 3 public sample entries.
 
@@ -245,30 +242,41 @@ a real address.
 1. Theme picker (Edit profile → "vibe" tab) with all 8 themes — _"8 vibes. pick ur whole personality."_
 2. Populated feed with entries + moods + reactions (use a vivid theme) — _"ur diary. moods, music & lil emoji reactions."_
 3. New-entry composer (mood + music + theme) — _"write it down. drop a song. set the mood. ♡"_
-4. Signup "Create Your Xanga" screen with the 13+ age gate — _"make ur xanga in 2 mins (13+, we card u)."_
+4. Signup screen ("create ur xanga") with the 13+ age gate — _"make ur xanga in 2 mins (13+, we card u)."_
 5. Public profile page in a chosen theme — _"go public when u want. or stay secret. ur rules."_
 6. Empty-journal first run — _"a blank page, just for u. private by default."_
 
 Captions are optional and must be baked into the image (App Store Connect has no caption field). Raw screenshots are valid to ship.
 
+**Open question for you:** the keyword hygiene note above keeps "Xanga" out of public metadata, but the signup heading itself reads "create ur xanga", so screenshot 04 shows it (and so does the caption idea for it). Decide before upload whether that is acceptable.
+
 ---
 
-## Before you submit
+## Submission checklist
 
-- [ ] Re-run `npm run check` on the submission commit, and confirm CI is green for it.
-- [ ] Confirm the reviewer demo account still signs in and still has its public entries.
-- [ ] Confirm the Supabase project is **active**, and keep it active for the whole review. It was found paused on 2026-09-15 after 13 idle days, and while paused the app cannot sign in or load anything — a reviewer would see a broken app. Check with the Management API (`GET /v1/projects/<ref>` → `"status":"ACTIVE_HEALTHY"`) or the dashboard.
-- [ ] Re-read Part 5 against the current build. Its steps name real controls, and those controls get renamed: it told reviewers to tap "make public" for months after that button became the "entry privacy" toggle.
-- [ ] Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` if this is not the first upload — the build number must increase on every upload.
+Only you can do the unticked Apple-side items (Apple ID, GUI).
 
-## Remaining human checklist
-
-- [ ] Confirm Apple Developer Program enrollment is active. **Nothing is configured on this machine as of 2026-08-15**: `security find-identity -v -p codesigning` reports 0 valid identities, there are no provisioning profiles, no Apple ID is signed into Xcode, and `project.pbxproj` has no `DEVELOPMENT_TEAM`. Simulator builds do not need any of it, which is why everything else here works.
-- [x] Capture screenshot 06 (empty-journal first run). Done 2026-08-15 — all six are 1320 × 2868.
+- [ ] Confirm Apple Developer Program enrollment is active. **Nothing is
+      configured on this machine as of 2026-09-17:** 0 valid codesigning
+      identities, no Apple ID in Xcode, no `DEVELOPMENT_TEAM`. Simulator builds
+      do not need any of it, which is why everything else works.
+- [x] All six screenshots captured, 1320 × 2868 (2026-08-15).
+- [ ] Re-run `npm run check` on the submission commit and confirm CI is green.
+- [ ] Confirm the Supabase project is **active** and keep it active through
+      review — it paused on 2026-09-15 after 13 idle days, and a paused project
+      signs no one in. Management API `GET /v1/projects/<ref>` →
+      `"status":"ACTIVE_HEALTHY"`, or the dashboard.
+- [ ] Confirm the demo account still signs in and still has its public entries.
+- [ ] Re-read Part 5 against the current build — its steps name real controls,
+      and those get renamed (it said "make public" for months after that became
+      the "entry privacy" toggle).
+- [ ] Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` if this is not the
+      first upload — the build number must increase every time.
 - [ ] Xcode: set Team, archive, upload (Part 1).
-- [ ] App Store Connect: create the app record (name "Retrowave Journal"), paste Parts 2–4.
+- [ ] App Store Connect: create the app record ("Retrowave Journal"), paste
+      Parts 2–4.
 - [ ] Upload screenshots (Part 6).
-- [ ] Paste App Review notes (Part 5); confirm the demo account works.
+- [ ] Paste App Review notes (Part 5).
 - [ ] Submit for review.
 
 ---

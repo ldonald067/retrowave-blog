@@ -75,17 +75,8 @@ refuses the CLI's login-role creation. `supabase migration list` and
 file existing does not mean it is live.**
 
 Apply SQL by pasting it into the dashboard SQL editor, or through the Management
-API:
-
-```bash
-TOKEN=$(security find-generic-password -s "Supabase CLI" -a supabase -w)
-curl -s -X POST "https://api.supabase.com/v1/projects/$(cat supabase/.temp/project-ref)/database/query" \
-  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"query":"select column_name from information_schema.columns where table_name='"'"'profiles'"'"';"}'
-```
-
-Verify every schema claim that way rather than reading a migration. See
-`CLAUDE.md` and `docs/supabase-snippet-archive/README.md`.
+API, and verify every schema claim by querying prod rather than reading a
+migration. The recipe is in `CLAUDE.md`; the full workflow is `/migration`.
 
 ## Codex MCP Setup
 

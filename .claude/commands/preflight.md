@@ -1,6 +1,6 @@
 ---
 name: preflight
-description: Run pre-commit validation pipeline — type check, build, tests, lint, formatting — then diagnose and fix any failures
+description: Run the pre-commit gate in CI order — lint, formatting, type check, tests, build — then diagnose and fix any failures
 ---
 
 # Preflight Agent
@@ -15,30 +15,22 @@ Read `.claude/docs/gotchas.md` for accumulated knowledge and known footguns.
 
 ## Pipeline
 
-Run all five checks in sequence (each depends on the previous passing):
+`npm run check` runs the same five checks as CI, in CI's order, and stops at
+the first failure. Run the steps one at a time when diagnosing one:
 
 ```bash
-npm run typecheck      # Step 1: Type check (app + vite.config.ts)
-npm run build          # Step 2: Production build (Vite)
-npm run test           # Step 3: All tests (Vitest)
-npm run lint           # Step 4: ESLint
-npm run format:check   # Step 5: Prettier
+npm run lint           # Step 1: ESLint
+npm run format:check   # Step 2: Prettier
+npm run typecheck      # Step 3: Type check (app + vite.config.ts)
+npm run test           # Step 4: All tests (Vitest)
+npm run build          # Step 5: Production build (Vite)
 ```
 
-`npm run check` runs all five in one command, in CI's order, stopping at the
-first failure. Run the steps one at a time, as above, when diagnosing one.
-
-These are the same five checks CI runs. Step 1 is deliberately `npm run
-typecheck` rather than a bare `npx tsc --noEmit`: the bare form reads only
-`tsconfig.json`, so it never type-checks `vite.config.ts`, which CI does.
+Step 3 is deliberately `npm run typecheck`, not a bare `npx tsc --noEmit`: the
+bare form reads only `tsconfig.json`, so it never type-checks `vite.config.ts`,
+which CI does.
 
 **NEVER run `npm run dev`** — use `npm run build` only.
-
-**Lint is part of the gate, not an afterthought.** It has caught two real
-problems that the other checks passed clean over: a `react-refresh`
-violation from exporting a helper beside a component, and — after an Xcode
-build wrote DerivedData into `ios/` — 266 errors from ESLint walking minified
-vendor bundles, with nothing wrong in `src/` at all.
 
 **Green is not the same as complete.** CI silently ran **241 of 265** tests for
 over a week. Read the count, not just the colour, and compare it to the last
@@ -50,7 +42,48 @@ is necessary and not sufficient — verify on the simulator (`/mobile`, `/ios`).
 
 ---
 
-## Step 1: Type Check (`npm run typecheck`)
+## Step 1: Lint (`npm run lint`)
+
+Lint is part of the gate, not an afterthought. It has caught two real problems
+the other checks passed clean over: a `react-refresh` violation from exporting a
+helper beside a component, and — after an Xcode build wrote DerivedData into
+`ios/` — 266 errors from ESLint walking minified vendor bundles, with nothing
+wrong in `src/` at all. The react-hooks v7 compiler rules report one bail-out per
+component at a time, so re-run until it is stable.
+
+---
+
+## Step 2: Formatting (`npm run format:check`)
+
+ESLint does not check formatting, which is why this is its own step. CI fails
+on drift, so skipping it here means a red run after the push.
+
+### Fixing it
+
+Unlike the other steps, the fix is mechanical: run `npm run format`, then
+re-run the check. Do not hand-edit whitespace to satisfy it.
+
+### Keep the formatting out of the feature diff
+
+Before formatting, look at **which** files the check flags. If a file you did
+not touch is flagged, or a file you touched in a few lines comes back with
+hundreds of changed lines, the drift predates your change. Formatting it inside
+a feature commit buries a real change under unrelated reindentation — this
+happened once, a 2-line prop addition to `App.tsx` arriving as an 800-line diff.
+Put the formatting in its own commit.
+
+A reformat can re-wrap JSX, which in principle changes rendered whitespace. To
+prove one is formatting only, compile both versions under the **same filename**
+(esbuild names the default export after the file) and compare the output:
+
+```bash
+npx esbuild Before.tsx --loader:.tsx=tsx --jsx=automatic --minify-whitespace --format=esm > before.js
+cmp before.js after.js   # identical = formatting only
+```
+
+---
+
+## Step 3: Type Check (`npm run typecheck`)
 
 ### Common Failures and Fixes
 
@@ -93,26 +126,7 @@ const userId = auth.user!.id; // Safe — union guarantees non-null when error i
 
 ---
 
-## Step 2: Build (`npm run build`)
-
-### Common Failures and Fixes
-
-| Error                          | Cause                              | Fix                                                  |
-| ------------------------------ | ---------------------------------- | ---------------------------------------------------- |
-| `Could not resolve "..."`      | Missing import or wrong path       | Fix the import path                                  |
-| `'X' is not exported from 'Y'` | Export was removed or renamed      | Update the import to match current exports           |
-| Chunk size warning             | Large bundle                       | Not a failure — just a warning. Ignore unless >500kB |
-| CSS errors                     | Invalid CSS custom property syntax | Check `index.css` and `themes.ts` for syntax errors  |
-
-### Vite-Specific Issues
-
-- Build uses code splitting: `framer-motion`, `react-markdown`, `@supabase/supabase-js` are separate chunks
-- `import.meta.env.DEV` gates are tree-shaken in production — code inside them won't cause build errors but also won't run
-- Lazy imports (`React.lazy(() => import(...))`) must point to default exports
-
----
-
-## Step 3: Tests (`npm run test`)
+## Step 4: Tests (`npm run test`)
 
 ### Common Failures and Fixes
 
@@ -136,33 +150,22 @@ npm run test -- --reporter=verbose
 
 ---
 
-## Step 5: Formatting (`npm run format:check`)
+## Step 5: Build (`npm run build`)
 
-ESLint does not check formatting, which is why this is its own step. CI fails
-on drift, so skipping it here means a red run after the push.
+### Common Failures and Fixes
 
-### Fixing it
+| Error                          | Cause                              | Fix                                                  |
+| ------------------------------ | ---------------------------------- | ---------------------------------------------------- |
+| `Could not resolve "..."`      | Missing import or wrong path       | Fix the import path                                  |
+| `'X' is not exported from 'Y'` | Export was removed or renamed      | Update the import to match current exports           |
+| Chunk size warning             | Large bundle                       | Not a failure — just a warning. Ignore unless >500kB |
+| CSS errors                     | Invalid CSS custom property syntax | Check `index.css` and `themes.ts` for syntax errors  |
 
-Unlike the other steps, the fix is mechanical: run `npm run format`, then
-re-run the check. Do not hand-edit whitespace to satisfy it.
+### Vite-Specific Issues
 
-### Keep the formatting out of the feature diff
-
-Before formatting, look at **which** files the check flags. If a file you did
-not touch is flagged, or a file you touched in a few lines comes back with
-hundreds of changed lines, the drift predates your change. Formatting it inside
-a feature commit buries a real change under unrelated reindentation — this
-happened once, a 2-line prop addition to `App.tsx` arriving as an 800-line diff.
-Put the formatting in its own commit.
-
-A reformat can re-wrap JSX, which in principle changes rendered whitespace. To
-prove one is formatting only, compile both versions under the **same filename**
-(esbuild names the default export after the file) and compare the output:
-
-```bash
-npx esbuild Before.tsx --loader:.tsx=tsx --jsx=automatic --minify-whitespace --format=esm > before.js
-cmp before.js after.js   # identical = formatting only
-```
+- Build uses code splitting: `framer-motion`, `react-markdown`, `@supabase/supabase-js` are separate chunks
+- `import.meta.env.DEV` gates are tree-shaken in production — code inside them won't cause build errors but also won't run
+- Lazy imports (`React.lazy(() => import(...))`) must point to default exports
 
 ---
 
@@ -180,7 +183,6 @@ When failures are found:
 
 - Chunk size warnings (informational only)
 - Deprecation warnings from dependencies
-- ESLint warnings (run `npm run lint` separately if needed)
 
 ---
 
@@ -189,11 +191,11 @@ When failures are found:
 If all five steps pass, report:
 
 ```
-✅ tsc:    0 errors
-✅ build:  success
-✅ test:   XX tests passed  (was YY — state the delta, or that it is unchanged)
-✅ lint:   0 errors
+✅ lint:   0 problems
 ✅ format: all files formatted
+✅ tsc:    0 errors
+✅ test:   XX tests passed  (was YY — state the delta, or that it is unchanged)
+✅ build:  success
 ```
 
 A test count that dropped without tests being deleted is a failure wearing a

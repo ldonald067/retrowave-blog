@@ -7,8 +7,9 @@ description: iPhone layout and App Store compliance — touch targets, safe area
 
 Audit and improve the app for iPhone responsiveness and iOS native quality.
 
-Read `CLAUDE.md`, then `.claude/docs/gotchas.md` (Mobile & iOS + iOS layout
-sections) and `.claude/docs/false-positives.md` before filing anything.
+Read `CLAUDE.md`, then `.claude/docs/gotchas.md` ("Mobile layout (iOS)" and
+"Simulator and verification") and `.claude/docs/false-positives.md` before
+filing anything.
 
 **The one rule that matters most here:** a finding about native behaviour is not
 verified until it has been seen on the simulator. `initCapacitor()` returns early
@@ -82,11 +83,13 @@ screenshot` works throughout either way.
 
 ## Phase 2 — Responsiveness
 
-| Device            | Width | Why it is in the list                             |
-| ----------------- | ----- | ------------------------------------------------- |
-| iPhone SE         | 375pt | Smallest supported. Stress test for modal scroll. |
-| iPhone 15/16      | 390pt | Most common.                                      |
-| iPhone 17 Pro Max | 440pt | The device the App Store screenshots ship from.   |
+| Device              | Width × height | Why it is in the list                                                     |
+| ------------------- | -------------- | ------------------------------------------------------------------------- |
+| iPhone SE (3rd gen) | 375 × 667pt    | Smallest supported, and the only phone under 700pt tall. Keep fixes cheap |
+| iPhone 17 / 17 Pro  | 402 × 874pt    | The common size                                                           |
+| iPhone 17 Pro Max   | 440 × 956pt    | The device the App Store screenshots ship from                            |
+
+All four exist as simulators; the handoff tracks their sessions and builds.
 
 ### Rules
 
@@ -185,7 +188,8 @@ screenshot of each state and ask:
   absorb that; 390pt cannot.
 - **Does a fixed-position element cover content?** Anything `fixed` with a
   `bottom` is a candidate — FABs, toasts, banners. Check it against the shortest
-  screen, not the tallest.
+  screen, and check that the end of every scroll container can clear it — the
+  feed scrolls in its own box, which page padding never reaches (finding 59).
 - **Does anything look tappable that isn't — or tappable that is?** This theme
   makes it easy to get wrong: `--link-color`, `--text-title` and
   `--accent-primary` are all the same red family, so colour alone says "text",
@@ -195,29 +199,12 @@ screenshot of each state and ask:
   two of those sitting inches from real controls, saying "3 public entries" and
   "writing since 2026", tappable-looking and inert. Anything with border +
   radius + background is a control or should stop dressing like one.
-- **Do links of different consequence look different?** There are four tiers,
-  and a control should be in the one that matches what it does:
-
-  | Tier      | Treatment                                            | Used for                               |
-  | --------- | ---------------------------------------------------- | -------------------------------------- |
-  | Primary   | `.xanga-button`, solid fill                          | the action the screen exists for       |
-  | Secondary | `.xanga-button-ghost`, accent text + dotted outline  | a supporting action                    |
-  | Link      | `.xanga-link`, link colour + underline               | navigation, fallbacks                  |
-  | Caution   | `.xanga-link-caution`, `--link-caution` amber + bold | block, report — anything consequential |
-
-  **There is no grey tier.** A quieter control carries less accent _area_ — an
-  outline instead of a fill, a link instead of a button — never accent drained
-  out into `--text-muted`. `/frontend` owns this table. "forgot ur password?"
-  was grey until 2026-09-16: it measured 9.74:1, so it passed contrast easily,
-  and it still read as disabled fine print on a pink maximalist screen and was
-  off-brand. A contrast ratio proves legibility, not that a control looks
-  tappable.
-
-  Caution is amber because no palette here uses that hue for anything else, and
-  **bold as well as coloured** because hue alone excludes anyone who cannot
-  separate red from amber. Verified ≥4.5:1 on `--card-bg` in all 8 themes —
-  `--accent-secondary` was the obvious candidate and fails on emo-dark (3.23:1)
-  and cottage-core (3.54:1), so check before reaching for a token.
+- **Do controls of different consequence look different?** Five tiers —
+  fill, outline, bare, link, caution — defined in `/frontend`, which owns the
+  table. **There is no grey tier.** "forgot ur password?" measured 9.74:1 in
+  grey and still read as disabled fine print: a contrast ratio proves
+  legibility, not that a control looks tappable. Caution is amber **and bold**,
+  because hue alone excludes anyone who cannot separate red from amber.
 
 - **Does a column of text have any rhythm?** Four stacked lines of `--text-muted`
   at the same size and weight read as one grey paragraph and the eye slides off.
