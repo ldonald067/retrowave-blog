@@ -289,10 +289,13 @@ body::before {
 
 /* The same reservation, inside the feed's own scroll box. That box already
    stops 1rem (computeFeedHeight's gap) above the screen's bottom edge, where the
-   button's own 1rem offset starts, so it needs the button plus a gap: 4.5rem,
-   not 5.5rem. rem for the same Dynamic Type reason as above. */
+   button's own 1rem offset starts, and the last row's own pb-4 and the "that's
+   all for now" line already sit below the last post. 3rem is the button's
+   height plus its shadow, measured on the SE and Pro Max; any less and the
+   feed's closing line slides under the button. rem for the same Dynamic Type
+   reason as above. */
 .feed-fab-clearance {
-  height: calc(4.5rem + var(--safe-area-bottom));
+  height: calc(3rem + var(--safe-area-bottom));
 }
 
 @media (min-width: 1024px) {

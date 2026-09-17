@@ -302,7 +302,7 @@ function PostList({
 
         {/* End-of-list indicator */}
         {!hasMore && posts.length > 0 && (
-          <div className="text-center py-3 sm:py-6">
+          <div className="text-center pt-3 sm:py-6">
             <p
               className="text-xs"
               style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
@@ -1222,7 +1222,11 @@ function AppInner() {
         </AnimatePresence>
 
         {/* Xanga-style sidebar layout */}
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:py-6">
+        {/* No bottom padding under a visible feed on phones, for the same reason
+              as the footer's smaller margin: .feed-fab-clearance already ends it. */}
+        <div
+          className={`max-w-7xl mx-auto px-4 pt-4 sm:pt-6 ${visiblePosts.length > 0 ? 'pb-0 lg:pb-6' : 'pb-4 sm:pb-6'}`}
+        >
           <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
             {/* Left Sidebar */}
             <Sidebar
@@ -1603,7 +1607,10 @@ function AppInner() {
 
         {/* Footer - very Xanga! */}
         <footer
-          className="mt-6 sm:mt-12 py-4 sm:py-6 border-t-2 border-dotted"
+          // Tighter above the footer while the feed shows: the feed already
+          // ends in .feed-fab-clearance, and stacking this margin on top of it
+          // left a blank band between the end of the feed and the footer.
+          className={`${visiblePosts.length > 0 ? 'mt-2 lg:mt-12' : 'mt-6 sm:mt-12'} py-4 sm:py-6 border-t-2 border-dotted`}
           style={{ borderColor: 'var(--border-primary)', backgroundColor: 'var(--footer-bg)' }}
         >
           <div className="max-w-7xl mx-auto px-4 text-center space-y-3">
