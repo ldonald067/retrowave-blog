@@ -6,7 +6,7 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `f06dce4` (code) — after the iPhone SE pass, its
+Last rewritten 2026-09-17, at `32138fe` (code) — after the iPhone SE pass, its
 fixes, a round of feed spacing and both marquees from your screenshots, and a
 full docs cleanup.
 
@@ -107,6 +107,10 @@ iPhone 17 Pro Max simulator unless noted.
   Pro against prod with a temporary status on `codex-qa-24e3a82f` (approved,
   reverted, re-diffed clean but `updated_at`) — short and 100-character statuses
   scroll, Reduce Motion wraps it static, no status means no banner.
+- **Launch screen** (2026-09-17, `32138fe`, Pro Max and SE): the icon now sits on
+  the classic-xanga gradient inside the dotted frame, instead of alone on dark
+  navy. `scripts/make-splash.py` regenerates it — see `/release` for the crop
+  rule.
 
 ## Open work
 
@@ -169,10 +173,10 @@ installing, and re-check the installed build before trusting this table.
 
 | Simulator                  | Session       | Build              |
 | -------------------------- | ------------- | ------------------ |
-| iPhone 17 Pro Max          | `ldonald234`  | current, `f06dce4` |
-| iPhone 17 Pro              | signed out    | current, `f06dce4` |
-| iPhone 17                  | `ldonald0234` | current, `f06dce4` |
-| iPhone SE (3rd generation) | signed out    | current, `f06dce4` |
+| iPhone 17 Pro Max          | `ldonald234`  | current, `32138fe` |
+| iPhone 17 Pro              | signed out    | current, `32138fe` |
+| iPhone 17                  | `ldonald0234` | current, `32138fe` |
+| iPhone SE (3rd generation) | signed out    | current, `32138fe` |
 
 Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
 in, so signing another simulator out cannot be undone from here. The SE lost
