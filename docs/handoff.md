@@ -175,9 +175,10 @@ iPhone 17 Pro Max simulator unless noted.
   iPhone (now a blur strip, pixel-identical at rest), "powered by YourJournal"
   in two footers (now Retrowave Journal), grey dialog cancel buttons (now the
   outline tier), slide 4's preview below the fold on short screens, and the
-  intro header crammed under the SE's status bar. The rename dialog's "go back"
-  shares `ConfirmDialog`'s fixed cancel style but was only seen on the report
-  dialog. The signed-in half is still open — see below.
+  intro header crammed under the SE's status bar. The signed-in half followed
+  the same day, as `ldonald234` — its findings are under Open work. The
+  `ConfirmDialog` cancel style was confirmed there too, on the composer's
+  unsaved-changes dialog.
 - **The modal close ✕ in accent-family colour** (2026-09-16) — Settings opened on
   the Pro Max in cottage-core and the iPhone 17 in emo-dark, where it went from
   `#858585` grey to the theme's red; both modals closed from it.
@@ -211,10 +212,39 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
-- **The signed-in half of the iPhone SE pass.** Feed, composer, settings, the
-  profile modal and the rename dialog at 375 × 667pt have not been looked at.
-  Needs a sign-in on the SE first; `ldonald234` is the best account for it,
-  because its overflow fixture exercises the wrapping paths.
+- **Findings from the signed-in iPhone SE pass (2026-09-16), not yet fixed:**
+  - **HIGH — the floating "new entry" button vanishes after signing in**, until
+    the app restarts. `showAuthModal` is set true on the signed-out paths and
+    nothing ever sets it false, and the FAB is gated on `!showAuthModal`. Hits
+    every user in the session they sign up or sign back in. Confirmed on device:
+    absent after sign-in, present after a relaunch.
+  - **HIGH — composer footer overflows at max Dynamic Type on 375pt.** "cancel"
+    is clipped at the left edge and "~ save private entry ~" at the right. The
+    earlier "footers stay on one row" check was on the 440pt Pro Max.
+  - **MEDIUM — the feed reads through a ~105pt slot on the SE at rest.** It is
+    its own scroll container below all the header chrome; a swipe that starts on
+    an entry scrolls only that slot. Swiping on the header scrolls the page and
+    the feed grows, as designed, so it works — but at max Dynamic Type no entry is
+    on the first screen at all, and the FAB sits over the first entry's title.
+  - **MEDIUM — "find old entries" breaks mid-word at max Dynamic Type**
+    ("entri / es") and its icon collapses to a dot, because "showing 2 of 2
+    entries" takes the row. It already wraps to two lines at default size.
+  - **MEDIUM — `font-bold` in the title font renders regular on classic-xanga
+    in ~20 more places** across 13 components (profile tabs, settings and
+    composer buttons, EmptyState, AvatarPicker…). The `.title-bold` fix only
+    covered the auth tabs and form labels. Not SE-specific.
+  - **MEDIUM — the public page tab's copy breaks the voice**: "your" instead of
+    "ur", and "review and publish page" has no tildes.
+  - **MEDIUM — `ConfirmDialog` titles orphan their closing `~`** at max Dynamic
+    Type; the intro fixes the same thing with `text-wrap: balance`.
+
+  Held up at 375pt: the entry view with the overflow fixture, the composer with
+  the software keyboard up (textarea keeps its height, draft autosaves), the
+  unsaved-changes dialog's cancel (the fixed outline style), Settings, and all
+  three profile tabs including the two-column theme and emoji grids. The safety
+  tab only shows once a user has blocked someone; its row scrolls sideways if it
+  does not fit.
+
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. `ReportDialog` used to promise reporters it could
   ban and no longer does (finding 43) — **restore that sentence when a ban
@@ -235,8 +265,7 @@ iPhone 17 Pro Max simulator unless noted.
 - **Success toast and sub-400ms rapid taps** — not drivable from here; see the
   tap-reliability note below. Both are code-verified only.
 - **Signing in.** An agent cannot authenticate, so any surface needing a
-  particular account needs you to sign in first and say which one. The next one
-  needed is **`ldonald234` on the iPhone SE**, for the open signed-in pass.
+  particular account needs you to sign in first and say which one.
 
 ## Accounts, and what each is for
 
@@ -252,12 +281,12 @@ iPhone 17 Pro Max simulator unless noted.
 they survive a reboot). Check which sim is booted and which build it carries
 before trusting anything you see on one.
 
-| Simulator                  | State at end of session    | Session                            | Build              |
-| -------------------------- | -------------------------- | ---------------------------------- | ------------------ |
-| iPhone 17 Pro Max          | booted                     | `ldonald234`                       | current, `e276a48` |
-| iPhone 17 Pro              | booted                     | signed out                         | current, `e276a48` |
-| iPhone 17                  | booted                     | `ldonald0234`                      | current, `e276a48` |
-| iPhone SE (3rd generation) | booted, created 2026-09-16 | signed out, intro not yet finished | current, `e276a48` |
+| Simulator                  | State at end of session    | Session       | Build              |
+| -------------------------- | -------------------------- | ------------- | ------------------ |
+| iPhone 17 Pro Max          | booted                     | `ldonald234`  | current, `e276a48` |
+| iPhone 17 Pro              | booted                     | signed out    | current, `e276a48` |
+| iPhone 17                  | booted                     | `ldonald0234` | current, `e276a48` |
+| iPhone SE (3rd generation) | booted, created 2026-09-16 | `ldonald234`  | current, `e276a48` |
 
 The iPhone 17 Pro and SE are the ones to use for signed-out screens: an agent
 cannot sign back in, so signing a session out to reach the auth wall cannot be
