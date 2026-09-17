@@ -90,7 +90,7 @@ export default function Header({
       // safe-area-top is load-bearing on iOS, for two reasons. capacitor.config
       // sets StatusBar.overlaysWebView and index.html uses viewport-fit=cover, so
       // the WebView really does extend under the status bar: without this the
-      // marquee below rendered underneath the clock and Dynamic Island. It also
+      // greeting row below rendered underneath the clock and Dynamic Island. It also
       // fixes the status bar itself — setStatusBarForTheme switches to white text
       // for the six dark themes, and with no padding the strip behind it stayed
       // light, so the clock and signal icons vanished into white-on-white. The
@@ -101,16 +101,12 @@ export default function Header({
         borderColor: 'var(--border-primary)',
       }}
     >
-      {/* Marquee Banner */}
-      <div className="marquee-banner" aria-hidden="true">
-        <div
-          className="marquee-banner-inner"
-          style={{ color: 'var(--text-subtitle)', fontSize: '12px' }}
-        >
-          ~ welcome to my xanga ~ ✨ ~ thanks 4 stopping by ~ ♥ ~ have a gr8 day ~ ☆ ~ xoxo ~ ✨ ~
-        </div>
-      </div>
-
+      {/* No marquee here. The header is only ever seen by the journal's owner,
+          so a fixed "welcome to my xanga ~ thanks 4 stopping by" greeted people
+          as visitors to their own page, identically on every account, and cost
+          a row of height on a phone. The visitor-facing marquee, which names
+          the owner, lives on PublicProfileView; the owner's own one-liner is the
+          status message below. */}
       {/* Top banner - very Xanga */}
       <div
         className="py-2 px-4"
