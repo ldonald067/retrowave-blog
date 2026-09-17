@@ -196,12 +196,11 @@ export default function ModerationView({ focusReportId, onGoHome }: ModerationVi
               <button
                 onClick={() => resolve(r.report_id, 'dismiss')}
                 disabled={busyId === r.report_id}
-                className="px-4 py-2 rounded-lg text-xs font-bold border-2 border-dotted min-h-[44px] flex-1"
+                className="px-4 py-2 rounded-lg text-xs title-bold border-2 border-dotted min-h-[44px] flex-1"
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   color: 'var(--text-body)',
                   borderColor: 'var(--border-primary)',
-                  fontFamily: 'var(--title-font)',
                 }}
               >
                 ~ dismiss ~

@@ -500,6 +500,12 @@ function AppInner() {
     if (!authLoading && !user) {
       setShowAuthModal(true);
       setAuthModalTab('signup'); // Default to signup for new users
+    } else if (!authLoading && user) {
+      // Signing in has to clear it. Nothing else did, and the floating "new
+      // entry" button is gated on !showAuthModal — so after any sign-in it
+      // stayed hidden until the app restarted, including for every new user in
+      // the session they signed up.
+      setShowAuthModal(false);
     }
   }
 
@@ -1253,8 +1259,8 @@ function AppInner() {
                       className="xanga-box p-3 mb-4 flex items-center justify-between gap-2"
                     >
                       <span
-                        className="text-xs font-bold min-w-0 flex-1 line-clamp-2"
-                        style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+                        className="text-xs title-bold min-w-0 flex-1 line-clamp-2"
+                        style={{ color: 'var(--text-title)' }}
                       >
                         {chapterFilter === LOOSE_ENTRIES
                           ? '🍃 loose entries'
@@ -1312,7 +1318,11 @@ function AppInner() {
                     type="button"
                     onClick={() => setFiltersOpen((open) => !open)}
                     aria-expanded={filtersOpen}
-                    className="w-full flex items-center justify-between gap-3 text-left min-h-[44px]"
+                    // flex-wrap: the count used to be flex-shrink-0 beside the
+                    // heading, so on a 375pt phone at large text it left the
+                    // heading a column too narrow for a word ("entri / es").
+                    // Now the count drops to its own line when the two do not fit.
+                    className="w-full flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-left min-h-[44px]"
                   >
                     <h2
                       className="xanga-title text-base sm:text-lg flex items-center gap-2"
@@ -1323,9 +1333,9 @@ function AppInner() {
                     </h2>
                     <span className="flex items-center gap-2 flex-shrink-0">
                       <span
-                        className="text-xs font-bold"
+                        className="text-xs title-bold"
                         aria-live="polite"
-                        style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
+                        style={{ color: 'var(--text-muted)' }}
                       >
                         showing {visiblePosts.length} of {chapterFilteredPosts.length}{' '}
                         {chapterFilteredPosts.length === 1 ? 'entry' : 'entries'}
@@ -1426,13 +1436,12 @@ function AppInner() {
                             key={filter.key}
                             type="button"
                             onClick={() => clearSingleFeedFilter(filter.key)}
-                            className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition hover:opacity-80 min-h-[44px] max-w-full min-w-0"
+                            className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs title-bold transition hover:opacity-80 min-h-[44px] max-w-full min-w-0"
                             style={{
                               borderColor: 'var(--border-primary)',
                               backgroundColor:
                                 'color-mix(in srgb, var(--bg-primary) 45%, var(--card-bg))',
                               color: 'var(--text-body)',
-                              fontFamily: 'var(--title-font)',
                             }}
                             aria-label={`Clear filter ${filter.label}`}
                           >

@@ -75,8 +75,8 @@ export default function AgeVerification({
           {onBack ? (
             <button
               onClick={onBack}
-              className="w-16 text-left text-xs font-bold min-h-[44px] flex items-center transition hover:opacity-70"
-              style={{ color: 'var(--link-color)', fontFamily: 'var(--title-font)' }}
+              className="w-16 text-left text-xs title-bold min-h-[44px] flex items-center transition hover:opacity-70"
+              style={{ color: 'var(--link-color)' }}
               aria-label="Go back to email and password"
             >
               ← back
@@ -85,8 +85,8 @@ export default function AgeVerification({
             <div className="w-16" />
           )}
           <h1
-            className="flex-1 text-center text-sm font-bold"
-            style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
+            className="flex-1 text-center text-sm title-bold"
+            style={{ color: 'var(--text-title)' }}
           >
             ✨ age verification ✨
           </h1>

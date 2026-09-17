@@ -389,14 +389,13 @@ export default function ProfileModal({
                       tabIndex={selected ? 0 : -1}
                       onClick={() => setActiveSection(section.id)}
                       onKeyDown={(event) => handleSectionKeyDown(event, section.id)}
-                      className="rounded border-2 border-dotted px-3 py-2 text-xs font-bold transition min-h-[44px] whitespace-nowrap"
+                      className="rounded border-2 border-dotted px-3 py-2 text-xs title-bold transition min-h-[44px] whitespace-nowrap"
                       style={{
                         backgroundColor: selected
                           ? 'color-mix(in srgb, var(--accent-primary) 16%, var(--card-bg))'
                           : 'var(--card-bg)',
                         borderColor: selected ? 'var(--accent-primary)' : 'var(--border-primary)',
                         color: selected ? 'var(--accent-primary)' : 'var(--text-body)',
-                        fontFamily: 'var(--title-font)',
                       }}
                     >
                       {section.label}
@@ -667,10 +666,7 @@ export default function ProfileModal({
                               />
                             ))}
                           </div>
-                          <p
-                            className="text-xs font-bold"
-                            style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
-                          >
+                          <p className="text-xs title-bold" style={{ color: 'var(--text-body)' }}>
                             {theme.name}
                           </p>
                           <p className="text-[0.6875rem]" style={{ color: 'var(--text-muted)' }}>
@@ -733,10 +729,7 @@ export default function ProfileModal({
                                 />
                               ))}
                             </div>
-                            <p
-                              className="text-xs font-bold"
-                              style={{ color: 'var(--text-body)', fontFamily: 'var(--title-font)' }}
-                            >
+                            <p className="text-xs title-bold" style={{ color: 'var(--text-body)' }}>
                               {emojiStyle.name}
                             </p>
                             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -882,12 +875,11 @@ export default function ProfileModal({
                   type="button"
                   onClick={handleCancel}
                   disabled={saving}
-                  className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted min-h-[44px]"
+                  className="px-4 py-2 rounded-lg transition text-xs title-bold border-2 border-dotted min-h-[44px]"
                   style={{
                     backgroundColor: 'var(--card-bg)',
                     color: 'var(--text-body)',
                     borderColor: 'var(--border-primary)',
-                    fontFamily: 'var(--title-font)',
                   }}
                 >
                   cancel
@@ -912,17 +904,17 @@ export default function ProfileModal({
 
         {showPublishConfirm && (
           <ConfirmDialog
-            title="publish public page?"
+            title="~ publish ur public page? ~"
             message={
               <div className="space-y-2">
-                <p>This creates a public page for entries you mark public.</p>
+                <p>this makes a public page for the entries u mark public.</p>
                 <p style={{ color: 'var(--text-muted)' }}>
-                  Private entries and private chapters stay hidden. Anyone with the link can view
-                  public entries after you save.
+                  private entries & private chapters stay hidden. anyone with the link can read ur
+                  public entries after u save.
                 </p>
               </div>
             }
-            confirmLabel="publish page"
+            confirmLabel="~ publish page ~"
             cancelLabel="keep private"
             onConfirm={() => {
               setIsPublic(true);

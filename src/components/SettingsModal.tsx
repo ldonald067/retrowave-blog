@@ -133,12 +133,11 @@ export default function SettingsModal({ onClose, onSuccess, onError }: SettingsM
                 type="button"
                 onClick={handleExportData}
                 disabled={exporting}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold border-2 border-dotted transition hover:opacity-80 min-h-[44px]"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs title-bold border-2 border-dotted transition hover:opacity-80 min-h-[44px]"
                 style={{
                   backgroundColor: 'var(--card-bg)',
                   color: 'var(--text-body)',
                   borderColor: 'var(--border-primary)',
-                  fontFamily: 'var(--title-font)',
                 }}
               >
                 <FloppyDisk size={18} alt="" />
@@ -159,7 +158,7 @@ export default function SettingsModal({ onClose, onSuccess, onError }: SettingsM
                 whileTap={{ scale: 0.97 }}
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold border-2 transition hover:opacity-80 min-h-[44px]"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs title-bold border-2 transition hover:opacity-80 min-h-[44px]"
                 // --link-caution, not --accent-secondary: this is 12px bold
                 // text, so it needs 4.5:1, and accent-secondary measures 3.23:1
                 // on emo-dark and 3.54:1 on cottage-core. The most destructive
@@ -168,7 +167,6 @@ export default function SettingsModal({ onClose, onSuccess, onError }: SettingsM
                   backgroundColor: 'color-mix(in srgb, var(--link-caution) 12%, var(--card-bg))',
                   color: 'var(--link-caution)',
                   borderColor: 'var(--link-caution)',
-                  fontFamily: 'var(--title-font)',
                 }}
               >
                 ~ delete account ~
@@ -183,12 +181,11 @@ export default function SettingsModal({ onClose, onSuccess, onError }: SettingsM
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg transition text-xs font-bold border-2 border-dotted min-h-[44px]"
+              className="px-4 py-2 rounded-lg transition text-xs title-bold border-2 border-dotted min-h-[44px]"
               style={{
                 backgroundColor: 'var(--card-bg)',
                 color: 'var(--text-body)',
                 borderColor: 'var(--border-primary)',
-                fontFamily: 'var(--title-font)',
               }}
             >
               close

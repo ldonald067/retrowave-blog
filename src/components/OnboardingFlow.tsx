@@ -171,10 +171,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
         }}
       >
         <div className="flex items-center justify-between max-w-md mx-auto">
-          <span
-            className="text-xs font-bold"
-            style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-          >
+          <span className="text-xs title-bold" style={{ color: 'var(--text-title)' }}>
             ✨ welcome 2 xanga ✨
           </span>
           <span

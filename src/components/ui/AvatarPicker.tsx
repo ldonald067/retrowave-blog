@@ -143,10 +143,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
 
       {/* Category Filter */}
       <div>
-        <p
-          className="text-xs font-bold mb-1"
-          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
-        >
+        <p className="text-xs title-bold mb-1" style={{ color: 'var(--accent-primary)' }}>
           category:
         </p>
         <div className="flex flex-wrap gap-1 mb-2">
@@ -162,7 +159,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
                     : AVATAR_STYLES.find((s) => s.category === cat.id);
                 if (firstInCategory) setSelectedStyle(firstInCategory.id);
               }}
-              className="px-3 py-2 text-xs rounded-lg border-2 border-dotted transition font-bold min-h-[44px] lg:min-h-0"
+              className="px-3 py-2 text-xs rounded-lg border-2 border-dotted transition title-bold min-h-[44px] lg:min-h-0"
               style={{
                 backgroundColor:
                   selectedCategory === cat.id
@@ -171,7 +168,6 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
                 borderColor:
                   selectedCategory === cat.id ? 'var(--accent-primary)' : 'var(--border-primary)',
                 color: selectedCategory === cat.id ? 'var(--accent-primary)' : 'var(--text-body)',
-                fontFamily: 'var(--title-font)',
               }}
             >
               {cat.name}
@@ -182,10 +178,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
 
       {/* Style Selector */}
       <div>
-        <p
-          className="text-xs font-bold mb-1"
-          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
-        >
+        <p className="text-xs title-bold mb-1" style={{ color: 'var(--accent-primary)' }}>
           choose a style:
         </p>
         <div className="flex flex-wrap gap-1">
@@ -214,10 +207,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
 
       {/* Avatar Grid — responsive: 4 cols on mobile, 5 on larger */}
       <div>
-        <p
-          className="text-xs font-bold mb-1"
-          style={{ color: 'var(--accent-primary)', fontFamily: 'var(--title-font)' }}
-        >
+        <p className="text-xs title-bold mb-1" style={{ color: 'var(--accent-primary)' }}>
           pick ur avatar:
         </p>
         <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-40 overflow-y-auto p-1">

@@ -49,10 +49,7 @@ export default function EmptyState({ onCreatePost }: EmptyStateProps) {
           transition={{ delay: 0.3 }}
           className="text-left mb-6"
         >
-          <p
-            className="text-xs mb-2 font-bold"
-            style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
-          >
+          <p className="text-xs mb-2 title-bold" style={{ color: 'var(--text-muted)' }}>
             {new Date().toLocaleDateString('en-US', {
               weekday: 'long',
               year: 'numeric',

@@ -24,8 +24,8 @@ export default function PublicPageSettings({
   const pendingChange = enabled !== savedEnabled;
   const statusText = enabled ? 'public page on' : 'private by default';
   const pendingText = enabled
-    ? 'Save changes to publish this page.'
-    : 'Save changes to take this page offline.';
+    ? 'save changes 2 publish this page.'
+    : 'save changes 2 take this page offline.';
 
   return (
     <div className="xanga-box p-4">
@@ -43,7 +43,7 @@ export default function PublicPageSettings({
             public page
           </h3>
           <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-            Keep your journal private, with an optional page for entries you choose to share.
+            ur journal stays private. u can add a page for just the entries u choose 2 share.
           </p>
         </div>
         {/* Text, not a pill. This was a bordered, rounded, filled, bold span
@@ -73,9 +73,9 @@ export default function PublicPageSettings({
           color: 'var(--text-body)',
         }}
       >
-        <p>Private entries and private chapters stay hidden.</p>
+        <p>private entries & private chapters stay hidden.</p>
         <p className="mt-1" style={{ color: 'var(--text-muted)' }}>
-          Anyone with the link can view public entries once this page is published.
+          anyone with the link can read ur public entries once this page is published.
         </p>
       </div>
 
@@ -103,8 +103,8 @@ export default function PublicPageSettings({
                   ? 'shared'
                   : 'copied'
                 : shareSupported
-                  ? 'share public page'
-                  : 'copy public link'}
+                  ? '~ share public page ~'
+                  : '~ copy public link ~'}
             </button>
             {/* openUrl, not target="_blank" — the latter is a no-op in the
                 Capacitor WebView, so this button did nothing on iOS. */}
@@ -116,7 +116,7 @@ export default function PublicPageSettings({
               }}
               className="xanga-button text-xs min-h-[44px] inline-flex items-center justify-center"
             >
-              view public page
+              ~ view public page ~
             </a>
           </div>
         </div>
@@ -140,15 +140,14 @@ export default function PublicPageSettings({
           <button
             type="button"
             onClick={onUnpublish}
-            className="w-full rounded border-2 border-dotted px-4 py-2 text-xs font-bold transition hover:opacity-80 min-h-[44px]"
+            className="w-full rounded border-2 border-dotted px-4 py-2 text-xs title-bold transition hover:opacity-80 min-h-[44px]"
             style={{
               backgroundColor: 'var(--card-bg)',
               borderColor: 'var(--border-primary)',
               color: 'var(--text-body)',
-              fontFamily: 'var(--title-font)',
             }}
           >
-            unpublish page
+            ~ unpublish page ~
           </button>
         ) : (
           <button
@@ -156,7 +155,7 @@ export default function PublicPageSettings({
             onClick={onRequestPublish}
             className="xanga-button w-full text-xs min-h-[44px]"
           >
-            review and publish page
+            ~ review and publish page ~
           </button>
         )}
       </div>

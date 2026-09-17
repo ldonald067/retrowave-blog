@@ -501,10 +501,7 @@ export default function Sidebar({
           <div className="flex-1 text-left min-w-0">
             {collapsed ? (
               <>
-                <p
-                  className="text-sm font-bold truncate"
-                  style={{ color: 'var(--text-title)', fontFamily: 'var(--title-font)' }}
-                >
+                <p className="text-sm title-bold truncate" style={{ color: 'var(--text-title)' }}>
                   {userData.displayName}
                 </p>
                 <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>

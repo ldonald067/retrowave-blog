@@ -58,7 +58,7 @@ describe('PublicPageSettings', () => {
       />
     );
 
-    expect(screen.getByText('Save changes to publish this page.')).toBeInTheDocument();
+    expect(screen.getByText('save changes 2 publish this page.')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /view public page/i })).not.toBeInTheDocument();
   });
 });

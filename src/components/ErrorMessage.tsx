@@ -23,10 +23,7 @@ export default function ErrorMessage({ error, onRetry }: ErrorMessageProps) {
           className="xanga-box p-3 mb-4 text-left"
           style={{ borderColor: 'var(--accent-secondary)' }}
         >
-          <p
-            className="text-xs font-bold mb-1"
-            style={{ color: 'var(--text-muted)', fontFamily: 'var(--title-font)' }}
-          >
+          <p className="text-xs title-bold mb-1" style={{ color: 'var(--text-muted)' }}>
             error:
           </p>
           <p className="text-sm" style={{ color: 'var(--accent-secondary)' }}>

@@ -99,7 +99,8 @@ break by reflex:
   Neue's Bold is 1.8% wider than its Regular and there is no heavier weight. Use
   `.title-bold`, which adds a text stroke by `--title-font-bold-stroke` (`0.45px`
   on classic-xanga, `0px` on the seven themes whose font has a real bold). The
-  auth tabs and all six form field labels use it. Theme variables are now **44**.
+  every bold title-font element uses it (auth tabs, form labels, and 29 more sites
+  fixed 2026-09-17). Theme variables are now **44**.
 
 ## The four bugs that mattered
 
@@ -212,38 +213,30 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
-- **Findings from the signed-in iPhone SE pass (2026-09-16), not yet fixed:**
-  - **HIGH — the floating "new entry" button vanishes after signing in**, until
-    the app restarts. `showAuthModal` is set true on the signed-out paths and
-    nothing ever sets it false, and the FAB is gated on `!showAuthModal`. Hits
-    every user in the session they sign up or sign back in. Confirmed on device:
-    absent after sign-in, present after a relaunch.
-  - **HIGH — composer footer overflows at max Dynamic Type on 375pt.** "cancel"
-    is clipped at the left edge and "~ save private entry ~" at the right. The
-    earlier "footers stay on one row" check was on the 440pt Pro Max.
-  - **MEDIUM — the feed reads through a ~105pt slot on the SE at rest.** It is
-    its own scroll container below all the header chrome; a swipe that starts on
-    an entry scrolls only that slot. Swiping on the header scrolls the page and
-    the feed grows, as designed, so it works — but at max Dynamic Type no entry is
-    on the first screen at all, and the FAB sits over the first entry's title.
-  - **MEDIUM — "find old entries" breaks mid-word at max Dynamic Type**
-    ("entri / es") and its icon collapses to a dot, because "showing 2 of 2
-    entries" takes the row. It already wraps to two lines at default size.
-  - **MEDIUM — `font-bold` in the title font renders regular on classic-xanga
-    in ~20 more places** across 13 components (profile tabs, settings and
-    composer buttons, EmptyState, AvatarPicker…). The `.title-bold` fix only
-    covered the auth tabs and form labels. Not SE-specific.
-  - **MEDIUM — the public page tab's copy breaks the voice**: "your" instead of
-    "ur", and "review and publish page" has no tildes.
-  - **MEDIUM — `ConfirmDialog` titles orphan their closing `~`** at max Dynamic
-    Type; the intro fixes the same thing with `text-wrap: balance`.
-
-  Held up at 375pt: the entry view with the overflow fixture, the composer with
-  the software keyboard up (textarea keeps its height, draft autosaves), the
-  unsaved-changes dialog's cancel (the fixed outline style), Settings, and all
-  three profile tabs including the two-column theme and emoji grids. The safety
-  tab only shows once a user has blocked someone; its row scrolls sideways if it
-  does not fit.
+- **The signed-in iPhone SE pass (2026-09-16) found seven issues; six are fixed**
+  (2026-09-17). Kept brief on purpose — smaller phones are a shrinking share, so
+  this was a time-boxed fix, not a redesign.
+  - Fixed: **the floating "new entry" button vanished after signing in** until a
+    restart (`showAuthModal` was never cleared on sign-in). **Verified in code
+    only** — proving it on device needs a fresh sign-in, which an agent cannot do.
+    Sign out and back in once to confirm the button stays.
+  - Fixed and seen on the SE at max Dynamic Type: the composer footer (buttons now
+    wrap instead of clipping), "find old entries" (the count drops to its own line
+    instead of crushing the heading mid-word), and `ConfirmDialog` titles
+    (`text-wrap: balance`, no orphaned `~`).
+  - Fixed: **`font-bold` in the title font** now uses `.title-bold` at all 29
+    remaining sites, so bold reads as bold on classic-xanga everywhere.
+  - Fixed and seen on the SE: the public page tab and its publish dialog now use
+    the voice (`ur`, `u`, `2`, tildes on actions).
+  - **Not fixed — the feed reads through a ~105pt slot on the SE at rest.** The
+    feed is its own scroll container, and the virtualizer, the load-more observer
+    and the height maths all depend on that; changing it means a window-scrolling
+    virtualizer and re-verifying scroll on iOS, which is not worth it for a small
+    phone. Swiping on the header scrolls the page and the feed grows, so it works.
+  - **Known trade-off:** at max Dynamic Type on the SE **with the keyboard up**,
+    the now-wrapped composer footer leaves little room above the keyboard, so the
+    field being typed in scrolls out of view. Typing and saving still work. Only
+    that triple extreme is affected.
 
 - **Ban is not implemented.** Prod has `admin_list_reports` and
   `admin_resolve_report` only. `ReportDialog` used to promise reporters it could

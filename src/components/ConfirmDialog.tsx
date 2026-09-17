@@ -48,7 +48,13 @@ export default function ConfirmDialog({
           className="xanga-box p-5 max-w-sm w-full overflow-y-auto modal-panel-safe"
           onClick={(e) => e.stopPropagation()}
         >
-          <h3 id="confirm-dialog-title" className="xanga-title text-lg mb-2">
+          <h3
+            id="confirm-dialog-title"
+            className="xanga-title text-lg mb-2"
+            // balance, so a wrapped title does not leave its closing ~ alone on
+            // the last line, which reads as a typo — same fix as the intro.
+            style={{ textWrap: 'balance' }}
+          >
             <span aria-hidden="true">⚠️</span> {title}
           </h3>
 
@@ -80,7 +86,7 @@ export default function ConfirmDialog({
               disabled={loading}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-lg transition text-xs font-bold border-2 hover:brightness-110 min-h-[44px]"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-lg transition text-xs title-bold border-2 hover:brightness-110 min-h-[44px]"
               // Fill uses --button-gradient + --button-text (the AA-guaranteed
               // button contract) rather than --accent-secondary, which in some
               // themes (grunge) equals --button-text and rendered invisible.
@@ -90,7 +96,6 @@ export default function ConfirmDialog({
                   'linear-gradient(135deg, var(--button-gradient-from), var(--button-gradient-to))',
                 color: 'var(--button-text, var(--text-title))',
                 borderColor: 'var(--accent-secondary)',
-                fontFamily: 'var(--title-font)',
                 boxShadow: '0 2px 8px color-mix(in srgb, var(--accent-secondary) 40%, transparent)',
               }}
             >

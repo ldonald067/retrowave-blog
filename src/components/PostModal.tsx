@@ -496,13 +496,12 @@ export default function PostModal({
                               setShowMoreMenu(false);
                               onDelete(post);
                             }}
-                            className="w-full text-left px-4 py-3 text-xs font-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px]"
+                            className="w-full text-left px-4 py-3 text-xs title-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px]"
                             // See SettingsModal: --accent-secondary fails 4.5:1
                             // on emo-dark and cottage-core, and this is 12px bold.
                             style={{
                               color: 'var(--link-caution)',
                               borderColor: 'var(--border-primary)',
-                              fontFamily: 'var(--title-font)',
                             }}
                           >
                             🗑️ delete entry
@@ -707,10 +706,9 @@ export default function PostModal({
                       style={{ borderColor: 'var(--accent-secondary)' }}
                     >
                       <p
-                        className="text-xs font-bold mb-1"
+                        className="text-xs title-bold mb-1"
                         style={{
                           color: 'var(--accent-secondary)',
-                          fontFamily: 'var(--title-font)',
                         }}
                       >
                         ❌ content not allowed
@@ -745,7 +743,7 @@ export default function PostModal({
                         type="button"
                         aria-pressed={isPrivate}
                         onClick={() => setIsPrivate(true)}
-                        className="rounded border-2 border-dotted px-3 py-2 text-xs font-bold transition min-h-[44px]"
+                        className="rounded border-2 border-dotted px-3 py-2 text-xs title-bold transition min-h-[44px]"
                         style={{
                           backgroundColor: isPrivate
                             ? 'color-mix(in srgb, var(--accent-primary) 14%, var(--card-bg))'
@@ -754,7 +752,6 @@ export default function PostModal({
                             ? 'var(--accent-primary)'
                             : 'var(--border-primary)',
                           color: isPrivate ? 'var(--accent-primary)' : 'var(--text-body)',
-                          fontFamily: 'var(--title-font)',
                         }}
                       >
                         private
@@ -763,7 +760,7 @@ export default function PostModal({
                         type="button"
                         aria-pressed={!isPrivate}
                         onClick={() => setIsPrivate(false)}
-                        className="rounded border-2 border-dotted px-3 py-2 text-xs font-bold transition min-h-[44px]"
+                        className="rounded border-2 border-dotted px-3 py-2 text-xs title-bold transition min-h-[44px]"
                         style={{
                           backgroundColor: !isPrivate
                             ? 'color-mix(in srgb, var(--accent-primary) 14%, var(--card-bg))'
@@ -772,7 +769,6 @@ export default function PostModal({
                             ? 'var(--accent-primary)'
                             : 'var(--border-primary)',
                           color: !isPrivate ? 'var(--accent-primary)' : 'var(--text-body)',
-                          fontFamily: 'var(--title-font)',
                         }}
                       >
                         public
@@ -1074,10 +1070,9 @@ export default function PostModal({
                           >
                             {author && (
                               <span
-                                className="font-bold"
+                                className="title-bold"
                                 style={{
                                   color: 'var(--accent-primary)',
-                                  fontFamily: 'var(--title-font)',
                                 }}
                               >
                                 ~ {author}
@@ -1128,8 +1123,11 @@ export default function PostModal({
                   {draftStatusText}
                 </span>
               )}
-              {/* cancel + save, centred as a pair */}
-              <div className="flex w-full justify-center gap-4">
+              {/* cancel + save, centred as a pair. flex-wrap because at max
+                  Dynamic Type on a 375pt phone the pair is wider than the
+                  panel, and without wrapping both buttons were clipped at the
+                  edges; they now stack instead. */}
+              <div className="flex flex-wrap w-full justify-center gap-x-4 gap-y-2">
                 <motion.button
                   whileHover={{
                     y: -2,
@@ -1140,13 +1138,12 @@ export default function PostModal({
                   whileTap={{ scale: 0.97 }}
                   type="button"
                   onClick={handleClose}
-                  className="px-4 py-2 rounded-lg text-xs font-bold border-2 border-dotted min-h-[44px]"
+                  className="px-4 py-2 rounded-lg text-xs title-bold border-2 border-dotted min-h-[44px]"
                   style={{
                     backgroundColor:
                       'color-mix(in srgb, var(--border-primary) 15%, var(--card-bg))',
                     color: 'var(--text-body)',
                     borderColor: 'var(--border-primary)',
-                    fontFamily: 'var(--title-font)',
                   }}
                 >
                   cancel
