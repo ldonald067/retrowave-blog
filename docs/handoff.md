@@ -6,9 +6,9 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `d4d2f2f` (code) — after the iPhone SE pass, its
-fixes, a round of feed spacing and the header marquee from your screenshots, and
-a full docs cleanup.
+Last rewritten 2026-09-17, at `f06dce4` (code) — after the iPhone SE pass, its
+fixes, a round of feed spacing and both marquees from your screenshots, and a
+full docs cleanup.
 
 ---
 
@@ -100,9 +100,13 @@ iPhone 17 Pro Max simulator unless noted.
   card lost 12pt of dead margin (Pro Max); the last post's reactions scroll clear
   of the "new entry" button, and the feed-to-footer gap went 160 → 91pt on the Pro
   Max and 82 → 57pt on the SE.
-- **Header marquee removed** (2026-09-17, `d4d2f2f`, Pro Max): the fixed
-  "welcome to my xanga ~ thanks 4 stopping by" greeted owners as visitors to
-  their own journal. The public profile's marquee, which names the owner, stays.
+- **Marquees** (2026-09-17). The journal header's fixed "welcome to my xanga ~
+  thanks 4 stopping by" is gone (`d4d2f2f`, Pro Max) — it greeted owners as
+  visitors to their own journal. On a public profile the banner now scrolls the
+  owner's **status**, which left the card (`f06dce4`): checked on the signed-out
+  Pro against prod with a temporary status on `codex-qa-24e3a82f` (approved,
+  reverted, re-diffed clean but `updated_at`) — short and 100-character statuses
+  scroll, Reduce Motion wraps it static, no status means no banner.
 
 ## Open work
 
@@ -118,9 +122,9 @@ iPhone 17 Pro Max simulator unless noted.
   only when a ban exists.
 - **Finding 21's truncation is code-level only** — no public account has a
   chapter long enough to photograph `PublicPostCard` truncating.
-- **Store screenshots `02-feed` and `03-composer` still show the header
-  marquee** removed in `d4d2f2f`. A small drift; recapture if you want them
-  exact.
+- **Store screenshots `02-feed`, `03-composer` and `05-public-profile` still
+  show the old fixed marquees** (`d4d2f2f`, `f06dce4`). A small drift; recapture
+  if you want them exact.
 - **Signing out is global.** `supabase.auth.signOut()` defaults to
   `scope: 'global'`, so signing out on one device ends that account's session
   everywhere within the hour. That is how the SE lost `ldonald234` on 2026-09-17.
@@ -159,16 +163,16 @@ junk**. It found four bugs. Keep it.
 ## Simulators
 
 Last known state, 2026-09-17 — all four booted, each build read from the
-installed bundle (`index-Bilw5n9D.js`). Sessions live in `UserDefaults` and
+installed bundle (`index-saWQQgQf.js`). Sessions live in `UserDefaults` and
 survive reboots, but **simulators shut down between sessions**, so boot before
 installing, and re-check the installed build before trusting this table.
 
 | Simulator                  | Session       | Build              |
 | -------------------------- | ------------- | ------------------ |
-| iPhone 17 Pro Max          | `ldonald234`  | current, `d4d2f2f` |
-| iPhone 17 Pro              | signed out    | current, `d4d2f2f` |
-| iPhone 17                  | `ldonald0234` | current, `d4d2f2f` |
-| iPhone SE (3rd generation) | signed out    | current, `d4d2f2f` |
+| iPhone 17 Pro Max          | `ldonald234`  | current, `f06dce4` |
+| iPhone 17 Pro              | signed out    | current, `f06dce4` |
+| iPhone 17                  | `ldonald0234` | current, `f06dce4` |
+| iPhone SE (3rd generation) | signed out    | current, `f06dce4` |
 
 Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
 in, so signing another simulator out cannot be undone from here. The SE lost
