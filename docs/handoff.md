@@ -274,12 +274,12 @@ iPhone 17 Pro Max simulator unless noted.
 they survive a reboot). Check which sim is booted and which build it carries
 before trusting anything you see on one.
 
-| Simulator                  | State at end of session    | Session       | Build                           |
-| -------------------------- | -------------------------- | ------------- | ------------------------------- |
-| iPhone 17 Pro Max          | booted                     | `ldonald234`  | `e276a48` — before the SE fixes |
-| iPhone 17 Pro              | booted                     | signed out    | `e276a48` — before the SE fixes |
-| iPhone 17                  | booted                     | `ldonald0234` | `e276a48` — before the SE fixes |
-| iPhone SE (3rd generation) | booted, created 2026-09-16 | `ldonald234`  | current, `ffb85b5`              |
+| Simulator                  | State at end of session    | Session       | Build              |
+| -------------------------- | -------------------------- | ------------- | ------------------ |
+| iPhone 17 Pro Max          | booted                     | `ldonald234`  | current, `ffb85b5` |
+| iPhone 17 Pro              | booted                     | signed out    | current, `ffb85b5` |
+| iPhone 17                  | booted                     | `ldonald0234` | current, `ffb85b5` |
+| iPhone SE (3rd generation) | booted, created 2026-09-16 | `ldonald234`  | current, `ffb85b5` |
 
 The iPhone 17 Pro and SE are the ones to use for signed-out screens: an agent
 cannot sign back in, so signing a session out to reach the auth wall cannot be
