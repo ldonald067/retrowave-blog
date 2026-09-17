@@ -6,8 +6,9 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `fbb4840` (code) — after the iPhone SE pass, its
-fixes, a round of feed spacing from your screenshots, and a full docs cleanup.
+Last rewritten 2026-09-17, at `d4d2f2f` (code) — after the iPhone SE pass, its
+fixes, a round of feed spacing and the header marquee from your screenshots, and
+a full docs cleanup.
 
 ---
 
@@ -99,6 +100,9 @@ iPhone 17 Pro Max simulator unless noted.
   card lost 12pt of dead margin (Pro Max); the last post's reactions scroll clear
   of the "new entry" button, and the feed-to-footer gap went 160 → 91pt on the Pro
   Max and 82 → 57pt on the SE.
+- **Header marquee removed** (2026-09-17, `d4d2f2f`, Pro Max): the fixed
+  "welcome to my xanga ~ thanks 4 stopping by" greeted owners as visitors to
+  their own journal. The public profile's marquee, which names the owner, stays.
 
 ## Open work
 
@@ -114,6 +118,13 @@ iPhone 17 Pro Max simulator unless noted.
   only when a ban exists.
 - **Finding 21's truncation is code-level only** — no public account has a
   chapter long enough to photograph `PublicPostCard` truncating.
+- **Store screenshots `02-feed` and `03-composer` still show the header
+  marquee** removed in `d4d2f2f`. A small drift; recapture if you want them
+  exact.
+- **Signing out is global.** `supabase.auth.signOut()` defaults to
+  `scope: 'global'`, so signing out on one device ends that account's session
+  everywhere within the hour. That is how the SE lost `ldonald234` on 2026-09-17.
+  Your call whether sign-out should be `scope: 'local'` (this device only).
 - **`create ur xanga`** is the signup heading, and screenshot `04-signup` shows
   it, while the submission guide keeps "Xanga" out of public metadata. Your
   call whether that matters for the store.
@@ -148,19 +159,21 @@ junk**. It found four bugs. Keep it.
 ## Simulators
 
 Last known state, 2026-09-17 — all four booted, each build read from the
-installed bundle (`index-CH77kfNo.js`). Sessions live in `UserDefaults` and
+installed bundle (`index-Bilw5n9D.js`). Sessions live in `UserDefaults` and
 survive reboots, but **simulators shut down between sessions**, so boot before
 installing, and re-check the installed build before trusting this table.
 
 | Simulator                  | Session       | Build              |
 | -------------------------- | ------------- | ------------------ |
-| iPhone 17 Pro Max          | `ldonald234`  | current, `fbb4840` |
-| iPhone 17 Pro              | signed out    | current, `fbb4840` |
-| iPhone 17                  | `ldonald0234` | current, `fbb4840` |
-| iPhone SE (3rd generation) | `ldonald234`  | current, `fbb4840` |
+| iPhone 17 Pro Max          | `ldonald234`  | current, `d4d2f2f` |
+| iPhone 17 Pro              | signed out    | current, `d4d2f2f` |
+| iPhone 17                  | `ldonald0234` | current, `d4d2f2f` |
+| iPhone SE (3rd generation) | signed out    | current, `d4d2f2f` |
 
-Use the **Pro** for signed-out screens: an agent cannot sign back in, so signing
-another simulator out cannot be undone from here.
+Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
+in, so signing another simulator out cannot be undone from here. The SE lost
+`ldonald234` on 2026-09-17 when you signed that account out on the Pro Max —
+sign-out is global (see Open work).
 
 ## Traps that cost a session
 
@@ -176,4 +189,6 @@ verification" and "Supabase and RPCs". The ones that bite every session:
 - **An Xcode update blocks `git`** until you run `sudo xcodebuild -license`.
 - **Discarding the composer leaves its draft on the device** — delete it when a
   test typed one.
+- **Signing an account out on one simulator signs it out on all of them**
+  within the hour.
 - **Ask before each prod write**; approval for one test does not cover the next.
