@@ -6,8 +6,8 @@ existed and constraints that no longer applied. Keep this one true or delete it.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `ffb85b5` — after both halves of the iPhone SE pass and
-their fixes.
+Last rewritten 2026-09-17, at `c0c1a15` — after both halves of the iPhone SE pass,
+their fixes, and the sidebar mood row and search-card spacing.
 
 ---
 
@@ -186,7 +186,8 @@ iPhone 17 Pro Max simulator unless noted.
   SE — the composer footer now wraps instead of clipping, "find old entries" keeps
   its heading on one line, dialog titles balance instead of orphaning `~`, and the
   public page copy uses the voice. The other two fixes: the "new entry" button
-  disappearing after sign-in (verified in code only — see "Waiting for you") and
+  disappearing after sign-in (confirmed 2026-09-17: you signed in fresh on the Pro
+  Max and iPhone 17 and it was there) and
   `.title-bold` at 29 more sites. Nothing was saved to prod; test drafts left on
   the device were deleted.
 - **The modal close ✕ in accent-family colour** (2026-09-16) — Settings opened on
@@ -252,9 +253,6 @@ iPhone 17 Pro Max simulator unless noted.
   foreground it.
 - **Success toast and sub-400ms rapid taps** — not drivable from here; see the
   tap-reliability note below. Both are code-verified only.
-- **Confirm the "new entry" button fix** (`ffb85b5`) — sign out and back in on
-  any simulator, and the floating button should still be there. It is verified in
-  code only, because proving it needs a fresh sign-in.
 - **Signing in.** An agent cannot authenticate, so any surface needing a
   particular account needs you to sign in first and say which one.
 
@@ -275,10 +273,10 @@ and check which build each carries before trusting anything you see on one.
 
 | Simulator                  | Session       | Build              |
 | -------------------------- | ------------- | ------------------ |
-| iPhone 17 Pro Max          | `ldonald234`  | current, `ffb85b5` |
-| iPhone 17 Pro              | signed out    | current, `ffb85b5` |
-| iPhone 17                  | `ldonald0234` | current, `ffb85b5` |
-| iPhone SE (3rd generation) | `ldonald234`  | current, `ffb85b5` |
+| iPhone 17 Pro Max          | `ldonald234`  | current, `c0c1a15` |
+| iPhone 17 Pro              | signed out    | current, `c0c1a15` |
+| iPhone 17                  | `ldonald0234` | current, `c0c1a15` |
+| iPhone SE (3rd generation) | `ldonald234`  | current, `c0c1a15` |
 
 The iPhone 17 Pro is the one to use for signed-out screens: an agent cannot sign
 back in, so signing a session out to reach the auth wall cannot be undone from
