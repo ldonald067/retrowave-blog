@@ -223,6 +223,7 @@ export default function PublicProfileView({
   }
 
   const { profile, posts } = data;
+  const statusMessage = profile.status_message?.trim() ?? '';
   const publicEntryLabel = `${posts.length} public ${posts.length === 1 ? 'entry' : 'entries'}`;
   const joinedYear = new Date(profile.created_at).getFullYear();
 
@@ -231,21 +232,28 @@ export default function PublicProfileView({
       className="min-h-screen safe-area-top page-safe-bottom"
       style={{ backgroundColor: 'var(--bg-primary)' }}
     >
-      {/* `.marquee-banner` + `.marquee-banner-inner`, which is what Header uses
-          and what index.css actually defines. This was `.marquee`, a class that
-          exists nowhere in the stylesheet — so the banner never scrolled, never
-          clipped and simply wrapped onto two static lines on the most
-          visitor-facing screen in the app. aria-hidden to match Header: it is
-          decoration, and the display name it repeats is the h1 below it. */}
-      <div className="marquee-banner" aria-hidden="true">
-        <div
-          className="marquee-banner-inner"
-          style={{ color: 'var(--text-subtitle)', fontSize: '12px' }}
-        >
-          ~ welcome to {profile.display_name || profile.username}'s journal ~ ♥ ~ thx 4 stopping by
-          ~ ☆ ~ xoxo ~
+      {/* The owner's status scrolls in the marquee. It used to read "welcome to
+          <name>'s journal ~ thx 4 stopping by" — identical on every profile
+          but for a name the h1 already shows — while the status took a line of
+          the card below. Now the banner says something only this person
+          wrote, and the card is a line shorter. No status, no banner.
+          Real content now, so not aria-hidden: screen readers get a label,
+          and Reduce Motion stops the scroll and wraps it instead of clipping
+          a long status at the screen edge (.marquee-banner-status). rem, not
+          px, so it follows Dynamic Type like the text it replaced in the card. */}
+      {statusMessage && (
+        <div className="marquee-banner marquee-banner-status">
+          <p
+            className="marquee-banner-inner"
+            style={{ color: 'var(--text-subtitle)', fontSize: '0.75rem' }}
+          >
+            <span className="sr-only">
+              {profile.display_name || profile.username}&apos;s status:{' '}
+            </span>
+            <span aria-hidden="true">📟 </span>~ {statusMessage} ~
+          </p>
         </div>
-      </div>
+      )}
 
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Profile card */}
@@ -284,9 +292,6 @@ export default function PublicProfileView({
           {/* mt-6 sets the identity apart from the content; space-y-4 keeps the
               content blocks a group rather than a stack of loose paragraphs. */}
           <div className="mt-6 space-y-4">
-            {profile.status_message && (
-              <p className="aim-status">📟 ~ {profile.status_message} ~</p>
-            )}
             {profile.bio && (
               <p className="text-sm italic break-words" style={{ color: 'var(--text-body)' }}>
                 {profile.bio}

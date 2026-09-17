@@ -1567,6 +1567,20 @@ input[type='submit'],
     animation: none !important;
   }
 
+  /* The status marquee carries real text, up to 100 characters. Stopped but
+     still nowrap, anything past the screen edge would be clipped unreadable,
+     so it sits still and wraps instead. */
+  .marquee-banner-status {
+    white-space: normal;
+  }
+
+  .marquee-banner-status .marquee-banner-inner {
+    display: block;
+    padding-inline: 1rem;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
   .glitter-text {
     animation: none !important;
     -webkit-text-fill-color: var(--text-title) !important;

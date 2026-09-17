@@ -136,8 +136,8 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText(/react/i)).not.toBeInTheDocument();
   });
 
-  it('shows the profile status message when present', () => {
-    render(
+  it('shows the status once, in the marquee, labelled for screen readers', () => {
+    const { container } = render(
       <PublicProfileView
         username="jane"
         isAuthenticated={false}
@@ -146,7 +146,28 @@ describe('PublicProfileView', () => {
       />
     );
 
-    expect(screen.getByText(/still up at 2am/i)).toBeInTheDocument();
+    const status = screen.getByText(/still up at 2am/i);
+    expect(container.querySelector('.marquee-banner-status')).toContainElement(status);
+    expect(container.querySelector('.marquee-banner-status')).not.toHaveAttribute('aria-hidden');
+    expect(screen.getByText(/jane's status:/i)).toBeInTheDocument();
+  });
+
+  it('renders no marquee when the profile has no status', () => {
+    vi.mocked(usePublicProfile).mockReturnValue({
+      data: { ...publicData, profile: { ...publicData.profile, status_message: '  ' } },
+      loading: false,
+      notFound: false,
+    });
+    const { container } = render(
+      <PublicProfileView
+        username="jane"
+        isAuthenticated={false}
+        onSignUp={vi.fn()}
+        onGoHome={vi.fn()}
+      />
+    );
+
+    expect(container.querySelector('.marquee-banner')).not.toBeInTheDocument();
   });
 
   it('updates the document title and share description for the public page', () => {
