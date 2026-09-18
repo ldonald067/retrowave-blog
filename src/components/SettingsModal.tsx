@@ -24,9 +24,21 @@ interface SettingsModalProps {
   onClose: () => void;
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
+  /**
+   * useAuth's signOut, not supabase.auth.signOut. Only the hook's version marks
+   * the sign-out as deliberate; a direct call looked to useAuth like an expired
+   * session, so deleting an account showed "ur session expired" beside the
+   * farewell.
+   */
+  onSignOut: (options?: { scope?: 'global' | 'local' }) => Promise<unknown>;
 }
 
-export default function SettingsModal({ onClose, onSuccess, onError }: SettingsModalProps) {
+export default function SettingsModal({
+  onClose,
+  onSuccess,
+  onError,
+  onSignOut,
+}: SettingsModalProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteAccountLoading, setDeleteAccountLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -78,13 +90,18 @@ export default function SettingsModal({ onClose, onSuccess, onError }: SettingsM
 
       await hapticImpact();
 
-      // Sign out after account deletion — triggers auth state change
-      await supabase.auth.signOut();
+      // Local scope: the user and all its sessions are already gone
+      // server-side, so there is nothing for a global sign-out to revoke.
+      await onSignOut({ scope: 'local' });
 
       onSuccess?.('~ ur account has been deleted. farewell friend ~');
       onClose();
-    } catch (err) {
-      onError?.(toUserMessage(err));
+    } catch {
+      // Not toUserMessage: its generic text for a foreign-key error was "This
+      // action references a record that does not exist", which reads like the
+      // account is half gone. The RPC runs in one transaction, so a failure
+      // deleted nothing — say that.
+      onError?.('Your account could not be deleted, and nothing was removed. Please try again.');
     } finally {
       setDeleteAccountLoading(false);
       setShowDeleteConfirm(false);

@@ -43,7 +43,7 @@ interface UseAuthReturn {
   ) => Promise<{ error: string | null; needsConfirmation?: boolean; alreadyRegistered?: boolean }>;
   signIn: (email: string) => Promise<{ error: string | null }>;
   signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
-  signOut: () => Promise<{ error: string | null }>;
+  signOut: (options?: { scope?: 'global' | 'local' }) => Promise<{ error: string | null }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: string | null }>;
   refetchProfile: () => Promise<void>;
   /** True while a recovery link is awaiting a new password. */
@@ -293,10 +293,18 @@ export function useAuth(): UseAuthReturn {
   // call them without spinning up a second useAuth subscription. Re-exposed
   // here under the hook's historical names for App.tsx.
 
-  const signOut = async (): Promise<{ error: string | null }> => {
+  /**
+   * `scope: 'local'` clears this device only, without asking the server to end
+   * the session. Account deletion uses it: the user — and every session with
+   * it — is already gone server-side, so the default global call has nothing
+   * left to revoke.
+   */
+  const signOut = async (
+    options: { scope?: 'global' | 'local' } = {}
+  ): Promise<{ error: string | null }> => {
     try {
       deliberateSignOutRef.current = true;
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut(options);
       if (error) throw error;
       return { error: null };
     } catch (err) {

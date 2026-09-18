@@ -1592,6 +1592,7 @@ function AppInner() {
               onClose={() => setShowSettingsModal(false)}
               onSuccess={success}
               onError={showError}
+              onSignOut={signOut}
             />
           </Suspense>
         )}
