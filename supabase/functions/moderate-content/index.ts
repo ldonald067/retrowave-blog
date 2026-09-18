@@ -15,11 +15,24 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-// CORS: only allow the app's origin (not '*'). SITE_URL is the canonical apex
+// CORS: only allow the app's origins (not '*'). SITE_URL is the canonical apex
 // (https://retrowaveblog.com); the www host serves the same app, so allow both.
+//
+// capacitor://localhost is the iOS app's own origin, and WKWebView enforces
+// CORS like a browser. It was missing until 2026-09-18, so the answer to every
+// call from the app carried the website's origin, the web view discarded it,
+// and moderation.ts failed open — public entries posted from iPhone never
+// reached the AI check. 5174 is the Vite dev port.
 const SITE_URL = Deno.env.get('SITE_URL') ?? 'http://localhost:5173';
 const WWW_ORIGIN = SITE_URL.replace('https://', 'https://www.');
-const ALLOWED_ORIGINS = [SITE_URL, WWW_ORIGIN, 'http://localhost:3000', 'http://localhost:5173'];
+const ALLOWED_ORIGINS = [
+  SITE_URL,
+  WWW_ORIGIN,
+  'capacitor://localhost',
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5174',
+];
 
 function corsHeaders(origin: string | null) {
   const allowed = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
