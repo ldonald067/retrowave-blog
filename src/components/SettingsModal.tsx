@@ -133,12 +133,10 @@ export default function SettingsModal({ onClose, onSuccess, onError }: SettingsM
                 type="button"
                 onClick={handleExportData}
                 disabled={exporting}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs title-bold border-2 border-dotted transition hover:opacity-80 min-h-[44px]"
-                style={{
-                  backgroundColor: 'var(--card-bg)',
-                  color: 'var(--text-body)',
-                  borderColor: 'var(--border-primary)',
-                }}
+                // Outline tier: accent text, not --text-body. Near-black on a
+                // dotted outline read as a disabled control beside the caution
+                // button below it.
+                className="xanga-button-ghost w-full flex items-center justify-center gap-2 px-4 py-2.5 text-xs title-bold min-h-[44px]"
               >
                 <FloppyDisk size={18} alt="" />
                 {exporting ? '~ exporting... ~' : '~ export my data ~'}
@@ -181,12 +179,7 @@ export default function SettingsModal({ onClose, onSuccess, onError }: SettingsM
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg transition text-xs title-bold border-2 border-dotted min-h-[44px]"
-              style={{
-                backgroundColor: 'var(--card-bg)',
-                color: 'var(--text-body)',
-                borderColor: 'var(--border-primary)',
-              }}
+              className="xanga-button-ghost px-4 py-2 text-xs title-bold min-h-[44px]"
             >
               close
             </button>

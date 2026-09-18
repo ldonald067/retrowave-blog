@@ -875,12 +875,7 @@ export default function ProfileModal({
                   type="button"
                   onClick={handleCancel}
                   disabled={saving}
-                  className="px-4 py-2 rounded-lg transition text-xs title-bold border-2 border-dotted min-h-[44px]"
-                  style={{
-                    backgroundColor: 'var(--card-bg)',
-                    color: 'var(--text-body)',
-                    borderColor: 'var(--border-primary)',
-                  }}
+                  className="xanga-button-ghost px-4 py-2 text-xs title-bold min-h-[44px]"
                 >
                   cancel
                 </button>

@@ -140,12 +140,7 @@ export default function PublicPageSettings({
           <button
             type="button"
             onClick={onUnpublish}
-            className="w-full rounded border-2 border-dotted px-4 py-2 text-xs title-bold transition hover:opacity-80 min-h-[44px]"
-            style={{
-              backgroundColor: 'var(--card-bg)',
-              borderColor: 'var(--border-primary)',
-              color: 'var(--text-body)',
-            }}
+            className="xanga-button-ghost w-full px-4 py-2 text-xs title-bold min-h-[44px]"
           >
             ~ unpublish page ~
           </button>

@@ -1129,22 +1129,11 @@ export default function PostModal({
                   edges; they now stack instead. */}
               <div className="flex flex-wrap w-full justify-center gap-x-4 gap-y-2">
                 <motion.button
-                  whileHover={{
-                    y: -2,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    backgroundColor:
-                      'color-mix(in srgb, var(--border-primary) 28%, var(--card-bg))',
-                  }}
+                  whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                   whileTap={{ scale: 0.97 }}
                   type="button"
                   onClick={handleClose}
-                  className="px-4 py-2 rounded-lg text-xs title-bold border-2 border-dotted min-h-[44px]"
-                  style={{
-                    backgroundColor:
-                      'color-mix(in srgb, var(--border-primary) 15%, var(--card-bg))',
-                    color: 'var(--text-body)',
-                    borderColor: 'var(--border-primary)',
-                  }}
+                  className="xanga-button-ghost px-4 py-2 text-xs title-bold min-h-[44px]"
                 >
                   cancel
                 </motion.button>
