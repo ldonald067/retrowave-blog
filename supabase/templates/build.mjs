@@ -20,64 +20,10 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, 'out');
 
-// classic-xanga, the default theme. Hardcoded rather than imported from
-// themes.ts because an email cannot resolve CSS variables.
-const C = {
-  bg: '#fff0f5',
-  card: '#ffffff',
-  border: '#ff99cc',
-  title: '#e5007c',
-  // --accent-primary, the one that clears 4.5:1 on white. Body copy must stay
-  // legible even where a client overrides backgrounds.
-  accent: '#d6157e',
-  body: '#333333',
-  muted: '#666666',
-  buttonFrom: '#cc3388',
-  buttonTo: '#aa2266',
-};
-
-const FONT = "'Comic Sans MS', 'Comic Neue', 'Trebuchet MS', sans-serif";
-const SITE = 'https://retrowaveblog.com';
-
-/**
- * Shared shell.
- *
- * `preheader` is the grey line inbox lists show next to the subject. Left
- * unset, clients scrape the first text they find, which is how a legitimate
- * email ends up previewing as "View in browser" and reading like spam.
- */
-function shell({ preheader, heading, body, cta, ctaLabel, footNote }) {
-  return `<div style="background:${C.bg};margin:0;padding:24px 12px;font-family:${FONT};">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;height:0;width:0;">${preheader}</div>
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:520px;margin:0 auto;">
-    <tr>
-      <td style="background:linear-gradient(90deg,${C.buttonFrom},${C.buttonTo});background-color:${C.buttonFrom};border-radius:10px 10px 0 0;padding:16px 20px;text-align:center;">
-        <span style="font-family:${FONT};font-size:19px;font-weight:bold;color:#ffffff;">&#10024; Retrowave Blog &#10024;</span>
-      </td>
-    </tr>
-    <tr>
-      <td style="background:${C.card};border:2px dotted ${C.border};border-top:none;border-radius:0 0 10px 10px;padding:24px 20px;">
-        <h1 style="margin:0 0 12px;font-family:${FONT};font-size:20px;line-height:1.3;color:${C.title};">${heading}</h1>
-        <div style="font-family:${FONT};font-size:15px;line-height:1.6;color:${C.body};">${body}</div>
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px auto;">
-          <tr>
-            <td style="background:linear-gradient(90deg,${C.buttonFrom},${C.buttonTo});background-color:${C.buttonFrom};border-radius:8px;">
-              <a href="${cta}" style="display:inline-block;padding:14px 28px;font-family:${FONT};font-size:16px;font-weight:bold;color:#ffffff;text-decoration:none;">${ctaLabel}</a>
-            </td>
-          </tr>
-        </table>
-        <p style="margin:0 0 4px;font-family:${FONT};font-size:12px;color:${C.muted};">or paste this into your browser:</p>
-        <p style="margin:0 0 20px;font-family:monospace;font-size:12px;word-break:break-all;"><a href="${cta}" style="color:${C.accent};">${cta}</a></p>
-        <hr style="border:none;border-top:1px dotted ${C.border};margin:20px 0;" />
-        <p style="margin:0;font-family:${FONT};font-size:12px;line-height:1.5;color:${C.muted};">${footNote}</p>
-        <p style="margin:12px 0 0;font-family:${FONT};font-size:12px;color:${C.muted};">
-          <a href="${SITE}" style="color:${C.accent};">retrowaveblog.com</a>
-        </p>
-      </td>
-    </tr>
-  </table>
-</div>`;
-}
+// The design lives in ../functions/_shared/email.ts so the auth emails and the
+// ones edge functions send (account deletion, report notifications) cannot
+// drift apart. Node 24 imports the .ts file directly.
+import { renderEmail, p, BRAND } from '../functions/_shared/email.ts';
 
 /**
  * The reason-you-got-this line. Saying it plainly is the cheapest way to look
@@ -85,66 +31,91 @@ function shell({ preheader, heading, body, cta, ctaLabel, footNote }) {
  * safely ignore the mail rather than reporting it as phishing.
  */
 const IGNORE = (what) =>
-  `You&rsquo;re getting this because someone used this address to ${what} on Retrowave Blog. If that wasn&rsquo;t you, just ignore this email &mdash; nothing will happen without the link above.`;
+  `You&rsquo;re getting this because someone used this address to ${what} on ${BRAND.name}. If that wasn&rsquo;t you, just ignore this email &mdash; nothing will happen without the link above.`;
+
+/** For notifications about something that already happened: there is no link to not tap. */
+const NOT_YOU = (what) =>
+  `You&rsquo;re getting this because ${what} on your ${BRAND.name} account. If that wasn&rsquo;t you, reset your password from the sign-in screen right away and write to <a href="mailto:${BRAND.support}" style="color:${BRAND.accent};">${BRAND.support}</a>.`;
 
 const URL = '{{ .ConfirmationURL }}';
 
+// Subjects stay plain and name the product. The voice lives in the body; a
+// subject full of tildes is what makes a real email look forged.
 export const TEMPLATES = {
   confirmation: {
-    // Subjects stay plain and name the product. The Xanga voice lives in the
-    // body; a subject full of tildes is what makes a real email look forged.
-    subject: 'Confirm your email — Retrowave Blog',
-    html: shell({
+    subject: `Confirm your email — ${BRAND.name}`,
+    html: renderEmail({
       preheader: 'One tap and your journal is ready.',
       heading: '~ welcome 2 ur new journal ~',
-      body: `<p style="margin:0;">hi! ur almost in &#9825;</p>
-             <p style="margin:12px 0 0;">tap below 2 confirm this email address, and ur journal is ready.</p>`,
-      cta: URL,
-      ctaLabel: '~ confirm my email ~',
+      body:
+        p('hi! ur almost in &#9825;') +
+        p('tap below 2 confirm this email address, and ur journal is ready 4 its very first entry.', '0'),
+      cta: { href: URL, label: '~ confirm my email ~' },
       footNote: IGNORE('create an account'),
     }),
   },
   magic_link: {
-    subject: 'Your sign-in link — Retrowave Blog',
-    html: shell({
+    subject: `Your sign-in link — ${BRAND.name}`,
+    html: renderEmail({
       preheader: 'Your one-time sign-in link, good for 60 minutes.',
       heading: '~ welcome back ~',
-      body: `<p style="margin:0;">here&rsquo;s ur magic link &mdash; no password needed.</p>
-             <p style="margin:12px 0 0;">it works once, and only for the next hour.</p>`,
-      cta: URL,
-      ctaLabel: '~ sign me in ~',
+      body:
+        p('here&rsquo;s ur magic link &mdash; no password needed &#10024;') +
+        p('it works once, and only 4 the next hour.', '0'),
+      cta: { href: URL, label: '~ sign me in ~' },
       footNote: IGNORE('sign in'),
     }),
   },
   // Restored once the flow it promises actually existed: requestPasswordReset
   // sends this, consumeAuthCallback recognises `type=recovery` rather than
   // treating it as an ordinary sign-in, and NewPasswordModal spends the session
-  // the link establishes on updateUser({ password }). Held back until then,
-  // because branding an email whose promise the app cannot keep only makes a
-  // dead end look trustworthy.
+  // the link establishes on updateUser({ password }).
   recovery: {
-    subject: 'Reset your password — Retrowave Blog',
-    html: shell({
+    subject: `Reset your password — ${BRAND.name}`,
+    html: renderEmail({
       preheader: 'Reset your password. Link expires in 60 minutes.',
       heading: '~ let&rsquo;s get u back in ~',
-      body: `<p style="margin:0;">forgot ur password? happens 2 the best of us.</p>
-             <p style="margin:12px 0 0;">tap below and u can pick a new one right away. the link expires in an hour.</p>`,
-      cta: URL,
-      ctaLabel: '~ reset my password ~',
-      footNote: `You&rsquo;re getting this because someone asked to reset the password for this address on Retrowave Blog. If that wasn&rsquo;t you, ignore this email &mdash; your password stays exactly as it is.`,
+      body:
+        p('forgot ur password? happens 2 the best of us &#9825;') +
+        p('tap below and u can pick a new one right away. the link expires in an hour.', '0'),
+      cta: { href: URL, label: '~ reset my password ~' },
+      footNote: `You&rsquo;re getting this because someone asked to reset the password for this address on ${BRAND.name}. If that wasn&rsquo;t you, ignore this email &mdash; your password stays exactly as it is.`,
     }),
   },
   email_change: {
-    subject: 'Confirm your new email — Retrowave Blog',
-    html: shell({
+    subject: `Confirm your new email — ${BRAND.name}`,
+    html: renderEmail({
       preheader: 'Confirm the new address for your account.',
       heading: '~ confirm ur new email ~',
-      body: `<p style="margin:0;">u asked 2 change the email on ur journal from
-             <strong>{{ .Email }}</strong> to <strong>{{ .NewEmail }}</strong>.</p>
-             <p style="margin:12px 0 0;">tap below 2 confirm the new address.</p>`,
-      cta: URL,
-      ctaLabel: '~ confirm the change ~',
+      body:
+        p('u asked 2 change the email on ur journal from <strong>{{ .Email }}</strong> to <strong>{{ .NewEmail }}</strong>.') +
+        p('tap below 2 confirm the new address.', '0'),
+      cta: { href: URL, label: '~ confirm the change ~' },
       footNote: IGNORE('change the email address'),
+    }),
+  },
+  // Both notifications are switched on in the project (mailer_notifications_*),
+  // and until 2026-09-18 went out in Supabase's unstyled default HTML.
+  password_changed_notification: {
+    subject: `Your password was changed — ${BRAND.name}`,
+    html: renderEmail({
+      preheader: 'The password on your journal was just changed.',
+      heading: '~ ur password was changed ~',
+      body:
+        p('the password 4 ur journal (<strong>{{ .Email }}</strong>) was just changed.') +
+        p('if that was u, ur all set &#9825; nothing else 2 do.', '0'),
+      footNote: NOT_YOU('the password was changed'),
+    }),
+  },
+  email_changed_notification: {
+    subject: `Your email was changed — ${BRAND.name}`,
+    html: renderEmail({
+      preheader: 'The email address on your journal was changed.',
+      heading: '~ ur email was changed ~',
+      body:
+        p('the email on ur journal changed from <strong>{{ .OldEmail }}</strong> 2 <strong>{{ .Email }}</strong>.') +
+        p('if that was u, ur all set &#9825;', '0'),
+      footNote: NOT_YOU('the email address was changed'),
     }),
   },
 };
@@ -168,7 +139,8 @@ if (process.argv.includes('--push')) {
     .trim();
   const ref = readFileSync(join(HERE, '../.temp/project-ref'), 'utf8').trim();
 
-  const payload = {};
+  // The sender name is the store name too; it said "Retrowave Blog".
+  const payload = { smtp_sender_name: BRAND.name };
   for (const [name, t] of Object.entries(TEMPLATES)) {
     payload[`mailer_templates_${name}_content`] = t.html;
     payload[`mailer_subjects_${name}`] = t.subject;

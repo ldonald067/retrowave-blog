@@ -49,6 +49,18 @@ teenager's personal page from the mid-2000s.
 **Anti-patterns:** clean sans-serif type, flat design, muted palettes, corporate
 button styles, professional copy ("Submit", "Continue", "Get Started").
 
+## Emails
+
+Every email — the Supabase auth templates, the account-deletion confirmation,
+the report notification — renders through `supabase/functions/_shared/email.ts`:
+the classic-xanga palette as literal hex, the Comic title font, sparkles, a
+dotted card and a `.xanga-button` CTA, in tables and inline styles because
+email clients strip everything else. Change the design there, never in a single
+template. Auth templates build and push with
+`node supabase/templates/build.mjs --push`; the functions pick it up on deploy.
+Voice goes in the body. Subjects and the "why you got this" line stay plain, so
+real mail does not read as phishing.
+
 ## Copy voice
 
 | Instead of | Write |

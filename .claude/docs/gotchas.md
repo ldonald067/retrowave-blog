@@ -73,6 +73,7 @@ section they belong to — not at the bottom.
 - **Do not trust a check that matches on SQL text.** Prod writes the same guarantee differently (`v_user_id := auth.uid()`, `public.normalize_chapter()`), and two privacy smoke checks reported FAIL against correct code.
 - The reports table is `content_reports`, not `reports`.
 - **An edge function the app calls must allow `capacitor://localhost` in its CORS list** — that is the iOS app's origin, and WKWebView enforces CORS like a browser. `delete-account` does; `moderate-content` does not (open question in the handoff).
+- **Auth email templates live in the dashboard but are sourced from the repo.** `node supabase/templates/build.mjs --push` renders them from `supabase/functions/_shared/email.ts` and PATCHes them (and the sender name) into the project; editing them in the dashboard forks the design. Verify by comparing the live `mailer_templates_*_content` to `supabase/templates/out/`.
 - **Never let an edge function reachable with the anon key email an address from its input.** It becomes a relay for mail from retrowaveblog.com. `delete-account` takes the recipient from the caller's verified session; `notify-report` only ever emails support@.
 
 ## Auth and email

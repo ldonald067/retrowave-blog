@@ -27,6 +27,7 @@
 // thinner.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { renderEmail, p, callout, escapeHtml, BRAND } from '../_shared/email.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://retrowaveblog.com';
@@ -52,13 +53,6 @@ const REASON_LABELS: Record<string, string> = {
   other: 'Something else',
 };
 
-function escapeHtml(value: unknown): string {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
 
 async function restGet(path: string): Promise<Record<string, unknown>[]> {
   if (!SUPABASE_URL || !SERVICE_ROLE_KEY) return [];
@@ -142,58 +136,55 @@ serve(async (req) => {
     const author = ctx.authorUsername ? `@${ctx.authorUsername}` : String(row.reported_user_id);
     const repeat =
       ctx.reportCount && ctx.reportCount > 1
-        ? `<p style="margin:12px 0;padding:8px 12px;background:#fff4e5;border-left:3px solid #e08600">
-             <strong>${ctx.reportCount} reports</strong> have been filed against this entry.</p>`
+        ? callout(`<strong>${ctx.reportCount} reports</strong> have been filed against this entry.`, 'amber')
         : '';
     const alreadyPrivate = ctx.isPrivate
-      ? `<p style="margin:12px 0;padding:8px 12px;background:#eef7ee;border-left:3px solid #4c9a4c">
-           This entry is already private — it is not publicly visible.</p>`
+      ? callout('This entry is already private — it is not publicly visible.', 'purple')
       : '';
 
     const subjectTitle = ctx.title
       ? `“${ctx.title.slice(0, 60)}”`
       : `entry ${String(row.post_id).slice(0, 8)}`;
 
-    const html = `
-      <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5">
-        <h2 style="margin:0 0 4px">${escapeHtml(reason)}</h2>
-        <p style="margin:0 0 16px;color:#666">reported by ${escapeHtml(reporter)} · ${escapeHtml(row.created_at)}</p>
-
-        ${repeat}
-        ${alreadyPrivate}
-
-        <div style="border:1px solid #ddd;border-radius:8px;padding:12px 16px;margin:16px 0">
-          <p style="margin:0 0 6px;color:#666;font-size:12px">ENTRY BY ${escapeHtml(author)}</p>
-          <p style="margin:0 0 10px;font-size:16px;font-weight:bold">${escapeHtml(ctx.title ?? '(no title)')}</p>
-          <div style="white-space:pre-wrap;color:#222">${escapeHtml(ctx.excerpt ?? '(content unavailable)')}</div>
-        </div>
-
-        ${
-          row.details
-            ? `<p style="margin:16px 0 4px"><strong>Reporter's note</strong></p>
-               <blockquote style="margin:0;padding:8px 12px;border-left:3px solid #ccc;white-space:pre-wrap">${escapeHtml(row.details)}</blockquote>`
-            : ''
-        }
-
-        <p style="margin:24px 0 8px">
-          <a href="${APP_SCHEME}#/report/${escapeHtml(row.id)}"
-             style="display:inline-block;background:#cc3388;color:#fff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold">
-            Review in app
-          </a>
-        </p>
-        <p style="color:#666;font-size:12px;margin:4px 0 20px">
-          Opens the moderation screen. You must be signed in as an admin — the link grants nothing on its own.
-        </p>
-
-        <details style="color:#666;font-size:12px">
-          <summary>Do it in SQL instead</summary>
-          <pre style="background:#f6f6f6;padding:10px;border-radius:6px;overflow-x:auto">-- hide the entry
+    // The operator's email, so plain English where it counts: this is a
+    // decision, made quickly, often from a phone. The shell is the same as
+    // every user-facing email (_shared/email.ts).
+    const entry = `<div style="margin:6px 0 16px;padding:12px 16px;border:2px dotted ${BRAND.border};border-radius:10px;background:#fff8fb;">
+        <p style="margin:0 0 6px;font-family:Verdana,sans-serif;font-size:11px;letter-spacing:1px;color:${BRAND.subtitle};">ENTRY BY ${escapeHtml(author)}</p>
+        <p style="margin:0 0 8px;font-family:'Comic Sans MS','Comic Neue',cursive;font-size:17px;font-weight:bold;color:${BRAND.title};">${escapeHtml(ctx.title ?? '(no title)')}</p>
+        <div style="white-space:pre-wrap;font-family:Verdana,sans-serif;font-size:14px;line-height:1.5;color:${BRAND.body};">${escapeHtml(ctx.excerpt ?? '(content unavailable)')}</div>
+      </div>`;
+    const note = row.details
+      ? p('<strong>Reporter&rsquo;s note</strong>', '0 0 4px') +
+        `<blockquote style="margin:0 0 14px;padding:8px 12px;border-left:4px solid ${BRAND.border};white-space:pre-wrap;font-family:Verdana,sans-serif;font-size:14px;color:${BRAND.body};">${escapeHtml(row.details)}</blockquote>`
+      : '';
+    const sql = `<details style="margin:10px 0 0;font-family:Verdana,sans-serif;font-size:12px;color:${BRAND.muted};">
+        <summary>Do it in SQL instead</summary>
+        <pre style="background:#f6f0fa;padding:10px;border-radius:6px;overflow-x:auto">-- hide the entry
 update posts set is_private = true where id = '${escapeHtml(row.post_id)}';
 -- mark this report handled
 update content_reports set status = 'actioned' where id = '${escapeHtml(row.id)}';</pre>
-        </details>
-        <p style="color:#666;font-size:12px">${escapeHtml(SITE_URL)}</p>
-      </div>`;
+      </details>`;
+
+    const html = renderEmail({
+      preheader: `${reason} — reported by ${reporter}`,
+      heading: '~ new report 2 review ~',
+      body:
+        p(`<strong>${escapeHtml(reason)}</strong><br><span style="color:${BRAND.muted};font-size:13px;">reported by ${escapeHtml(reporter)} · ${escapeHtml(row.created_at)}</span>`) +
+        repeat +
+        alreadyPrivate +
+        entry +
+        note,
+      cta: {
+        href: `${APP_SCHEME}#/report/${escapeHtml(row.id)}`,
+        label: '~ review in app ~',
+        showRawLink: false,
+      },
+      footNote:
+        `Opens the moderation screen. You must be signed in as an admin — the link grants nothing on its own. ${escapeHtml(SITE_URL)}` +
+        sql,
+      signOff: '&#10024; thanks 4 keeping it kind &#10024;',
+    });
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',

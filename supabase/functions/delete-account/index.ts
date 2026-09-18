@@ -23,6 +23,7 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { renderEmail, p, escapeHtml, BRAND } from '../_shared/email.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://retrowaveblog.com';
@@ -57,14 +58,6 @@ function json(body: unknown, origin: string | null, status = 200) {
   });
 }
 
-function escapeHtml(value: unknown): string {
-  return String(value ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 async function sendDeletionEmail(to: string, username: string | null): Promise<boolean> {
   if (!RESEND_API_KEY) {
     console.error('delete-account: RESEND_API_KEY not set — account deleted, no email sent');
@@ -72,19 +65,21 @@ async function sendDeletionEmail(to: string, username: string | null): Promise<b
   }
 
   const when = new Date().toUTCString();
-  const who = username ? ` (@${escapeHtml(username)})` : '';
-  const html = `
-    <div style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#333;max-width:520px">
-      <p style="margin:0 0 16px;font-size:18px;color:#d6157e"><strong>~ farewell friend ~</strong></p>
-      <p style="margin:0 0 12px">Your Retrowave Journal account${who} was permanently deleted on ${escapeHtml(when)}.</p>
-      <p style="margin:0 0 12px">That includes every entry, your profile, your reactions and your block list. It can't be undone, and there's nothing else you need to do.</p>
-      <p style="margin:0 0 12px">If you didn't ask for this, reply to this email or write to <a href="mailto:${SUPPORT_EMAIL}" style="color:#d6157e">${SUPPORT_EMAIL}</a>.</p>
-      <p style="margin:24px 0 0;color:#6d1b96">✨ thanks 4 writing with us ✨</p>
-    </div>`;
+  const who = username ? ` (<strong>@${escapeHtml(username)}</strong>)` : '';
+  const html = renderEmail({
+    preheader: 'Your journal and everything in it has been permanently deleted.',
+    heading: '~ farewell friend ~',
+    body:
+      p(`ur ${BRAND.name} account${who} was permanently deleted on ${escapeHtml(when)}.`) +
+      p('that includes every entry, ur profile, ur reactions and ur block list. it can&rsquo;t be undone, and there&rsquo;s nothing else u need 2 do.') +
+      p('thanks 4 writing with us &#9825; ur always welcome back.', '0'),
+    footNote: `You&rsquo;re getting this because the account for this address was deleted from inside the app. If you didn&rsquo;t ask for this, reply to this email or write to <a href="mailto:${SUPPORT_EMAIL}" style="color:${BRAND.accent};">${SUPPORT_EMAIL}</a>.`,
+    signOff: '&#10024; xoxo, Retrowave Journal &#10024;',
+  });
   const text = [
     '~ farewell friend ~',
     '',
-    `Your Retrowave Journal account${username ? ` (@${username})` : ''} was permanently deleted on ${when}.`,
+    `Your ${BRAND.name} account${username ? ` (@${username})` : ''} was permanently deleted on ${when}.`,
     '',
     "That includes every entry, your profile, your reactions and your block list. It can't be undone, and there's nothing else you need to do.",
     '',
