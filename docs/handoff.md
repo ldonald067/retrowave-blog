@@ -6,7 +6,7 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `b699dc7` (code) — after the iPhone SE pass, its
+Last rewritten 2026-09-17, at `eee02de` (code) — after the iPhone SE pass, its
 fixes, a round of feed spacing and both marquees from your screenshots, and a
 full docs cleanup.
 
@@ -38,8 +38,7 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 for anything UI**. 59 findings are logged — 41 from the main audit, 12 from the
 iPhone SE pass, 6 since — and all are fixed except 52, left as is on purpose.
 
-**Journey coverage is not complete.** Never exercised: age verification, the
-sign-up flow, delete-entry confirm, the YouTube card, a long feed, the avatar
+**Journey coverage is not complete.** Never exercised: delete-entry confirm, the YouTube card, a long feed, the avatar
 picker, and block from a public profile. Read the plan's
 checkboxes, not this summary, before calling a surface done.
 
@@ -119,12 +118,19 @@ iPhone 17 Pro Max simulator unless noted.
   prod with approval, and the retry removed the login, identity, sessions and
   profile (6 users / 6 profiles remain). Export my data was checked on the same
   account: the share sheet's JSON matched prod and the cached copy was deleted.
-  The post-deletion messages (finding 61) are fixed in tests only.
+  Re-run end to end the same day on a re-created `nonoabc2345`, through the
+  `delete-account` function (`POST 200`, no logged errors): only the farewell
+  showed (finding 61 confirmed on device) and every row went, including a public
+  entry. That run also covered sign-up → confirmation email → age gate → first
+  entry, and proved **`moderate-content` now runs from the iOS app**
+  (`41fe32c`, `POST 200` logged for the public entry).
 - **Every email is on brand** (`b699dc7`): one design in
   `supabase/functions/_shared/email.ts`, used by all six auth templates (pushed
   and compared equal to the repo), the deletion email and the report email;
-  sender and subjects say Retrowave Journal. Rendered at 320–430px, not yet seen
-  in a real inbox.
+  sender and subjects say Retrowave Journal. The first version showed in Gmail
+  on your iPhone 16 with the wordmark and button text washed out by dark mode;
+  `eee02de` keeps all text off gradients. The redesign is not yet confirmed in
+  Gmail dark mode.
 - **Deletion confirmation email** (`5992357`): deletion now runs through the
   `delete-account` edge function (deployed with approval, JWT on), which emails
   the account's own address after the deletion succeeds. Checked: 401 without a
@@ -148,10 +154,6 @@ iPhone 17 Pro Max simulator unless noted.
 - **Store screenshots `02-feed`, `03-composer` and `05-public-profile` still
   show the old fixed marquees** (`d4d2f2f`, `f06dce4`). A small drift; recapture
   if you want them exact.
-- **`moderate-content` from the iOS app — fixed, not yet seen working.** Its CORS
-  list lacked `capacitor://localhost`, so every call from the app was discarded
-  and moderation failed open (`41fe32c`, redeployed; preflights now pass). An
-  actual public entry posted from the simulator has not been checked yet.
 - **Signing out is global.** `supabase.auth.signOut()` defaults to
   `scope: 'global'`, so signing out on one device ends that account's session
   everywhere within the hour. That is how the SE lost `ldonald234` on 2026-09-17.

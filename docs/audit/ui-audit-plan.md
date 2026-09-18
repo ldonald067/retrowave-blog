@@ -67,7 +67,7 @@ accent.
 
 ## Phase 3 — First run
 
-- [ ] Signup → confirmation screen → age gate → empty journal → first entry
+- [x] Signup → confirmation email → age gate → empty journal → first entry — SE, 2026-09-18, by the owner on the re-created `nonoabc2345`; the entry was public and `moderate-content` logged `POST 200` from the app
 - [ ] Empty state with and without the floating button
 - [ ] `NewPasswordModal` via a recovery link
 
@@ -295,7 +295,7 @@ assigned.
 | 59  | MED      | Feed                     | The floating "new entry" button could sit over the last post's reactions with nothing left to scroll — the feed's own box never got the page's clearance. Previously dismissed; your screenshots showed it. Feed now ends in `.feed-fab-clearance` | Fixed `d1dbacb` / `fbb4840`                            |
 
 | 60 | **CRITICAL** | Account deletion | **Deleting an account failed for every user.** Prod's `profiles_id_fkey` was NO ACTION though the migrations declare CASCADE, so `delete_user_account` raised 23503 and rolled back. Guideline 5.1.1 | Fixed `58275a8`, applied to prod, verified by deleting `nonoabc2345` |
-| 61 | MED | Account deletion | A successful deletion ended on "~ ur session expired, sign in again ~" beside the farewell — the modal signed out directly, which `useAuth` reads as an expired session. A failure showed "references a record that does not exist" | Fixed `abacd08` (tests; not yet seen on device) |
+| 61 | MED | Account deletion | A successful deletion ended on "~ ur session expired, sign in again ~" beside the farewell — the modal signed out directly, which `useAuth` reads as an expired session. A failure showed "references a record that does not exist" | Fixed `abacd08`, seen on the SE 2026-09-18 |
 | 62 | MED | Outline buttons | Six dotted-outline buttons labelled in `--text-body`: Settings export and close, both cancels, dismiss, unpublish. Now `.xanga-button-ghost` | Fixed `4aed4fb` |
 
 Findings 45–62 lifted the count from 41 to 59 (numbers 40–42 unassigned).
