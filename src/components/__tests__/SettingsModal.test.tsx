@@ -29,6 +29,7 @@ vi.mock('framer-motion', async () => {
 vi.mock('../../lib/supabase', () => ({
   supabase: {
     rpc: vi.fn(),
+    functions: { invoke: vi.fn() },
     auth: { signOut: vi.fn() },
   },
 }));
@@ -52,7 +53,9 @@ import SettingsModal from '../SettingsModal';
 import { supabase } from '../../lib/supabase';
 
 /**
- * Account deletion, end to end inside the modal. The regression these guard:
+ * Account deletion, end to end inside the modal. Deletion goes through the
+ * delete-account edge function, which also sends the confirmation email. The
+ * regression these guard:
  * the modal called supabase.auth.signOut directly, which useAuth read as an
  * expired session — so a successful deletion showed "ur session expired"
  * beside the farewell.
@@ -77,11 +80,15 @@ describe('SettingsModal account deletion', () => {
   }
 
   it('signs out through the app, locally, and says farewell', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({ data: null, error: null } as never);
+    vi.mocked(supabase.functions.invoke).mockResolvedValue({
+      data: { deleted: true, emailed: true },
+      error: null,
+    } as never);
     const handlers = renderAndConfirm();
 
     await waitFor(() => expect(handlers.onSuccess).toHaveBeenCalled());
-    expect(supabase.rpc).toHaveBeenCalledWith('delete_user_account');
+    // Through the edge function, which emails the user; no recipient is sent.
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('delete-account', { method: 'POST' });
     expect(handlers.onSignOut).toHaveBeenCalledWith({ scope: 'local' });
     expect(supabase.auth.signOut).not.toHaveBeenCalled();
     expect(handlers.onSuccess).toHaveBeenCalledWith(expect.stringMatching(/farewell/));
@@ -89,9 +96,12 @@ describe('SettingsModal account deletion', () => {
   });
 
   it('says nothing was removed when the deletion fails, and stays signed in', async () => {
-    vi.mocked(supabase.rpc).mockResolvedValue({
-      data: null,
-      error: { code: '23503', message: 'violates foreign key constraint' },
+    vi.mocked(supabase.functions.invoke).mockResolvedValue({
+      data: { deleted: false },
+      error: {
+        name: 'FunctionsHttpError',
+        message: 'Edge Function returned a non-2xx status code',
+      },
     } as never);
     const handlers = renderAndConfirm();
 

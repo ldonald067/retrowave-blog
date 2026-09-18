@@ -85,8 +85,16 @@ export default function SettingsModal({
         return;
       }
 
-      const { error } = await withRetry(async () => supabase.rpc('delete_user_account'));
-      if (error) throw error;
+      // The delete-account edge function runs delete_user_account() as this
+      // user and then emails them a confirmation — to the address on their own
+      // session, never one the client supplies. Not wrapped in withRetry: a
+      // retry after a deletion that succeeded but whose response was lost
+      // would only fail with 401.
+      const { data, error } = await supabase.functions.invoke<{
+        deleted: boolean;
+        emailed?: boolean;
+      }>('delete-account', { method: 'POST' });
+      if (error || !data?.deleted) throw error ?? new Error('Account deletion failed');
 
       await hapticImpact();
 
