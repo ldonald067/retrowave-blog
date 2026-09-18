@@ -6,7 +6,7 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `abacd08` (code) — after the iPhone SE pass, its
+Last rewritten 2026-09-17, at `5992357` (code) — after the iPhone SE pass, its
 fixes, a round of feed spacing and both marquees from your screenshots, and a
 full docs cleanup.
 
@@ -120,6 +120,11 @@ iPhone 17 Pro Max simulator unless noted.
   profile (6 users / 6 profiles remain). Export my data was checked on the same
   account: the share sheet's JSON matched prod and the cached copy was deleted.
   The post-deletion messages (finding 61) are fixed in tests only.
+- **Deletion confirmation email** (`5992357`): deletion now runs through the
+  `delete-account` edge function (deployed with approval, JWT on), which emails
+  the account's own address after the deletion succeeds. Checked: 401 without a
+  session, and the iOS origin passes CORS. **Not yet seen end to end** — needs a
+  throwaway account with an inbox you can read.
 
 ## Open work
 
@@ -138,6 +143,12 @@ iPhone 17 Pro Max simulator unless noted.
 - **Store screenshots `02-feed`, `03-composer` and `05-public-profile` still
   show the old fixed marquees** (`d4d2f2f`, `f06dce4`). A small drift; recapture
   if you want them exact.
+- **`moderate-content` may never run from the iOS app.** Its CORS allowlist is
+  the site and localhost only — not `capacitor://localhost`, the app's origin —
+  and the client fails open when the call fails. If WKWebView blocks it, public
+  entries posted from iPhone skip the AI check that the App Review notes
+  promise. Unverified; check on device before submission (`delete-account`
+  includes the origin).
 - **Signing out is global.** `supabase.auth.signOut()` defaults to
   `scope: 'global'`, so signing out on one device ends that account's session
   everywhere within the hour. That is how the SE lost `ldonald234` on 2026-09-17.

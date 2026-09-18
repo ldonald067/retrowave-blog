@@ -72,6 +72,8 @@ section they belong to — not at the bottom.
 - `supabase migration list` and `test db` fail like `db push` (the hosted project refuses the CLI's login role). Verify schema by querying prod — recipe in `CLAUDE.md`.
 - **Do not trust a check that matches on SQL text.** Prod writes the same guarantee differently (`v_user_id := auth.uid()`, `public.normalize_chapter()`), and two privacy smoke checks reported FAIL against correct code.
 - The reports table is `content_reports`, not `reports`.
+- **An edge function the app calls must allow `capacitor://localhost` in its CORS list** — that is the iOS app's origin, and WKWebView enforces CORS like a browser. `delete-account` does; `moderate-content` does not (open question in the handoff).
+- **Never let an edge function reachable with the anon key email an address from its input.** It becomes a relay for mail from retrowaveblog.com. `delete-account` takes the recipient from the caller's verified session; `notify-report` only ever emails support@.
 
 ## Auth and email
 
