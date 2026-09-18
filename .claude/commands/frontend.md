@@ -59,7 +59,9 @@ email clients strip everything else. Change the design there, never in a single
 template. Auth templates build and push with
 `node supabase/templates/build.mjs --push`; the functions pick it up on deploy.
 Voice goes in the body. Subjects and the "why you got this" line stay plain, so
-real mail does not read as phishing.
+real mail does not read as phishing. **Never put text on a gradient** in an
+email: Gmail's dark mode flips solid colours but not background images, so text
+on a gradient turns invisible. Gradients are frames; words sit on solid colour.
 
 ## Copy voice
 
