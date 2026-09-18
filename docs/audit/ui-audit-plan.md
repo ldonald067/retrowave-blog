@@ -88,15 +88,15 @@ accent.
 
 ## Phase 5 — Identity and settings
 
-| Surface                         | `/mobile` | `/frontend` | Notes                                                  |
-| ------------------------------- | --------- | ----------- | ------------------------------------------------------ |
-| Profile modal — profile tab     | [x]       | [x]         |                                                        |
-| Profile modal — vibe tab        | [x]       | [x]         | theme picker; `/frontend` via Phase 7c                 |
-| Profile modal — public page tab | [x]       | [x]         | `PublicPageSettings`; finding 27; SE, voice fixed (55) |
-| Avatar picker                   | [ ]       | [ ]         |                                                        |
-| Settings                        | [x]       | [x]         | emo-dark; SE                                           |
-| Export data                     | [ ]       | [ ]         | writes a file on device                                |
-| Delete account confirm          | [ ]       | [ ]         | **do not confirm**                                     |
+| Surface                         | `/mobile` | `/frontend` | Notes                                                         |
+| ------------------------------- | --------- | ----------- | ------------------------------------------------------------- |
+| Profile modal — profile tab     | [x]       | [x]         |                                                               |
+| Profile modal — vibe tab        | [x]       | [x]         | theme picker; `/frontend` via Phase 7c                        |
+| Profile modal — public page tab | [x]       | [x]         | `PublicPageSettings`; finding 27; SE, voice fixed (55)        |
+| Avatar picker                   | [ ]       | [ ]         |                                                               |
+| Settings                        | [x]       | [x]         | emo-dark; SE                                                  |
+| Export data                     | [x]       | [x]         | SE, 2026-09-18: share sheet, JSON matched prod, cache cleared |
+| Delete account confirm          | [x]       | [x]         | SE, 2026-09-18, `nonoabc2345` deleted with approval — 60, 61  |
 
 ## Phase 6 — Public and social
 
@@ -233,7 +233,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**56 findings, all fixed except 52** (left as is on purpose).
+**59 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -294,7 +294,11 @@ assigned.
 | 58  | MED      | Feed search card         | The collapsed "find old entries" card always rendered its empty filter-chip container, adding 12pt of dead margin                                                                                                                                  | Fixed `c0c1a15`                                        |
 | 59  | MED      | Feed                     | The floating "new entry" button could sit over the last post's reactions with nothing left to scroll — the feed's own box never got the page's clearance. Previously dismissed; your screenshots showed it. Feed now ends in `.feed-fab-clearance` | Fixed `d1dbacb` / `fbb4840`                            |
 
-Findings 45–59 lifted the count from 41 to 56 (numbers 40–42 unassigned).
+| 60 | **CRITICAL** | Account deletion | **Deleting an account failed for every user.** Prod's `profiles_id_fkey` was NO ACTION though the migrations declare CASCADE, so `delete_user_account` raised 23503 and rolled back. Guideline 5.1.1 | Fixed `58275a8`, applied to prod, verified by deleting `nonoabc2345` |
+| 61 | MED | Account deletion | A successful deletion ended on "~ ur session expired, sign in again ~" beside the farewell — the modal signed out directly, which `useAuth` reads as an expired session. A failure showed "references a record that does not exist" | Fixed `abacd08` (tests; not yet seen on device) |
+| 62 | MED | Outline buttons | Six dotted-outline buttons labelled in `--text-body`: Settings export and close, both cancels, dismiss, unpublish. Now `.xanga-button-ghost` | Fixed `4aed4fb` |
+
+Findings 45–62 lifted the count from 41 to 59 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 

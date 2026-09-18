@@ -6,7 +6,7 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `92ef0c2` (code) — after the iPhone SE pass, its
+Last rewritten 2026-09-17, at `abacd08` (code) — after the iPhone SE pass, its
 fixes, a round of feed spacing and both marquees from your screenshots, and a
 full docs cleanup.
 
@@ -35,13 +35,12 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 ## The UI audit
 
 `docs/audit/ui-audit-plan.md` is the checklist and findings log — **start there
-for anything UI**. 56 findings are logged — 41 from the main audit, 12 from the
-iPhone SE pass, 3 from your screenshots — and all are fixed except 52, left as is
-on purpose.
+for anything UI**. 59 findings are logged — 41 from the main audit, 12 from the
+iPhone SE pass, 6 since — and all are fixed except 52, left as is on purpose.
 
 **Journey coverage is not complete.** Never exercised: age verification, the
-first-run flow, delete confirm, the YouTube card, a long feed, the avatar
-picker, data export, and block from a public profile. Read the plan's
+sign-up flow, delete-entry confirm, the YouTube card, a long feed, the avatar
+picker, and block from a public profile. Read the plan's
 checkboxes, not this summary, before calling a surface done.
 
 The design system is written into `/frontend` (size tiers, style encodes kind,
@@ -114,6 +113,13 @@ iPhone 17 Pro Max simulator unless noted.
   with the icon popping in and sparkles twinkling before it fades into the app
   (`92ef0c2`). Cold-launch frames show still image → curtain at the same size →
   feed; with Reduce Motion on, two frames are identical below the status bar.
+- **Account deletion, end to end** (2026-09-18, SE, `nonoabc2345`, deleted with
+  your approval). The first attempt failed for **every user** — prod's
+  `profiles_id_fkey` was NO ACTION (finding 60); fixed in `58275a8`, applied to
+  prod with approval, and the retry removed the login, identity, sessions and
+  profile (6 users / 6 profiles remain). Export my data was checked on the same
+  account: the share sheet's JSON matched prod and the cached copy was deleted.
+  The post-deletion messages (finding 61) are fixed in tests only.
 
 ## Open work
 
