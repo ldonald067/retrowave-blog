@@ -6,7 +6,7 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `8b3e88d` (code) — after the iPhone SE pass, its
+Last rewritten 2026-09-17, at `8c6d006` (code) — after the iPhone SE pass, its
 fixes, a round of feed spacing and both marquees from your screenshots, and a
 full docs cleanup.
 
@@ -35,9 +35,9 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 ## The UI audit
 
 `docs/audit/ui-audit-plan.md` is the checklist and findings log — **start there
-for anything UI**. 63 findings are logged — 41 from the main audit, 12 from the
-iPhone SE pass, 10 since (four from the first `/adversarial-review`) — and all are
-fixed except 52, left as is on purpose.
+for anything UI**. 68 findings are logged — 41 from the main audit, 12 from the
+iPhone SE pass, 15 since (nine from two `/adversarial-review` runs) — and all
+are fixed except 52, left as is on purpose.
 
 **Journey coverage is not complete.** Never exercised: delete-entry confirm, the YouTube card, a long feed, the avatar
 picker, and block from a public profile. Read the plan's
@@ -151,6 +151,12 @@ iPhone 17 Pro Max simulator unless noted.
   look-alikes by capitalisation are impossible. A reset to the current password
   now says so instead of "Something went wrong". Existing accounts keep their
   email-derived names until changed in the profile editor.
+- **Username review fixes** (`8c6d006`, migration `20260919010000`, applied
+  with approval): nothing is derived from the email any more (the display name
+  starts empty, so **first-run setup is back** — no new user had ever seen it);
+  operator-like names are reserved; profiles are created on email confirmation,
+  so unfinished sign-ups hold no name; setup says when a chosen name was lost;
+  the username field is first. **Not yet proven by a real sign-up.**
 
 ## Open work
 
