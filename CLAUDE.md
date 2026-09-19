@@ -75,17 +75,18 @@ config that would otherwise be invisible to the repo.
 
 ## Skills
 
-| Skill        | When to use                                               |
-| ------------ | --------------------------------------------------------- |
-| `/frontend`  | Theming, components, CSS, Xanga aesthetic, responsive     |
-| `/feature`   | Supabase RPCs, hooks, auth patterns, error handling       |
-| `/fullstack` | Audit: RPC types, RLS policies, shared data contracts     |
-| `/mobile`    | Layout, touch targets, Dynamic Type, App Store compliance |
-| `/ios`       | Cold start, lifecycle, session/storage durability, bridge |
-| `/migration` | SQL migrations, syncing database.ts + validation.ts       |
-| `/test`      | Vitest mock patterns, Supabase chain mocking              |
-| `/preflight` | Pre-commit gate in CI order, diagnose failures            |
-| `/release`   | iOS build, Capacitor sync, App Store submission checklist |
+| Skill                 | When to use                                               |
+| --------------------- | --------------------------------------------------------- |
+| `/frontend`           | Theming, components, CSS, Xanga aesthetic, responsive     |
+| `/feature`            | Supabase RPCs, hooks, auth patterns, error handling       |
+| `/fullstack`          | Audit: RPC types, RLS policies, shared data contracts     |
+| `/mobile`             | Layout, touch targets, Dynamic Type, App Store compliance |
+| `/ios`                | Cold start, lifecycle, session/storage durability, bridge |
+| `/migration`          | SQL migrations, syncing database.ts + validation.ts       |
+| `/test`               | Vitest mock patterns, Supabase chain mocking              |
+| `/preflight`          | Pre-commit gate in CI order, diagnose failures            |
+| `/release`            | iOS build, Capacitor sync, App Store submission checklist |
+| `/adversarial-review` | Try to break recent changes; report only proven findings  |
 
 ## Key Docs (Progressive Disclosure)
 
