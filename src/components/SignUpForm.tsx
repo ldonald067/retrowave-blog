@@ -6,7 +6,13 @@ import { Input } from './ui';
 import Toast from './Toast';
 import { signUpWithPassword } from '../lib/auth-actions';
 import { useToast } from '../hooks/useToast';
-import { validatePassword } from '../lib/validation';
+import {
+  validatePassword,
+  normalizeUsername,
+  validateUsername,
+  USERNAME_LIMITS,
+} from '../lib/validation';
+import { isUsernameAvailable } from '../lib/username';
 import { isNativePlatform } from '../lib/capacitor';
 
 interface SignUpFormProps {
@@ -17,6 +23,9 @@ interface SignUpFormProps {
 
 export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
   const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [usernameFree, setUsernameFree] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [step, setStep] = useState<'email' | 'age' | 'success'>('email');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,10 +35,35 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
 
   const clearErrors = () => {
     setEmailError('');
+    setUsernameError('');
     setPasswordError('');
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  /**
+   * Format first (no network), then availability. Returns false only when the
+   * name is definitely unusable; an availability check that failed lets sign-up
+   * continue, since the unique index still guards and the sign-up trigger falls
+   * back to a suffixed name rather than failing.
+   */
+  const checkUsername = async (raw: string): Promise<boolean> => {
+    const name = normalizeUsername(raw);
+    const problem = validateUsername(name);
+    if (problem) {
+      setUsernameError(problem);
+      setUsernameFree(null);
+      return false;
+    }
+    const available = await isUsernameAvailable(name);
+    if (available === false) {
+      setUsernameError(`~ @${name} is taken, try another ~`);
+      setUsernameFree(null);
+      return false;
+    }
+    setUsernameFree(available ? name : null);
+    return true;
+  };
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearErrors();
 
@@ -51,6 +85,8 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
       hasError = true;
     }
 
+    if (!(await checkUsername(username))) hasError = true;
+
     if (hasError) return;
     setStep('age');
   };
@@ -71,7 +107,8 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
         email,
         password,
         birthYear,
-        tosAccepted
+        tosAccepted,
+        normalizeUsername(username)
       );
 
       if (error) {
@@ -110,6 +147,8 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
 
   const handleStartOver = () => {
     setEmail('');
+    setUsername('');
+    setUsernameFree(null);
     setPassword('');
     clearErrors();
     setStep('email');
@@ -205,6 +244,38 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
             spellCheck={false}
             autoFocus
           />
+
+          {/* nickname, not username: iOS AutoFill pairs `username` with a saved
+              login, and this field is a new public handle, not a credential. */}
+          <div>
+            <Input
+              label="pick a username:"
+              type="text"
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value.toLowerCase());
+                setUsernameError('');
+                setUsernameFree(null);
+              }}
+              onBlur={() => {
+                if (username) void checkUsername(username);
+              }}
+              placeholder="glitterqueen2005"
+              error={usernameError}
+              autoComplete="nickname"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              maxLength={USERNAME_LIMITS.max}
+            />
+            {!usernameError && (
+              <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+                {usernameFree
+                  ? `~ @${usernameFree} is all urs ~`
+                  : "ur @handle on a public page. it's not ur email, so it stays private"}
+              </p>
+            )}
+          </div>
 
           {/* new-password, not current-password: this is the token that makes iOS
               offer to generate and save a strong password. Worth having, because

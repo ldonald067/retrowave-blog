@@ -42,6 +42,8 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useBlocks } from '../hooks/useBlocks';
 import { sparkleBurst, emojiRain } from '../lib/celebrations';
 import { buildPublicProfileUrl } from '../lib/publicProfile';
+import { normalizeUsername, validateUsername, USERNAME_LIMITS } from '../lib/validation';
+import { isUsernameAvailable } from '../lib/username';
 import type { Profile } from '../types/profile';
 import ConfirmDialog from './ConfirmDialog';
 import PublicPageSettings from './PublicPageSettings';
@@ -109,6 +111,7 @@ export default function ProfileModal({
   isInitialSetup = false,
 }: ProfileModalProps) {
   const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -117,6 +120,7 @@ export default function ProfileModal({
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<{
     displayName?: string;
+    username?: string;
     statusMessage?: string;
     bio?: string;
   }>({});
@@ -161,6 +165,7 @@ export default function ProfileModal({
     setPrevProfile(profile);
     if (profile) {
       setDisplayName(profile.display_name || '');
+      setUsername(profile.username || '');
       setStatusMessage(profile.status_message || '');
       setBio(profile.bio || '');
       setAvatarUrl(profile.avatar_url || '');
@@ -188,8 +193,22 @@ export default function ProfileModal({
     setActiveSection('profile');
   }
 
+  const usernameChanged = normalizeUsername(username) !== (profile?.username ?? '');
+
   const validate = (): boolean => {
-    const newErrors: { displayName?: string; statusMessage?: string; bio?: string } = {};
+    const newErrors: {
+      displayName?: string;
+      username?: string;
+      statusMessage?: string;
+      bio?: string;
+    } = {};
+
+    // Only a changed username is checked: names generated before usernames
+    // were chosen can be up to 50 characters, and must still save untouched.
+    if (usernameChanged) {
+      const problem = validateUsername(normalizeUsername(username));
+      if (problem) newErrors.username = problem;
+    }
 
     // Require display name for initial setup
     if (isInitialSetup && !displayName.trim()) {
@@ -222,6 +241,18 @@ export default function ProfileModal({
 
     setSaving(true);
 
+    if (usernameChanged) {
+      const name = normalizeUsername(username);
+      // null (the check failed) falls through: the unique index still guards,
+      // and updateProfile turns a clash into "That username is taken."
+      if ((await isUsernameAvailable(name)) === false) {
+        setErrors((prev) => ({ ...prev, username: `~ @${name} is taken, try another ~` }));
+        setActiveSection('profile');
+        setSaving(false);
+        return;
+      }
+    }
+
     const updates: Partial<Profile> = {
       display_name: displayName.trim() || null,
       status_message: statusMessage.trim() || null,
@@ -240,6 +271,11 @@ export default function ProfileModal({
     // last-write-wins blind update is a privacy problem, not just a lost edit.
     if (isPublic !== (profile?.is_public ?? false)) {
       updates.is_public = isPublic;
+    }
+
+    // Sent only when changed, so saving a bio never rewrites the username.
+    if (usernameChanged) {
+      updates.username = normalizeUsername(username);
     }
 
     const { error } = await onSave(updates);
@@ -515,6 +551,56 @@ export default function ProfileModal({
                       {isInitialSetup
                         ? 'this is the name people will see when they land on ur space'
                         : "this is how u'll appear 2 others"}
+                    </p>
+                  </div>
+
+                  {/* Username */}
+                  <div className="xanga-box p-4">
+                    <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                      <span aria-hidden="true" style={{ fontSize: '20px', lineHeight: 1 }}>
+                        🏷️
+                      </span>
+                      username
+                    </h3>
+                    <Input
+                      type="text"
+                      value={username}
+                      aria-label="Username"
+                      onChange={(e) => {
+                        setUsername(e.target.value.toLowerCase());
+                        if (errors.username) {
+                          setErrors((prev) => ({ ...prev, username: undefined }));
+                        }
+                      }}
+                      onBlur={() => {
+                        if (!usernameChanged) return;
+                        const name = normalizeUsername(username);
+                        const problem = validateUsername(name);
+                        if (problem) {
+                          setErrors((prev) => ({ ...prev, username: problem }));
+                          return;
+                        }
+                        void isUsernameAvailable(name).then((available) => {
+                          if (available === false) {
+                            setErrors((prev) => ({
+                              ...prev,
+                              username: `~ @${name} is taken, try another ~`,
+                            }));
+                          }
+                        });
+                      }}
+                      placeholder="glitterqueen2005"
+                      error={errors.username}
+                      autoComplete="nickname"
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      maxLength={USERNAME_LIMITS.max}
+                    />
+                    <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                      {usernameChanged
+                        ? 'heads up: ur public link changes 2, so links u already shared stop working'
+                        : 'ur @handle and ur public page link. lowercase letters, numbers, _ and -'}
                     </p>
                   </div>
 

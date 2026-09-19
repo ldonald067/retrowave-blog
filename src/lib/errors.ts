@@ -32,6 +32,12 @@ const AUTH_MESSAGE_MAP: Array<[RegExp, string]> = [
   [/email not confirmed/i, 'Please verify your email before signing in.'],
   [/user already registered/i, 'An account with this email already exists.'],
   [/password should be at least/i, 'Your password is too short.'],
+  // Supabase refuses a new password equal to the current one (same_password).
+  // It keeps no history beyond that. Without this it read "Something went wrong".
+  [
+    /different from the old password/i,
+    'Your new password must be different from your current one.',
+  ],
   [/jwt expired/i, 'Your session has expired. Please sign in again.'],
   [/invalid jwt/i, 'Your session is invalid. Please sign in again.'],
   [/rate limit/i, 'Too many requests. Please wait a moment and try again.'],

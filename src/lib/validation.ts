@@ -136,8 +136,42 @@ export const PROFILE_LIMITS = {
   username: { min: 1, max: 50 },
 } as const;
 
-// Username must be alphanumeric, underscores, or hyphens only
-const USERNAME_PATTERN = /^[a-zA-Z0-9_-]+$/;
+/**
+ * Usernames are chosen by the person (since 2026-09-19) and public: they are the
+ * @handle on a public page and the /u/<name> link. Before that they were copied
+ * from the email address, which put half of it on every public page.
+ *
+ * Lowercase only, enforced in prod by profiles_username_format, so `Glitter`
+ * and `glitter` can never be two different people — lookups and uniqueness are
+ * exact-match. 3–30 for a chosen name; the database still allows 1–50 because
+ * names generated before this (and the sign-up fallback) can run longer.
+ */
+export const USERNAME_LIMITS = { min: 3, max: 30 } as const;
+const USERNAME_PATTERN = /^[a-z0-9_-]+$/;
+
+/** Trims, drops a leading @, and lowercases — what people type into what is stored. */
+export function normalizeUsername(raw: string): string {
+  return raw.trim().replace(/^@+/, '').toLowerCase();
+}
+
+/**
+ * Problems with a (normalized) username, or null. Inline form copy, so it is in
+ * the app's voice.
+ */
+export function validateUsername(username: string): string | null {
+  if (!username) return 'pick a username';
+  if (username.length < USERNAME_LIMITS.min) {
+    return `at least ${USERNAME_LIMITS.min} characters`;
+  }
+  if (username.length > USERNAME_LIMITS.max) {
+    return `${USERNAME_LIMITS.max} characters max`;
+  }
+  if (!USERNAME_PATTERN.test(username)) {
+    return 'only lowercase letters, numbers, _ and -';
+  }
+  if (!quickContentCheck(username).allowed) return 'pick a different username';
+  return null;
+}
 
 // Password minimum length (must match supabase config.toml minimum_password_length)
 export const PASSWORD_MIN_LENGTH = 8;
@@ -229,18 +263,8 @@ export function validateProfileInput(input: Record<string, unknown>): ProfileVal
   }
 
   if ('username' in input && typeof input.username === 'string') {
-    if (input.username.length < PROFILE_LIMITS.username.min) {
-      errors.username = 'Username is required';
-    } else if (input.username.length > PROFILE_LIMITS.username.max) {
-      errors.username = `Username must be ${PROFILE_LIMITS.username.max} characters or fewer`;
-    } else if (!USERNAME_PATTERN.test(input.username)) {
-      errors.username = 'Username can only contain letters, numbers, underscores, and hyphens';
-    } else {
-      const mod = quickContentCheck(input.username);
-      if (!mod.allowed) {
-        errors.username = 'Username contains inappropriate content';
-      }
-    }
+    const problem = validateUsername(input.username);
+    if (problem) errors.username = problem;
   }
 
   return errors;

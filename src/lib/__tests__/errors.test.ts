@@ -28,6 +28,18 @@ describe('toUserMessage', () => {
     );
   });
 
+  it('explains a reset to the current password instead of "something went wrong"', () => {
+    // Supabase's same_password error, as it arrives from updateUser.
+    expect(
+      toUserMessage({
+        name: 'AuthApiError',
+        status: 422,
+        code: 'same_password',
+        message: 'New password should be different from the old password.',
+      })
+    ).toBe('Your new password must be different from your current one.');
+  });
+
   it('maps network errors', () => {
     expect(toUserMessage(new Error('Failed to fetch'))).toBe(
       'Could not reach the server. Please check your connection.'

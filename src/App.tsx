@@ -106,7 +106,10 @@ function loadFeedPreferences(): Partial<FeedPreferenceState> {
 function getPublicUsername(): string | null {
   const hash = window.location.hash;
   const match = hash.match(/^#\/u\/([a-zA-Z0-9_-]+)$/);
-  return match?.[1] ?? null;
+  // Lowercased: usernames are lowercase-only (profiles_username_format), and
+  // get_public_profile matches exactly, so /u/GlitterQueen typed by a visitor
+  // must still find glitterqueen.
+  return match?.[1]?.toLowerCase() ?? null;
 }
 
 /**

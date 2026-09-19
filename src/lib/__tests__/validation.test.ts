@@ -4,6 +4,8 @@ import {
   validateEmbeddedLinks,
   hasValidationErrors,
   validateProfileInput,
+  normalizeUsername,
+  validateUsername,
   POST_LIMITS,
   PROFILE_LIMITS,
 } from '../validation';
@@ -131,7 +133,11 @@ describe('validateProfileInput', () => {
 
   it('rejects empty username', () => {
     const errors = validateProfileInput({ username: '' });
-    expect(errors.username).toBe('Username is required');
+    expect(errors.username).toBe('pick a username');
+  });
+
+  it('rejects an uppercase username — lookups are exact-match, so case would make look-alikes', () => {
+    expect(validateProfileInput({ username: 'Glitter' }).username).toMatch(/lowercase/);
   });
 
   it('ignores fields not in input', () => {
@@ -148,5 +154,25 @@ describe('hasValidationErrors', () => {
 
   it('returns true when errors present', () => {
     expect(hasValidationErrors({ title: 'bad' })).toBe(true);
+  });
+});
+
+describe('usernames', () => {
+  it('normalizes what people type into what is stored', () => {
+    expect(normalizeUsername('  @GlitterQueen_2005 ')).toBe('glitterqueen_2005');
+  });
+
+  it('accepts a normal chosen name', () => {
+    expect(validateUsername('glitter-queen_2005')).toBeNull();
+  });
+
+  it('enforces the length a chosen name must have', () => {
+    expect(validateUsername('ab')).toMatch(/at least/);
+    expect(validateUsername('a'.repeat(31))).toMatch(/max/);
+  });
+
+  it('rejects characters outside the rule prod enforces', () => {
+    expect(validateUsername('glitter.queen')).toMatch(/only lowercase/);
+    expect(validateUsername('glitter queen')).toMatch(/only lowercase/);
   });
 });

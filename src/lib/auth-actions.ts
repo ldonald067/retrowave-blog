@@ -14,7 +14,8 @@ import { authRedirectTo } from './auth-callback';
 export async function signUpMagicLink(
   email: string,
   birthYear: number,
-  tosAccepted: boolean
+  tosAccepted: boolean,
+  username?: string
 ): Promise<{ error: string | null }> {
   try {
     const { error } = await supabase.auth.signInWithOtp({
@@ -22,7 +23,7 @@ export async function signUpMagicLink(
       options: {
         shouldCreateUser: true,
         emailRedirectTo: authRedirectTo(),
-        data: { birth_year: birthYear, tos_accepted: tosAccepted },
+        data: { birth_year: birthYear, tos_accepted: tosAccepted, username },
       },
     });
     if (error) throw error;
@@ -37,7 +38,8 @@ export async function signUpWithPassword(
   email: string,
   password: string,
   birthYear: number,
-  tosAccepted: boolean
+  tosAccepted: boolean,
+  username?: string
 ): Promise<{ error: string | null; needsConfirmation?: boolean; alreadyRegistered?: boolean }> {
   try {
     const { data, error } = await supabase.auth.signUp({
@@ -48,7 +50,9 @@ export async function signUpWithPassword(
         // URL, so an iOS signup was confirmed in Safari and the app never saw
         // the session. See authRedirectTo.
         emailRedirectTo: authRedirectTo(),
-        data: { birth_year: birthYear, tos_accepted: tosAccepted },
+        // handle_new_user reads `username` from this metadata; without it, it
+        // falls back to the email's local part — the old behaviour.
+        data: { birth_year: birthYear, tos_accepted: tosAccepted, username },
       },
     });
     if (error) throw error;

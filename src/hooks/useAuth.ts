@@ -337,6 +337,11 @@ export function useAuth(): UseAuthReturn {
       applyTheme(profileData.theme ?? DEFAULT_THEME);
       return { error: null };
     } catch (err) {
+      // The only unique column a profile edit can collide on is username; the
+      // generic 23505 text ("This record already exists.") would not say which.
+      if ('username' in updates && (err as { code?: string })?.code === '23505') {
+        return { error: 'That username is taken. Try another one.' };
+      }
       return { error: toUserMessage(err) };
     }
   };

@@ -273,6 +273,11 @@ export interface Database {
           user_reactions: string[];
         }>;
       };
+      // Username availability for sign-up and the profile editor. Boolean only.
+      is_username_available: {
+        Args: { p_username: string };
+        Returns: boolean;
+      };
       // Chapter listing for autocomplete/browsing
       get_user_chapters: {
         Args: Record<string, never>;

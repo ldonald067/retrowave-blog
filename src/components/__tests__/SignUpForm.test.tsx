@@ -9,6 +9,11 @@ vi.mock('../../lib/auth-actions', () => ({
   signUpWithPassword,
 }));
 
+const { isUsernameAvailable } = vi.hoisted(() => ({
+  isUsernameAvailable: vi.fn().mockResolvedValue(true),
+}));
+vi.mock('../../lib/username', () => ({ isUsernameAvailable }));
+
 // Stub the age gate so tests can trigger onVerified directly, including the
 // values a real verification would pass.
 vi.mock('../AgeVerification', () => ({
@@ -24,9 +29,12 @@ describe('SignUpForm', () => {
     vi.clearAllMocks();
   });
 
-  const fillCredentials = (email: string, password: string) => {
+  const fillCredentials = (email: string, password: string, username = 'GlitterQueen') => {
     fireEvent.change(screen.getByLabelText(/ur email address/i), {
       target: { value: email },
+    });
+    fireEvent.change(screen.getByLabelText(/pick a username/i), {
+      target: { value: username },
     });
     fireEvent.change(screen.getByLabelText(/create a password/i), {
       target: { value: password },
@@ -44,11 +52,13 @@ describe('SignUpForm', () => {
     fireEvent.click(verify);
 
     await vi.waitFor(() => {
+      // The chosen username, lowercased — not derived from the email.
       expect(signUpWithPassword).toHaveBeenCalledWith(
         'journal@example.com',
         'Hunter!2222',
         1990,
-        true
+        true,
+        'glitterqueen'
       );
     });
     expect(signUpWithPassword).toHaveBeenCalledOnce();
@@ -66,12 +76,12 @@ describe('SignUpForm', () => {
     expect(screen.getByText('journal@example.com')).toBeInTheDocument();
   });
 
-  it('does not advance to the age step with empty credentials', () => {
+  it('does not advance to the age step with empty credentials', async () => {
     render(<SignUpForm />);
 
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    expect(screen.getByText(/enter ur email/i)).toBeInTheDocument();
+    expect(await screen.findByText(/enter ur email/i)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'stub-verify-age' })).not.toBeInTheDocument();
     expect(signUpWithPassword).not.toHaveBeenCalled();
   });
@@ -86,7 +96,7 @@ describe('SignUpForm', () => {
     fillCredentials('journal@example.com', '');
     fireEvent.click(screen.getByRole('button', { name: /continue/i }));
 
-    expect(screen.getByText(/at least .* characters plz/i)).toBeInTheDocument();
+    expect(await screen.findByText(/at least .* characters plz/i)).toBeInTheDocument();
     expect(signUpWithPassword).not.toHaveBeenCalled();
   });
 
@@ -119,5 +129,27 @@ describe('SignUpForm', () => {
       'autocomplete',
       'new-password'
     );
+  });
+
+  it('stops at the username step when the name is taken', async () => {
+    isUsernameAvailable.mockResolvedValueOnce(false);
+    render(<SignUpForm />);
+
+    fillCredentials('journal@example.com', 'Hunter!2222', 'glitter');
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(await screen.findByText(/@glitter is taken/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'stub-verify-age' })).not.toBeInTheDocument();
+    expect(signUpWithPassword).not.toHaveBeenCalled();
+  });
+
+  it('rejects a username with characters prod does not allow', async () => {
+    render(<SignUpForm />);
+
+    fillCredentials('journal@example.com', 'Hunter!2222', 'glitter.queen');
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(await screen.findByText(/only lowercase letters/i)).toBeInTheDocument();
+    expect(isUsernameAvailable).not.toHaveBeenCalled();
   });
 });
