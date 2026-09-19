@@ -6,7 +6,7 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `8595489` (code) — after the iPhone SE pass, its
+Last rewritten 2026-09-17, at `8b3e88d` (code) — after the iPhone SE pass, its
 fixes, a round of feed spacing and both marquees from your screenshots, and a
 full docs cleanup.
 
@@ -143,6 +143,14 @@ iPhone 17 Pro Max simulator unless noted.
   it); email sends time out after 8s; the report email escapes usernames and
   prod finally has the username format check; a failed deletion only says
   "nothing was removed" when the server confirms the rollback.
+- **Chosen usernames** (2026-09-19, `8b3e88d`). Usernames used to be copied
+  from the email's local part and shown as the public @handle. Sign-up now asks
+  for one and the profile editor can change it; a live check says "~ @name is
+  taken, try another ~" (seen on the SE, typed as `LDonald234`); usernames are
+  lowercase-only in prod (migration `20260919000000`, applied with approval), so
+  look-alikes by capitalisation are impossible. A reset to the current password
+  now says so instead of "Something went wrong". Existing accounts keep their
+  email-derived names until changed in the profile editor.
 
 ## Open work
 
