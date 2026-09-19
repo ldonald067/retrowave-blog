@@ -25,7 +25,7 @@ import { toUserMessage } from './lib/errors';
 import { withRetry } from './lib/retry';
 import { SUCCESS_MESSAGES } from './lib/constants';
 import { supabase } from './lib/supabase';
-import { hideSplashScreen, hapticImpact } from './lib/capacitor';
+import { hideSplashScreen, hapticImpact, isNativePlatform } from './lib/capacitor';
 import { markAppReady } from './lib/splash';
 import SplashCurtain from './components/SplashCurtain';
 import { AUTH_CALLBACK_ERROR } from './lib/auth-callback';
@@ -1679,7 +1679,11 @@ function App() {
       {/* Beside AppInner, not inside it: every top-level early return — auth
           wall, intro, public profile, moderation, age gate — would otherwise
           render before the curtain and flash underneath it. */}
-      <SplashCurtain />
+      {/* Native only. It continues the iOS launch image, which the web does not
+          have — there it held every page load, including a visitor's first
+          look at a shared profile, behind ~1.25s of splash and a 470 KB image,
+          and flashed classic pink before a dark-themed profile. */}
+      {isNativePlatform && <SplashCurtain />}
       <AppInner />
     </MotionConfig>
   );

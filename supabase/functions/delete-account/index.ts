@@ -89,6 +89,11 @@ async function sendDeletionEmail(to: string, username: string | null): Promise<b
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
+      // Bounded: a hung email must never hold the response. In delete-account the
+      // account is already gone by now, and a request left hanging until the
+      // platform's limit reached the app as a failure — which it then reported
+      // as "nothing was removed".
+      signal: AbortSignal.timeout(8000),
       headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: FROM_EMAIL,

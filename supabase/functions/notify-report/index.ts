@@ -167,7 +167,9 @@ update content_reports set status = 'actioned' where id = '${escapeHtml(row.id)}
       </details>`;
 
     const html = renderEmail({
-      preheader: `${reason} — reported by ${reporter}`,
+      // Escaped: the reporter's username is user-controlled, and prod does not
+      // constrain its characters (see 20260315000002, drift found 2026-09-19).
+      preheader: escapeHtml(`${reason} — reported by ${reporter}`),
       heading: '~ new report 2 review ~',
       body:
         p(`<strong>${escapeHtml(reason)}</strong><br><span style="color:${BRAND.muted};font-size:13px;">reported by ${escapeHtml(reporter)} · ${escapeHtml(row.created_at)}</span>`) +
@@ -188,6 +190,11 @@ update content_reports set status = 'actioned' where id = '${escapeHtml(row.id)}
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
+      // Bounded: a hung email must never hold the response. In delete-account the
+      // account is already gone by now, and a request left hanging until the
+      // platform's limit reached the app as a failure — which it then reported
+      // as "nothing was removed".
+      signal: AbortSignal.timeout(8000),
       headers: {
         Authorization: `Bearer ${RESEND_API_KEY}`,
         'Content-Type': 'application/json',

@@ -49,6 +49,7 @@ vi.mock('../../lib/capacitor', () => ({
 
 vi.mock('../../hooks/useFocusTrap', () => ({ useFocusTrap: vi.fn() }));
 
+import { FunctionsFetchError, FunctionsHttpError } from '@supabase/supabase-js';
 import SettingsModal from '../SettingsModal';
 import { supabase } from '../../lib/supabase';
 
@@ -95,19 +96,34 @@ describe('SettingsModal account deletion', () => {
     expect(handlers.onError).not.toHaveBeenCalled();
   });
 
-  it('says nothing was removed when the deletion fails, and stays signed in', async () => {
+  it('says nothing was removed only when the function reports the delete rolled back', async () => {
     vi.mocked(supabase.functions.invoke).mockResolvedValue({
-      data: { deleted: false },
-      error: {
-        name: 'FunctionsHttpError',
-        message: 'Edge Function returned a non-2xx status code',
-      },
+      data: null,
+      error: new FunctionsHttpError(
+        new Response(JSON.stringify({ deleted: false }), { status: 500 })
+      ),
     } as never);
     const handlers = renderAndConfirm();
 
     await waitFor(() => expect(handlers.onError).toHaveBeenCalled());
     expect(handlers.onError).toHaveBeenCalledWith(expect.stringMatching(/nothing was removed/i));
     expect(handlers.onSignOut).not.toHaveBeenCalled();
+    expect(handlers.onSuccess).not.toHaveBeenCalled();
+  });
+
+  it('does not claim nothing was removed when the outcome is unknown', async () => {
+    // A dropped connection can arrive after the server finished deleting.
+    vi.mocked(supabase.functions.invoke).mockResolvedValue({
+      data: null,
+      error: new FunctionsFetchError(new TypeError('Load failed')),
+    } as never);
+    const handlers = renderAndConfirm();
+
+    await waitFor(() => expect(handlers.onError).toHaveBeenCalled());
+    expect(handlers.onError).toHaveBeenCalledWith(expect.stringMatching(/couldn't confirm/i));
+    expect(handlers.onError).not.toHaveBeenCalledWith(
+      expect.stringMatching(/nothing was removed/i)
+    );
     expect(handlers.onSuccess).not.toHaveBeenCalled();
   });
 });

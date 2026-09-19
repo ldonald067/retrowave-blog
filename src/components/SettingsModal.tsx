@@ -14,6 +14,7 @@ import {
 import ConfirmDialog from './ConfirmDialog';
 import { SWIPE_DISMISS_THRESHOLD } from '../lib/constants';
 import { useFocusTrap } from '../hooks/useFocusTrap';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
@@ -31,6 +32,32 @@ interface SettingsModalProps {
    * farewell.
    */
   onSignOut: (options?: { scope?: 'global' | 'local' }) => Promise<unknown>;
+}
+
+const DELETE_FAILED_NOTHING_REMOVED =
+  'Your account could not be deleted, and nothing was removed. Please try again.';
+const DELETE_OUTCOME_UNKNOWN =
+  "We couldn't confirm whether your account was deleted. Check your connection, then try signing in — if that fails, it was deleted.";
+
+/**
+ * What to say when deletion did not report success. "Nothing was removed" is a
+ * promise, so it is only made when the function itself answered that the
+ * one-transaction delete failed and rolled back. A dropped connection, a relay
+ * error or a platform timeout can arrive after the server finished deleting,
+ * and claiming nothing happened would then be false — the account is gone.
+ * Not toUserMessage: its generic foreign-key text read like a half-deleted
+ * account.
+ */
+async function deletionFailureMessage(error: unknown): Promise<string> {
+  if (error instanceof FunctionsHttpError) {
+    try {
+      const body = (await (error.context as Response).clone().json()) as { deleted?: boolean };
+      if (body?.deleted === false) return DELETE_FAILED_NOTHING_REMOVED;
+    } catch {
+      // Not our function's JSON — a gateway or platform error. Unknown.
+    }
+  }
+  return DELETE_OUTCOME_UNKNOWN;
 }
 
 export default function SettingsModal({
@@ -94,7 +121,10 @@ export default function SettingsModal({
         deleted: boolean;
         emailed?: boolean;
       }>('delete-account', { method: 'POST' });
-      if (error || !data?.deleted) throw error ?? new Error('Account deletion failed');
+      if (error || !data?.deleted) {
+        onError?.(await deletionFailureMessage(error));
+        return;
+      }
 
       await hapticImpact();
 
@@ -104,12 +134,10 @@ export default function SettingsModal({
 
       onSuccess?.('~ ur account has been deleted. farewell friend ~');
       onClose();
-    } catch {
-      // Not toUserMessage: its generic text for a foreign-key error was "This
-      // action references a record that does not exist", which reads like the
-      // account is half gone. The RPC runs in one transaction, so a failure
-      // deleted nothing — say that.
-      onError?.('Your account could not be deleted, and nothing was removed. Please try again.');
+    } catch (err) {
+      // Anything thrown here (requireAuth, the sign-out) happened without a
+      // confirmed deletion, so the outcome is unknown, not "nothing removed".
+      onError?.(await deletionFailureMessage(err));
     } finally {
       setDeleteAccountLoading(false);
       setShowDeleteConfirm(false);
