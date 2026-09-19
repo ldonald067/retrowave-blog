@@ -129,8 +129,8 @@ iPhone 17 Pro Max simulator unless noted.
   and compared equal to the repo), the deletion email and the report email;
   sender and subjects say Retrowave Journal. The first version showed in Gmail
   on your iPhone 16 with the wordmark and button text washed out by dark mode;
-  `eee02de` keeps all text off gradients. The redesign is not yet confirmed in
-  Gmail dark mode.
+  `eee02de` keeps all text off gradients, and the deletion email in that design
+  arrived and looked right in Gmail on your iPhone 16 (2026-09-18).
 - **Deletion confirmation email** (`5992357`): deletion now runs through the
   `delete-account` edge function (deployed with approval, JWT on), which emails
   the account's own address after the deletion succeeds. Checked: 401 without a
