@@ -233,7 +233,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**59 findings, all fixed except 52** (left as is on purpose).
+**63 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -298,7 +298,12 @@ assigned.
 | 61 | MED | Account deletion | A successful deletion ended on "~ ur session expired, sign in again ~" beside the farewell — the modal signed out directly, which `useAuth` reads as an expired session. A failure showed "references a record that does not exist" | Fixed `abacd08`, seen on the SE 2026-09-18 |
 | 62 | MED | Outline buttons | Six dotted-outline buttons labelled in `--text-body`: Settings export and close, both cancels, dismiss, unpublish. Now `.xanga-button-ghost` | Fixed `4aed4fb` |
 
-Findings 45–62 lifted the count from 41 to 59 (numbers 40–42 unassigned).
+| 63 | MED | Splash curtain, web | The curtain ran on the website too: every page load, including a signed-out visitor on a shared profile link, sat behind ~1.25s of splash and a 470 KB image, and dark profiles flashed classic pink | Fixed `8595489` — native only; verified live |
+| 64 | MED | delete-account | Resend was awaited with no timeout after the deletion committed; a hung send reached the app as a failure that said "nothing was removed" while the account was gone | Fixed `8595489`, deployed v4 |
+| 65 | MED | notify-report + prod drift | Prod lacked the `profiles_username_format` check (20260315000002 never applied), and the report email's preheader put the reporter's username into HTML unescaped | Fixed `8595489` (escaped, deployed v8); constraint applied 2026-09-19 with approval |
+| 66 | LOW | Account deletion copy | Every failure said "nothing was removed", including dropped connections that can follow a completed deletion | Fixed `8595489` — only a server-reported rollback says so |
+
+Findings 45–66 lifted the count from 41 to 63 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
@@ -365,3 +370,12 @@ counted.
 | Surface              | Needs                                                                                             |
 | -------------------- | ------------------------------------------------------------------------------------------------- |
 | Sidebar stats labels | ≥1024px (`hidden lg:block`); the phone is 440pt, so finding 29's fix there is verified by reading |
+
+## Adversarial reviews
+
+`/adversarial-review` starts from the latest line here.
+
+- **2026-09-19** — code from 2026-09-17/18 (`92ef0c2`…`eee02de`). Findings 63–66,
+  all fixed. Held up: delete-account can only email the caller; deletion is
+  atomic; report reasons are constrained in prod; CORS does not echo unknown
+  origins; the curtain cannot stick and is static under Reduce Motion.

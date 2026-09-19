@@ -6,7 +6,7 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `eee02de` (code) — after the iPhone SE pass, its
+Last rewritten 2026-09-17, at `8595489` (code) — after the iPhone SE pass, its
 fixes, a round of feed spacing and both marquees from your screenshots, and a
 full docs cleanup.
 
@@ -35,8 +35,9 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 ## The UI audit
 
 `docs/audit/ui-audit-plan.md` is the checklist and findings log — **start there
-for anything UI**. 59 findings are logged — 41 from the main audit, 12 from the
-iPhone SE pass, 6 since — and all are fixed except 52, left as is on purpose.
+for anything UI**. 63 findings are logged — 41 from the main audit, 12 from the
+iPhone SE pass, 10 since (four from the first `/adversarial-review`) — and all are
+fixed except 52, left as is on purpose.
 
 **Journey coverage is not complete.** Never exercised: delete-entry confirm, the YouTube card, a long feed, the avatar
 picker, and block from a public profile. Read the plan's
@@ -136,6 +137,12 @@ iPhone 17 Pro Max simulator unless noted.
   the account's own address after the deletion succeeds. Checked: 401 without a
   session, and the iOS origin passes CORS. **Not yet seen end to end** — needs a
   throwaway account with an inbox you can read.
+- **First `/adversarial-review`** (2026-09-19): four findings, all fixed
+  (`8595489`). The splash curtain is now iOS-only (verified live: the site opens
+  straight to a profile and never fetches the splash image; the SE still shows
+  it); email sends time out after 8s; the report email escapes usernames and
+  prod finally has the username format check; a failed deletion only says
+  "nothing was removed" when the server confirms the rollback.
 
 ## Open work
 
