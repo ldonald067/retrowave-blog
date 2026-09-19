@@ -6,6 +6,9 @@ import {
   validateProfileInput,
   normalizeUsername,
   validateUsername,
+  isReservedUsername,
+  usernameSwapNotice,
+  fallbackUsername,
   POST_LIMITS,
   PROFILE_LIMITS,
 } from '../validation';
@@ -174,5 +177,30 @@ describe('usernames', () => {
   it('rejects characters outside the rule prod enforces', () => {
     expect(validateUsername('glitter.queen')).toMatch(/only lowercase/);
     expect(validateUsername('glitter queen')).toMatch(/only lowercase/);
+  });
+
+  it('reserves names that could pass as the operator', () => {
+    for (const name of [
+      'admin',
+      'support',
+      'moderator',
+      'official',
+      'retrowave',
+      'x_retrowave_x',
+    ]) {
+      expect(isReservedUsername(name)).toBe(true);
+      expect(validateUsername(name)).toMatch(/reserved/);
+    }
+    expect(isReservedUsername('glitterqueen')).toBe(false);
+  });
+
+  it('generates the same fallback shape as the sign-up trigger', () => {
+    expect(fallbackUsername('b1a785fd-1976-45dd-be32-5c31ecf9cab6')).toBe('user_b1a785fd');
+  });
+
+  it('tells someone when sign-up could not give them the name they asked for', () => {
+    expect(usernameSwapNotice('Glitter', 'glitter_b1a785fd')).toMatch(/@glitter wasn't available/);
+    expect(usernameSwapNotice('Glitter', 'glitter')).toBeNull();
+    expect(usernameSwapNotice(undefined, 'user_b1a785fd')).toBeNull();
   });
 });

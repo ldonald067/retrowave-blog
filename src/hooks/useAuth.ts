@@ -10,7 +10,13 @@ import {
   signInMagicLink,
   signInWithPassword,
 } from '../lib/auth-actions';
-import { validateProfileInput, hasValidationErrors } from '../lib/validation';
+import {
+  validateProfileInput,
+  hasValidationErrors,
+  normalizeUsername,
+  validateUsername,
+  fallbackUsername,
+} from '../lib/validation';
 import { MIN_AGE, AUTH_SESSION_EXPIRED } from '../lib/constants';
 import { AUTH_PASSWORD_RECOVERY } from '../lib/auth-callback';
 import type { User } from '@supabase/supabase-js';
@@ -224,21 +230,24 @@ export function useAuth(): UseAuthReturn {
           data: { session },
         } = await supabase.auth.getSession();
         const authUser = session?.user ?? null;
-        const emailLocalPart = (authUser?.email?.split('@')[0] || 'user').replace(
-          /[^a-zA-Z0-9_-]/g,
-          '_'
-        );
-        const randomId = Math.random().toString(36).substring(2, 8);
-        const defaultUsername = authUser?.email ? emailLocalPart : `guest_${randomId}`;
-
         const metadata = authUser?.user_metadata ?? {};
+        // Never the email's local part: the username is a public @handle, and
+        // a mixed-case address would also break the lowercase-only rule. The
+        // chosen name if it is valid, else the same generated shape the
+        // sign-up trigger uses — which is also the retry after a name clash.
+        const requested =
+          typeof metadata['username'] === 'string' ? normalizeUsername(metadata['username']) : '';
+        const username =
+          attempt === 1 && requested && !validateUsername(requested)
+            ? requested
+            : fallbackUsername(userId);
         const tosAccepted = Boolean(metadata['tos_accepted'] ?? false);
         const birthYear = metadata['birth_year'] ? Number(metadata['birth_year']) : null;
         const ageVerified = birthYear !== null && new Date().getFullYear() - birthYear >= MIN_AGE;
 
         const profileData = {
           id: userId,
-          username: defaultUsername,
+          username,
           display_name: null,
           age_verified: ageVerified,
           tos_accepted: tosAccepted,
@@ -253,12 +262,16 @@ export function useAuth(): UseAuthReturn {
 
         if (error) {
           if ((error as { code?: string }).code === '23505') {
+            // Either this user's profile already exists (the trigger won the
+            // race) or the chosen name is taken; only the first is done.
             const { data: existing } = await supabase
               .from('profiles')
               .select('*')
               .eq('id', userId)
-              .single();
-            return (existing as Profile) ?? null;
+              .maybeSingle();
+            if (existing) return existing as Profile;
+            if (attempt < MAX_ATTEMPTS) continue;
+            return null;
           }
 
           if (attempt < MAX_ATTEMPTS) {

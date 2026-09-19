@@ -1560,6 +1560,7 @@ function AppInner() {
               onSuccess={success}
               onError={showError}
               isInitialSetup={needsProfileSetup}
+              requestedUsername={user?.user_metadata?.['username']}
             />
           </Suspense>
         )}

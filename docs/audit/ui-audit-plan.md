@@ -233,7 +233,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**63 findings, all fixed except 52** (left as is on purpose).
+**68 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -303,7 +303,13 @@ assigned.
 | 65 | MED | notify-report + prod drift | Prod lacked the `profiles_username_format` check (20260315000002 never applied), and the report email's preheader put the reporter's username into HTML unescaped | Fixed `8595489` (escaped, deployed v8); constraint applied 2026-09-19 with approval |
 | 66 | LOW | Account deletion copy | Every failure said "nothing was removed", including dropped connections that can follow a completed deletion | Fixed `8595489` — only a server-reported rollback says so |
 
-Findings 45–66 lifted the count from 41 to 63 (numbers 40–42 unassigned).
+| 67 | MED | Sign-up, public page | The display name — a public page's heading — still came from the email's local part after usernames became chosen, and that default is why no new user had ever seen first-run setup | Fixed (migration `20260919010000`) |
+| 68 | MED | Usernames | admin, support, moderator, official and anything with "retrowave" were free, so anyone could pass as the operator publicly and in report emails | Fixed — reserved in app and prod |
+| 69 | LOW | Sign-up | A name taken between the check and sign-up became a silent `name_xxxxxxxx`; first-run setup now says so | Fixed |
+| 70 | LOW | Sign-up | Unconfirmed sign-ups held usernames forever; profiles are now created on confirmation | Fixed — trigger moved |
+| 71 | LOW | Sign-up, iOS AutoFill | The username field sat between email and password, where AutoFill takes the saved login; now first | Fixed (plausible, not reproduced) |
+
+Findings 45–71 lifted the count from 41 to 68 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
@@ -379,3 +385,9 @@ counted.
   all fixed. Held up: delete-account can only email the caller; deletion is
   atomic; report reasons are constrained in prod; CORS does not echo unknown
   origins; the curtain cannot stick and is static under Reduce Motion.
+- **2026-09-19** — chosen usernames (`8b3e88d`, migration `20260919000000`).
+  Findings 67–71, all fixed; the client-side profile fallback also stopped
+  deriving usernames from the email. Held up: lowercase enforced end to end;
+  availability returns a boolean only; username changes orphan nothing (blocks,
+  posts, reports are id-keyed; post author is typed text); emails escape
+  usernames; older generated names still save untouched.

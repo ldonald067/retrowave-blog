@@ -149,6 +149,70 @@ export const PROFILE_LIMITS = {
 export const USERNAME_LIMITS = { min: 3, max: 30 } as const;
 const USERNAME_PATTERN = /^[a-z0-9_-]+$/;
 
+/**
+ * Names that would let someone pass as the operator — on a public page and in
+ * the report emails the operator reads. Mirrored exactly by
+ * public.is_reserved_username() (migration 20260919010000); change both.
+ * Anything containing "retrowave" is reserved as well.
+ */
+export const RESERVED_USERNAMES = [
+  'admin',
+  'administrator',
+  'root',
+  'system',
+  'support',
+  'help',
+  'helpdesk',
+  'contact',
+  'hello',
+  'info',
+  'abuse',
+  'security',
+  'moderator',
+  'moderators',
+  'mod',
+  'mods',
+  'staff',
+  'team',
+  'official',
+  'owner',
+  'appreview',
+  'app-review',
+  'app_review',
+  'apple',
+  'anonymous',
+  'deleted',
+  'user',
+  'null',
+  'undefined',
+] as const;
+
+export function isReservedUsername(username: string): boolean {
+  const name = username.toLowerCase();
+  return (RESERVED_USERNAMES as readonly string[]).includes(name) || name.includes('retrowave');
+}
+
+/** The generated name when none was chosen — the same shape handle_new_user uses. */
+export function fallbackUsername(userId: string): string {
+  return `user_${userId.slice(0, 8)}`;
+}
+
+/**
+ * When sign-up could not give someone the name they asked for — it was taken
+ * between the check and sign-up, or the check itself failed — handle_new_user
+ * stores a suffixed or generated name instead. Returns the notice to show, or
+ * null when they got what they asked for.
+ */
+export function usernameSwapNotice(
+  requested: unknown,
+  actual: string | null | undefined
+): string | null {
+  if (typeof requested !== 'string' || !actual) return null;
+  const wanted = normalizeUsername(requested);
+  if (!wanted || wanted === actual) return null;
+  return `~ @${wanted} wasn't available when ur account was made, so u got @${actual}. pick a new one below if u want ~`;
+}
+
 /** Trims, drops a leading @, and lowercases — what people type into what is stored. */
 export function normalizeUsername(raw: string): string {
   return raw.trim().replace(/^@+/, '').toLowerCase();
@@ -169,6 +233,7 @@ export function validateUsername(username: string): string | null {
   if (!USERNAME_PATTERN.test(username)) {
     return 'only lowercase letters, numbers, _ and -';
   }
+  if (isReservedUsername(username)) return "that one's reserved, pick another";
   if (!quickContentCheck(username).allowed) return 'pick a different username';
   return null;
 }

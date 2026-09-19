@@ -228,25 +228,11 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
       {toastLayer}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
         <form onSubmit={handleEmailSubmit} className="space-y-4">
-          <Input
-            label="ur email address:"
-            type="email"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setEmailError('');
-            }}
-            placeholder="you@example.com"
-            error={emailError}
-            autoComplete="email"
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            autoFocus
-          />
-
-          {/* nickname, not username: iOS AutoFill pairs `username` with a saved
-              login, and this field is a new public handle, not a credential. */}
+          {/* First, and nickname rather than username. iOS AutoFill takes the
+              field right before a new-password field as the login it saves; with
+              this between email and password it could save the handle, which
+              then fails at sign-in. Above the email, the email is the one next
+              to the password. */}
           <div>
             <Input
               label="pick a username:"
@@ -267,6 +253,7 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
               autoCorrect="off"
               spellCheck={false}
               maxLength={USERNAME_LIMITS.max}
+              autoFocus
             />
             {!usernameError && (
               <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
@@ -276,6 +263,21 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
               </p>
             )}
           </div>
+          <Input
+            label="ur email address:"
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              setEmailError('');
+            }}
+            placeholder="you@example.com"
+            error={emailError}
+            autoComplete="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+          />
 
           {/* new-password, not current-password: this is the token that makes iOS
               offer to generate and save a strong password. Worth having, because

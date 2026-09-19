@@ -42,7 +42,12 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useBlocks } from '../hooks/useBlocks';
 import { sparkleBurst, emojiRain } from '../lib/celebrations';
 import { buildPublicProfileUrl } from '../lib/publicProfile';
-import { normalizeUsername, validateUsername, USERNAME_LIMITS } from '../lib/validation';
+import {
+  normalizeUsername,
+  validateUsername,
+  usernameSwapNotice,
+  USERNAME_LIMITS,
+} from '../lib/validation';
 import { isUsernameAvailable } from '../lib/username';
 import type { Profile } from '../types/profile';
 import ConfirmDialog from './ConfirmDialog';
@@ -99,6 +104,8 @@ interface ProfileModalProps {
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
   isInitialSetup?: boolean;
+  /** The username asked for at sign-up (auth user_metadata), for the swap notice. */
+  requestedUsername?: unknown;
 }
 
 export default function ProfileModal({
@@ -108,6 +115,7 @@ export default function ProfileModal({
   onClose,
   onSuccess,
   onError,
+  requestedUsername,
   isInitialSetup = false,
 }: ProfileModalProps) {
   const [displayName, setDisplayName] = useState('');
@@ -194,6 +202,10 @@ export default function ProfileModal({
   }
 
   const usernameChanged = normalizeUsername(username) !== (profile?.username ?? '');
+  // First-time setup only: sign-up could not give them the name they asked for.
+  const swapNotice = isInitialSetup
+    ? usernameSwapNotice(requestedUsername, profile?.username)
+    : null;
 
   const validate = (): boolean => {
     const newErrors: {
@@ -562,6 +574,19 @@ export default function ProfileModal({
                       </span>
                       username
                     </h3>
+                    {swapNotice && (
+                      <p
+                        className="text-xs mb-3 p-2 rounded-lg"
+                        role="status"
+                        style={{
+                          color: 'var(--text-body)',
+                          backgroundColor:
+                            'color-mix(in srgb, var(--accent-primary) 10%, var(--card-bg))',
+                        }}
+                      >
+                        {swapNotice}
+                      </p>
+                    )}
                     <Input
                       type="text"
                       value={username}

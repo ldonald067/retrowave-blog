@@ -152,4 +152,23 @@ describe('SignUpForm', () => {
     expect(await screen.findByText(/only lowercase letters/i)).toBeInTheDocument();
     expect(isUsernameAvailable).not.toHaveBeenCalled();
   });
+
+  it('refuses a reserved username before asking the server', async () => {
+    render(<SignUpForm />);
+
+    fillCredentials('journal@example.com', 'Hunter!2222', 'Support');
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }));
+
+    expect(await screen.findByText(/reserved/i)).toBeInTheDocument();
+    expect(isUsernameAvailable).not.toHaveBeenCalled();
+    expect(signUpWithPassword).not.toHaveBeenCalled();
+  });
+
+  it('puts the username first, so iOS pairs the email with the new password', () => {
+    render(<SignUpForm />);
+    const username = screen.getByLabelText(/pick a username/i);
+    const email = screen.getByLabelText(/ur email address/i);
+    // DOCUMENT_POSITION_FOLLOWING: email comes after username.
+    expect(username.compareDocumentPosition(email) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 });
