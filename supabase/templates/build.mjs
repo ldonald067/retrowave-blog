@@ -49,6 +49,11 @@ export const TEMPLATES = {
       heading: '~ welcome 2 ur new journal ~',
       body:
         p('hi! ur almost in &#9825;') +
+        // {{ .Data }} is the sign-up metadata, where the chosen username lives.
+        // Guarded: the magic-link path sends none, and "@" alone would be odd.
+        '{{ if .Data.username }}' +
+        p('ur handle is <strong>@{{ .Data.username }}</strong> &#10022; it&rsquo;s what people see on ur public page, not ur email.') +
+        '{{ end }}' +
         p('tap below 2 confirm this email address, and ur journal is ready 4 its very first entry.', '0'),
       cta: { href: URL, label: '~ confirm my email ~' },
       footNote: IGNORE('create an account'),
