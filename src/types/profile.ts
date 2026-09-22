@@ -16,6 +16,8 @@ export interface Profile {
   is_admin: boolean;
   is_public: boolean;
   private_chapters: string[];
+  /** When the username was last changed; null = never. Drives the rename cooldown. */
+  username_changed_at: string | null;
   created_at: string;
   updated_at: string;
 }

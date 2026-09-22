@@ -85,4 +85,20 @@ describe('toUserMessage', () => {
   it('POSTGREST_CODES is a non-empty record', () => {
     expect(Object.keys(POSTGREST_CODES).length).toBeGreaterThan(0);
   });
+
+  it('keeps the date when a username change is still in cooldown', () => {
+    // The code alone (23514) would map to the generic constraint message and
+    // throw away the one thing the person needs to know.
+    expect(toUserMessage({ code: '23514', message: 'username_cooldown:2026-10-20' })).toBe(
+      'You can change your username again on October 20.'
+    );
+  });
+
+  it('reads the cooldown date as a local day, not UTC midnight', () => {
+    // `new Date('2026-01-01')` is UTC midnight, which is Dec 31 in any
+    // timezone west of Greenwich.
+    expect(toUserMessage(new Error('username_cooldown:2026-01-01'))).toBe(
+      'You can change your username again on January 1.'
+    );
+  });
 });

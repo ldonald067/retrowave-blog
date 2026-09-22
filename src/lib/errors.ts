@@ -55,6 +55,28 @@ const AUTH_MESSAGE_MAP: Array<[RegExp, string]> = [
 
 const FALLBACK = 'Something went wrong. Please try again.';
 
+// guard_username_change() raises `username_cooldown:YYYY-MM-DD` as a
+// check_violation. Without this it would be mapped by its code alone, to "The
+// data you submitted does not meet requirements." — which says nothing about
+// the one fact the person needs, the date.
+const USERNAME_COOLDOWN_PATTERN = /username_cooldown:(\d{4})-(\d{2})-(\d{2})/;
+
+function usernameCooldownMessage(raw: string): string | null {
+  const match = USERNAME_COOLDOWN_PATTERN.exec(raw);
+  if (!match) return null;
+  // Built from the parts: `new Date('2026-10-20')` is UTC midnight, which reads
+  // as the day before in every timezone west of Greenwich.
+  const when = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const label = when.toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
+  return `You can change your username again on ${label}.`;
+}
+
+function rawMessageOf(err: unknown): string {
+  if (typeof err === 'string') return err;
+  if (err instanceof Error) return err.message;
+  return (err as SupabaseError)?.message ?? '';
+}
+
 function classifyMessage(msg: string): string {
   for (const [pattern, safe] of AUTH_MESSAGE_MAP) {
     if (pattern.test(msg)) return safe;
@@ -68,6 +90,10 @@ function classifyMessage(msg: string): string {
  */
 export function toUserMessage(err: unknown): string {
   if (!err) return FALLBACK;
+
+  // Ahead of the code map: this one carries a date that must survive.
+  const cooldown = usernameCooldownMessage(rawMessageOf(err));
+  if (cooldown) return cooldown;
 
   let message: string;
 

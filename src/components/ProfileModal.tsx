@@ -46,6 +46,8 @@ import {
   normalizeUsername,
   validateUsername,
   usernameSwapNotice,
+  usernameCooldownEndsAt,
+  formatUsernameCooldownDate,
   USERNAME_LIMITS,
 } from '../lib/validation';
 import { isUsernameAvailable } from '../lib/username';
@@ -204,8 +206,12 @@ export default function ProfileModal({
   const usernameChanged = normalizeUsername(username) !== (profile?.username ?? '');
   // First-time setup only: sign-up could not give them the name they asked for.
   const swapNotice = isInitialSetup
-    ? usernameSwapNotice(requestedUsername, profile?.username)
+    ? usernameSwapNotice(requestedUsername, profile?.username, profile?.username_changed_at)
     : null;
+  // One rename every 30 days, the first one free. The database is what enforces
+  // it (guard_username_change); this just means nobody types a new name, waits
+  // for a save, and only then gets told no.
+  const cooldownEndsAt = usernameCooldownEndsAt(profile?.username_changed_at);
 
   const validate = (): boolean => {
     const newErrors: {
@@ -220,6 +226,9 @@ export default function ProfileModal({
     if (usernameChanged) {
       const problem = validateUsername(normalizeUsername(username));
       if (problem) newErrors.username = problem;
+      else if (cooldownEndsAt) {
+        newErrors.username = `~ u can change it again on ${formatUsernameCooldownDate(cooldownEndsAt)} ~`;
+      }
     }
 
     // Require display name for initial setup
@@ -621,11 +630,15 @@ export default function ProfileModal({
                       autoCorrect="off"
                       spellCheck={false}
                       maxLength={USERNAME_LIMITS.max}
+                      readOnly={!!cooldownEndsAt}
+                      className={cooldownEndsAt ? 'opacity-60' : ''}
                     />
                     <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                      {usernameChanged
-                        ? 'heads up: ur public link changes 2, so links u already shared stop working'
-                        : 'ur @handle and ur public page link. lowercase letters, numbers, _ and -'}
+                      {cooldownEndsAt
+                        ? `u can change ur username again on ${formatUsernameCooldownDate(cooldownEndsAt)} ~ one change every 30 days keeps ur links pointing at u`
+                        : usernameChanged
+                          ? 'heads up: ur public link changes 2, so links u already shared stop working. ur old @handle stays urs — nobody else can take it'
+                          : 'ur @handle and ur public page link. lowercase letters, numbers, _ and -'}
                     </p>
                   </div>
 

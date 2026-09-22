@@ -86,6 +86,7 @@ export interface Database {
           is_admin: boolean;
           is_public: boolean;
           private_chapters: string[];
+          username_changed_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -105,6 +106,7 @@ export interface Database {
           is_admin?: boolean;
           is_public?: boolean;
           private_chapters?: string[];
+          username_changed_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -124,6 +126,7 @@ export interface Database {
           is_admin?: boolean;
           is_public?: boolean;
           private_chapters?: string[];
+          username_changed_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

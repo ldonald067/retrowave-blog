@@ -202,15 +202,54 @@ export function fallbackUsername(userId: string): string {
  * between the check and sign-up, or the check itself failed — handle_new_user
  * stores a suffixed or generated name instead. Returns the notice to show, or
  * null when they got what they asked for.
+ *
+ * `changedAt` is profiles.username_changed_at: once someone has renamed
+ * themselves, the name they hold is the one they picked, and the sign-up
+ * request left in auth metadata says nothing about it. Without this the notice
+ * came back after every deliberate rename, telling people their chosen name
+ * "wasn't available".
  */
 export function usernameSwapNotice(
   requested: unknown,
-  actual: string | null | undefined
+  actual: string | null | undefined,
+  changedAt?: string | null
 ): string | null {
+  if (changedAt) return null;
   if (typeof requested !== 'string' || !actual) return null;
   const wanted = normalizeUsername(requested);
   if (!wanted || wanted === actual) return null;
   return `~ @${wanted} wasn't available when ur account was made, so u got @${actual}. pick a new one below if u want ~`;
+}
+
+/**
+ * Days between username changes. The first change is free — a handle typed
+ * wrong at sign-up should not lock someone out for a month. Mirrors
+ * guard_username_change() in
+ * 20260920000000_username_tombstones_and_cooldown.sql, which is the enforcement;
+ * this only keeps the app from offering an edit the database will refuse.
+ */
+export const USERNAME_CHANGE_COOLDOWN_DAYS = 30;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * When the next username change becomes possible, or null if it already is.
+ * A profile that has never been renamed (null `changedAt`) is never in cooldown.
+ */
+export function usernameCooldownEndsAt(
+  changedAt: string | null | undefined,
+  now: Date = new Date()
+): Date | null {
+  if (!changedAt) return null;
+  const changed = new Date(changedAt);
+  if (Number.isNaN(changed.getTime())) return null;
+  const ends = new Date(changed.getTime() + USERNAME_CHANGE_COOLDOWN_DAYS * DAY_MS);
+  return ends.getTime() > now.getTime() ? ends : null;
+}
+
+/** "oct 20" — a date in the app's lowercase voice. */
+export function formatUsernameCooldownDate(date: Date): string {
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toLowerCase();
 }
 
 /** Trims, drops a leading @, and lowercases — what people type into what is stored. */

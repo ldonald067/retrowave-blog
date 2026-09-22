@@ -8,6 +8,9 @@ import {
   validateUsername,
   isReservedUsername,
   usernameSwapNotice,
+  usernameCooldownEndsAt,
+  formatUsernameCooldownDate,
+  USERNAME_CHANGE_COOLDOWN_DAYS,
   fallbackUsername,
   POST_LIMITS,
   PROFILE_LIMITS,
@@ -202,5 +205,46 @@ describe('usernames', () => {
     expect(usernameSwapNotice('Glitter', 'glitter_b1a785fd')).toMatch(/@glitter wasn't available/);
     expect(usernameSwapNotice('Glitter', 'glitter')).toBeNull();
     expect(usernameSwapNotice(undefined, 'user_b1a785fd')).toBeNull();
+  });
+
+  it('drops the swap notice once someone has renamed themselves', () => {
+    // The sign-up request stays in auth metadata forever. After a deliberate
+    // rename it describes nothing, so it must not claim their chosen name
+    // "wasn't available".
+    expect(usernameSwapNotice('Glitter', 'somethingelse', '2026-09-20T10:00:00Z')).toBeNull();
+  });
+});
+
+describe('username change cooldown', () => {
+  const now = new Date('2026-09-20T12:00:00Z');
+
+  it('never holds back the first change', () => {
+    expect(usernameCooldownEndsAt(null, now)).toBeNull();
+    expect(usernameCooldownEndsAt(undefined, now)).toBeNull();
+  });
+
+  it('holds for 30 days after a change, then lets go', () => {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const justNow = new Date(now.getTime() - dayMs).toISOString();
+    const ends = usernameCooldownEndsAt(justNow, now);
+    expect(ends).not.toBeNull();
+    expect(ends!.getTime()).toBe(
+      new Date(justNow).getTime() + USERNAME_CHANGE_COOLDOWN_DAYS * dayMs
+    );
+
+    const longAgo = new Date(now.getTime() - 31 * dayMs).toISOString();
+    expect(usernameCooldownEndsAt(longAgo, now)).toBeNull();
+
+    // The boundary itself is free: exactly 30 days is not "still in cooldown".
+    const exactly = new Date(now.getTime() - USERNAME_CHANGE_COOLDOWN_DAYS * dayMs).toISOString();
+    expect(usernameCooldownEndsAt(exactly, now)).toBeNull();
+  });
+
+  it('ignores an unparseable timestamp rather than locking the field', () => {
+    expect(usernameCooldownEndsAt('not a date', now)).toBeNull();
+  });
+
+  it('formats the date in the app voice', () => {
+    expect(formatUsernameCooldownDate(new Date(2026, 9, 20))).toBe('oct 20');
   });
 });

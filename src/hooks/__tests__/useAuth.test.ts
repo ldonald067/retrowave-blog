@@ -48,6 +48,7 @@ const savedProfile: Profile = {
   is_admin: false,
   is_public: false,
   private_chapters: [],
+  username_changed_at: null,
   created_at: '2026-04-17T00:00:00Z',
   updated_at: '2026-04-17T00:00:00Z',
 };
