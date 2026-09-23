@@ -164,7 +164,7 @@ and this table is the canonical one (`/mobile` points here):
 | --------- | ------------------------ | --------------------------------------------------------------- |
 | Primary   | the main action          | `.xanga-button`, solid accent fill                              |
 | Secondary | supporting action        | `.xanga-button-ghost`, accent text, dotted border, no fill      |
-| Tertiary  | incidental               | bare accent icon or text, no border, no fill                    |
+| Tertiary  | incidental, an "or"      | bare accent text, `title-bold`, no underline/border/fill        |
 | Link      | ordinary navigation      | `.xanga-link`, `var(--link-color)`                              |
 | Caution   | destructive or reporting | `.xanga-link-caution`, `var(--link-caution)`, bold + underlined |
 
@@ -203,6 +203,15 @@ ur password?" and "~ or use a magic link ~" — three identical underlined lines
 and the one the person actually needed was indistinguishable from the two they
 did not. It is `.xanga-button-ghost` now. Each component looked fine alone; the
 screen state had no hierarchy.
+
+Then the two links left were still twins — same colour, size, font and weight
+for "forgot ur password?" (recovery) and "~ or use a magic link ~" (another way
+to sign in). **Two links doing different jobs need different treatments too.**
+The magic link moved under the `~ sign in ~` button, as the "or" to it, and
+took the tertiary treatment: `title-bold text-sm` in `--accent-primary`, no
+underline (`LoginForm.tsx` is the reference). The sign-in column now reads
+outlined action → link → solid button → tertiary "or", and no two neighbours
+look alike.
 
 ### Hierarchy needs a middle tier
 

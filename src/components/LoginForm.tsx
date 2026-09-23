@@ -151,13 +151,11 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
           )}
 
           {mode === 'password' ? (
-            /* The two ways out of a stuck sign-in, as one centered group. The
-               reset used to sit right-aligned under the password field and the
-               magic link centered below it, which read as misaligned rather
-               than as two different kinds of link (seen on the SE, 2026-09-22).
-               Both are 44pt tall: the reset was a bare text-xs line, about 16pt,
-               under Apple's minimum touch target. */
-            <div className="text-center flex flex-col items-center">
+            /* The way out when the password fails — a link, because it only
+               switches mode. Centered: right-aligned beside a centered magic
+               link read as misaligned on the SE. 44pt tall; it used to be a
+               bare text-xs line of about 16pt. */
+            <div className="text-center">
               <button
                 type="button"
                 onClick={() => {
@@ -167,16 +165,6 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
                 className="xanga-link text-xs min-h-[44px] inline-flex items-center justify-center"
               >
                 forgot ur password?
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('magic');
-                  clearErrors();
-                }}
-                className="xanga-link text-xs min-h-[44px] inline-flex items-center justify-center"
-              >
-                ~ or use a magic link ~
               </button>
             </div>
           ) : mode === 'reset' ? (
@@ -200,16 +188,6 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 💌 we'll email u a link, just click it 2 sign in!
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setMode('password');
-                  clearErrors();
-                }}
-                className="xanga-link text-xs mt-1 min-h-[44px] inline-flex items-center justify-center"
-              >
-                ~ or use a password ~
-              </button>
             </div>
           )}
 
@@ -226,6 +204,28 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
                   ? '~ send reset link ~'
                   : '~ send magic link ~'}
           </button>
+
+          {/* The other way to do what the button above does, so it sits under
+              it as the "or". Tertiary tier — bare accent text in the title
+              font, no underline, no border — so it reads differently from the
+              recovery link above and the outlined resend: three kinds of
+              control, three treatments. It was a second identical link
+              (SE, 2026-09-22). */}
+          {mode !== 'reset' && (
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode(mode === 'password' ? 'magic' : 'password');
+                  clearErrors();
+                }}
+                className="title-bold text-sm min-h-[44px] inline-flex items-center justify-center px-2"
+                style={{ color: 'var(--accent-primary)' }}
+              >
+                {mode === 'password' ? '✨ or use a magic link' : '🔑 or use a password'}
+              </button>
+            </div>
+          )}
         </form>
       </motion.div>
     </>

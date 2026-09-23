@@ -113,4 +113,19 @@ describe('LoginForm iOS AutoFill', () => {
     expect(email).toHaveAttribute('autocapitalize', 'none');
     expect(email).toHaveAttribute('autocorrect', 'off');
   });
+
+  it('switches between password and magic link from under the sign-in button', () => {
+    render(<LoginForm />);
+    const submit = () => screen.getByRole('button', { name: /^~ (sign in|send magic link) ~$/ });
+
+    fireEvent.click(screen.getByRole('button', { name: /or use a magic link/i }));
+    expect(screen.queryByLabelText(/ur password/i)).not.toBeInTheDocument();
+    expect(submit()).toHaveTextContent('~ send magic link ~');
+    // Still directly after the submit button, so it stays the "or" to it.
+    expect(submit().closest('form')?.lastElementChild).toHaveTextContent(/or use a password/i);
+
+    fireEvent.click(screen.getByRole('button', { name: /or use a password/i }));
+    expect(screen.getByLabelText(/ur password/i)).toBeInTheDocument();
+    expect(submit()).toHaveTextContent('~ sign in ~');
+  });
 });
