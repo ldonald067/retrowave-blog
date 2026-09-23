@@ -16,7 +16,7 @@ row here — recipe in `CLAUDE.md`.
 | Password policy      | `validation.ts` `PASSWORD_MIN_LENGTH` (8)                   | `config.toml` `minimum_password_length`                      |
 | Username format      | `validation.ts` `validateUsername` (3–30, `[a-z0-9_-]`)     | `20260919000000` CHECK, lowercase-only (applied 2026-09-19)  |
 | Reserved usernames   | `validation.ts` `RESERVED_USERNAMES` + contains "retrowave" | `20260919010000` `is_reserved_username()` + CHECK            |
-| Username rename rule | `validation.ts` `USERNAME_CHANGE_COOLDOWN_DAYS` (30)        | `20260920000000` `guard_username_change()` (NOT YET APPLIED) |
+| Username rename rule | `validation.ts` `USERNAME_CHANGE_COOLDOWN_DAYS` (30)        | `20260920000000` `guard_username_change()` (applied 2026-09-22)  |
 | Moderation lists     | `moderation.ts` `BLOCKED_PATTERNS` + `BLOCKED_DOMAINS`      | `functions/moderate-content/index.ts`                        |
 | `ModerationResult`   | `moderation.ts` (duplicated on purpose)                     | `functions/moderate-content/index.ts`                        |
 | Public profile flag  | `profile.ts` `is_public`                                    | `20260319000001` column + RPC                                |

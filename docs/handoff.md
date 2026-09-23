@@ -6,9 +6,9 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-17, at `8c6d006` (code) — after the iPhone SE pass, its
-fixes, a round of feed spacing and both marquees from your screenshots, and a
-full docs cleanup.
+Last rewritten 2026-09-22, at `c06aec5` (code) — after chosen usernames, the
+username tombstone and rename cooldown (applied to prod), and the discovery that
+the verification sign-up was never confirmed.
 
 ---
 
@@ -29,7 +29,7 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 - **The iOS deployment target is 16.4** (raised from 15.0 on 2026-09-16) because
   the CSS cannot run earlier. The iPhone 6s, 7 and first-generation SE lose the
   app.
-- **CI is green, 344 tests across 39 files.** `npm run check` runs exactly what
+- **CI is green, 371 tests across 41 files.** `npm run check` runs exactly what
   CI runs, including the Prettier check.
 
 ## The UI audit
@@ -156,9 +156,30 @@ iPhone 17 Pro Max simulator unless noted.
   starts empty, so **first-run setup is back** — no new user had ever seen it);
   operator-like names are reserved; profiles are created on email confirmation,
   so unfinished sign-ups hold no name; setup says when a chosen name was lost;
-  the username field is first. **Not yet proven by a real sign-up.**
+  the username field is first. **Not yet proven by a real sign-up** — see Open
+  work.
+- **Confirmation email names the handle** (`ba82639`): seen in Gmail on your
+  iPhone 16 for `rainbowpudding` — "ur handle is @rainbowpudding".
+- **Username tombstone and rename cooldown** (`c06aec5`, migration
+  `20260920000000`, pasted into the SQL editor by you 2026-09-22). Verified by
+  query: column present and NULL on all 6 profiles, `username_history` empty with
+  RLS and an owner-only read policy, the trigger attached, and
+  `is_username_available` consulting it (free name true, `ldonald234` and
+  `support` false; anon can call it but cannot read the history). **Not yet
+  exercised by a real rename.**
 
 ## Open work
+
+- **The verification sign-up is unconfirmed.** `rainbowpudding` (gmail) signed up
+  2026-09-19; its last confirmation email went out 2026-09-20 17:16 UTC and
+  `email_confirmed_at` is still NULL, so it has no profile. Links expire after
+  an hour (`mailer_otp_exp` 3600) and auth logs keep one day, so whether the link
+  was ever clicked is unknowable. Profile-on-confirmation, first-run setup and
+  the chosen @handle on a public page remain unproven until it is confirmed.
+- **No way to resend a confirmation from the app.** Signing in unconfirmed says
+  "Please verify your email" and stops; the only resend is signing up again with
+  the same email. With one-hour links that is a dead end for anyone who opens
+  the email late.
 
 - **Finding 52, left as is on purpose:** the feed reads through a ~105pt slot
   on the SE at rest. Fixing it means replacing the feed's own scroll container
