@@ -180,10 +180,12 @@ screenshot of each state and ask:
   "~ or use a magic link ~" and "forgot ur password?" stacked in the same link
   style. One is another way to do what you came for; the other is what you reach
   for when that failed. Rendered as peers they read as a list of equal options.
-  The fix that held was **position**, not colour: the reset link now sits
-  right-aligned under the password field it rescues, and the magic link stays
-  centred as the alternative. Do not rank them by greying one out — see the tier
-  table below.
+  Separating them by alignment — the reset right-aligned under the password
+  field, the magic link centred below — did not hold: on the SE it read as a
+  misalignment, not a distinction (2026-09-22, the user's call). They are now
+  one centred group, the reset first and plain, the magic link in the ~tildes~
+  that mark an alternative route, each 44pt tall. Do not rank them by greying
+  one out — see the tier table below.
 - **Is anything offering the same action twice?** The empty journal had "write
   ur first entry" in the card _and_ a floating "new entry" button — on a phone
   the floating one lands on top of the card it duplicates. A desktop layout can

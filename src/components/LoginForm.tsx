@@ -147,35 +147,27 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
                 autoComplete="current-password"
               />
               {unconfirmedEmail && <ResendConfirmation email={unconfirmedEmail} />}
-              {/* Attached to the field it rescues, right-aligned, where iOS
-                  users look for it. Position is what sets it apart from the
-                  magic link below — not colour. It used to be --text-muted,
-                  and grey is hard to read here and off-brand: this app ranks
-                  controls by how much accent they carry, never by draining the
-                  accent out (see /frontend). */}
-              <div className="flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMode('reset');
-                    clearErrors();
-                  }}
-                  className="xanga-link text-xs"
-                >
-                  forgot ur password?
-                </button>
-              </div>
             </div>
           )}
 
           {mode === 'password' ? (
-            /* The magic link and the password reset are not peers: one is
-               another way to do what you came to do, the other is what you
-               reach for when that failed. They used to sit stacked here in one
-               link style and read as a list of equal options. The reset now
-               lives under the password field instead, so each sits beside the
-               thing it relates to. */
-            <div className="text-center flex flex-col">
+            /* The two ways out of a stuck sign-in, as one centered group. The
+               reset used to sit right-aligned under the password field and the
+               magic link centered below it, which read as misaligned rather
+               than as two different kinds of link (seen on the SE, 2026-09-22).
+               Both are 44pt tall: the reset was a bare text-xs line, about 16pt,
+               under Apple's minimum touch target. */
+            <div className="text-center flex flex-col items-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('reset');
+                  clearErrors();
+                }}
+                className="xanga-link text-xs min-h-[44px] inline-flex items-center justify-center"
+              >
+                forgot ur password?
+              </button>
               <button
                 type="button"
                 onClick={() => {
