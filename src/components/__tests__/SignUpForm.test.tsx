@@ -1,12 +1,17 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 
 const { signUpWithPassword } = vi.hoisted(() => ({
   signUpWithPassword: vi.fn().mockResolvedValue({ error: null }),
 }));
 
+const { resendConfirmation } = vi.hoisted(() => ({
+  resendConfirmation: vi.fn().mockResolvedValue({ error: null }),
+}));
+
 vi.mock('../../lib/auth-actions', () => ({
   signUpWithPassword,
+  resendConfirmation,
 }));
 
 const { isUsernameAvailable } = vi.hoisted(() => ({
@@ -74,6 +79,10 @@ describe('SignUpForm', () => {
 
     expect(await screen.findByText(/almost there/i)).toBeInTheDocument();
     expect(screen.getByText('journal@example.com')).toBeInTheDocument();
+
+    // The link expires in an hour; the resend goes to the address just used.
+    fireEvent.click(screen.getByRole('button', { name: /resend the confirmation email/i }));
+    await waitFor(() => expect(resendConfirmation).toHaveBeenCalledWith('journal@example.com'));
   });
 
   it('does not advance to the age step with empty credentials', async () => {

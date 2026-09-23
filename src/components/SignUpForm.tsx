@@ -14,6 +14,7 @@ import {
 } from '../lib/validation';
 import { isUsernameAvailable } from '../lib/username';
 import { isNativePlatform } from '../lib/capacitor';
+import ResendConfirmation from './ResendConfirmation';
 
 interface SignUpFormProps {
   /** Called when the address turns out to be registered, so the surrounding
@@ -196,6 +197,9 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
                 ? 'click it 2 confirm, then come back here & sign in ✨'
                 : 'click it & u will be signed in ✨'}
             </p>
+            <div className="mt-3">
+              <ResendConfirmation email={email} />
+            </div>
           </div>
 
           <button

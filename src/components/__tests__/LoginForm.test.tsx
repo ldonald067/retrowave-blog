@@ -9,6 +9,7 @@ const { signInWithPassword, signInMagicLink } = vi.hoisted(() => ({
 vi.mock('../../lib/auth-actions', () => ({
   signInWithPassword,
   signInMagicLink,
+  resendConfirmation: vi.fn().mockResolvedValue({ error: null }),
 }));
 
 import LoginForm from '../LoginForm';
@@ -30,6 +31,36 @@ describe('LoginForm error surfacing', () => {
 
     expect(await screen.findByText(/confirmation link first/i)).toBeInTheDocument();
     expect(screen.queryByText(/wrong email or password/i)).not.toBeInTheDocument();
+  });
+
+  it('offers to resend the confirmation email, until the address changes', async () => {
+    signInWithPassword.mockResolvedValueOnce({
+      error: 'Please verify your email before signing in.',
+    });
+    render(<LoginForm />);
+    fill(/ur email address/i, 'a@b.com');
+    fill(/ur password/i, 'Secret!123');
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    expect(
+      await screen.findByRole('button', { name: /resend the confirmation email/i })
+    ).toBeInTheDocument();
+
+    fill(/ur email address/i, 'other@b.com');
+    expect(
+      screen.queryByRole('button', { name: /resend the confirmation email/i })
+    ).not.toBeInTheDocument();
+  });
+
+  it('does not offer a resend for wrong credentials', async () => {
+    signInWithPassword.mockResolvedValueOnce({ error: 'Incorrect email or password.' });
+    render(<LoginForm />);
+    fill(/ur email address/i, 'a@b.com');
+    fill(/ur password/i, 'nope');
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+
+    await screen.findByText(/wrong email or password/i);
+    expect(screen.queryByRole('button', { name: /resend/i })).not.toBeInTheDocument();
   });
 
   it('shows "wrong email or password" only for actual invalid credentials', async () => {

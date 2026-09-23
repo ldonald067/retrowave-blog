@@ -41,6 +41,9 @@ const AUTH_MESSAGE_MAP: Array<[RegExp, string]> = [
   [/jwt expired/i, 'Your session has expired. Please sign in again.'],
   [/invalid jwt/i, 'Your session is invalid. Please sign in again.'],
   [/rate limit/i, 'Too many requests. Please wait a moment and try again.'],
+  // Supabase's per-address email throttle (60s). It does not say "rate limit",
+  // so it used to fall through to "Something went wrong".
+  [/only request this after/i, 'Please wait a moment before asking for another email.'],
   [/network/i, 'Network error. Please check your connection.'],
   [/failed to fetch/i, 'Could not reach the server. Please check your connection.'],
   [/row-level security/i, 'You do not have permission to perform this action.'],

@@ -66,6 +66,43 @@ export async function signUpWithPassword(
   }
 }
 
+/**
+ * Sends the sign-up confirmation email again.
+ *
+ * Confirmation links expire after an hour (prod `mailer_otp_exp` 3600), and
+ * before this existed the only way to get a fresh one was to sign up again —
+ * signing in just said "verify your email" and stopped.
+ *
+ * Supabase allows one email per address every 60 seconds and refuses sooner
+ * requests with "you can only request this after N seconds". That wait comes
+ * back as `retryAfterSeconds` so the button can count it down instead of
+ * failing again.
+ */
+export async function resendConfirmation(
+  email: string
+): Promise<{ error: string | null; retryAfterSeconds?: number }> {
+  try {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: authRedirectTo() },
+    });
+    if (error) throw error;
+    return { error: null };
+  } catch (err) {
+    const raw = err instanceof Error ? err.message : '';
+    const wait = /after (\d+) seconds?/i.exec(raw);
+    if (wait) {
+      const seconds = Number(wait[1]);
+      return {
+        error: `Please wait ${seconds} seconds before asking for another email.`,
+        retryAfterSeconds: seconds,
+      };
+    }
+    return { error: toUserMessage(err) };
+  }
+}
+
 /** Passwordless magic-link sign-in (existing users only). */
 export async function signInMagicLink(email: string): Promise<{ error: string | null }> {
   try {

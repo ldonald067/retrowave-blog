@@ -4,6 +4,7 @@ import { Input } from './ui';
 import Toast from './Toast';
 import { requestPasswordReset, signInMagicLink, signInWithPassword } from '../lib/auth-actions';
 import { useToast } from '../hooks/useToast';
+import ResendConfirmation from './ResendConfirmation';
 
 interface LoginFormProps {
   /** Pre-fills the address, so someone bounced here from signup does not
@@ -18,11 +19,15 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
   const [mode, setMode] = useState<'password' | 'magic' | 'reset'>('password');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  // The address that sign-in just found unconfirmed — the resend is for that
+  // one, and disappears as soon as the email field changes.
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState('');
   const { toasts, showToast, hideToast } = useToast();
 
   const clearErrors = () => {
     setEmailError('');
     setPasswordError('');
+    setUnconfirmedEmail('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,6 +61,7 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
         // password — telling them it's wrong sends them into reset loops.
         if (/verify your email|not confirmed/i.test(error)) {
           setPasswordError('check ur inbox 4 the confirmation link first ✨');
+          setUnconfirmedEmail(email);
         } else if (/incorrect email or password/i.test(error)) {
           setPasswordError('wrong email or password');
         } else {
@@ -115,6 +121,7 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
             onChange={(e) => {
               setEmail(e.target.value);
               setEmailError('');
+              setUnconfirmedEmail('');
             }}
             placeholder="you@example.com"
             error={emailError}
@@ -139,6 +146,7 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
                 error={passwordError}
                 autoComplete="current-password"
               />
+              {unconfirmedEmail && <ResendConfirmation email={unconfirmedEmail} />}
               {/* Attached to the field it rescues, right-aligned, where iOS
                   users look for it. Position is what sets it apart from the
                   magic link below — not colour. It used to be --text-muted,
