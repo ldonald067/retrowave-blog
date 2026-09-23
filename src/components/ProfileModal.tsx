@@ -1,5 +1,6 @@
 import {
   useState,
+  useId,
   useEffect,
   useRef,
   FormEvent,
@@ -212,6 +213,7 @@ export default function ProfileModal({
   // it (guard_username_change); this just means nobody types a new name, waits
   // for a save, and only then gets told no.
   const cooldownEndsAt = usernameCooldownEndsAt(profile?.username_changed_at);
+  const usernameHintId = useId();
 
   const validate = (): boolean => {
     const newErrors: {
@@ -632,8 +634,15 @@ export default function ProfileModal({
                       maxLength={USERNAME_LIMITS.max}
                       readOnly={!!cooldownEndsAt}
                       className={cooldownEndsAt ? 'opacity-60' : ''}
+                      // A locked field has to say why to VoiceOver too, not just
+                      // on screen (finding 75).
+                      aria-describedby={usernameHintId}
                     />
-                    <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                    <p
+                      id={usernameHintId}
+                      className="text-xs mt-2"
+                      style={{ color: 'var(--text-muted)' }}
+                    >
                       {cooldownEndsAt
                         ? `u can change ur username again on ${formatUsernameCooldownDate(cooldownEndsAt)} ~ one change every 30 days keeps ur links pointing at u`
                         : usernameChanged

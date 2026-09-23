@@ -49,12 +49,21 @@ export const TEMPLATES = {
       heading: '~ welcome 2 ur new journal ~',
       body:
         p('hi! ur almost in &#9825;') +
-        // {{ .Data }} is the sign-up metadata, where the chosen username lives.
-        // Guarded: the magic-link path sends none, and "@" alone would be odd.
-        '{{ if .Data.username }}' +
-        p('ur handle is <strong>@{{ .Data.username }}</strong> &#10022; it&rsquo;s what people see on ur public page, not ur email.') +
-        '{{ end }}' +
-        p('tap below 2 confirm this email address, and ur journal is ready 4 its very first entry.', '0'),
+        // {{ .Data }} is the RAW sign-up metadata — anyone with the anon key
+        // can set it, and send this email to any address. GoTrue escapes
+        // markup but not words, so the handle-shape check lives in
+        // hook_before_user_created (finding 72). The length guard here is the
+        // backstop if that hook is ever off: a real handle is at most 30.
+        // Nested, not `and`, so len never sees a missing value.
+        '{{ if .Data.username }}{{ if le (len .Data.username) 30 }}' +
+        p(
+          'ur handle is <strong>@{{ .Data.username }}</strong> &#10022; it&rsquo;s what people see on ur public page, not ur email.'
+        ) +
+        '{{ end }}{{ end }}' +
+        p(
+          'tap below 2 confirm this email address, and ur journal is ready 4 its very first entry.',
+          '0'
+        ),
       cta: { href: URL, label: '~ confirm my email ~' },
       footNote: IGNORE('create an account'),
     }),
@@ -93,8 +102,9 @@ export const TEMPLATES = {
       preheader: 'Confirm the new address for your account.',
       heading: '~ confirm ur new email ~',
       body:
-        p('u asked 2 change the email on ur journal from <strong>{{ .Email }}</strong> to <strong>{{ .NewEmail }}</strong>.') +
-        p('tap below 2 confirm the new address.', '0'),
+        p(
+          'u asked 2 change the email on ur journal from <strong>{{ .Email }}</strong> to <strong>{{ .NewEmail }}</strong>.'
+        ) + p('tap below 2 confirm the new address.', '0'),
       cta: { href: URL, label: '~ confirm the change ~' },
       footNote: IGNORE('change the email address'),
     }),
@@ -118,8 +128,9 @@ export const TEMPLATES = {
       preheader: 'The email address on your journal was changed.',
       heading: '~ ur email was changed ~',
       body:
-        p('the email on ur journal changed from <strong>{{ .OldEmail }}</strong> 2 <strong>{{ .Email }}</strong>.') +
-        p('if that was u, ur all set &#9825;', '0'),
+        p(
+          'the email on ur journal changed from <strong>{{ .OldEmail }}</strong> 2 <strong>{{ .Email }}</strong>.'
+        ) + p('if that was u, ur all set &#9825;', '0'),
       footNote: NOT_YOU('the email address was changed'),
     }),
   },

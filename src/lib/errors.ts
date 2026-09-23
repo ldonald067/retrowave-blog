@@ -44,6 +44,9 @@ const AUTH_MESSAGE_MAP: Array<[RegExp, string]> = [
   // Supabase's per-address email throttle (60s). It does not say "rate limit",
   // so it used to fall through to "Something went wrong".
   [/only request this after/i, 'Please wait a moment before asking for another email.'],
+  // hook_before_user_created (finding 72). The app validates first, so this
+  // only shows if the two rules ever drift apart.
+  [/usernames are 3-30 lowercase/i, "That username isn't allowed. Try another one."],
   [/network/i, 'Network error. Please check your connection.'],
   [/failed to fetch/i, 'Could not reach the server. Please check your connection.'],
   [/row-level security/i, 'You do not have permission to perform this action.'],
@@ -58,18 +61,25 @@ const AUTH_MESSAGE_MAP: Array<[RegExp, string]> = [
 
 const FALLBACK = 'Something went wrong. Please try again.';
 
-// guard_username_change() raises `username_cooldown:YYYY-MM-DD` as a
+// guard_username_change() raises `username_cooldown:<when>` as a
 // check_violation. Without this it would be mapped by its code alone, to "The
 // data you submitted does not meet requirements." — which says nothing about
 // the one fact the person needs, the date.
-const USERNAME_COOLDOWN_PATTERN = /username_cooldown:(\d{4})-(\d{2})-(\d{2})/;
+//
+// <when> is a full UTC timestamp since finding 74. It used to be a bare UTC
+// calendar date, read here as a local one: a day early east of UTC. The bare
+// form is still parsed, as a local day, for a database without that fix.
+const USERNAME_COOLDOWN_PATTERN = /username_cooldown:(\d{4})-(\d{2})-(\d{2})(T\d{2}:\d{2}:\d{2}Z)?/;
 
 function usernameCooldownMessage(raw: string): string | null {
   const match = USERNAME_COOLDOWN_PATTERN.exec(raw);
   if (!match) return null;
-  // Built from the parts: `new Date('2026-10-20')` is UTC midnight, which reads
-  // as the day before in every timezone west of Greenwich.
-  const when = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const when = match[4]
+    ? new Date(`${match[1]}-${match[2]}-${match[3]}${match[4]}`)
+    : // Built from the parts: `new Date('2026-10-20')` is UTC midnight, which
+      // reads as the day before in every timezone west of Greenwich.
+      new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  if (Number.isNaN(when.getTime())) return null;
   const label = when.toLocaleDateString(undefined, { month: 'long', day: 'numeric' });
   return `You can change your username again on ${label}.`;
 }

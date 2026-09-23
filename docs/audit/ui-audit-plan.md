@@ -233,7 +233,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**68 findings, all fixed except 52** (left as is on purpose).
+**72 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -309,7 +309,12 @@ assigned.
 | 70 | LOW | Sign-up | Unconfirmed sign-ups held usernames forever; profiles are now created on confirmation | Fixed — trigger moved |
 | 71 | LOW | Sign-up, iOS AutoFill | The username field sat between email and password, where AutoFill takes the saved login; now first | Fixed (plausible, not reproduced) |
 
-Findings 45–71 lifted the count from 41 to 68 (numbers 40–42 unassigned).
+| 72 | MED | Confirmation email | `{{ .Data.username }}` printed the raw sign-up metadata, which anyone with the anon key can set to any text and send to any address: phishing copy from our domain. GoTrue escapes markup, not words | Fixed — `hook_before_user_created` refuses non-handle usernames (migration `20260923000000`); template length backstop pushed |
+| 73 | MED | Rename cooldown | Users could write `username_changed_at` directly (update policy covers every column), or blank their username and pick a new one; either reset the cooldown, and with tombstones allowed unlimited name hoarding | Fixed — the guard owns the column and refuses a NULL username (migration `20260923000000`) |
+| 74 | LOW | Rename cooldown copy | The cooldown error carried a UTC calendar date read as local — a day early east of UTC | Fixed — full timestamp, formatted on device |
+| 75 | LOW | Profile editor, VoiceOver | A locked username field did not say why; the hint was not linked. `Input` also dropped its error link whenever a caller passed `aria-describedby` | Fixed — linked, and `Input` merges both |
+
+Findings 45–75 lifted the count from 41 to 72 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
@@ -391,3 +396,12 @@ counted.
   availability returns a boolean only; username changes orphan nothing (blocks,
   posts, reports are id-keyed; post author is typed text); emails escape
   usernames; older generated names still save untouched.
+- **2026-09-23** — username tombstone and cooldown, confirmation-email handle,
+  resend button, sign-in link tiers (`ba82639`…`0a81c5c`). Findings 72–75, all
+  fixed. Held up: the email escapes markup (GoTrue `html/template`); resend and
+  sign-in do not reveal which addresses have accounts (GoTrue answers unknown
+  and confirmed alike; "not confirmed" needs the right password); clients
+  cannot write `username_history`; a retired name at sign-up falls back rather
+  than failing; a repeat sign-up cannot change metadata. Not filed: two
+  simultaneous renames to one name could misattribute a tombstone. Noted, out of
+  scope: 30 auth emails/hour project-wide and no captcha.

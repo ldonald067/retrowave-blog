@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { toUserMessage, POSTGREST_CODES } from '../errors';
 
 describe('toUserMessage', () => {
@@ -99,6 +99,26 @@ describe('toUserMessage', () => {
     // timezone west of Greenwich.
     expect(toUserMessage(new Error('username_cooldown:2026-01-01'))).toBe(
       'You can change your username again on January 1.'
+    );
+  });
+
+  it('formats the cooldown from the full UTC instant, not a UTC calendar date', () => {
+    // Finding 74: 21:00 UTC on Oct 22 is already Oct 23 east of UTC. The date
+    // shown must come from the instant, in the device's own timezone.
+    const spy = vi.spyOn(Date.prototype, 'toLocaleDateString');
+    const message = toUserMessage({
+      code: '23514',
+      message: 'username_cooldown:2026-10-22T21:00:00Z',
+    });
+    expect(message).toMatch(/^You can change your username again on .+\.$/);
+    const formatted = spy.mock.contexts[spy.mock.contexts.length - 1] as Date;
+    expect(formatted.getTime()).toBe(Date.parse('2026-10-22T21:00:00Z'));
+    spy.mockRestore();
+  });
+
+  it('explains a sign-up the username hook refused', () => {
+    expect(toUserMessage(new Error('Usernames are 3-30 lowercase letters, numbers, _ or -.'))).toBe(
+      "That username isn't allowed. Try another one."
     );
   });
 });

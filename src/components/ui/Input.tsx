@@ -13,10 +13,16 @@ export default function Input({
   icon,
   id: externalId,
   className = '',
+  'aria-describedby': describedBy,
   ...props
 }: InputProps) {
   const generatedId = useId();
   const inputId = externalId || generatedId;
+  // The error first, then whatever the caller links (a hint). A caller's
+  // aria-describedby used to be spread over this one, so linking a hint would
+  // have silently unlinked the error.
+  const describedByIds =
+    [error ? `${inputId}-error` : null, describedBy].filter(Boolean).join(' ') || undefined;
 
   const iconPadding = icon ? 'pl-10' : '';
 
@@ -53,7 +59,7 @@ export default function Input({
             color: 'var(--text-body)',
           }}
           aria-invalid={error ? true : undefined}
-          aria-describedby={error ? `${inputId}-error` : undefined}
+          aria-describedby={describedByIds}
           {...props}
         />
       </div>
