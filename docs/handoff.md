@@ -6,9 +6,9 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-22, at `c06aec5` (code) — after chosen usernames, the
-username tombstone and rename cooldown (applied to prod), and the discovery that
-the verification sign-up was never confirmed.
+Last rewritten 2026-09-22, at `dca899c` (code) — after the username tombstone
+and rename cooldown (applied to prod), the confirmation-email resend button, and
+the sign-in screen's control hierarchy.
 
 ---
 
@@ -170,17 +170,22 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
+- **"ur session expired" shows twice** on a launch whose stored session the
+  server refuses (iPhone 17, 2026-09-22). Two identical toasts stacked; one
+  would do.
+
 - **The verification sign-up is unconfirmed.** `rainbowpudding` (gmail) signed up
   2026-09-19; its last confirmation email went out 2026-09-20 17:16 UTC and
   `email_confirmed_at` is still NULL, so it has no profile. Links expire after
   an hour (`mailer_otp_exp` 3600) and auth logs keep one day, so whether the link
   was ever clicked is unknowable. Profile-on-confirmation, first-run setup and
   the chosen @handle on a public page remain unproven until it is confirmed.
-- **No way to resend a confirmation from the app.** Signing in unconfirmed says
-  "Please verify your email" and stops; the only resend is signing up again with
-  the same email. With one-hour links that is a dead end for anyone who opens
-  the email late.
-
+- **The resend button is built but not yet seen working end to end**
+  (`f443689`, `dca899c`). It shows on the "almost there" screen and under the
+  sign-in error for an unconfirmed address, as an outlined secondary button —
+  the first version was a third identical link (the rule is now in `/frontend`,
+  "Pick the tier by what the control does"). Seen rendered on the SE with your
+  `nonoabc2345` sign-in; not yet tapped.
 - **Finding 52, left as is on purpose:** the feed reads through a ~105pt slot
   on the SE at rest. Fixing it means replacing the feed's own scroll container
   and virtualizer — not worth it for a shrinking class of phone. Swiping on the
@@ -233,22 +238,26 @@ junk**. It found four bugs. Keep it.
 
 ## Simulators
 
-Last known state, 2026-09-17 — all four booted, each build read from the
-installed bundle (`index-DVN9MRxQ.js`). Sessions live in `UserDefaults` and
-survive reboots, but **simulators shut down between sessions**, so boot before
-installing, and re-check the installed build before trusting this table.
+State on 2026-09-22 — all four booted with the same build
+(`index--SxVGHhG.js`, `dca899c`). Sessions live in `UserDefaults` and survive
+reboots and in-place installs, but **simulators shut down between sessions**, so
+boot before installing, and re-check the installed build before trusting this
+table.
 
-| Simulator                  | Session       | Build              |
-| -------------------------- | ------------- | ------------------ |
-| iPhone 17 Pro Max          | `ldonald234`  | current, `92ef0c2` |
-| iPhone 17 Pro              | signed out    | current, `92ef0c2` |
-| iPhone 17                  | `ldonald0234` | current, `92ef0c2` |
-| iPhone SE (3rd generation) | signed out    | current, `92ef0c2` |
+| Simulator                  | Session    | Build              |
+| -------------------------- | ---------- | ------------------ |
+| iPhone 17 Pro Max          | signed out | current, `dca899c` |
+| iPhone 17 Pro              | signed out | current, `dca899c` |
+| iPhone 17                  | signed out | current, `dca899c` |
+| iPhone SE (3rd generation) | signed out | current, `dca899c` |
+
+**Every simulator is signed out.** The iPhone 17 launched with "ur session
+expired, sign in again" (twice — see Open work), so its stored `ldonald0234`
+session was still there and the server refused it: an install does not do that,
+a global sign-out elsewhere does. The Pro Max had no session to restore.
 
 Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
-in, so signing another simulator out cannot be undone from here. The SE lost
-`ldonald234` on 2026-09-17 when you signed that account out on the Pro Max —
-sign-out is global (see Open work).
+in, so signing another simulator out cannot be undone from here.
 
 ## Traps that cost a session
 
