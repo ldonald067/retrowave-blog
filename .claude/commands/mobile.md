@@ -186,6 +186,11 @@ screenshot of each state and ask:
   one centred group, the reset first and plain, the magic link in the ~tildes~
   that mark an alternative route, each 44pt tall. Do not rank them by greying
   one out — see the tier table below.
+  Then the resend button arrived as a third link in the same style, above
+  both, and the column became three identical underlined lines. **Screenshot
+  every conditional state, not just the resting one**, and check it against
+  "Pick the tier by what the control does" in `/frontend`: an action that sends
+  something is a button, never a link.
 - **Is anything offering the same action twice?** The empty journal had "write
   ur first entry" in the card _and_ a floating "new entry" button — on a phone
   the floating one lands on top of the card it duplicates. A desktop layout can

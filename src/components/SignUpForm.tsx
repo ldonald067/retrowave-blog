@@ -197,9 +197,7 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
                 ? 'click it 2 confirm, then come back here & sign in ✨'
                 : 'click it & u will be signed in ✨'}
             </p>
-            <div className="mt-3">
-              <ResendConfirmation email={email} />
-            </div>
+            <ResendConfirmation email={email} />
           </div>
 
           <button

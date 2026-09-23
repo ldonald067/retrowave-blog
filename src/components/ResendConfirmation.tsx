@@ -43,18 +43,23 @@ export default function ResendConfirmation({ email }: ResendConfirmationProps) {
   const waiting = secondsLeft > 0;
 
   return (
-    <div className="text-center">
+    <div className="mt-3 flex flex-col gap-2 text-center">
+      {/* Secondary tier, not a link. It is the one thing this person needs next
+          and it *does* something — sends an email — while the links around it
+          only navigate. As .xanga-link it was the third identical underlined
+          line in a column (SE, 2026-09-22). See "Pick the tier by what the
+          control does" in /frontend. */}
       <button
         type="button"
         onClick={() => void handleResend()}
         disabled={sending || waiting || !email}
-        className="xanga-link text-xs min-h-[44px] inline-flex items-center justify-center disabled:opacity-60"
+        className="xanga-button-ghost title-bold w-full px-4 py-2 text-xs min-h-[44px] disabled:opacity-60"
       >
         {sending
           ? 'sending...'
           : waiting
             ? `~ resend again in ${secondsLeft}s ~`
-            : '~ resend the confirmation email ~'}
+            : '💌 resend the confirmation email'}
       </button>
       {/* Its own live region: the countdown in the button would otherwise be
           read aloud every second. */}

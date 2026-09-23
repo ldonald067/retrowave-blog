@@ -180,6 +180,30 @@ undifferentiated group however the icons differ — Home, Profile and New Entry
 were all `.xanga-button`, and on mobile the labels are hidden, so the nav was
 three interchangeable magenta squares.
 
+### Pick the tier by what the control does
+
+**The tier comes from the control's job, not from how quiet you want it to
+look.** Visual hierarchy is not optional polish here — it is how a person finds
+the one thing they need on a phone screen.
+
+- **Link** is for navigation: go somewhere, or switch mode ("forgot ur
+  password?", "~ or use a magic link ~", "~ back 2 signing in ~").
+- **An action with an effect** — it sends, saves, publishes, deletes — is
+  Secondary at least, and Primary when it is what the screen is for. Never
+  `.xanga-link`, however small you want it.
+- **Judge tiers per screen state, not per component.** A control that appears
+  conditionally joins whatever is already on screen, so screenshot the state it
+  appears in and read the whole column. In any one state: at most one Primary,
+  and no two controls that do different kinds of thing wearing the same
+  treatment next to each other.
+
+The failure that wrote this rule (SE, 2026-09-22): the "resend the confirmation
+email" button shipped as `.xanga-link`, under a password error and above "forgot
+ur password?" and "~ or use a magic link ~" — three identical underlined lines,
+and the one the person actually needed was indistinguishable from the two they
+did not. It is `.xanga-button-ghost` now. Each component looked fine alone; the
+screen state had no hierarchy.
+
 ### Hierarchy needs a middle tier
 
 The most common failure here is not too little contrast — it is a scale with
