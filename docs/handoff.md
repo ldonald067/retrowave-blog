@@ -37,8 +37,7 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 `docs/audit/ui-audit-plan.md` is the checklist and findings log — **start there
 for anything UI**. 74 findings are logged — 41 from the main audit, 12 from the
 iPhone SE pass, 21 since (15 from four `/adversarial-review` runs). All are
-fixed except 52, left as is on purpose, and **72, 73 and 76, which wait on
-migration `20260923000000`** — see Open work.
+fixed except 52, left as is on purpose.
 
 **Journey coverage is not complete.** Never exercised: delete-entry confirm, the YouTube card, a long feed, the avatar
 picker, and block from a public profile. Read the plan's
@@ -171,12 +170,12 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
-- **Migration `20260923000000` is not applied** (checked 2026-09-24). Until it
-  runs, a stranger can put their own words (up to 30 characters) in a
-  confirmation email, and a user can reset their rename cooldown. Run it in the
-  SQL editor, THEN switch on Authentication → Hooks → Before User Created →
-  `public.hook_before_user_created` — in that order, or every sign-up fails.
-
+- **The username sign-up check is live but unproven on a real sign-up.**
+  Migration `20260923000000` ran and the Before User Created hook was switched
+  on (2026-09-24); calling the function directly passes a handle and refuses
+  everything else. A fresh sign-up must still go through: use a new address
+  (Gmail `nonoabc2345+anything@gmail.com` lands in the same inbox) and check the
+  confirmation email shows the handle line.
 - **"ur session expired" shows twice** on a launch whose stored session the
   server refuses (iPhone 17, 2026-09-22). Two identical toasts stacked; one
   would do.
