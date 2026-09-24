@@ -52,14 +52,18 @@ export const TEMPLATES = {
         // {{ .Data }} is the RAW sign-up metadata — anyone with the anon key
         // can set it, and send this email to any address. GoTrue escapes
         // markup but not words, so the handle-shape check lives in
-        // hook_before_user_created (finding 72). The length guard here is the
-        // backstop if that hook is ever off: a real handle is at most 30.
-        // Nested, not `and`, so len never sees a missing value.
-        '{{ if .Data.username }}{{ if le (len .Data.username) 30 }}' +
+        // hook_before_user_created (finding 72). The guards here are the
+        // backstop if that hook is ever off: plain text only, then at most 30
+        // (a real handle's limit). The type check comes first — `len` of a
+        // list or object is its item count, so {"x": "<any sentence>"} passed
+        // a length-only guard and printed in full (finding 77), and `len` of a
+        // number is an error. Nested, not `and`, so each step only sees what
+        // the one before let through.
+        '{{ if .Data.username }}{{ if eq (printf "%T" .Data.username) "string" }}{{ if le (len .Data.username) 30 }}' +
         p(
           'ur handle is <strong>@{{ .Data.username }}</strong> &#10022; it&rsquo;s what people see on ur public page, not ur email.'
         ) +
-        '{{ end }}{{ end }}' +
+        '{{ end }}{{ end }}{{ end }}' +
         p(
           'tap below 2 confirm this email address, and ur journal is ready 4 its very first entry.',
           '0'

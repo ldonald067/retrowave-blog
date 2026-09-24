@@ -233,7 +233,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**72 findings, all fixed except 52** (left as is on purpose).
+**74 findings, all fixed except 52** (left as is on purpose) **and 72, 73, 76**, which wait on migration `20260923000000`.
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -309,12 +309,14 @@ assigned.
 | 70 | LOW | Sign-up | Unconfirmed sign-ups held usernames forever; profiles are now created on confirmation | Fixed — trigger moved |
 | 71 | LOW | Sign-up, iOS AutoFill | The username field sat between email and password, where AutoFill takes the saved login; now first | Fixed (plausible, not reproduced) |
 
-| 72 | MED | Confirmation email | `{{ .Data.username }}` printed the raw sign-up metadata, which anyone with the anon key can set to any text and send to any address: phishing copy from our domain. GoTrue escapes markup, not words | Fixed — `hook_before_user_created` refuses non-handle usernames (migration `20260923000000`); template length backstop pushed |
-| 73 | MED | Rename cooldown | Users could write `username_changed_at` directly (update policy covers every column), or blank their username and pick a new one; either reset the cooldown, and with tombstones allowed unlimited name hoarding | Fixed — the guard owns the column and refuses a NULL username (migration `20260923000000`) |
+| 72 | MED | Confirmation email | `{{ .Data.username }}` printed the raw sign-up metadata, which anyone with the anon key can set to any text and send to any address: phishing copy from our domain. GoTrue escapes markup, not words | Fix written, **NOT live**: `hook_before_user_created` (migration `20260923000000`, not yet run; hook then needs switching on). Template backstop live (see 77) |
+| 73 | MED | Rename cooldown | Users could write `username_changed_at` directly (update policy covers every column), or blank their username and pick a new one; either reset the cooldown, and with tombstones allowed unlimited name hoarding | Fix written, **NOT live** — migration `20260923000000` not yet run |
 | 74 | LOW | Rename cooldown copy | The cooldown error carried a UTC calendar date read as local — a day early east of UTC | Fixed — full timestamp, formatted on device |
 | 75 | LOW | Profile editor, VoiceOver | A locked username field did not say why; the hint was not linked. `Input` also dropped its error link whenever a caller passed `aria-describedby` | Fixed — linked, and `Input` merges both |
+| 76 | MED | Prod drift | Rows 72 and 73 said Fixed while prod had no hook function, the hook switched off, and the old guard — both holes still open | Open until migration `20260923000000` runs and the hook is on; rows corrected |
+| 77 | LOW | Confirmation email | The template's 30-character backstop could be bypassed by sending the username as a list or object: `len` counts items, and printing writes out the contents | Fixed — plain-text check first; pushed, live == repo |
 
-Findings 45–75 lifted the count from 41 to 72 (numbers 40–42 unassigned).
+Findings 45–77 lifted the count from 41 to 74 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
@@ -405,3 +407,9 @@ counted.
   than failing; a repeat sign-up cannot change metadata. Not filed: two
   simultaneous renames to one name could misattribute a tombstone. Noted, out of
   scope: 30 auth emails/hour project-wide and no captcha.
+- **2026-09-24** — the 72–75 fixes (`4a084c1`), on the iPhone 17 (signed out)
+  and against prod. Findings 76–77; 77 fixed, 76 waits on the migration. Held
+  up: sign-in at max Dynamic Type keeps its three tiers with nothing clipped;
+  only `SignUpForm` reaches sign-up, and it validates and lowercases, so the
+  hook cannot refuse a real user; the cooldown message parses both the old and
+  new database formats; a numeric username only fails the sender's own sign-up.
