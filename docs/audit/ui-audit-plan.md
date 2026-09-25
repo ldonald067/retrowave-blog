@@ -233,7 +233,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**74 findings, all fixed except 52** (left as is on purpose).
+**75 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -315,8 +315,9 @@ assigned.
 | 75 | LOW | Profile editor, VoiceOver | A locked username field did not say why; the hint was not linked. `Input` also dropped its error link whenever a caller passed `aria-describedby` | Fixed — linked, and `Input` merges both |
 | 76 | MED | Prod drift | Rows 72 and 73 said Fixed while prod had no hook function, the hook switched off, and the old guard — both holes still open | Fixed 2026-09-24 — migration run, hook on, both checked in prod |
 | 77 | LOW | Confirmation email | The template's 30-character backstop could be bypassed by sending the username as a list or object: `len` counts items, and printing writes out the contents | Fixed — plain-text check first; pushed, live == repo |
+| 78 | MED | Auth links, web | A dead confirmation link — expired, used, or replaced by a resend — opened the site on its ordinary intro with the error left in the address bar: after tapping "confirm my email" that reads as success (reported 2026-09-25 as "the first link was still valid"; prod showed the account unconfirmed). The error message was native-only, and even there fired before App was listening | Fixed — the web reads error callbacks too, and the message waits for App; verified in the browser |
 
-Findings 45–77 lifted the count from 41 to 74 (numbers 40–42 unassigned).
+Findings 45–78 lifted the count from 41 to 75 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 

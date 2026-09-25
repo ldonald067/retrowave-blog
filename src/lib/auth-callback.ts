@@ -71,8 +71,43 @@ export const AUTH_PASSWORD_RECOVERY = 'auth-password-recovery';
  * confirmation links are single-use and time-limited, so the second tap on one
  * is ordinary user behaviour and deserves an explanation rather than silence.
  */
-const EXPIRED = 'that link has expired or was already used ~ request a fresh one';
+// "A newer email replaced it" is the case people do not guess: every resend
+// retires the links before it (GoTrue replaces the token), so the first email
+// in the inbox stops working the moment a second is sent.
+const EXPIRED =
+  "that link doesn't work anymore ~ it expired, was already used, or a newer email replaced it. use the newest one";
 const FAILED = 'could not finish signing u in ~ please try again';
+
+/**
+ * A failed callback waiting for the UI.
+ *
+ * initAuthCallback runs in main.tsx before React renders, and an error hash is
+ * read synchronously, so its event fired before App's listener existed and was
+ * simply lost. The message is kept here until App takes it on mount.
+ */
+let pendingError: string | null = null;
+
+/** The failed-callback message nobody has shown yet, if any. Clears it. */
+export function takePendingAuthCallbackError(): string | null {
+  const message = pendingError;
+  pendingError = null;
+  return message;
+}
+
+function announceError(message: string): void {
+  pendingError = message;
+  window.dispatchEvent(new CustomEvent(AUTH_CALLBACK_ERROR, { detail: message }));
+}
+
+/** The message for an error callback (`#error=…`), or null if the hash is not one. */
+function callbackErrorMessage(params: URLSearchParams): string | null {
+  const errorCode = params.get('error_code') ?? params.get('error');
+  if (!errorCode) return null;
+  const expired = /expired|invalid|access_denied|otp/i.test(
+    `${errorCode} ${params.get('error_description') ?? ''}`
+  );
+  return expired ? EXPIRED : FAILED;
+}
 
 /**
  * Strip the callback out of the URL.
@@ -99,13 +134,10 @@ export async function consumeAuthCallback(hash: string): Promise<AuthCallbackRes
   // Tolerate both `#a=b` and `a=b`; a deep link's hash arrives with the marker.
   const params = new URLSearchParams(hash.replace(/^#/, ''));
 
-  const errorCode = params.get('error_code') ?? params.get('error');
-  if (errorCode) {
+  const errorMessage = callbackErrorMessage(params);
+  if (errorMessage) {
     clearCallbackFromUrl();
-    const expired = /expired|invalid|access_denied|otp/i.test(
-      `${errorCode} ${params.get('error_description') ?? ''}`
-    );
-    return { status: 'error', message: expired ? EXPIRED : FAILED };
+    return { status: 'error', message: errorMessage };
   }
 
   const access_token = params.get('access_token');
@@ -149,13 +181,25 @@ export async function consumeAuthCallback(hash: string): Promise<AuthCallbackRes
  * handler delivers one to an app that is already running.
  */
 export function initAuthCallback(): void {
-  if (!isNativePlatform) return;
+  if (!isNativePlatform) {
+    // The web leaves successful callbacks to detectSessionInUrl, but that
+    // says nothing when a link FAILED: a replaced or expired confirmation link
+    // opened the site on its ordinary first screen, with the error sitting in
+    // the address bar — which after tapping "confirm my email" reads as
+    // success. Only the error is handled here; tokens stay Supabase's.
+    const errorMessage = callbackErrorMessage(
+      new URLSearchParams(window.location.hash.replace(/^#/, ''))
+    );
+    if (errorMessage) {
+      clearCallbackFromUrl();
+      announceError(errorMessage);
+    }
+    return;
+  }
 
   const consume = (hash: string) => {
     void consumeAuthCallback(hash).then((result) => {
-      if (result.status === 'error') {
-        window.dispatchEvent(new CustomEvent(AUTH_CALLBACK_ERROR, { detail: result.message }));
-      }
+      if (result.status === 'error') announceError(result.message);
       if (result.status === 'recovery') {
         window.dispatchEvent(new Event(AUTH_PASSWORD_RECOVERY));
       }

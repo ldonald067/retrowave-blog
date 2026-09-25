@@ -35,8 +35,8 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 ## The UI audit
 
 `docs/audit/ui-audit-plan.md` is the checklist and findings log — **start there
-for anything UI**. 74 findings are logged — 41 from the main audit, 12 from the
-iPhone SE pass, 21 since (15 from four `/adversarial-review` runs). All are
+for anything UI**. 75 findings are logged — 41 from the main audit, 12 from the
+iPhone SE pass, 22 since (15 from four `/adversarial-review` runs). All are
 fixed except 52, left as is on purpose.
 
 **Journey coverage is not complete.** Never exercised: delete-entry confirm, the YouTube card, a long feed, the avatar

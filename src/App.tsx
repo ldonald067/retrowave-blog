@@ -28,7 +28,7 @@ import { supabase } from './lib/supabase';
 import { hideSplashScreen, hapticImpact, isNativePlatform } from './lib/capacitor';
 import { markAppReady } from './lib/splash';
 import SplashCurtain from './components/SplashCurtain';
-import { AUTH_CALLBACK_ERROR } from './lib/auth-callback';
+import { AUTH_CALLBACK_ERROR, takePendingAuthCallbackError } from './lib/auth-callback';
 import { hasSeenOnboarding, markOnboardingSeen } from './lib/onboarding';
 import NewPasswordModal from './components/NewPasswordModal';
 import { sparkleBurst, emojiRain } from './lib/celebrations';
@@ -405,8 +405,16 @@ function AppInner() {
   // A confirmation link that has expired or been used already fails silently
   // otherwise: the deep link reopens the app, no session is created, and the
   // signup screen comes back with no explanation for why.
+  //
+  // A failure read before this mounted (the startup check runs ahead of React)
+  // waits in auth-callback until it is taken here.
   useEffect(() => {
-    const onCallbackError = (e: Event) => showError((e as CustomEvent<string>).detail);
+    const pending = takePendingAuthCallbackError();
+    if (pending) showError(pending);
+    const onCallbackError = (e: Event) => {
+      takePendingAuthCallbackError();
+      showError((e as CustomEvent<string>).detail);
+    };
     window.addEventListener(AUTH_CALLBACK_ERROR, onCallbackError);
     return () => window.removeEventListener(AUTH_CALLBACK_ERROR, onCallbackError);
   }, [showError]);

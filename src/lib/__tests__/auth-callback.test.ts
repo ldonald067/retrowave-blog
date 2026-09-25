@@ -117,7 +117,7 @@ describe('initAuthCallback', () => {
     window.history.replaceState(null, '', '/');
   });
 
-  it('does not run on web, where the Supabase client already owns the URL', async () => {
+  it('leaves tokens alone on web, where the Supabase client already owns them', async () => {
     const { initAuthCallback } = await loadWith(false);
     window.history.replaceState(null, '', `/${HASH}`);
 
@@ -128,6 +128,34 @@ describe('initAuthCallback', () => {
     // consumers racing for one set of single-use tokens is not a fallback.
     expect(setSession).not.toHaveBeenCalled();
     expect(hashInUrl()).not.toBe('');
+  });
+
+  it('explains a dead link on web too, where it used to land silently on the intro', async () => {
+    // What GoTrue sends back when a confirmation link was replaced by a resend
+    // (2026-09-25: the first email's link opened the site's ordinary intro).
+    const { initAuthCallback, AUTH_CALLBACK_ERROR, takePendingAuthCallbackError } =
+      await loadWith(false);
+    const heard = vi.fn();
+    window.addEventListener(AUTH_CALLBACK_ERROR, heard);
+    window.history.replaceState(
+      null,
+      '',
+      '/#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired'
+    );
+
+    initAuthCallback();
+
+    expect(heard).toHaveBeenCalledOnce();
+    expect(String((heard.mock.calls[0]![0] as CustomEvent).detail)).toMatch(
+      /newer email replaced it/
+    );
+    expect(hashInUrl()).toBe('');
+    expect(setSession).not.toHaveBeenCalled();
+    // Nobody was listening yet in real life (this runs before React renders),
+    // so the message also waits for App to take it — once.
+    expect(takePendingAuthCallbackError()).toMatch(/doesn't work anymore/);
+    expect(takePendingAuthCallbackError()).toBeNull();
+    window.removeEventListener(AUTH_CALLBACK_ERROR, heard);
   });
 
   it('announces a failed callback so the UI can say something', async () => {
