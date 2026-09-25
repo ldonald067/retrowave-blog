@@ -81,7 +81,7 @@ section they belong to — not at the bottom.
 
 ## Auth and email
 
-- `tos_accepted` defaults to `false`; `set_age_verification()` is the only path that flips it. `is_admin` and the COPPA fields are trigger-protected and need SECURITY DEFINER RPCs.
+- `tos_accepted` is recorded at sign-up by `handle_new_user` when the sign-up also passed the age check (`20260925000000`), otherwise by `set_age_verification()` with the age. It was hard-coded `false` from March, which left every 13+ sign-up since 2026-08-13 recorded as never accepting the terms — they skip the age screen, the only other path. `is_admin` and the COPPA fields are trigger-protected and need SECURITY DEFINER RPCs.
 - Auth actions (sign in/up, password) live in stateless `lib/auth-actions.ts`. Only `App.tsx` calls `useAuth()` — calling it in a form spins up duplicate `onAuthStateChange` subscriptions and racing profile inserts.
 - Every hook routes failures through `toUserMessage()`; `lib/errors.ts` maps 7 PostgREST codes and 13 message patterns plus a fallback.
 - Supabase enforces lower+upper+digit+symbol server-side; `SignUpForm`'s validation and placeholder must mirror it.

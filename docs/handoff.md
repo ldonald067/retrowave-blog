@@ -178,12 +178,11 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
-- **`tos_accepted` is false on every profile created since 2026-08-13**, though
-  each one ticked the terms box (`raw_user_meta_data.tos_accepted` = "true").
-  `handle_new_user` hard-codes false on purpose (`20260318000000`: metadata is
-  client-set, and `set_age_verification` was to record it), but new users pass
-  the age check from their sign-up birth year and never reach that RPC. Nothing
-  reads the column; it is a wrong record, not a broken flow. Offered as a fix.
+- **`tos_accepted` fix is written, not yet run** — migration
+  `20260925000000`: `handle_new_user` records the terms tick when the sign-up
+  passed the age check, and a backfill sets it for the 3 profiles since
+  2026-08-13 whose sign-up shows the box ticked. Until it runs, those profiles
+  (and new ones) say the terms were never accepted.
 - **"ur session expired" shows twice** on a launch whose stored session the
   server refuses (iPhone 17, 2026-09-22). Two identical toasts stacked; one
   would do.
