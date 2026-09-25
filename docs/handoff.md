@@ -156,8 +156,7 @@ iPhone 17 Pro Max simulator unless noted.
   starts empty, so **first-run setup is back** — no new user had ever seen it);
   operator-like names are reserved; profiles are created on email confirmation,
   so unfinished sign-ups hold no name; setup says when a chosen name was lost;
-  the username field is first. **Not yet proven by a real sign-up** — see Open
-  work.
+  the username field is first.
 - **Confirmation email names the handle** (`ba82639`): seen in Gmail on your
   iPhone 16 for `rainbowpudding` — "ur handle is @rainbowpudding".
 - **Username tombstone and rename cooldown** (`c06aec5`, migration
@@ -168,14 +167,23 @@ iPhone 17 Pro Max simulator unless noted.
   `support` false; anon can call it but cannot read the history). **Not yet
   exercised by a real rename.**
 
+- **A real sign-up, end to end** (2026-09-25, SE, `nonoabc2345+hook@gmail.com`
+  → `@rainbowpudding1`). The before-user-created hook let the handle through;
+  the confirmation email named it; a resend killed the first link (Supabase
+  swaps the token; prod showed the account unconfirmed after the old link was
+  tapped); the resend button's email confirmed it; the profile was created at
+  confirmation, 7½ hours after sign-up; first-run setup appeared (display name
+  set there); `username_changed_at` is null. Not yet exercised: a rename, so
+  the cooldown and tombstone are proven by query only.
+
 ## Open work
 
-- **The username sign-up check is live but unproven on a real sign-up.**
-  Migration `20260923000000` ran and the Before User Created hook was switched
-  on (2026-09-24); calling the function directly passes a handle and refuses
-  everything else. A fresh sign-up must still go through: use a new address
-  (Gmail `nonoabc2345+anything@gmail.com` lands in the same inbox) and check the
-  confirmation email shows the handle line.
+- **`tos_accepted` is false on every profile created since 2026-08-13**, though
+  each one ticked the terms box (`raw_user_meta_data.tos_accepted` = "true").
+  `handle_new_user` hard-codes false on purpose (`20260318000000`: metadata is
+  client-set, and `set_age_verification` was to record it), but new users pass
+  the age check from their sign-up birth year and never reach that RPC. Nothing
+  reads the column; it is a wrong record, not a broken flow. Offered as a fix.
 - **"ur session expired" shows twice** on a launch whose stored session the
   server refuses (iPhone 17, 2026-09-22). Two identical toasts stacked; one
   would do.
@@ -186,12 +194,7 @@ iPhone 17 Pro Max simulator unless noted.
   an hour (`mailer_otp_exp` 3600) and auth logs keep one day, so whether the link
   was ever clicked is unknowable. Profile-on-confirmation, first-run setup and
   the chosen @handle on a public page remain unproven until it is confirmed.
-- **The resend button is built but not yet seen working end to end**
-  (`f443689`, `dca899c`). It shows on the "almost there" screen and under the
-  sign-in error for an unconfirmed address, as an outlined secondary button —
-  the first version was a third identical link (the rule is now in `/frontend`,
-  "Pick the tier by what the control does"). Seen rendered on the SE with your
-  `nonoabc2345` sign-in; not yet tapped.
+
 - **Finding 52, left as is on purpose:** the feed reads through a ~105pt slot
   on the SE at rest. Fixing it means replacing the feed's own scroll container
   and virtualizer — not worth it for a shrinking class of phone. Swiping on the
@@ -230,13 +233,15 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Accounts
 
-| Account                                         | Use                                                                    |
-| ----------------------------------------------- | ---------------------------------------------------------------------- |
-| `ldonald234`                                    | **The test data.** cottage-core, 2 entries, incl. the overflow fixture |
-| `ldonald0234`                                   | **Admin — the only one.** emo-dark, reaches `ModerationView`           |
-| `retrodemo`                                     | App Review demo — public page, 3 public entries. **Never a fixture**   |
-| `codex-qa-24e3a82f`                             | Public page, **classic-xanga** — the light-theme public fixture        |
-| `blankslate`, `nonoabc2345`, `ldonald234_xanga` | Zero posts — reach `EmptyState`                                        |
+| Account                                          | Use                                                                    |
+| ------------------------------------------------ | ---------------------------------------------------------------------- |
+| `ldonald234`                                     | **The test data.** cottage-core, 2 entries, incl. the overflow fixture |
+| `ldonald0234`                                    | **Admin — the only one.** emo-dark, reaches `ModerationView`           |
+| `retrodemo`                                      | App Review demo — public page, 3 public entries. **Never a fixture**   |
+| `codex-qa-24e3a82f`                              | Public page, **classic-xanga** — the light-theme public fixture        |
+| `blankslate`, `ldonald234_xanga`                 | Zero posts — reach `EmptyState`                                        |
+| `rainbowpudding1` (`nonoabc2345+hook@gmail.com`) | New-flow test account, zero posts. Its rename is still unspent         |
+| `nonoabc2345@gmail.com`                          | Unconfirmed since 2026-09-19 (`rainbowpudding`); holds no username     |
 
 `@ldonald234`'s second entry — a 200-character title, a 100-character space-free
 chapter, and an unbreakable token in the body — is an **overflow fixture, not
