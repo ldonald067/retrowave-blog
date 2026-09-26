@@ -217,3 +217,49 @@ describe('useAuth', () => {
     expect(result.current.profile?.display_name).toBe('Updated Name');
   });
 });
+
+describe('session expiry reporting', () => {
+  type AuthCallback = (event: string, session: { user: { id: string } } | null) => void;
+
+  const captureAuthCallback = () => {
+    let callback: AuthCallback | null = null;
+    vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((cb) => {
+      callback = cb as unknown as AuthCallback;
+      return { data: { subscription: { unsubscribe: vi.fn() } } } as never;
+    });
+    return () => callback!;
+  };
+
+  it('shows one message for one expiry, however many signals announce it', async () => {
+    const { AUTH_SESSION_EXPIRED } = await import('../../lib/constants');
+    const auth = captureAuthCallback();
+    const { result } = renderHook(() => useAuth());
+
+    // The resume check notices first; App shows the message and clears it.
+    act(() => {
+      window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED));
+    });
+    expect(result.current.sessionExpired).toBe(true);
+    act(() => result.current.clearSessionExpired());
+
+    // Then the client's own SIGNED_OUT (twice, as it can) for the same expiry.
+    act(() => {
+      auth()('SIGNED_OUT', null);
+      auth()('SIGNED_OUT', null);
+    });
+    expect(result.current.sessionExpired).toBe(false);
+  });
+
+  it('reports again after a real sign-in starts a new session', async () => {
+    const auth = captureAuthCallback();
+    const { result } = renderHook(() => useAuth());
+
+    act(() => auth()('SIGNED_OUT', null));
+    expect(result.current.sessionExpired).toBe(true);
+    act(() => result.current.clearSessionExpired());
+
+    act(() => auth()('SIGNED_IN', { user: { id: 'user-1' } }));
+    act(() => auth()('SIGNED_OUT', null));
+    expect(result.current.sessionExpired).toBe(true);
+  });
+});

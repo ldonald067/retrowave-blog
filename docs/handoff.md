@@ -184,10 +184,11 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
-- **"ur session expired" shows twice** on a launch whose stored session the
-  server refuses (iPhone 17, 2026-09-22). Two identical toasts stacked; one
-  would do.
-
+- **The double "ur session expired" is fixed in code, not yet seen on a
+  device** (2026-09-26). One expiry sends several signals (the resume check and
+  Supabase's SIGNED_OUT); `useAuth` now reports once per signed-in period.
+  To see it: sign an account in on one simulator, sign the same account out on
+  another (sign-out is global), then relaunch the first — one message.
 - **The verification sign-up is unconfirmed.** `rainbowpudding` (gmail) signed up
   2026-09-19; its last confirmation email went out 2026-09-20 17:16 UTC and
   `email_confirmed_at` is still NULL, so it has no profile. Links expire after

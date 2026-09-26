@@ -74,6 +74,15 @@ export function useAuth(): UseAuthReturn {
   const [sessionExpired, setSessionExpired] = useState<boolean>(false);
   /** Set only by the signOut action, so an unrequested SIGNED_OUT is distinguishable. */
   const deliberateSignOutRef = useRef<boolean>(false);
+  /**
+   * Whether this signed-in period's expiry has already been reported. One
+   * expiry arrives as several signals — the resume check's AUTH_SESSION_EXPIRED
+   * and one or more unrequested SIGNED_OUTs, sometimes minutes apart — and App
+   * clears the flag as soon as it shows the message, so each later signal used
+   * to show it again (twice, stacked, on the iPhone 17, 2026-09-22). Only a real
+   * sign-in starts a new period.
+   */
+  const expiryReportedRef = useRef<boolean>(false);
 
   const fetchingProfileFor = useRef<string | null>(null);
   const activeAuthUserIdRef = useRef<string | null>(null);
@@ -144,6 +153,12 @@ export function useAuth(): UseAuthReturn {
     }
   };
 
+  const reportSessionExpired = (): void => {
+    if (expiryReportedRef.current) return;
+    expiryReportedRef.current = true;
+    setSessionExpired(true);
+  };
+
   const syncAuthState = (nextUser: User | null): void => {
     activeAuthUserIdRef.current = nextUser?.id ?? null;
     setUser(nextUser);
@@ -183,6 +198,8 @@ export function useAuth(): UseAuthReturn {
       // matching window event below. Two delivery routes, one flag.
       if (event === 'PASSWORD_RECOVERY') setPasswordRecovery(true);
 
+      if (event === 'SIGNED_IN') expiryReportedRef.current = false;
+
       // A SIGNED_OUT nobody asked for is the silent sign-out: an evicted or
       // expired token. Flag it so the UI can say so instead of just swapping to
       // the auth screen, which is indistinguishable from a deliberate sign-out.
@@ -190,7 +207,7 @@ export function useAuth(): UseAuthReturn {
         if (deliberateSignOutRef.current) {
           deliberateSignOutRef.current = false;
         } else {
-          setSessionExpired(true);
+          reportSessionExpired();
         }
       }
 
@@ -201,9 +218,9 @@ export function useAuth(): UseAuthReturn {
     window.addEventListener(AUTH_PASSWORD_RECOVERY, onNativeRecovery);
 
     // Raised by the resume handler in capacitor.ts when a refresh fails. It
-    // arrives before any SIGNED_OUT the client may then emit, and setting the
-    // same flag twice is harmless.
-    const onSessionExpired = () => setSessionExpired(true);
+    // usually arrives before the SIGNED_OUT the client then emits, and both go
+    // through reportSessionExpired so the pair shows one message.
+    const onSessionExpired = () => reportSessionExpired();
     window.addEventListener(AUTH_SESSION_EXPIRED, onSessionExpired);
 
     supabase.auth.getSession().then(({ data: { session } }) => {
