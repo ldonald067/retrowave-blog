@@ -233,7 +233,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**75 findings, all fixed except 52** (left as is on purpose).
+**76 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -316,8 +316,9 @@ assigned.
 | 76 | MED | Prod drift | Rows 72 and 73 said Fixed while prod had no hook function, the hook switched off, and the old guard — both holes still open | Fixed 2026-09-24 — migration run, hook on, both checked in prod |
 | 77 | LOW | Confirmation email | The template's 30-character backstop could be bypassed by sending the username as a list or object: `len` counts items, and printing writes out the contents | Fixed — plain-text check first; pushed, live == repo |
 | 78 | MED | Auth links, web | A dead confirmation link — expired, used, or replaced by a resend — opened the site on its ordinary intro with the error left in the address bar: after tapping "confirm my email" that reads as success (reported 2026-09-25 as "the first link was still valid"; prod showed the account unconfirmed). The error message was native-only, and even there fired before App was listening | Fixed — the web reads error callbacks too, and the message waits for App; verified in the browser |
+| 79 | MED | First-run setup | Setup was the edit-profile form with setup fields on: welcome box, pic, name, username, status and 8 themes on one scroll, name focused on open. With the keyboard up on an iPhone 16 (Safari) only one field fit, nothing said only the name was required, the username was asked again (spending the free rename), and the error was "Please enter a display name to get started" | Fixed — `ProfileSetup`, three steps (name required → theme with a live sample entry → optional pic and status, "skip 4 now"), panel pinned to the top; verified in Safari on the iPhone 17 and SE with the keyboard up |
 
-Findings 45–78 lifted the count from 41 to 75 (numbers 40–42 unassigned).
+Findings 45–79 lifted the count from 41 to 76 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 

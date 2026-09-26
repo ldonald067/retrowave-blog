@@ -46,7 +46,6 @@ import { buildPublicProfileUrl } from '../lib/publicProfile';
 import {
   normalizeUsername,
   validateUsername,
-  usernameSwapNotice,
   usernameCooldownEndsAt,
   formatUsernameCooldownDate,
   USERNAME_LIMITS,
@@ -64,8 +63,6 @@ const PROFILE_SECTIONS: Array<{ id: ProfileSection; label: string }> = [
   { id: 'public', label: 'public page' },
   { id: 'safety', label: 'safety' },
 ];
-
-const INITIAL_SETUP_SECTIONS: ProfileSection[] = ['profile', 'vibe'];
 
 function getSectionTabId(section: ProfileSection): string {
   return `profile-section-tab-${section}`;
@@ -106,9 +103,6 @@ interface ProfileModalProps {
   onClose: () => void;
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
-  isInitialSetup?: boolean;
-  /** The username asked for at sign-up (auth user_metadata), for the swap notice. */
-  requestedUsername?: unknown;
 }
 
 export default function ProfileModal({
@@ -118,8 +112,6 @@ export default function ProfileModal({
   onClose,
   onSuccess,
   onError,
-  requestedUsername,
-  isInitialSetup = false,
 }: ProfileModalProps) {
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
@@ -160,13 +152,13 @@ export default function ProfileModal({
   }, [onClose]);
 
   const handleEscape = useCallback(() => {
-    if (saving || isInitialSetup || showPublishConfirm) return;
+    if (saving || showPublishConfirm) return;
     if (showAvatarPicker) {
       setShowAvatarPicker(false);
     } else {
       handleCancel();
     }
-  }, [saving, isInitialSetup, showPublishConfirm, showAvatarPicker, handleCancel]);
+  }, [saving, showPublishConfirm, showAvatarPicker, handleCancel]);
   useFocusTrap(dialogRef, true, handleEscape);
 
   // Sync form fields from the profile — adjusted during render instead of
@@ -205,10 +197,6 @@ export default function ProfileModal({
   }
 
   const usernameChanged = normalizeUsername(username) !== (profile?.username ?? '');
-  // First-time setup only: sign-up could not give them the name they asked for.
-  const swapNotice = isInitialSetup
-    ? usernameSwapNotice(requestedUsername, profile?.username, profile?.username_changed_at)
-    : null;
   // One rename every 30 days, the first one free. The database is what enforces
   // it (guard_username_change); this just means nobody types a new name, waits
   // for a save, and only then gets told no.
@@ -231,11 +219,6 @@ export default function ProfileModal({
       else if (cooldownEndsAt) {
         newErrors.username = `~ u can change it again on ${formatUsernameCooldownDate(cooldownEndsAt)} ~`;
       }
-    }
-
-    // Require display name for initial setup
-    if (isInitialSetup && !displayName.trim()) {
-      newErrors.displayName = 'Please enter a display name to get started';
     }
 
     if (displayName.length > VALIDATION.displayName.maxLength) {
@@ -327,9 +310,7 @@ export default function ProfileModal({
   const visibleSections = PROFILE_SECTIONS.filter(
     (section) => section.id !== 'safety' || blockedLoading || blockedUsers.length > 0
   );
-  const useSectionTabs = !isInitialSetup;
-  const showSection = (section: ProfileSection) =>
-    isInitialSetup ? INITIAL_SETUP_SECTIONS.includes(section) : activeSection === section;
+  const showSection = (section: ProfileSection) => activeSection === section;
 
   const focusSection = useCallback((section: ProfileSection) => {
     setActiveSection(section);
@@ -391,7 +372,7 @@ export default function ProfileModal({
 
   return (
     <AnimatePresence>
-      <ModalOverlay onClick={isInitialSetup ? undefined : handleCancel}>
+      <ModalOverlay onClick={handleCancel}>
         <ModalFrame
           ref={dialogRef}
           role="dialog"
@@ -402,7 +383,7 @@ export default function ProfileModal({
           dragElastic={{ left: 0, right: 0.5 }}
           dragSnapToOrigin
           onDragEnd={(_, info) => {
-            if (info.offset.x > SWIPE_DISMISS_THRESHOLD && !isInitialSetup && !saving) {
+            if (info.offset.x > SWIPE_DISMISS_THRESHOLD && !saving) {
               handleCancel();
             }
           }}
@@ -411,59 +392,53 @@ export default function ProfileModal({
           <ModalHeader>
             <div className="flex items-center justify-between">
               <h2 className="xanga-title text-lg sm:text-2xl flex items-center gap-2">
-                ✨ {isInitialSetup ? '~ welcome! set up ur profile ~' : '~ edit profile ~'}
+                ✨ ~ edit profile ~
               </h2>
-              {!isInitialSetup && <ModalCloseButton onClick={handleCancel} />}
+              <ModalCloseButton onClick={handleCancel} />
             </div>
-            <p className="xanga-subtitle mt-1">
-              {isInitialSetup
-                ? '~ choose ur vibe, add a status, then write ur first entry ~'
-                : '~ customize ur space ~'}
-            </p>
+            <p className="xanga-subtitle mt-1">~ customize ur space ~</p>
           </ModalHeader>
 
-          {!isInitialSetup && (
+          <div
+            className="px-3 sm:px-4 py-2 border-b-2 border-dotted overflow-x-auto flex-shrink-0"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--bg-primary) 40%, var(--modal-bg))',
+              borderColor: 'var(--border-primary)',
+            }}
+          >
             <div
-              className="px-3 sm:px-4 py-2 border-b-2 border-dotted overflow-x-auto flex-shrink-0"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--bg-primary) 40%, var(--modal-bg))',
-                borderColor: 'var(--border-primary)',
-              }}
+              className="grid grid-flow-col auto-cols-max gap-2"
+              role="tablist"
+              aria-label="Profile settings sections"
             >
-              <div
-                className="grid grid-flow-col auto-cols-max gap-2"
-                role="tablist"
-                aria-label="Profile settings sections"
-              >
-                {visibleSections.map((section) => {
-                  const selected = activeSection === section.id;
-                  return (
-                    <button
-                      key={section.id}
-                      id={getSectionTabId(section.id)}
-                      type="button"
-                      role="tab"
-                      aria-selected={selected}
-                      aria-controls={getSectionPanelId(section.id)}
-                      tabIndex={selected ? 0 : -1}
-                      onClick={() => setActiveSection(section.id)}
-                      onKeyDown={(event) => handleSectionKeyDown(event, section.id)}
-                      className="rounded border-2 border-dotted px-3 py-2 text-xs title-bold transition min-h-[44px] whitespace-nowrap"
-                      style={{
-                        backgroundColor: selected
-                          ? 'color-mix(in srgb, var(--accent-primary) 16%, var(--card-bg))'
-                          : 'var(--card-bg)',
-                        borderColor: selected ? 'var(--accent-primary)' : 'var(--border-primary)',
-                        color: selected ? 'var(--accent-primary)' : 'var(--text-body)',
-                      }}
-                    >
-                      {section.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {visibleSections.map((section) => {
+                const selected = activeSection === section.id;
+                return (
+                  <button
+                    key={section.id}
+                    id={getSectionTabId(section.id)}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    aria-controls={getSectionPanelId(section.id)}
+                    tabIndex={selected ? 0 : -1}
+                    onClick={() => setActiveSection(section.id)}
+                    onKeyDown={(event) => handleSectionKeyDown(event, section.id)}
+                    className="rounded border-2 border-dotted px-3 py-2 text-xs title-bold transition min-h-[44px] whitespace-nowrap"
+                    style={{
+                      backgroundColor: selected
+                        ? 'color-mix(in srgb, var(--accent-primary) 16%, var(--card-bg))'
+                        : 'var(--card-bg)',
+                      borderColor: selected ? 'var(--accent-primary)' : 'var(--border-primary)',
+                      color: selected ? 'var(--accent-primary)' : 'var(--text-body)',
+                    }}
+                  >
+                    {section.label}
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
 
           {/* Content takes whatever the panel has left. It must not compute its
               own height: .modal-panel-safe already shortens the panel when the
@@ -476,25 +451,7 @@ export default function ProfileModal({
           >
             <fieldset disabled={saving}>
               <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
-                {isInitialSetup && (
-                  <div className="xanga-box p-4">
-                    <h3 className="xanga-title text-base sm:text-lg mb-2">~ quick start ~</h3>
-                    <div className="space-y-1 text-xs" style={{ color: 'var(--text-muted)' }}>
-                      <p>step 1: pick a name, status, avatar, and theme</p>
-                      <p>step 2: save this setup and jump straight into your first entry</p>
-                      <p>
-                        you can come back later for bio, playlists, public page settings, and safety
-                        tools
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <ProfileSectionPanel
-                  id="profile"
-                  tabbed={useSectionTabs}
-                  visible={showSection('profile')}
-                >
+                <ProfileSectionPanel id="profile" tabbed visible={showSection('profile')}>
                   {/* Avatar Section */}
                   <div className="xanga-box p-4">
                     <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
@@ -559,7 +516,6 @@ export default function ProfileModal({
                       type="text"
                       value={displayName}
                       aria-label="Display name"
-                      autoFocus={isInitialSetup}
                       onChange={(e) => {
                         setDisplayName(e.target.value);
                         if (errors.displayName) {
@@ -571,9 +527,7 @@ export default function ProfileModal({
                       maxLength={VALIDATION.displayName.maxLength}
                     />
                     <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                      {isInitialSetup
-                        ? 'this is the name people will see when they land on ur space'
-                        : "this is how u'll appear 2 others"}
+                      this is how u&apos;ll appear 2 others
                     </p>
                   </div>
 
@@ -585,19 +539,6 @@ export default function ProfileModal({
                       </span>
                       username
                     </h3>
-                    {swapNotice && (
-                      <p
-                        className="text-xs mb-3 p-2 rounded-lg"
-                        role="status"
-                        style={{
-                          color: 'var(--text-body)',
-                          backgroundColor:
-                            'color-mix(in srgb, var(--accent-primary) 10%, var(--card-bg))',
-                        }}
-                      >
-                        {swapNotice}
-                      </p>
-                    )}
                     <Input
                       type="text"
                       value={username}
@@ -689,74 +630,64 @@ export default function ProfileModal({
                     </div>
                   </div>
 
-                  {!isInitialSetup && (
-                    <div className="xanga-box p-4">
-                      <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                        <Windows95WordPad size={20} alt="" />
-                        about me
-                      </h3>
-                      <Textarea
-                        value={bio}
-                        aria-label="About me"
-                        onChange={(e) => {
-                          setBio(e.target.value);
-                          if (errors.bio) {
-                            setErrors((prev) => ({ ...prev, bio: undefined }));
-                          }
-                        }}
-                        placeholder="tell the world about urself... ur interests, ur dreams, ur fav song lyrics..."
-                        rows={4}
-                        error={errors.bio}
-                        charCount={{ current: bio.length, max: VALIDATION.bio.maxLength }}
-                        hint="share a bit about urself"
-                      />
-                    </div>
-                  )}
+                  <div className="xanga-box p-4">
+                    <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                      <Windows95WordPad size={20} alt="" />
+                      about me
+                    </h3>
+                    <Textarea
+                      value={bio}
+                      aria-label="About me"
+                      onChange={(e) => {
+                        setBio(e.target.value);
+                        if (errors.bio) {
+                          setErrors((prev) => ({ ...prev, bio: undefined }));
+                        }
+                      }}
+                      placeholder="tell the world about urself... ur interests, ur dreams, ur fav song lyrics..."
+                      rows={4}
+                      error={errors.bio}
+                      charCount={{ current: bio.length, max: VALIDATION.bio.maxLength }}
+                      hint="share a bit about urself"
+                    />
+                  </div>
                 </ProfileSectionPanel>
 
-                <ProfileSectionPanel
-                  id="vibe"
-                  tabbed={useSectionTabs}
-                  visible={showSection('vibe')}
-                >
-                  {!isInitialSetup && (
-                    <div className="xanga-box p-4">
-                      <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                        <VisualStudioFace size={20} alt="" />
-                        current mood
-                      </h3>
-                      <Select
-                        value={currentMood}
-                        onChange={(e) => setCurrentMood(e.target.value)}
-                        placeholder="no mood set"
-                        options={MOOD_SELECT_OPTIONS}
-                        aria-label="Select your current mood"
-                      />
-                      <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                        shows on ur sidebar - update anytime!
-                      </p>
-                    </div>
-                  )}
+                <ProfileSectionPanel id="vibe" tabbed visible={showSection('vibe')}>
+                  <div className="xanga-box p-4">
+                    <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                      <VisualStudioFace size={20} alt="" />
+                      current mood
+                    </h3>
+                    <Select
+                      value={currentMood}
+                      onChange={(e) => setCurrentMood(e.target.value)}
+                      placeholder="no mood set"
+                      options={MOOD_SELECT_OPTIONS}
+                      aria-label="Select your current mood"
+                    />
+                    <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                      shows on ur sidebar - update anytime!
+                    </p>
+                  </div>
 
-                  {!isInitialSetup && (
-                    <div className="xanga-box p-4">
-                      <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                        <WinampIcon size={20} alt="" />
-                        currently listening 2
-                      </h3>
-                      <Input
-                        type="text"
-                        value={currentMusic}
-                        aria-label="Currently listening to"
-                        onChange={(e) => setCurrentMusic(e.target.value)}
-                        placeholder="song, artist, or youtube link..."
-                        maxLength={200}
-                      />
-                      <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                        what's on ur playlist rn?
-                      </p>
-                    </div>
-                  )}
+                  <div className="xanga-box p-4">
+                    <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                      <WinampIcon size={20} alt="" />
+                      currently listening 2
+                    </h3>
+                    <Input
+                      type="text"
+                      value={currentMusic}
+                      aria-label="Currently listening to"
+                      onChange={(e) => setCurrentMusic(e.target.value)}
+                      placeholder="song, artist, or youtube link..."
+                      maxLength={200}
+                    />
+                    <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
+                      what's on ur playlist rn?
+                    </p>
+                  </div>
 
                   {/* Theme Picker */}
                   <div className="xanga-box p-4">
@@ -809,102 +740,88 @@ export default function ProfileModal({
                       ))}
                     </div>
                     <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-                      {isInitialSetup
-                        ? 'pick the vibe that should greet you every time you open the app'
-                        : 'change the whole room whenever you feel like it'}
+                      change the whole room whenever you feel like it
                     </p>
                   </div>
 
-                  {!isInitialSetup && (
-                    <div className="xanga-box p-4">
-                      <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
-                        {/* The same `stars` glyph was doing duty for both this
+                  <div className="xanga-box p-4">
+                    <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
+                      {/* The same `stars` glyph was doing duty for both this
                             and `status message`, so it encoded nothing. This
                             section is about emoji; there is no retro icon that
                             fits, and an emoji describes it exactly. */}
-                        <span aria-hidden="true" style={{ fontSize: '20px', lineHeight: 1 }}>
-                          😀
-                        </span>
-                        emoji style
-                      </h3>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        {EMOJI_STYLES.map((emojiStyle) => (
-                          <button
-                            key={emojiStyle.id}
-                            type="button"
-                            onClick={() => {
-                              setSelectedEmojiStyle(emojiStyle.id);
-                              setEmojiStyle(emojiStyle.id);
-                            }}
-                            aria-pressed={selectedEmojiStyle === emojiStyle.id}
-                            className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
-                            style={{
-                              backgroundColor:
-                                selectedEmojiStyle === emojiStyle.id
-                                  ? 'color-mix(in srgb, var(--accent-primary) 15%, var(--card-bg))'
-                                  : 'var(--card-bg)',
-                              borderColor:
-                                selectedEmojiStyle === emojiStyle.id
-                                  ? 'var(--accent-primary)'
-                                  : 'var(--border-primary)',
-                              transform:
-                                selectedEmojiStyle === emojiStyle.id ? 'scale(1.02)' : 'scale(1)',
-                            }}
-                          >
-                            {/* Preview row showing 3 sample emoji */}
-                            <div className="flex items-center gap-1 mb-1">
-                              {['❤️', '🔥', '😂'].map((emoji) => (
-                                <StyledEmoji
-                                  key={emoji}
-                                  emoji={emoji}
-                                  size={18}
-                                  overrideStyle={emojiStyle.id}
-                                />
-                              ))}
-                            </div>
-                            <p className="text-xs title-bold" style={{ color: 'var(--text-body)' }}>
-                              {emojiStyle.name}
-                            </p>
-                            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                              {emojiStyle.description}
-                            </p>
-                          </button>
-                        ))}
-                      </div>
+                      <span aria-hidden="true" style={{ fontSize: '20px', lineHeight: 1 }}>
+                        😀
+                      </span>
+                      emoji style
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {EMOJI_STYLES.map((emojiStyle) => (
+                        <button
+                          key={emojiStyle.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedEmojiStyle(emojiStyle.id);
+                            setEmojiStyle(emojiStyle.id);
+                          }}
+                          aria-pressed={selectedEmojiStyle === emojiStyle.id}
+                          className="p-2 sm:p-3 rounded-lg text-left transition-all border-2 border-dotted"
+                          style={{
+                            backgroundColor:
+                              selectedEmojiStyle === emojiStyle.id
+                                ? 'color-mix(in srgb, var(--accent-primary) 15%, var(--card-bg))'
+                                : 'var(--card-bg)',
+                            borderColor:
+                              selectedEmojiStyle === emojiStyle.id
+                                ? 'var(--accent-primary)'
+                                : 'var(--border-primary)',
+                            transform:
+                              selectedEmojiStyle === emojiStyle.id ? 'scale(1.02)' : 'scale(1)',
+                          }}
+                        >
+                          {/* Preview row showing 3 sample emoji */}
+                          <div className="flex items-center gap-1 mb-1">
+                            {['❤️', '🔥', '😂'].map((emoji) => (
+                              <StyledEmoji
+                                key={emoji}
+                                emoji={emoji}
+                                size={18}
+                                overrideStyle={emojiStyle.id}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-xs title-bold" style={{ color: 'var(--text-body)' }}>
+                            {emojiStyle.name}
+                          </p>
+                          <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                            {emojiStyle.description}
+                          </p>
+                        </button>
+                      ))}
                     </div>
-                  )}
+                  </div>
                 </ProfileSectionPanel>
 
-                <ProfileSectionPanel
-                  id="public"
-                  tabbed={useSectionTabs}
-                  visible={showSection('public')}
-                >
+                <ProfileSectionPanel id="public" tabbed visible={showSection('public')}>
                   {/* Public Page Settings */}
-                  {!isInitialSetup && (
-                    <PublicPageSettings
-                      enabled={isPublic}
-                      savedEnabled={savedIsPublic}
-                      publicUrl={publicProfileUrl}
-                      copied={copiedUrl}
-                      shareSupported={shareSupported}
-                      onRequestPublish={() => setShowPublishConfirm(true)}
-                      onUnpublish={() => {
-                        setIsPublic(false);
-                        setCopiedUrl(false);
-                      }}
-                      onCopy={() => void handleCopyPublicUrl()}
-                    />
-                  )}
+                  <PublicPageSettings
+                    enabled={isPublic}
+                    savedEnabled={savedIsPublic}
+                    publicUrl={publicProfileUrl}
+                    copied={copiedUrl}
+                    shareSupported={shareSupported}
+                    onRequestPublish={() => setShowPublishConfirm(true)}
+                    onUnpublish={() => {
+                      setIsPublic(false);
+                      setCopiedUrl(false);
+                    }}
+                    onCopy={() => void handleCopyPublicUrl()}
+                  />
                 </ProfileSectionPanel>
 
-                <ProfileSectionPanel
-                  id="safety"
-                  tabbed={useSectionTabs}
-                  visible={showSection('safety')}
-                >
+                <ProfileSectionPanel id="safety" tabbed visible={showSection('safety')}>
                   {/* Blocked Users Section */}
-                  {!isInitialSetup && blockedUsers.length > 0 && (
+                  {blockedUsers.length > 0 && (
                     <div className="xanga-box p-4">
                       <h3 className="xanga-title text-base sm:text-lg mb-3 flex items-center gap-2">
                         <Windows95Password size={20} alt="" />
@@ -975,7 +892,7 @@ export default function ProfileModal({
                         className="text-xs mt-1 italic line-clamp-2"
                         style={{ color: 'var(--text-muted)' }}
                       >
-                        {bio || (isInitialSetup ? 'you can add a bio later...' : 'no bio yet...')}
+                        {bio || 'no bio yet...'}
                       </p>
                       {statusMessage && <p className="aim-status mt-2">📟 ~ {statusMessage} ~</p>}
                       {currentMood && (
@@ -996,23 +913,17 @@ export default function ProfileModal({
           </div>
 
           <ModalFooter className="flex flex-col items-center gap-2 flex-shrink-0">
-            {isInitialSetup && (
-              <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>
-                save this setup, then we&apos;ll open ur first entry right away
-              </p>
-            )}
             {/* centred as a pair, matching the composer footer */}
             <div className="flex w-full justify-center gap-4">
-              {!isInitialSetup && (
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  disabled={saving}
-                  className="xanga-button-ghost px-4 py-2 text-xs title-bold min-h-[44px]"
-                >
-                  cancel
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleCancel}
+                disabled={saving}
+                className="xanga-button-ghost px-4 py-2 text-xs title-bold min-h-[44px]"
+              >
+                cancel
+              </button>
+
               <button
                 type="button"
                 disabled={saving}
@@ -1020,11 +931,7 @@ export default function ProfileModal({
                 className="xanga-button flex items-center gap-2 text-sm"
               >
                 <Pepicon name="floppyDisk" size={14} />
-                {saving
-                  ? 'saving...'
-                  : isInitialSetup
-                    ? '~ save + start writing ~'
-                    : '~ save changes ~'}
+                {saving ? 'saving...' : '~ save changes ~'}
               </button>
             </div>
           </ModalFooter>

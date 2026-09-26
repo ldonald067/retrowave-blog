@@ -1754,3 +1754,11 @@ input[type='submit'],
     padding-top: calc(var(--safe-area-top) + clamp(0px, 44px - var(--safe-area-top), 0.5rem));
   }
 }
+
+/* First-run setup pins its panel near the top instead of centring it. On the
+   website --keyboard-inset is always 0 (only the native app measures the
+   keyboard), so a centred panel sat half behind Safari's keyboard and the
+   button under the name field was the half that went (iPhone 16, 2026-09-26). */
+.modal-overlay-safe > .setup-panel {
+  margin-block: 0 auto;
+}

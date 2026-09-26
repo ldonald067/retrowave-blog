@@ -77,8 +77,8 @@ Everything below was checked against prod by query, not read from migrations.
 ## The UI audit
 
 `docs/audit/ui-audit-plan.md` is the checklist and findings log — **start there
-for anything UI**. 75 findings are logged — 41 from the main audit, 12 from the
-iPhone SE pass, 22 since (15 from four `/adversarial-review` runs). All are
+for anything UI**. 76 findings are logged — 41 from the main audit, 12 from the
+iPhone SE pass, 23 since (15 from four `/adversarial-review` runs). All are
 fixed except 52, left as is on purpose. The next `/adversarial-review` starts
 after the 2026-09-24 line there (code since `4a084c1`).
 
@@ -152,6 +152,14 @@ iPhone 17 Pro Max simulator unless noted.
   error leaves the address bar; a shared profile link is unaffected.
 
 ## Open work
+
+- **See the new first-run setup in the app itself.** `ProfileSetup` (three
+  steps) was verified on a local preview in Safari on the iPhone 17 and SE, with
+  the keyboard up, live theme preview, and the swap case; the native app only
+  shows it to a brand-new account. Sign up with a `nonoabc2345+…@gmail.com`
+  address on the SE or iPhone 17 and walk the three steps. Known and accepted: on
+  the SE, in the rare swap case, "next" sits behind Safari's keyboard toolbar —
+  the keyboard's go key still advances.
 
 - **See the single "session expired" message on a device.** Fixed in code
   (`ca2dbdc`; the new test fails on the old code). To check: sign

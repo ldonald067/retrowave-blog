@@ -41,6 +41,7 @@ import { computeFeedHeight, feedMaxHeight } from './utils/feedHeight';
 // Lazy-load heavy modal/overlay components — only fetched when needed
 const PostModal = lazy(() => import('./components/PostModal'));
 const ProfileModal = lazy(() => import('./components/ProfileModal'));
+const ProfileSetup = lazy(() => import('./components/ProfileSetup'));
 const SettingsModal = lazy(() => import('./components/SettingsModal'));
 const AuthModal = lazy(() => import('./components/AuthModal'));
 const AgeVerification = lazy(() => import('./components/AgeVerification'));
@@ -1552,23 +1553,29 @@ function AppInner() {
           </Suspense>
         )}
 
-        {/* Profile Modal - also shows automatically for new users who need to set up their profile */}
-        {(showProfileModal || needsProfileSetup) && (
+        {/* A profile with no display name is a new one: it gets the three-step
+            setup, which cannot be dismissed. Everyone else edits in the modal. */}
+        {needsProfileSetup && profile && (
+          <Suspense fallback={<LazyFallback />}>
+            <ProfileSetup
+              profile={profile}
+              userId={user?.id}
+              onSave={handleSaveProfile}
+              onError={showError}
+              requestedUsername={user?.user_metadata?.['username']}
+            />
+          </Suspense>
+        )}
+
+        {showProfileModal && !needsProfileSetup && (
           <Suspense fallback={<LazyFallback />}>
             <ProfileModal
               profile={profile}
               userId={user?.id}
               onSave={handleSaveProfile}
-              onClose={() => {
-                // Only allow closing if profile setup is complete
-                if (!needsProfileSetup) {
-                  setShowProfileModal(false);
-                }
-              }}
+              onClose={() => setShowProfileModal(false)}
               onSuccess={success}
               onError={showError}
-              isInitialSetup={needsProfileSetup}
-              requestedUsername={user?.user_metadata?.['username']}
             />
           </Suspense>
         )}

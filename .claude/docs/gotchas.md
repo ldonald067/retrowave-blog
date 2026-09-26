@@ -30,6 +30,9 @@ section they belong to — not at the bottom.
 
 ## Mobile layout (iOS)
 
+- **On the website, `--keyboard-inset` is always 0** — only the native app measures the keyboard. A centred modal with a text field therefore sits half behind Safari's keyboard, and the button under the field is the half that goes (first-run setup on an iPhone 16, 2026-09-26). Pin such panels to the top (`.setup-panel`), and put the step's button directly under its field, not in a pinned footer.
+- **Focus on mount, not on the step change, under `AnimatePresence mode="wait"`.** The next step mounts only after the old one animates out, so an effect keyed on `step` focuses the outgoing heading, which then vanishes and drops focus to the page. `ProfileSetup`'s `StepHeading` focuses itself when it mounts; `ProfileSetup.focus.test.tsx` runs real framer-motion to guard it.
+
 - Touch targets: `min-h-[44px] lg:min-h-0` (or `lg:min-h-[36px]`). Never a bare `min-h-[36px]`. As of 2026-08-10 every `min-h-[36px]` in the code is prefixed `min-h-[44px] lg:`.
 - Input font is `max(1rem, 16px) !important` on mobile. Below 16px iOS auto-zooms on focus; a flat `16px` does not follow the root scaling that carries Dynamic Type, which froze every field while its label grew.
 - Text sizes: named Tailwind scale first, arbitrary **rem** where no step fits (`text-[0.8125rem]`). Never arbitrary px on anything text-bearing — Tailwind emits it literally and it ignores root scaling.
@@ -147,6 +150,8 @@ section they belong to — not at the bottom.
 - Security headers live in `public/_headers` (served by Cloudflare Workers assets). CSP allows Supabase (rest/auth/functions + wss), DiceBear, and YouTube oEmbed/thumbnails/embeds; `style-src` needs `'unsafe-inline'` for React inline styles. HTTP→HTTPS is Cloudflare's "Always Use HTTPS" toggle.
 
 ## Testing and CI
+
+- **A framer-motion mock must reuse one component per tag.** A `Proxy` that builds a new component on every `motion.div` access hands React a new type each render, so it remounts the subtree and a test holding an input or button holds a detached node — typing and clicking then silently do nothing (`ProfileSetup.test.tsx` has the cached version). Suites that stub motion also cannot see anything that depends on exit animations.
 
 - `src/lib/supabase.ts` throws at import time without env vars, so `vite.config.ts` supplies placeholders via `test.env`. Remove them and CI silently loses ~24 tests.
 - **Watch the test count, not just red/green.** CI once ran 241 of 265 for over a week.
