@@ -47,16 +47,14 @@ interface ProfileSetupProps {
 }
 
 function StepTag({ required }: { required: boolean }) {
-  // A state, so bold (the style-encodes-kind rule in /frontend). Required is
-  // the one worth noticing, so it alone takes the accent.
+  // A state, so plain bold text — the style-encodes-kind rule in /frontend.
+  // It used to be a dotted, accent-lettered pill in the title font, which is
+  // .xanga-button-ghost's treatment: a label that looked tappable. Required is
+  // the state worth noticing, so it alone takes the accent.
   return (
     <span
-      className="text-xs title-bold px-2 py-0.5 rounded-full border-2 border-dotted flex-shrink-0"
-      style={
-        required
-          ? { color: 'var(--accent-primary)', borderColor: 'var(--accent-primary)' }
-          : { color: 'var(--text-body)', borderColor: 'var(--border-primary)' }
-      }
+      className="text-xs font-bold flex-shrink-0"
+      style={{ color: required ? 'var(--accent-primary)' : 'var(--text-body)' }}
     >
       {required ? 'required' : 'optional'}
     </span>
@@ -304,7 +302,12 @@ export default function ProfileSetup({
                 initial={{ opacity: 0, x: 16 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -16 }}
-                transition={{ duration: 0.18 }}
+                // Springs, not durations (/frontend) — the same feel as the
+                // intro's steps. Reduce Motion is handled globally.
+                transition={{
+                  x: { type: 'spring', stiffness: 300, damping: 30 },
+                  opacity: { duration: 0.15 },
+                }}
               >
                 {step === 0 && (
                   <form onSubmit={(e) => void handleNameNext(e)} noValidate>
@@ -321,7 +324,11 @@ export default function ProfileSetup({
                         <>
                           {' '}
                           ur @handle is already set:{' '}
-                          <span className="title-bold">@{profile.username}</span>
+                          {/* A name, so italic in --text-subtitle (not bold,
+                              which marks a status). */}
+                          <span className="italic" style={{ color: 'var(--text-subtitle)' }}>
+                            @{profile.username}
+                          </span>
                         </>
                       )}
                     </p>

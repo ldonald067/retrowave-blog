@@ -16,6 +16,8 @@ section they belong to — not at the bottom.
 
 ## UI conventions
 
+- [2026-09-26 /frontend] **A status must not wear a control's treatment.** Setup's "required"/"optional" tags shipped as dotted, accent-lettered, `title-bold` pills — `.xanga-button-ghost`'s look — so a label read as tappable. States are plain bold text (accent when worth noticing); names are italic in `--text-subtitle`, never bold.
+
 - Settings (gear) and Profile (avatar) are separate modals. Do not merge them.
 - Toasts are minimal centred pills. Error copy uses `~` tildes; never a raw error string.
 - Auth forms use inline field errors, not toasts — the app-level `<Toast>` is not mounted during auth.
