@@ -176,13 +176,14 @@ iPhone 17 Pro Max simulator unless noted.
   set there); `username_changed_at` is null. Not yet exercised: a rename, so
   the cooldown and tombstone are proven by query only.
 
+- **Terms acceptance recorded** (2026-09-26, migration `20260925000000`, run by
+  you). `handle_new_user` now records the sign-up's terms tick when the age
+  check passed; the backfill flipped exactly the 3 profiles since 2026-08-13
+  (ldonald234, ldonald234_xanga, rainbowpudding1). 7 of 7 profiles now show
+  `tos_accepted`, and the coppa bypass did not outlive the transaction.
+
 ## Open work
 
-- **`tos_accepted` fix is written, not yet run** — migration
-  `20260925000000`: `handle_new_user` records the terms tick when the sign-up
-  passed the age check, and a backfill sets it for the 3 profiles since
-  2026-08-13 whose sign-up shows the box ticked. Until it runs, those profiles
-  (and new ones) say the terms were never accepted.
 - **"ur session expired" shows twice** on a launch whose stored session the
   server refuses (iPhone 17, 2026-09-22). Two identical toasts stacked; one
   would do.
