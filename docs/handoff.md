@@ -6,11 +6,11 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-26, at `ca2dbdc` (code) — after chosen usernames with
+Last rewritten 2026-09-27, at `0631ef0` (code) — after chosen usernames with
 tombstones and a rename cooldown, the sign-up username hook, the confirmation
-resend button, dead-link messages on the web, the terms-acceptance record, and
-the single "session expired" message. Two adversarial reviews since the last
-rewrite; every finding is fixed and live.
+resend button, dead-link messages on the web, the terms-acceptance record, the
+single "session expired" message, and first-run setup rebuilt as three steps.
+Every finding is fixed and live.
 
 ---
 
@@ -31,7 +31,7 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 - **The iOS deployment target is 16.4** (raised from 15.0 on 2026-09-16) because
   the CSS cannot run earlier. The iPhone 6s, 7 and first-generation SE lose the
   app.
-- **CI is green, 387 tests across 44 files.** `npm run check` runs exactly what
+- **CI is green, 394 tests across 46 files.** `npm run check` runs exactly what
   CI runs, including the Prettier check.
 
 ## Prod state worth knowing
@@ -64,6 +64,13 @@ Everything below was checked against prod by query, not read from migrations.
 - **A profile is created when the email is confirmed**, so an unfinished
   sign-up holds no name. Display name starts empty, which is what brings up
   first-run setup.
+- **First-run setup is `ProfileSetup`, three steps** (2026-09-26): the display
+  name alone, marked required, with "next" under the field; the theme, marked
+  optional, with a sample entry that repaints live; then an optional profile pic
+  and status, with "skip 4 now". The username is shown, not asked, unless
+  sign-up could not give the name asked for. Nothing saves until the end. The
+  panel is pinned to the top (`.setup-panel`) because the website cannot measure
+  the keyboard. `ProfileModal` is only the editor now.
 - **Renames:** the first is free, then one per 30 days. A released name is
   tombstoned to its old owner forever (`username_history`); only they can take
   it back. Deleting an account releases its names. The guard trigger owns
@@ -94,7 +101,8 @@ switch modes, anything that sends, saves or deletes is at least
 `.xanga-button-ghost`, and two controls doing different jobs never share a
 treatment side by side (the sign-in screen is the reference: outlined resend →
 underlined "forgot ur password?" → solid "sign in" → bold tertiary "or use a
-magic link").
+magic link"). And **a status never wears a control's treatment**: states are
+plain bold text, names italic in `--text-subtitle`.
 
 ## The four bugs that justify the method
 
@@ -224,18 +232,18 @@ count as new accounts — the cheapest way to test a fresh sign-up.
 
 ## Simulators
 
-State on 2026-09-26 — all four booted with the same build
-(`index-Bc2JuEsp.js`, `ca2dbdc`), all signed out. Sessions live in `UserDefaults`
+State on 2026-09-27 — all four booted with the same build
+(`index-BEiiA_VS.js`, `0631ef0`, also live on the site), all signed out. Sessions live in `UserDefaults`
 and survive reboots and in-place installs, but **simulators shut down between
 sessions**, so boot before installing, and re-check the installed build before
 trusting this table.
 
 | Simulator                  | Session    | Build              |
 | -------------------------- | ---------- | ------------------ |
-| iPhone 17 Pro Max          | signed out | current, `ca2dbdc` |
-| iPhone 17 Pro              | signed out | current, `ca2dbdc` |
-| iPhone 17                  | signed out | current, `ca2dbdc` |
-| iPhone SE (3rd generation) | signed out | current, `ca2dbdc` |
+| iPhone 17 Pro Max          | signed out | current, `0631ef0` |
+| iPhone 17 Pro              | signed out | current, `0631ef0` |
+| iPhone 17                  | signed out | current, `0631ef0` |
+| iPhone SE (3rd generation) | signed out | current, `0631ef0` |
 
 Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
 in, so signing another simulator out cannot be undone from here.
