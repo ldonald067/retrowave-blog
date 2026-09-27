@@ -6,11 +6,13 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-27, at `0631ef0` (code) — after chosen usernames with
+Last rewritten 2026-09-27, at `d0a8178` (code) — after chosen usernames with
 tombstones and a rename cooldown, the sign-up username hook, the confirmation
 resend button, dead-link messages on the web, the terms-acceptance record, the
-single "session expired" message, and first-run setup rebuilt as three steps.
-Every finding is fixed and live.
+single "session expired" message, first-run setup rebuilt as three steps, and
+inline "give ur entry a title" / "write something first" errors in the
+composer. Every finding is fixed and live. **A pixel-mood prototype sits
+uncommitted in the working tree** — see Open work.
 
 ---
 
@@ -161,6 +163,20 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
+- **Pixel moods — prototype, uncommitted, working tree only.** 16 placeholder
+  12×12 sprites drawn in code (`src/lib/pixelMoods.ts`), keyed by the emoji of
+  an existing `MOODS` entry, so the stored value is unchanged ("🥰 in love")
+  and no schema change. `MoodPicker` is one field that opens one scrolling
+  grid (pixels first, then every other mood as its emoji); `MoodLabel` swaps
+  the emoji for the sprite on cards, the entry view, sidebar, public profile.
+  Verified on the SE in the composer (pick, close, draft, preview); not yet on
+  a saved entry (needs a prod write) or in the profile editor. Placeholder
+  art only: the outline vanishes on dark themes, and "cool"/"meh"/"happy" read
+  alike. The sadthemes.tumblr.com pixel collection was ruled out — unowned,
+  imgur-hotlinked, and includes Sanrio/Nintendo characters (Guideline 5.2).
+- **Composer field errors use `--accent-secondary`**, which fails contrast on
+  emo-dark and cottage-core — true of every `Input`/`Textarea` error, not new.
+
 - **See the new first-run setup in the app itself.** `ProfileSetup` (three
   steps) was verified on a local preview in Safari on the iPhone 17 and SE, with
   the keyboard up, live theme preview, and the swap case; the native app only
@@ -232,18 +248,20 @@ count as new accounts — the cheapest way to test a fresh sign-up.
 
 ## Simulators
 
-State on 2026-09-27 — all four booted with the same build
-(`index-BEiiA_VS.js`, `0631ef0`, also live on the site), all signed out. Sessions live in `UserDefaults`
+State on 2026-09-27 — three on `0631ef0` (`index-BEiiA_VS.js`), signed out;
+the SE on the uncommitted pixel-mood prototype on top of `d0a8178`
+(`index-Biq1SPtE.js`), signed in as `rainbowpudding1` with a composer draft
+(mood only). The site serves `d0a8178` once Cloudflare deploys. Sessions live in `UserDefaults`
 and survive reboots and in-place installs, but **simulators shut down between
 sessions**, so boot before installing, and re-check the installed build before
 trusting this table.
 
-| Simulator                  | Session    | Build              |
-| -------------------------- | ---------- | ------------------ |
-| iPhone 17 Pro Max          | signed out | current, `0631ef0` |
-| iPhone 17 Pro              | signed out | current, `0631ef0` |
-| iPhone 17                  | signed out | current, `0631ef0` |
-| iPhone SE (3rd generation) | signed out | current, `0631ef0` |
+| Simulator                  | Session           | Build                  |
+| -------------------------- | ----------------- | ---------------------- |
+| iPhone 17 Pro Max          | signed out        | `0631ef0` (one behind) |
+| iPhone 17 Pro              | signed out        | `0631ef0` (one behind) |
+| iPhone 17                  | signed out        | `0631ef0` (one behind) |
+| iPhone SE (3rd generation) | `rainbowpudding1` | prototype on `d0a8178` |
 
 Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
 in, so signing another simulator out cannot be undone from here.
