@@ -25,6 +25,15 @@ vi.mock('framer-motion', () => ({
     }: React.PropsWithChildren<
       React.ButtonHTMLAttributes<HTMLButtonElement> & Record<string, unknown>
     >) => <button {...props}>{children}</button>,
+    // Field errors (Input/Textarea) animate in on a motion.p.
+    p: ({
+      children,
+      initial: _i,
+      animate: _a,
+      exit: _e,
+      transition: _t,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) => <p {...props}>{children}</p>,
   },
   AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));
@@ -133,6 +142,38 @@ describe('PostModal ⋮ Menu', () => {
     // The toggle's own "private" button, and nothing else, apart from the
     // heading and the save button which name the action rather than repeat it.
     expect(screen.getAllByText(/^private$/i)).toHaveLength(1);
+  });
+
+  it('says which required field is empty instead of saving', () => {
+    // The footer button submits outside the <form>, so nothing stopped an empty
+    // entry reaching onSave, and the person saw only "couldnt post that".
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...defaultProps} mode="create" post={null} onSave={onSave} />);
+
+    fireEvent.change(screen.getByLabelText(/ur thoughts/i), { target: { value: 'body only' } });
+    fireEvent.click(screen.getByRole('button', { name: /save private entry/i }));
+
+    expect(onSave).not.toHaveBeenCalled();
+    const title = screen.getByLabelText(/entry title/i);
+    expect(title).toHaveAttribute('aria-invalid', 'true');
+    expect(title).toHaveFocus();
+    expect(screen.getByRole('alert')).toHaveTextContent('give ur entry a title');
+
+    fireEvent.change(title, { target: { value: 'a title' } });
+    expect(title).not.toHaveAttribute('aria-invalid');
+  });
+
+  it('flags an empty or whitespace-only body', () => {
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    render(<PostModal {...defaultProps} mode="create" post={null} onSave={onSave} />);
+
+    fireEvent.change(screen.getByLabelText(/entry title/i), { target: { value: 'title' } });
+    fireEvent.change(screen.getByLabelText(/ur thoughts/i), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: /save private entry/i }));
+
+    expect(onSave).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(/ur thoughts/i)).toHaveFocus();
+    expect(screen.getByRole('alert')).toHaveTextContent('write something first');
   });
 
   it('saves new entries as private by default', async () => {

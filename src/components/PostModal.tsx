@@ -76,6 +76,12 @@ export default function PostModal({
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const [saving, setSaving] = useState(false);
   const [moderationError, setModerationError] = useState<string | null>(null);
+  // Required-field errors, shown under the field. Checked here because the
+  // footer button submits outside the <form>, so the browser's own required
+  // check never runs, and the save path's validation message never reached
+  // the person (it became "couldnt post that").
+  const [fieldErrors, setFieldErrors] = useState<{ title?: string; content?: string }>({});
+  const titleInputId = useId();
   const [draftRestored, setDraftRestored] = useState(false);
   const [draftSaveState, setDraftSaveState] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [lastDraftSavedAt, setLastDraftSavedAt] = useState<Date | null>(null);
@@ -324,6 +330,23 @@ export default function PostModal({
     // Never save while the full entry hasn't loaded — the textarea may hold
     // only the truncated preview, and saving it would clobber the real entry.
     if (fullContentError || loadingFullContent) return;
+    const missing = {
+      title: title.trim() ? undefined : 'give ur entry a title',
+      content: content.trim() ? undefined : 'write something first',
+    };
+    if (missing.title || missing.content) {
+      setFieldErrors(missing);
+      // Focus scrolls the field into view — on a phone the button sits at the
+      // bottom of a scrolled form, far from the title.
+      if (missing.title) {
+        document.getElementById(titleInputId)?.focus();
+      } else if (showPreview) {
+        setShowPreview(false);
+      } else {
+        document.getElementById('post-content')?.focus();
+      }
+      return;
+    }
     // Confirm before the write, not after: once updatePost lands the entry is
     // already on the public page, and there is no undo for having been seen.
     if (republishesEntry) {
@@ -786,9 +809,14 @@ export default function PostModal({
                   {/* Title */}
                   <div>
                     <Input
+                      id={titleInputId}
                       label="entry title: *"
                       value={title}
-                      onChange={(e) => setTitle(e.target.value)}
+                      error={fieldErrors.title}
+                      onChange={(e) => {
+                        setTitle(e.target.value);
+                        if (fieldErrors.title) setFieldErrors((f) => ({ ...f, title: undefined }));
+                      }}
                       placeholder="what's on ur mind 2day?"
                       required
                       maxLength={200}
@@ -1091,7 +1119,13 @@ export default function PostModal({
                           <Textarea
                             id="post-content"
                             value={content}
-                            onChange={(e) => setContent(e.target.value)}
+                            error={fieldErrors.content}
+                            onChange={(e) => {
+                              setContent(e.target.value);
+                              if (fieldErrors.content) {
+                                setFieldErrors((f) => ({ ...f, content: undefined }));
+                              }
+                            }}
                             className="h-[200px] sm:h-[250px]"
                             placeholder="dear diary... 2day i..."
                             required
