@@ -91,8 +91,7 @@ iPhone SE pass, 23 since (15 from four `/adversarial-review` runs). All are
 fixed except 52, left as is on purpose. The next `/adversarial-review` starts
 after the 2026-09-24 line there (code since `4a084c1`).
 
-**Journey coverage is not complete.** Never exercised: delete-entry confirm, the
-YouTube card, a long feed, the avatar picker, block from a public profile, and a
+**Journey coverage is not complete.** Never exercised: the YouTube card, a long feed, the avatar picker, block from a public profile, and a
 username rename. Read the plan's checkboxes, not this summary, before calling a
 surface done.
 
@@ -157,6 +156,11 @@ iPhone 17 Pro Max simulator unless noted.
   through; the email named it; a resend killed the first link; the resend
   button's email confirmed it; the profile appeared at confirmation, 7½ hours
   after sign-up; first-run setup ran; terms recorded after the backfill.
+- **Delete an entry, end to end** (2026-09-27, SE, `rainbowpudding1`): a
+  private test entry with a pixel mood was saved, then deleted from the app via
+  edit → ⋮ → "delete entry" → a confirmation naming the entry → "~ entry
+  deleted ~" toast and the empty journal. Prod re-diffed identical to the
+  pre-test snapshot (0 entries, profile untouched).
 - **Dead-link message on the live site** (2026-09-25): an expired link now
   shows "that link doesn't work anymore ~ … a newer email replaced it" and the
   error leaves the address bar; a shared profile link is unaffected.
