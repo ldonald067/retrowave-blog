@@ -248,19 +248,19 @@ count as new accounts — the cheapest way to test a fresh sign-up.
 
 ## Simulators
 
-State on 2026-09-27 — three on `0631ef0` (`index-BEiiA_VS.js`), signed out;
-the SE on the uncommitted pixel-mood prototype on top of `d0a8178`
+State on 2026-09-27 — three on `d0a8178` (`index-7hqetUML.js`, also live on
+the site), signed out; the SE on the uncommitted pixel-mood prototype on top of `d0a8178`
 (`index-Biq1SPtE.js`), signed in as `rainbowpudding1` with a composer draft
-(mood only). The site serves `d0a8178` once Cloudflare deploys. Sessions live in `UserDefaults`
+(mood only). Sessions live in `UserDefaults`
 and survive reboots and in-place installs, but **simulators shut down between
 sessions**, so boot before installing, and re-check the installed build before
 trusting this table.
 
 | Simulator                  | Session           | Build                  |
 | -------------------------- | ----------------- | ---------------------- |
-| iPhone 17 Pro Max          | signed out        | `0631ef0` (one behind) |
-| iPhone 17 Pro              | signed out        | `0631ef0` (one behind) |
-| iPhone 17                  | signed out        | `0631ef0` (one behind) |
+| iPhone 17 Pro Max          | signed out        | current, `d0a8178`     |
+| iPhone 17 Pro              | signed out        | current, `d0a8178`     |
+| iPhone 17                  | signed out        | current, `d0a8178`     |
 | iPhone SE (3rd generation) | `rainbowpudding1` | prototype on `d0a8178` |
 
 Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
