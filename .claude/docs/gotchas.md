@@ -53,6 +53,9 @@ section they belong to — not at the bottom.
 
 ## Simulator and verification
 
+- [2026-09-27 /mobile] **Check a dark theme on device without writing to prod.** The profile editor's "vibe" tab repaints the whole app live when a theme is picked, before anything saves, and cancel reverts it. Use that instead of saving a theme onto a test account (and then restoring it).
+- [2026-09-27 /mobile] **A late tap can land on the composer's save button.** The first tap on "write ur first entry" arrived seconds late, so the next tap at the same height hit "save" on the freshly opened composer. Screenshot before every tap, and never aim a tap where a control appears once the previous tap lands.
+
 - **Tap delivery is roughly 1-in-3 and can land seconds late.** Read state from a screenshot after every tap, and re-check before assuming your own earlier tap failed. Time-boxed states (a 3s toast, a sub-400ms double tap) are effectively undrivable. **Swipes land reliably.** A swipe starting on the feed scrolls the feed's box first; one starting on the header or chips scrolls the page.
 - **Tap space is points; screenshots are pixels.** Divide a position read off a screenshot by (screenshot width ÷ point width): 440pt Pro Max, 402pt Pro and iPhone 17, 375pt SE. A raw `simctl io` capture is 3× on Face ID phones and 2× on the SE; a scaled-down image has its own ratio. Screenshot numbers passed straight to `tap` land in empty space and look like a dead button. `touch_path` does not share `tap`'s mapping.
 - **Catching a transient needs the screenshot armed first:** `( sleep N; xcrun simctl io <udid> screenshot f.png ) &`, then fire the tap. MCP round trips are ~1.5–2s, so bracket 1.6–3.4s.
