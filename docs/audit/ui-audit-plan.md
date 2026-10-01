@@ -233,7 +233,8 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**76 findings, all fixed except 52** (left as is on purpose).
+**80 findings, all fixed except 52** (left as is on purpose) **and 83** (migration
+written, waiting to be run in prod).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -318,7 +319,12 @@ assigned.
 | 78 | MED | Auth links, web | A dead confirmation link — expired, used, or replaced by a resend — opened the site on its ordinary intro with the error left in the address bar: after tapping "confirm my email" that reads as success (reported 2026-09-25 as "the first link was still valid"; prod showed the account unconfirmed). The error message was native-only, and even there fired before App was listening | Fixed — the web reads error callbacks too, and the message waits for App; verified in the browser |
 | 79 | MED | First-run setup | Setup was the edit-profile form with setup fields on: welcome box, pic, name, username, status and 8 themes on one scroll, name focused on open. With the keyboard up on an iPhone 16 (Safari) only one field fit, nothing said only the name was required, the username was asked again (spending the free rename), and the error was "Please enter a display name to get started" | Fixed — `ProfileSetup`, three steps (name required → theme with a live sample entry → optional pic and status, "skip 4 now"), panel pinned to the top; verified in Safari on the iPhone 17 and SE with the keyboard up |
 
-Findings 45–79 lifted the count from 41 to 76 (numbers 40–42 unassigned).
+| 80 | HIGH | Profile editor, first-run setup | Five seconds in another app wiped every unsaved edit in the profile editor (typed status 24/100 → 0/100; a picked theme reverted and the old one re-selected), and snapped setup's live theme preview back while the chosen card stayed marked. supabase-js reports `SIGNED_IN` on every return to the page; `useAuth` refetched the profile, a new object made `ProfileModal` re-sync all fields, and the saved theme was re-applied. Web tab switches too | Fixed `1eb335f` — `fetchProfile` keeps the loaded profile when the row is unchanged; reproduced and then verified fixed on the SE (`index-CzPag2b4.js`) |
+| 81 | MED | First-run setup | A display name the content filter refuses (e.g. "emma van dyke") passed step 1 and came back as a toast on step 3, two screens from the field — only "taken" usernames routed back | Fixed `1eb335f` — step 1 runs the save's own check and says so under the field |
+| 82 | MED | Session, iOS | Reopening the app offline after its token expired said "ur session expired, sign in again" to someone still signed in: `getSession()` returns a retryable network error and keeps the session, and the resume check treated any error as expiry | Fixed `1eb335f` — retryable errors say nothing; proven by test, not reproducible on the simulator (shared network) |
+| 83 | LOW | Usernames, swap case | Picking a handle in setup after sign-up assigned `<chosen>_<id8>` spent the free rename, so a typo in it was locked for 30 days | Migration `20260930000000` (`8034cb6`) — the first move off an assigned name stays free; **not yet applied** |
+
+Findings 45–83 lifted the count from 41 to 80 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
@@ -415,3 +421,18 @@ counted.
   only `SignUpForm` reaches sign-up, and it validates and lowercases, so the
   hook cannot refuse a real user; the cooldown message parses both the old and
   new database formats; a numeric username only fails the sender's own sign-up.
+- **2026-09-30** — code since `4a084c1` (`2de4d1a`…`d0a8178`: email template
+  bypass, dead-link messages on the web, terms acceptance, one "session
+  expired" message, three-step setup, composer field errors), on the SE and
+  against prod. Findings 80–83; 80–82 fixed, 83's migration not yet run. Held
+  up: on the web the dead-link error leaves the URL before supabase-js reads it
+  (its lock awaits first), so nothing handles it twice, and `#/u/name` never
+  parses as an error; the pending message waits until a branch with the toast
+  layer mounts; "session expired" still reports a later expiry, because
+  supabase-js sends `SIGNED_IN` on every return while the session is valid; the
+  terms migration is live (7/7 accepted) and the sign-up hook is on; the
+  composer's required check matches `validatePostInput`, and none of prod's 11
+  entries has a blank title or body; setup cannot be dismissed, its save and
+  skip are disabled while saving, its pic picker uploads nothing, and its
+  toasts sit above the panel. Not filed: "skip 4 now" drops a pic already
+  chosen on that step — read as what skip means.

@@ -6,13 +6,13 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-28, at `d0a8178` (code) — after chosen usernames with
-tombstones and a rename cooldown, the sign-up username hook, the confirmation
-resend button, dead-link messages on the web, the terms-acceptance record, the
-single "session expired" message, first-run setup rebuilt as three steps, and
-inline "give ur entry a title" / "write something first" errors in the
-composer. Every finding is fixed and live. `main` is clean; **hand-drawn pixel
-moods are parked on a local branch** — see "Moods and pixel art".
+Last rewritten 2026-09-30, at `8034cb6` (code) — after the fifth
+`/adversarial-review` (findings 80–83): unsaved profile edits now survive a trip
+out of the app, setup refuses a filtered display name on its first step, an
+offline resume no longer claims the session expired, and a migration keeps the
+free rename after a sign-up name swap. **One thing waits on you: run migration
+`20260930000000`** (finding 83). Everything else is fixed and live. **Mood art
+is on hold** (your call, 2026-09-30) — see "Mood art".
 
 ---
 
@@ -33,12 +33,17 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 - **The iOS deployment target is 16.4** (raised from 15.0 on 2026-09-16) because
   the CSS cannot run earlier. The iPhone 6s, 7 and first-generation SE lose the
   app.
-- **CI is green, 396 tests across 46 files.** `npm run check` runs exactly what
+- **CI is green, 401 tests across 47 files.** `npm run check` runs exactly what
   CI runs, including the Prettier check.
 
 ## Prod state worth knowing
 
 Everything below was checked against prod by query, not read from migrations.
+
+- **Waiting to be run: `20260930000000`** (finding 83) — paste it into the SQL
+  editor, then I check it with the queries in its footer. Until then, picking a
+  handle in setup after a sign-up swap still spends the free rename. No current
+  account is affected (checked 2026-09-30).
 
 - **Migrations applied this stretch, all pasted into the SQL editor by you:**
   `20260920000000` (tombstones, cooldown), `20260923000000` (sign-up hook,
@@ -73,7 +78,8 @@ Everything below was checked against prod by query, not read from migrations.
   sign-up could not give the name asked for. Nothing saves until the end. The
   panel is pinned to the top (`.setup-panel`) because the website cannot measure
   the keyboard. `ProfileModal` is only the editor now.
-- **Renames:** the first is free, then one per 30 days. A released name is
+- **Renames:** the first is free, then one per 30 days; moving off a name
+  sign-up assigned (`<chosen>_<id8>`) will not count once `20260930000000` runs. A released name is
   tombstoned to its old owner forever (`username_history`); only they can take
   it back. Deleting an account releases its names. The guard trigger owns
   `username_changed_at` and refuses a NULL username.
@@ -83,37 +89,25 @@ Everything below was checked against prod by query, not read from migrations.
   the age check; otherwise by `set_age_verification` with the age. 7 of 7
   profiles show it.
 
-## Moods and pixel art — parked
+## Mood art — on hold
 
-- **Your call (2026-09-28): no hand-drawn mood emojis for now.** The work is
-  kept, not merged: local branch `pixel-moods-prototype` (`17fabc0`, **not
-  pushed**) holds 16 hand-drawn 12×12 sprites keyed by an existing `MOODS`
-  emoji (the stored mood text stays "🥰 in love", so no schema change); a
-  `MoodPicker` that is one field opening one scrolling grid; a `MoodLabel` that
-  swaps the emoji for the sprite on cards, entry view, sidebar and public
-  profile; and a `--pixel-halo` theme variable that rims sprites on the six
-  dark themes. It was green (405 tests) and verified on the SE when parked.
-  Its commit message lists what each piece does.
-- **What you want instead: pixels from sadthemes.tumblr.com/smolpxl, with
-  credit.** The curator's page says the pixels were collected — "credit to
-  original owners" — so credit to sadthemes is not permission from whoever
-  drew each one. Needed first: sadthemes (or the artist) confirming in writing
-  which pixels are theirs and that a free iOS app with a credit line is fine.
-  **The Hello Kitty / My Melody / Kuromi sections and any Nintendo or Ghibli
-  sprites stay out regardless** (App Store Guideline 5.2). Open example: a
-  20×20 grey cat (content face, paw) you sent in chat — ask who drew it.
-- **When permission arrives:** the branch's `MoodPicker`/`MoodLabel` can take
-  image sprites instead of drawn grids; credit goes on `public/support.html`
-  (or an About screen). Sprites are 20×20 GIFs there, not 12×12 — the renderer
-  needs to accept any size.
+- **Your call (2026-09-30): no more mood emojis for now** — no hand-drawn
+  sprites, and the found-pixel (sadthemes) idea is dropped too. Don't raise it.
+- The earlier work is kept, not merged: local branch `pixel-moods-prototype`
+  (`17fabc0`, **not pushed**) — 16 hand-drawn 12×12 sprites keyed by existing
+  `MOODS` emoji (no schema change), a one-field `MoodPicker`, a `MoodLabel` for
+  cards, entry view, sidebar and public profile, and a `--pixel-halo` theme
+  variable. It was green (405 tests) and verified on the SE when parked; its
+  commit message lists each piece.
 
 ## The UI audit
 
 `docs/audit/ui-audit-plan.md` is the checklist and findings log — **start there
-for anything UI**. 76 findings are logged — 41 from the main audit, 12 from the
-iPhone SE pass, 23 since (15 from four `/adversarial-review` runs). All are
-fixed except 52, left as is on purpose. The next `/adversarial-review` starts
-after the 2026-09-24 line there (code since `4a084c1`).
+for anything UI**. 80 findings are logged — 41 from the main audit, 12 from the
+iPhone SE pass, 27 since (19 from five `/adversarial-review` runs). All are
+fixed except 52, left as is on purpose, and 83, whose migration waits to be
+run. The next `/adversarial-review` starts after the 2026-09-30 line there
+(code since `8034cb6`).
 
 **Journey coverage is not complete.** Never exercised: the YouTube card, a long feed, the avatar picker, block from a public profile, and a
 username rename. Read the plan's checkboxes, not this summary, before calling a
@@ -189,13 +183,17 @@ iPhone 17 Pro Max simulator unless noted.
   "delete entry" → a confirmation naming the entry → "~ entry deleted ~" toast
   and the empty journal. Prod re-diffed identical to the pre-test snapshot (0
   entries, profile untouched).
+- **Unsaved profile edits survive leaving the app** (2026-09-30, SE,
+  `1eb335f`, finding 80): a typed status (24/100) was still there after 5s on
+  the home screen. Before the fix it went to 0/100, and a picked theme
+  reverted with the old one re-selected. Cancelled each time; prod unchanged.
 - **Dead-link message on the live site** (2026-09-25): an expired link now
   shows "that link doesn't work anymore ~ … a newer email replaced it" and the
   error leaves the address bar; a shared profile link is unaffected.
 
 ## Open work
 
-- **Pixel moods** — parked; see "Moods and pixel art" above.
+- **Run migration `20260930000000`** (finding 83) — see "Prod state".
 - **Form field errors use `--accent-secondary`**, which fails contrast on
   emo-dark and cottage-core. True of every `Input`/`Textarea` error (the new
   composer ones included) — one token change, then re-sweep the pairing.
@@ -204,7 +202,9 @@ iPhone 17 Pro Max simulator unless noted.
   steps) was verified on a local preview in Safari on the iPhone 17 and SE, with
   the keyboard up, live theme preview, and the swap case; the native app only
   shows it to a brand-new account. Sign up with a `nonoabc2345+…@gmail.com`
-  address on the SE or iPhone 17 and walk the three steps. Known and accepted: on
+  address on the SE or iPhone 17 and walk the three steps; on step 1 try a name
+  the filter refuses (e.g. "emma van dyke") — it should say "that name isn't
+  allowed here" under the field (finding 81). Known and accepted: on
   the SE, in the rare swap case, "next" sits behind Safari's keyboard toolbar —
   the keyboard's go key still advances.
 
@@ -244,7 +244,9 @@ iPhone 17 Pro Max simulator unless noted.
   you and dashboard switches are flipped by you; the agent verifies read-only
   afterwards. Email template pushes still go through from here.
 - **Offline banner** — needs a real device in Airplane Mode; the simulator
-  shares the Mac's connection.
+  shares the Mac's connection. Same device test for finding 82: leave the app
+  in the background over an hour, turn on Airplane Mode, reopen — it should
+  not say "ur session expired".
 - **Success toast and sub-400ms rapid taps** — not drivable from here (tap
   delivery); code-verified only.
 - **Signing in.** An agent cannot authenticate, so a surface needing an account
@@ -271,20 +273,19 @@ count as new accounts — the cheapest way to test a fresh sign-up.
 
 ## Simulators
 
-State on 2026-09-28 — all four on `d0a8178` (`index-7hqetUML.js`, the same
-build the site serves). The SE is booted and signed in as `rainbowpudding1`
-(checked 2026-09-28); the other three are shut down and signed out (build
-checked 2026-09-27). Sessions live in `UserDefaults`
+State on 2026-09-30 — all four on `8034cb6` (`index-CzPag2b4.js`, checked on
+each). The SE is booted and signed in as `rainbowpudding1`; the other three are
+shut down and signed out. Sessions live in `UserDefaults`
 and survive reboots and in-place installs, but **simulators shut down between
 sessions**, so boot before installing, and re-check the installed build before
 trusting this table.
 
 | Simulator                  | Session           | Build              |
 | -------------------------- | ----------------- | ------------------ |
-| iPhone 17 Pro Max          | signed out        | current, `d0a8178` |
-| iPhone 17 Pro              | signed out        | current, `d0a8178` |
-| iPhone 17                  | signed out        | current, `d0a8178` |
-| iPhone SE (3rd generation) | `rainbowpudding1` | current, `d0a8178` |
+| iPhone 17 Pro Max          | signed out        | current, `8034cb6` |
+| iPhone 17 Pro              | signed out        | current, `8034cb6` |
+| iPhone 17                  | signed out        | current, `8034cb6` |
+| iPhone SE (3rd generation) | `rainbowpudding1` | current, `8034cb6` |
 
 Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
 in, so signing another simulator out cannot be undone from here.
@@ -310,5 +311,8 @@ verification" and "Supabase and RPCs". The ones that bite every session:
 - **An Xcode update blocks `git`** until you run `sudo xcodebuild -license`.
 - **Signing an account out on one simulator signs it out on all of them.**
 - **Ask before each prod write**; approval for one test does not cover the next.
+- **Every return to the app refetches the profile** (supabase-js sends
+  `SIGNED_IN`). Anything keyed on the `profile` object sees it — that is how
+  finding 80 wiped edits.
 - **A dark theme can be checked on device with no prod write** — the profile
   editor's theme picker repaints the app live, and cancel reverts it.
