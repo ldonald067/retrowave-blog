@@ -10,8 +10,8 @@ Last rewritten 2026-09-30, at `8034cb6` (code) — after the fifth
 `/adversarial-review` (findings 80–83): unsaved profile edits now survive a trip
 out of the app, setup refuses a filtered display name on its first step, an
 offline resume no longer claims the session expired, and a migration keeps the
-free rename after a sign-up name swap. **One thing waits on you: run migration
-`20260930000000`** (finding 83). Everything else is fixed and live. **Mood art
+free rename after a sign-up name swap (migration `20260930000000`, run and
+checked the same day). Every finding is fixed. **Mood art
 is on hold** (your call, 2026-09-30) — see "Mood art".
 
 ---
@@ -40,14 +40,10 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 
 Everything below was checked against prod by query, not read from migrations.
 
-- **Waiting to be run: `20260930000000`** (finding 83) — paste it into the SQL
-  editor, then I check it with the queries in its footer. Until then, picking a
-  handle in setup after a sign-up swap still spends the free rename. No current
-  account is affected (checked 2026-09-30).
-
 - **Migrations applied this stretch, all pasted into the SQL editor by you:**
   `20260920000000` (tombstones, cooldown), `20260923000000` (sign-up hook,
-  cooldown hardening), `20260925000000` (terms acceptance). 8 auth users, 7
+  cooldown hardening), `20260925000000` (terms acceptance),
+  `20260930000000` (free rename after a sign-up swap). 8 auth users, 7
   profiles.
 - **The Before User Created auth hook is ON** → `public.hook_before_user_created`.
   It refuses a sign-up whose `username` metadata is not a handle (3–30,
@@ -79,7 +75,7 @@ Everything below was checked against prod by query, not read from migrations.
   panel is pinned to the top (`.setup-panel`) because the website cannot measure
   the keyboard. `ProfileModal` is only the editor now.
 - **Renames:** the first is free, then one per 30 days; moving off a name
-  sign-up assigned (`<chosen>_<id8>`) will not count once `20260930000000` runs. A released name is
+  sign-up assigned (`<chosen>_<id8>`) does not count. A released name is
   tombstoned to its old owner forever (`username_history`); only they can take
   it back. Deleting an account releases its names. The guard trigger owns
   `username_changed_at` and refuses a NULL username.
@@ -105,8 +101,7 @@ Everything below was checked against prod by query, not read from migrations.
 `docs/audit/ui-audit-plan.md` is the checklist and findings log — **start there
 for anything UI**. 80 findings are logged — 41 from the main audit, 12 from the
 iPhone SE pass, 27 since (19 from five `/adversarial-review` runs). All are
-fixed except 52, left as is on purpose, and 83, whose migration waits to be
-run. The next `/adversarial-review` starts after the 2026-09-30 line there
+fixed except 52, left as is on purpose. The next `/adversarial-review` starts after the 2026-09-30 line there
 (code since `8034cb6`).
 
 **Journey coverage is not complete.** Never exercised: the YouTube card, a long feed, the avatar picker, block from a public profile, and a
@@ -193,7 +188,6 @@ iPhone 17 Pro Max simulator unless noted.
 
 ## Open work
 
-- **Run migration `20260930000000`** (finding 83) — see "Prod state".
 - **Form field errors use `--accent-secondary`**, which fails contrast on
   emo-dark and cottage-core. True of every `Input`/`Textarea` error (the new
   composer ones included) — one token change, then re-sweep the pairing.

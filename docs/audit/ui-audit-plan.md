@@ -233,8 +233,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**80 findings, all fixed except 52** (left as is on purpose) **and 83** (migration
-written, waiting to be run in prod).
+**80 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -322,7 +321,7 @@ written, waiting to be run in prod).
 | 80 | HIGH | Profile editor, first-run setup | Five seconds in another app wiped every unsaved edit in the profile editor (typed status 24/100 → 0/100; a picked theme reverted and the old one re-selected), and snapped setup's live theme preview back while the chosen card stayed marked. supabase-js reports `SIGNED_IN` on every return to the page; `useAuth` refetched the profile, a new object made `ProfileModal` re-sync all fields, and the saved theme was re-applied. Web tab switches too | Fixed `1eb335f` — `fetchProfile` keeps the loaded profile when the row is unchanged; reproduced and then verified fixed on the SE (`index-CzPag2b4.js`) |
 | 81 | MED | First-run setup | A display name the content filter refuses (e.g. "emma van dyke") passed step 1 and came back as a toast on step 3, two screens from the field — only "taken" usernames routed back | Fixed `1eb335f` — step 1 runs the save's own check and says so under the field |
 | 82 | MED | Session, iOS | Reopening the app offline after its token expired said "ur session expired, sign in again" to someone still signed in: `getSession()` returns a retryable network error and keeps the session, and the resume check treated any error as expiry | Fixed `1eb335f` — retryable errors say nothing; proven by test, not reproducible on the simulator (shared network) |
-| 83 | LOW | Usernames, swap case | Picking a handle in setup after sign-up assigned `<chosen>_<id8>` spent the free rename, so a typo in it was locked for 30 days | Migration `20260930000000` (`8034cb6`) — the first move off an assigned name stays free; **not yet applied** |
+| 83 | LOW | Usernames, swap case | Picking a handle in setup after sign-up assigned `<chosen>_<id8>` spent the free rename, so a typo in it was locked for 30 days | Fixed `8034cb6` — migration `20260930000000` run 2026-09-30; the first move off an assigned name stays free. Live body identical to the file, trigger enabled (checked in prod) |
 
 Findings 45–83 lifted the count from 41 to 80 (numbers 40–42 unassigned).
 
@@ -424,7 +423,7 @@ counted.
 - **2026-09-30** — code since `4a084c1` (`2de4d1a`…`d0a8178`: email template
   bypass, dead-link messages on the web, terms acceptance, one "session
   expired" message, three-step setup, composer field errors), on the SE and
-  against prod. Findings 80–83; 80–82 fixed, 83's migration not yet run. Held
+  against prod. Findings 80–83, all fixed (83's migration run the same day). Held
   up: on the web the dead-link error leaves the URL before supabase-js reads it
   (its lock awaits first), so nothing handles it twice, and `#/u/name` never
   parses as an error; the pending message waits until a branch with the toast
