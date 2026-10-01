@@ -6,12 +6,11 @@ not here.
 
 Read `CLAUDE.md` first, then `.claude/docs/gotchas.md`.
 
-Last rewritten 2026-09-30, at `8034cb6` (code) — after the fifth
-`/adversarial-review` (findings 80–83): unsaved profile edits now survive a trip
-out of the app, setup refuses a filtered display name on its first step, an
-offline resume no longer claims the session expired, and a migration keeps the
-free rename after a sign-up name swap (migration `20260930000000`, run and
-checked the same day). Every finding is fixed. **Mood art
+Last rewritten 2026-10-01, at `fec6021` (code) — after a `/mobile` audit on
+the newer iPhones (17e, 17, Air; findings 84–88): the intro's last slide fits,
+modals no longer lose 34–68pt to a doubled bottom inset, and the avatar picker
+saves what it shows, passes contrast and says which chip is chosen. Before that,
+the fifth `/adversarial-review` (80–83). Every finding is fixed. **Mood art
 is on hold** (your call, 2026-09-30) — see "Mood art".
 
 ---
@@ -33,7 +32,7 @@ find-identity -v -p codesigning` still reports 0 valid identities (checked
 - **The iOS deployment target is 16.4** (raised from 15.0 on 2026-09-16) because
   the CSS cannot run earlier. The iPhone 6s, 7 and first-generation SE lose the
   app.
-- **CI is green, 401 tests across 47 files.** `npm run check` runs exactly what
+- **CI is green, 404 tests across 48 files.** `npm run check` runs exactly what
   CI runs, including the Prettier check.
 
 ## Prod state worth knowing
@@ -99,12 +98,12 @@ Everything below was checked against prod by query, not read from migrations.
 ## The UI audit
 
 `docs/audit/ui-audit-plan.md` is the checklist and findings log — **start there
-for anything UI**. 80 findings are logged — 41 from the main audit, 12 from the
-iPhone SE pass, 27 since (19 from five `/adversarial-review` runs). All are
-fixed except 52, left as is on purpose. The next `/adversarial-review` starts after the 2026-09-30 line there
+for anything UI**. 85 findings are logged — 41 from the main audit, 12 from the
+iPhone SE pass, 5 from the newer-iPhone pass, 27 more (19 from five
+`/adversarial-review` runs). All are fixed except 52, left as is on purpose. The next `/adversarial-review` starts after the 2026-09-30 line there
 (code since `8034cb6`).
 
-**Journey coverage is not complete.** Never exercised: the YouTube card, a long feed, the avatar picker, block from a public profile, and a
+**Journey coverage is not complete.** Never exercised: the YouTube card, a long feed, block from a public profile, and a
 username rename. Read the plan's checkboxes, not this summary, before calling a
 surface done.
 
@@ -178,6 +177,11 @@ iPhone 17 Pro Max simulator unless noted.
   "delete entry" → a confirmation naming the entry → "~ entry deleted ~" toast
   and the empty journal. Prod re-diffed identical to the pre-test snapshot (0
   entries, profile untouched).
+- **Newer iPhones** (2026-10-01, 17e signed in as `ldonald234`; 17 and Air
+  signed out): feed, entry, composer with keyboard, profile editor, avatar
+  picker, Settings, max Dynamic Type, intro, sign-up, public profile. The
+  dead-link message shows inside the running app — finding 78's native path,
+  first seen on a device. Findings 84–88, all fixed and re-checked there.
 - **Unsaved profile edits survive leaving the app** (2026-09-30, SE,
   `1eb335f`, finding 80): a typed status (24/100) was still there after 5s on
   the home screen. Before the fix it went to 0/100, and a picked theme
@@ -267,21 +271,22 @@ count as new accounts — the cheapest way to test a fresh sign-up.
 
 ## Simulators
 
-State on 2026-09-30 — all four on `8034cb6` (`index-CzPag2b4.js`, checked on
-each). The SE is booted and signed in as `rainbowpudding1`; the other three are
-shut down and signed out. Sessions live in `UserDefaults`
+State on 2026-10-01 — all six on `fec6021` (`index-Hze02Jbd.js`, checked on
+each). The 17e, 17 and Air are booted; the rest are shut down. Sessions live in `UserDefaults`
 and survive reboots and in-place installs, but **simulators shut down between
 sessions**, so boot before installing, and re-check the installed build before
 trusting this table.
 
 | Simulator                  | Session           | Build              |
 | -------------------------- | ----------------- | ------------------ |
-| iPhone 17 Pro Max          | signed out        | current, `8034cb6` |
-| iPhone 17 Pro              | signed out        | current, `8034cb6` |
-| iPhone 17                  | signed out        | current, `8034cb6` |
-| iPhone SE (3rd generation) | `rainbowpudding1` | current, `8034cb6` |
+| iPhone 17 Pro Max          | signed out        | current, `fec6021` |
+| iPhone 17 Pro              | signed out        | current, `fec6021` |
+| iPhone 17                  | signed out        | current, `fec6021` |
+| iPhone Air                 | signed out        | current, `fec6021` |
+| iPhone 17e                 | `ldonald234`      | current, `fec6021` |
+| iPhone SE (3rd generation) | `rainbowpudding1` | current, `fec6021` |
 
-Use the **Pro** or the **SE** for signed-out screens: an agent cannot sign back
+Use the **Pro**, **17** or **Air** for signed-out screens: an agent cannot sign back
 in, so signing another simulator out cannot be undone from here.
 
 ## Traps that cost a session

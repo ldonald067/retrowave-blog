@@ -93,7 +93,7 @@ accent.
 | Profile modal — profile tab     | [x]       | [x]         |                                                               |
 | Profile modal — vibe tab        | [x]       | [x]         | theme picker; `/frontend` via Phase 7c                        |
 | Profile modal — public page tab | [x]       | [x]         | `PublicPageSettings`; finding 27; SE, voice fixed (55)        |
-| Avatar picker                   | [ ]       | [ ]         |                                                               |
+| Avatar picker                   | [x]       | [x]         | 17e, 2026-10-01 — findings 86–88                              |
 | Settings                        | [x]       | [x]         | emo-dark; SE                                                  |
 | Export data                     | [x]       | [x]         | SE, 2026-09-18: share sheet, JSON matched prod, cache cleared |
 | Delete account confirm          | [x]       | [x]         | SE, 2026-09-18, `nonoabc2345` deleted with approval — 60, 61  |
@@ -225,6 +225,20 @@ One dense screen (feed with an entry) in each theme.
       overflow fixture, composer with keyboard, Settings, all three profile tabs,
       `ConfirmDialog`. Findings 50–56
 
+## Phase 12 — Newer iPhones — **complete**
+
+2026-10-01: iPhone 17e (390 × 844pt, notch), iPhone 17 (402 × 874pt) and
+iPhone Air (420 × 912pt). The Pro Max was the audit device throughout; the 17 Pro
+matches the 17.
+
+- [x] Signed out: intro (17e, 17, Air), sign-up with keyboard (17), public
+      profile as a visitor (Air, emo-dark). Finding 84
+- [x] Signed in as `ldonald234` on the 17e: feed and its end, entry view,
+      composer with keyboard and the empty-field error, profile editor, avatar
+      picker, Settings, max Dynamic Type, and the dead-link message arriving in
+      the running app — finding 78's native path, first seen on a device.
+      Findings 85–88
+
 ---
 
 ## Findings log
@@ -233,7 +247,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**80 findings, all fixed except 52** (left as is on purpose).
+**85 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -323,7 +337,13 @@ assigned.
 | 82 | MED | Session, iOS | Reopening the app offline after its token expired said "ur session expired, sign in again" to someone still signed in: `getSession()` returns a retryable network error and keeps the session, and the resume check treated any error as expiry | Fixed `1eb335f` — retryable errors say nothing; proven by test, not reproducible on the simulator (shared network) |
 | 83 | LOW | Usernames, swap case | Picking a handle in setup after sign-up assigned `<chosen>_<id8>` spent the free rename, so a typo in it was locked for 30 days | Fixed `8034cb6` — migration `20260930000000` run 2026-09-30; the first move off an assigned name stays free. Live body identical to the file, trigger enabled (checked in prod) |
 
-Findings 45–83 lifted the count from 41 to 80 (numbers 40–42 unassigned).
+| 84 | MED | Intro, newer iPhones | The last slide's preview card sat under the footer at rest on the iPhone 17e (~80pt hidden), 17/17 Pro and Air; the compact rule only applied below 700pt, on the belief that no Face ID iPhone needed it | Fixed `fec6021` — that slide alone compacts up to 940pt; verified on the iPhone 17 (~58pt to spare), slides 1–3 unchanged |
+| 85 | MED | Every modal, Face ID iPhones | ~34pt lost under every modal's buttons, ~68pt with the keyboard up: the footer reserved the bottom safe area though the panel floats mid-screen, and the overlay added the safe area to a keyboard height that already reaches the screen's edge | Fixed `fec6021` — footer drops it; overlay and panel reserve `max(safe area, keyboard)`; verified on the 17e at rest and with the keyboard |
+| 86 | MED | Avatar picker | "save changes" with the picker open saved the old avatar and closed, dropping the pick with no word | Fixed `fec6021` — the editor saves what the picker shows; test fails on the old code |
+| 87 | MED | Avatar picker | The selected style chip used `--accent-secondary` on a tint: 4.20 classic-xanga, 3.82 emo-dark, 3.73 cottage-core, and read as disabled | Fixed `fec6021` — selected chips are `--text-body` on a 15% accent tint with an accent border; seen on the 17e |
+| 88 | LOW | Avatar picker | Chips had no `aria-pressed`; "randomize!" and "~ use this ~" were both solid, stacked; "click 2 pick" on a phone | Fixed `fec6021` |
+
+Findings 45–88 lifted the count from 41 to 85 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
