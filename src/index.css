@@ -254,8 +254,12 @@ body::before {
      keyboard. Without it the panel is sized to clear the keyboard and then
      centred in the whole viewport, which parks it behind the keyboard. The
      original bug was the footer and body *adding* the inset on top of a panel
-     that had already subtracted it. */
-  padding-bottom: calc(0.5rem + var(--safe-area-bottom) + var(--keyboard-inset));
+     that had already subtracted it.
+     max(), not a sum: iOS reports the keyboard's whole frame, down to the
+     screen's edge, so on a Face ID iPhone the inset already covers the
+     home-indicator strip. Adding the safe area as well left ~34pt of dead scrim
+     above the keyboard (finding 85). */
+  padding-bottom: calc(0.5rem + max(var(--safe-area-bottom), var(--keyboard-inset)));
 }
 
 /* Centre the panel at every width. Uses margin rather than align-items: center
@@ -304,10 +308,11 @@ body::before {
   }
 }
 
-/* Sole owner of keyboard compensation for every modal. */
+/* Sole owner of keyboard compensation for every modal. The same max() as the
+   overlay's padding, so the two still agree by construction. */
 .modal-panel-safe {
   max-height: calc(
-    100dvh - var(--safe-area-top) - var(--safe-area-bottom) - var(--keyboard-inset) - 1rem
+    100dvh - var(--safe-area-top) - max(var(--safe-area-bottom), var(--keyboard-inset)) - 1rem
   );
 }
 
@@ -555,8 +560,7 @@ body::before {
    (the empty-journal preview) started ~100pt below the fold with nothing to say
    it scrolled. Remove before squeezing: the decorative divider goes, exactly as
    decoration yields at large Dynamic Type, then the scene floor, card padding
-   and gaps tighten. Every current Face ID iPhone is 812pt or taller and never
-   matches. */
+   and gaps tighten. */
 @media (max-height: 700px) {
   .onboarding-divider {
     display: none;
@@ -569,6 +573,27 @@ body::before {
     padding-block: 1.5rem;
   }
   .onboarding-panel .onboarding-title {
+    margin-bottom: 0.75rem;
+  }
+}
+
+/* The last slide alone needs the same on most Face ID iPhones. Its preview card
+   sat under the footer at rest on the iPhone 17e (844pt, ~80pt hidden), the 17
+   and 17 Pro (874pt) and the Air (912pt); only the Pro Max (956pt) fits
+   (finding 84). The other slides have room to spare, so they keep their
+   decoration. */
+@media (max-height: 940px) {
+  .ob-slide-preview .onboarding-divider {
+    display: none;
+  }
+  .ob-slide-preview .ob-scene {
+    min-height: 5rem;
+    margin-bottom: 0.75rem;
+  }
+  .onboarding-panel .ob-slide-preview {
+    padding-block: 1.5rem;
+  }
+  .ob-slide-preview .onboarding-title {
     margin-bottom: 0.75rem;
   }
 }
@@ -1731,9 +1756,13 @@ input[type='submit'],
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   /* No keyboard inset here — the footer lives inside .modal-panel-safe, which
      already excludes it. Adding it again made the footer taller than its own
-     panel, clipping the Save button. */
+     panel, clipping the Save button.
+     No safe area either: .modal-overlay-safe owns the bottom edge and every
+     modal is centred inside it, so the panel never reaches the home indicator.
+     The footer's own copy of the inset was ~34pt of empty band under every
+     modal's buttons on a Face ID iPhone (finding 85). */
   .modal-footer-safe {
-    padding-bottom: calc(0.75rem + var(--safe-area-bottom));
+    padding-bottom: 0.75rem;
   }
 
   .safe-area-bottom {

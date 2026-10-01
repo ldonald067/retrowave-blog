@@ -231,7 +231,11 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
               className="w-full max-w-full"
             >
               {/* Slide content as xanga-box */}
-              <div className="xanga-box px-6 py-10 sm:px-8 sm:py-12 text-center min-w-0 max-w-full overflow-hidden">
+              <div
+                className={`xanga-box px-6 py-10 sm:px-8 sm:py-12 text-center min-w-0 max-w-full overflow-hidden${
+                  slide.kind === 'preview' ? ' ob-slide-preview' : ''
+                }`}
+              >
                 {/* Per-slide scene */}
                 <motion.div
                   initial={direction === 0 ? false : { scale: 0.85, opacity: 0 }}

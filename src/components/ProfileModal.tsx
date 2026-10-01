@@ -128,6 +128,10 @@ export default function ProfileModal({
     bio?: string;
   }>({});
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  // What the open picker is showing, once the person has picked something.
+  // "save changes" stays on screen beside the picker and used to save the old
+  // avatar, closing the editor on a choice it had quietly dropped (finding 86).
+  const [pickedAvatarUrl, setPickedAvatarUrl] = useState<string | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<string>(DEFAULT_THEME);
   const [selectedEmojiStyle, setSelectedEmojiStyle] = useState<EmojiStyleId>(getEmojiStyle());
   const [isPublic, setIsPublic] = useState(false);
@@ -263,7 +267,7 @@ export default function ProfileModal({
       display_name: displayName.trim() || null,
       status_message: statusMessage.trim() || null,
       bio: bio.trim() || null,
-      avatar_url: avatarUrl.trim() || null,
+      avatar_url: ((showAvatarPicker && pickedAvatarUrl) || avatarUrl).trim() || null,
       theme: selectedTheme,
       current_mood: currentMood.trim() || null,
       current_music: currentMusic.trim() || null,
@@ -301,6 +305,11 @@ export default function ProfileModal({
   const handleAvatarSelect = (url: string) => {
     setAvatarUrl(url);
     setShowAvatarPicker(false);
+  };
+
+  const openAvatarPicker = () => {
+    setPickedAvatarUrl(null);
+    setShowAvatarPicker(true);
   };
 
   const fallbackSeed = userId || 'guest';
@@ -471,6 +480,7 @@ export default function ProfileModal({
                           <AvatarPicker
                             userId={userId}
                             onSelect={handleAvatarSelect}
+                            onChange={setPickedAvatarUrl}
                             onCancel={() => setShowAvatarPicker(false)}
                           />
                         </motion.div>
@@ -489,17 +499,17 @@ export default function ProfileModal({
                             size="xl"
                             fallbackSeed={fallbackSeed}
                             editable
-                            onClick={() => setShowAvatarPicker(true)}
+                            onClick={openAvatarPicker}
                           />
                           <button
                             type="button"
-                            onClick={() => setShowAvatarPicker(true)}
+                            onClick={openAvatarPicker}
                             className="xanga-button text-xs"
                           >
                             ~ choose avatar ~
                           </button>
                           <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                            click 2 pick from our avatar collection
+                            tap 2 pick from our avatar collection
                           </p>
                         </motion.div>
                       )}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Shuffle, ChevronLeft } from 'lucide-react';
 
@@ -73,9 +73,29 @@ interface AvatarPickerProps {
   userId?: string;
   onSelect: (url: string) => void;
   onCancel?: () => void;
+  /**
+   * Every pick the person makes, before "use this". The profile editor's own
+   * save button stays on screen beside the picker, so it needs to know what is
+   * being shown (finding 86). Not called on open: the picker's starting avatar
+   * is not a choice anyone made.
+   */
+  onChange?: (url: string) => void;
 }
 
-export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPickerProps) {
+/** Selected chip: tint and accent border, text kept in --text-body. Accent text
+ *  on an accent tint fell under 4.5:1 on five or six of the eight themes, and
+ *  --accent-secondary on three, including the default (finding 87). */
+function chipStyle(selected: boolean): CSSProperties {
+  return {
+    backgroundColor: selected
+      ? 'color-mix(in srgb, var(--accent-primary) 15%, var(--card-bg))'
+      : 'var(--card-bg)',
+    borderColor: selected ? 'var(--accent-primary)' : 'var(--border-primary)',
+    color: 'var(--text-body)',
+  };
+}
+
+export default function AvatarPicker({ userId, onSelect, onCancel, onChange }: AvatarPickerProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedStyle, setSelectedStyle] = useState<string>('bottts');
   const [selectedSeed, setSelectedSeed] = useState<string>(userId || 'sparkle');
@@ -92,10 +112,16 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
 
   const currentSelection = generateAvatarUrl(selectedStyle, selectedSeed);
 
+  const choose = (style: string, seed: string) => {
+    setSelectedStyle(style);
+    setSelectedSeed(seed);
+    onChange?.(generateAvatarUrl(style, seed));
+  };
+
   const handleRandomize = () => {
     const randomSeed = AVATAR_SEEDS[Math.floor(Math.random() * AVATAR_SEEDS.length)];
     const randomSuffix = Math.floor(Math.random() * 1000);
-    setSelectedSeed(`${randomSeed}${randomSuffix}`);
+    choose(selectedStyle, `${randomSeed}${randomSuffix}`);
   };
 
   return (
@@ -126,7 +152,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
           <button
             type="button"
             onClick={handleRandomize}
-            className="xanga-button text-xs flex items-center gap-1"
+            className="xanga-button-ghost px-4 py-2 text-xs title-bold min-h-[44px] flex items-center justify-center gap-1"
           >
             <Shuffle size={12} />
             randomize!
@@ -157,18 +183,11 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
                   cat.id === 'all'
                     ? AVATAR_STYLES[0]
                     : AVATAR_STYLES.find((s) => s.category === cat.id);
-                if (firstInCategory) setSelectedStyle(firstInCategory.id);
+                if (firstInCategory) choose(firstInCategory.id, selectedSeed);
               }}
+              aria-pressed={selectedCategory === cat.id}
               className="px-3 py-2 text-xs rounded-lg border-2 border-dotted transition title-bold min-h-[44px] lg:min-h-0"
-              style={{
-                backgroundColor:
-                  selectedCategory === cat.id
-                    ? 'color-mix(in srgb, var(--accent-primary) 20%, var(--card-bg))'
-                    : 'var(--card-bg)',
-                borderColor:
-                  selectedCategory === cat.id ? 'var(--accent-primary)' : 'var(--border-primary)',
-                color: selectedCategory === cat.id ? 'var(--accent-primary)' : 'var(--text-body)',
-              }}
+              style={chipStyle(selectedCategory === cat.id)}
             >
               {cat.name}
             </button>
@@ -186,18 +205,10 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
             <button
               key={style.id}
               type="button"
-              onClick={() => setSelectedStyle(style.id)}
+              onClick={() => choose(style.id, selectedSeed)}
+              aria-pressed={selectedStyle === style.id}
               className="px-3 py-2 text-xs rounded-lg border-2 border-dotted transition min-h-[44px] lg:min-h-0"
-              style={{
-                backgroundColor:
-                  selectedStyle === style.id
-                    ? 'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))'
-                    : 'var(--card-bg)',
-                borderColor:
-                  selectedStyle === style.id ? 'var(--accent-secondary)' : 'var(--border-primary)',
-                color: selectedStyle === style.id ? 'var(--accent-secondary)' : 'var(--text-body)',
-                fontFamily: 'var(--title-font)',
-              }}
+              style={{ ...chipStyle(selectedStyle === style.id), fontFamily: 'var(--title-font)' }}
             >
               {style.name}
             </button>
@@ -220,7 +231,7 @@ export default function AvatarPicker({ userId, onSelect, onCancel }: AvatarPicke
                 type="button"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedSeed(seed)}
+                onClick={() => choose(selectedStyle, seed)}
                 aria-pressed={selected}
                 aria-label={`Avatar: ${selectedStyle} ${seed}${selected ? ' (selected)' : ''}`}
                 className="relative p-1 rounded-full transition"
