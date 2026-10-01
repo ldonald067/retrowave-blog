@@ -223,8 +223,9 @@ export function usernameSwapNotice(
 
 /**
  * Days between username changes. The first change is free — a handle typed
- * wrong at sign-up should not lock someone out for a month. Mirrors
- * guard_username_change() in
+ * wrong at sign-up should not lock someone out for a month — and moving off a
+ * name sign-up assigned (the swap case) does not count as one
+ * (20260930000000). Mirrors guard_username_change() in
  * 20260920000000_username_tombstones_and_cooldown.sql, which is the enforcement;
  * this only keeps the app from offering an edit the database will refuse.
  */
