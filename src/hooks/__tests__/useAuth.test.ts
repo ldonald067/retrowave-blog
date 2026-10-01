@@ -26,9 +26,15 @@ vi.mock('../../lib/auth-guard', () => ({
   requireAuth: vi.fn(),
 }));
 
+vi.mock('../../lib/themes', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../lib/themes')>()),
+  applyTheme: vi.fn(),
+}));
+
 import { useAuth } from '../useAuth';
 import { supabase } from '../../lib/supabase';
 import { requireAuth } from '../../lib/auth-guard';
+import { applyTheme } from '../../lib/themes';
 
 const mockUser = { id: 'user-1', email: 'test@example.com' };
 
@@ -261,5 +267,68 @@ describe('session expiry reporting', () => {
     act(() => auth()('SIGNED_IN', { user: { id: 'user-1' } }));
     act(() => auth()('SIGNED_OUT', null));
     expect(result.current.sessionExpired).toBe(true);
+  });
+});
+
+describe('returning to the app', () => {
+  // supabase-js reports SIGNED_IN each time the page becomes visible again, and
+  // useAuth refetches the profile for it (finding 80: typed edits in the profile
+  // editor, and the theme being tried, were wiped by leaving the app for 5s).
+  type AuthCallback = (event: string, session: { user: typeof mockUser } | null) => void;
+
+  let auth: AuthCallback | null = null;
+  let row: Profile = savedProfile;
+  const query = {
+    select: vi.fn().mockReturnThis(),
+    eq: vi.fn().mockReturnThis(),
+    // A fresh object per fetch, as PostgREST returns.
+    single: vi.fn().mockImplementation(() => Promise.resolve({ data: { ...row }, error: null })),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    row = savedProfile;
+    vi.mocked(supabase.auth.getSession).mockResolvedValue({
+      data: { session: { user: mockUser } },
+    } as never);
+    vi.mocked(supabase.auth.onAuthStateChange).mockImplementation((cb) => {
+      auth = cb as unknown as AuthCallback;
+      return { data: { subscription: { unsubscribe: vi.fn() } } } as never;
+    });
+    vi.mocked(supabase.from).mockReturnValue(query as never);
+  });
+
+  const comeBackToTheApp = async () => {
+    // Past the 2s refetch cooldown, as any real trip away from the app is.
+    const later = Date.now() + 10_000;
+    const now = vi.spyOn(Date, 'now').mockReturnValue(later);
+    const fetches = query.single.mock.calls.length;
+    act(() => auth!('SIGNED_IN', { user: mockUser }));
+    await waitFor(() => expect(query.single).toHaveBeenCalledTimes(fetches + 1));
+    await act(async () => {});
+    now.mockRestore();
+  };
+
+  it('keeps the loaded profile, and the theme on screen, when nothing changed', async () => {
+    const { result } = renderHook(() => useAuth());
+    await waitFor(() => expect(result.current.profile).not.toBeNull());
+    const loaded = result.current.profile;
+    vi.mocked(applyTheme).mockClear();
+
+    await comeBackToTheApp();
+
+    expect(result.current.profile).toBe(loaded);
+    expect(applyTheme).not.toHaveBeenCalled();
+  });
+
+  it('still takes a profile that changed elsewhere', async () => {
+    const { result } = renderHook(() => useAuth());
+    await waitFor(() => expect(result.current.profile).not.toBeNull());
+
+    row = { ...savedProfile, theme: 'emo-dark', updated_at: '2026-09-30T00:00:00Z' };
+    await comeBackToTheApp();
+
+    expect(result.current.profile?.theme).toBe('emo-dark');
+    expect(applyTheme).toHaveBeenLastCalledWith('emo-dark');
   });
 });

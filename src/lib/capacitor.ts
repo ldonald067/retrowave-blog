@@ -7,6 +7,7 @@ import { SplashScreen } from '@capacitor/splash-screen';
 import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
+import { isAuthRetryableFetchError } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { AUTH_SESSION_EXPIRED } from './constants';
 
@@ -201,10 +202,13 @@ export function initCapacitor(): void {
       void supabase.auth
         .getSession()
         .then(({ error }) => {
-          if (error) {
-            console.error('capacitor: session refresh on resume failed —', error);
-            window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED));
-          }
+          if (!error) return;
+          console.error('capacitor: session refresh on resume failed —', error);
+          // No connection is not an expiry: supabase-js keeps the session and
+          // retries, so saying "sign in again" to someone still signed in (an
+          // app reopened on a plane) was false (finding 82).
+          if (isAuthRetryableFetchError(error)) return;
+          window.dispatchEvent(new Event(AUTH_SESSION_EXPIRED));
         })
         .catch((err: unknown) => {
           console.error('capacitor: session refresh on resume threw —', err);

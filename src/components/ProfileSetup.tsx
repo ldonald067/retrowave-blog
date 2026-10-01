@@ -8,6 +8,7 @@ import { sparkleBurst, emojiRain } from '../lib/celebrations';
 import {
   normalizeUsername,
   validateUsername,
+  validateProfileInput,
   usernameSwapNotice,
   USERNAME_LIMITS,
 } from '../lib/validation';
@@ -165,6 +166,12 @@ export default function ProfileSetup({
     }
     if (name.length > VALIDATION.displayName.maxLength) {
       setNameError(ERROR_MESSAGES.profile.displayNameTooLong);
+      return;
+    }
+    // The save runs this same check. Asked only there, a refused name came back
+    // as a toast on the last step, two screens from the field (finding 81).
+    if (validateProfileInput({ display_name: name }).display_name) {
+      setNameError("~ that name isn't allowed here, try another ~");
       return;
     }
     if (swapNotice && usernameChanged) {

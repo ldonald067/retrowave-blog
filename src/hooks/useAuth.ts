@@ -22,6 +22,11 @@ import { AUTH_PASSWORD_RECOVERY } from '../lib/auth-callback';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 
+/** Whether a refetched profile row is the one already loaded, field for field. */
+function sameProfile(loaded: Profile | null, fetched: Profile): boolean {
+  return loaded !== null && JSON.stringify(loaded) === JSON.stringify(fetched);
+}
+
 interface UseAuthReturn {
   user: User | null;
   profile: Profile | null;
@@ -91,10 +96,13 @@ export function useAuth(): UseAuthReturn {
     time: 0,
   });
   const profileIdRef = useRef<string | null>(null);
+  /** The loaded profile, for fetchProfile — it runs from the mount-time auth listener. */
+  const profileRef = useRef<Profile | null>(null);
   const FETCH_COOLDOWN_MS = 2000;
 
   const setProfileState = (nextProfile: Profile | null): void => {
     profileIdRef.current = nextProfile?.id ?? null;
+    profileRef.current = nextProfile;
     setProfile(nextProfile);
   };
 
@@ -137,8 +145,14 @@ export function useAuth(): UseAuthReturn {
       }
 
       const profileData = data as Profile;
-      setProfileState(profileData);
       setProfileError(null);
+      // supabase-js reports SIGNED_IN every time the page becomes visible, so
+      // this runs on every return to the app or tab. A row that has not changed
+      // must change nothing: a new object made ProfileModal re-sync every field
+      // (wiping unsaved edits), and re-applying the saved theme undid the live
+      // preview in the editor and in first-run setup (finding 80).
+      if (sameProfile(profileRef.current, profileData)) return;
+      setProfileState(profileData);
       applyTheme(profileData.theme ?? DEFAULT_THEME);
     } catch (err) {
       if (activeAuthUserIdRef.current !== userId) return;

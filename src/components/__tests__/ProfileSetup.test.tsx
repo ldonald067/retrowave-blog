@@ -102,6 +102,19 @@ describe('ProfileSetup', () => {
     expect(screen.getByRole('heading', { name: /what should we call u/i })).toBeInTheDocument();
   });
 
+  it('refuses a name the save would refuse on the name step, not two steps later', () => {
+    // "dyke" is on the content filter's list; the save path (useAuth
+    // updateProfile) runs the same check, and its refusal used to arrive as a
+    // toast on "finishing touches", where there is no name field (finding 81).
+    render(<ProfileSetup profile={profile} onSave={onSave} />);
+    typeName('emma van dyke');
+    next();
+
+    expect(screen.getByText(/that name isn't allowed here/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /what should we call u/i })).toBeInTheDocument();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   it('previews themes live on an optional step, and keeps the name on the way back', async () => {
     render(<ProfileSetup profile={profile} onSave={onSave} />);
     typeName('Glitter');

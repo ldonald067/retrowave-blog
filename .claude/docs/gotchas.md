@@ -101,6 +101,9 @@ section they belong to — not at the bottom.
 
 ## Session storage and lifecycle (iOS)
 
+- [2026-09-30 /feature] **supabase-js reports `SIGNED_IN` every time the page becomes visible** (`_onVisibilityChanged` → `_recoverAndRefresh`), in the app and on the web. `useAuth` refetches the profile for it, so anything keyed on the `profile` object sees every return to the app. A new object with the same row made `ProfileModal` re-sync every field — unsaved edits wiped by 5s in another app — and re-applying the saved theme undid live previews (finding 80). `fetchProfile` now keeps the loaded object when the row is unchanged.
+- [2026-09-30 /feature] **`getSession()` returns an error offline without ending the session** — an `AuthRetryableFetchError`, with the session kept to retry. Only a non-retryable error is an expiry (finding 82).
+
 - **The Supabase session must not live in `localStorage` on native.** WKWebView storage is reclaimed under disk pressure and long idle, silently signing the user out. `lib/auth-storage.ts` routes it to `@capacitor/preferences` (`UserDefaults`) on native and migrates an existing session on first read. Reproduce by deleting the `sb-*-auth-token` row from `localstorage.sqlite3` and relaunching — the app must stay signed in.
 - **supabase-js clears a session by writing `""`**, not `removeItem`. Treat empty as absent on read and as a clear on write.
 - **Sign-out is global.** `supabase.auth.signOut()` defaults to `scope: 'global'`, revoking every session for the account. Other devices keep working until their access token expires (up to an hour), then fail to refresh and silently lose the session — so signing a test account out on one simulator signs it out on the others too.
