@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { TERMS_URL, PRIVACY_URL } from '../lib/constants';
 import { openUrl } from '../lib/capacitor';
+import { Select } from './ui';
 
 interface AgeVerificationProps {
   onVerified: (birthYear: number, tosAccepted: boolean) => void;
@@ -36,7 +37,7 @@ export default function AgeVerification({
     setError('');
 
     if (!birthYear) {
-      setError('Please select your birth year');
+      setError('~ pick ur birth year first ~');
       return;
     }
 
@@ -45,12 +46,12 @@ export default function AgeVerification({
 
     // COPPA compliance - must be 13+
     if (age < 13) {
-      setError('You must be at least 13 years old to use this service');
+      setError('~ u have 2 b 13 or older 2 use this ~');
       return;
     }
 
     if (requireTOS && !tosAccepted) {
-      setError('You must accept the Terms of Service to continue');
+      setError('~ tick the box 2 accept the terms first ~');
       return;
     }
 
@@ -114,29 +115,18 @@ export default function AgeVerification({
             <div className="space-y-3 sm:space-y-4">
               {/* Birth Year Selector */}
               <div className="xanga-box p-3 sm:p-4">
-                <label
-                  className="block text-xs title-bold mb-2"
-                  style={{ color: 'var(--text-title)' }}
-                >
-                  📅 birth year:
-                </label>
-                <select
+                {/* ui/Select: its own ▼ (appearance-none hid the native one) and a
+                    label tied to the field. */}
+                <Select
+                  label="📅 birth year:"
                   value={birthYear}
                   onChange={(e) => setBirthYear(e.target.value)}
-                  className="w-full px-3 py-2.5 min-h-[44px] rounded-lg text-sm border-2 border-dotted transition appearance-none cursor-pointer"
-                  style={{
-                    backgroundColor: 'var(--card-bg)',
-                    borderColor: 'var(--border-primary)',
-                    color: 'var(--text-body)',
-                  }}
-                >
-                  <option value="">select ur birth year...</option>
-                  {yearOptions.map((year) => (
-                    <option key={year} value={year}>
-                      {year} (Age {calculateAge(year)})
-                    </option>
-                  ))}
-                </select>
+                  placeholder="select ur birth year..."
+                  options={yearOptions.map((year) => ({
+                    value: year,
+                    label: `${year} (age ${calculateAge(year)})`,
+                  }))}
+                />
               </div>
 
               {/* Age Display */}

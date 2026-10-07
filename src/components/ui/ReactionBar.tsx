@@ -100,7 +100,9 @@ export default function ReactionBar({
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 20 }}
                 className="text-xs font-semibold"
-                style={{ color: isActive ? 'var(--accent-primary)' : 'var(--text-muted)' }}
+                // Active is --text-body, not the accent: accent on the button's own
+                // 20% accent tint measured 3.54:1.
+                style={{ color: isActive ? 'var(--text-body)' : 'var(--text-muted)' }}
               >
                 {count}
               </motion.span>

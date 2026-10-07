@@ -774,7 +774,9 @@ export default function PostModal({
                           borderColor: isPrivate
                             ? 'var(--accent-primary)'
                             : 'var(--border-primary)',
-                          color: isPrivate ? 'var(--accent-primary)' : 'var(--text-body)',
+                          // Body text, not the accent: accent on its own 14% tint
+                          // measured 3.92:1. The border and fill carry the state.
+                          color: 'var(--text-body)',
                         }}
                       >
                         private
@@ -791,7 +793,7 @@ export default function PostModal({
                           borderColor: !isPrivate
                             ? 'var(--accent-primary)'
                             : 'var(--border-primary)',
-                          color: !isPrivate ? 'var(--accent-primary)' : 'var(--text-body)',
+                          color: 'var(--text-body)',
                         }}
                       >
                         public
@@ -1190,6 +1192,7 @@ export default function PostModal({
             title="~ unsaved changes ~"
             message="u have unsaved changes! r u sure u want 2 leave?"
             confirmLabel="~ yes, discard ~"
+            tone="danger"
             onConfirm={() => {
               setShowUnsavedConfirm(false);
               onClose();

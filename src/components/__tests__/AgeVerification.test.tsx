@@ -30,6 +30,6 @@ describe('AgeVerification', () => {
     fireEvent.click(screen.getByRole('button', { name: /verify|continue/i }));
 
     expect(onVerified).not.toHaveBeenCalled();
-    expect(screen.getByText(/select your birth year/i)).toBeInTheDocument();
+    expect(screen.getByText(/pick ur birth year/i)).toBeInTheDocument();
   });
 });

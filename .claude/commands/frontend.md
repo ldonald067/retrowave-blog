@@ -137,6 +137,16 @@ PY
 
 Only handles hex pairs — a `color-mix()` value has to be checked in the browser.
 
+**Never put a colour's text on a tint of that same colour.** A selected chip
+filled with 14% accent and lettered in the accent measured 3.92 on classic-xanga
+— the tint pulls the background toward the text. Text on a tint stays
+`--text-body` (bold when it marks a state); the border, fill or an inset bar
+carries the accent. Audit finding 89 found this at nine sites at once.
+
+**Never fade text with `opacity`.** `--text-muted` at 0.6 failed on 7 of 8
+themes (worst 2.60). If a line should recede, make it smaller or move it; the
+colour is already the quietest one that passes.
+
 ---
 
 ## CSS vocabulary

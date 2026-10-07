@@ -131,9 +131,12 @@ export default function Header({
               </span>
             )}
           </div>
+          {/* --text-title, not grey and not the accent: --accent-primary on this
+              gradient measured 2.38:1 on classic-xanga, --text-title clears 4.70
+              everywhere (the modal ✕ uses it for the same reason). */}
           <div
             className="flex items-center gap-1 sm:gap-3 flex-shrink-0"
-            style={{ color: 'var(--text-muted)' }}
+            style={{ color: 'var(--text-title)' }}
           >
             {user ? (
               <>
@@ -144,7 +147,7 @@ export default function Header({
                   style={{ color: 'inherit' }}
                   aria-label="Open settings"
                 >
-                  <Pepicon name="gear" size={16} color="var(--text-muted)" />
+                  <Pepicon name="gear" size={16} color="var(--text-title)" />
                   <span className="hidden sm:inline ml-1">settings</span>
                 </motion.button>
                 <motion.button
@@ -154,8 +157,10 @@ export default function Header({
                   style={{ color: 'inherit' }}
                   aria-label="Sign out of your account"
                 >
-                  <Pepicon name="leave" size={16} color="var(--text-muted)" />
-                  <span className="hidden sm:inline ml-1">logout</span>
+                  {/* Labelled on phones too: settings and log-out were two identical
+                      icons, and log-out signs out everywhere. */}
+                  <Pepicon name="leave" size={16} color="var(--text-title)" />
+                  <span className="ml-1">logout</span>
                 </motion.button>
               </>
             ) : (

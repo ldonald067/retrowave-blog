@@ -339,7 +339,10 @@ export default function Sidebar({
               onClick={() => onChapterSelect?.(null)}
               className="w-full text-left px-2 py-1.5 rounded text-[0.8125rem] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
               style={{
-                color: activeChapter === null ? 'var(--accent-primary)' : 'var(--text-body)',
+                // Body text with an accent bar, not accent text: accent on its own
+                // 10% tint measured 4.19:1. Bold and the bar mark the active row.
+                color: 'var(--text-body)',
+                boxShadow: activeChapter === null ? 'inset 3px 0 0 var(--accent-primary)' : 'none',
                 fontWeight: activeChapter === null ? 700 : 400,
                 fontFamily: 'var(--title-font)',
                 backgroundColor:
@@ -363,7 +366,9 @@ export default function Sidebar({
                 onClick={() => onChapterSelect?.(activeChapter === looseKey ? null : looseKey)}
                 className="w-full text-left px-2 py-1.5 rounded text-[0.8125rem] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2"
                 style={{
-                  color: activeChapter === looseKey ? 'var(--accent-primary)' : 'var(--text-body)',
+                  color: 'var(--text-body)',
+                  boxShadow:
+                    activeChapter === looseKey ? 'inset 3px 0 0 var(--accent-primary)' : 'none',
                   fontWeight: activeChapter === looseKey ? 700 : 400,
                   fontFamily: 'var(--title-font)',
                   backgroundColor:
@@ -397,8 +402,11 @@ export default function Sidebar({
                     }
                     className="flex-1 text-left px-2 py-1.5 rounded text-[0.8125rem] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2 min-w-0"
                     style={{
-                      color:
-                        activeChapter === ch.chapter ? 'var(--accent-primary)' : 'var(--text-body)',
+                      color: 'var(--text-body)',
+                      boxShadow:
+                        activeChapter === ch.chapter
+                          ? 'inset 3px 0 0 var(--accent-primary)'
+                          : 'none',
                       fontWeight: activeChapter === ch.chapter ? 700 : 400,
                       fontFamily: 'var(--title-font)',
                       backgroundColor:

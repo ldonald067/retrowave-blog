@@ -112,7 +112,8 @@
 
       .email-pill {
         display: inline-block;
-        background: #fff0f5;
+        /* White, not #fff0f5: --pink-deep on the blush tint was 4.46:1. */
+        background: var(--card);
         border: 2px dotted var(--border);
         border-radius: 12px;
         padding: 0.35rem 0.75rem;

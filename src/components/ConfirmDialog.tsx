@@ -8,6 +8,8 @@ interface ConfirmDialogProps {
   confirmLabel?: string;
   cancelLabel?: string;
   loading?: boolean;
+  /** 'danger' for confirmations that destroy something: delete, block, discard. */
+  tone?: 'default' | 'danger';
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -18,6 +20,7 @@ export default function ConfirmDialog({
   confirmLabel = '~ yes, do it ~',
   cancelLabel = 'cancel',
   loading = false,
+  tone = 'default',
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -84,19 +87,22 @@ export default function ConfirmDialog({
               type="button"
               onClick={onConfirm}
               disabled={loading}
-              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-lg transition text-xs title-bold border-2 hover:brightness-110 min-h-[44px]"
-              // Fill uses --button-gradient + --button-text (the AA-guaranteed
-              // button contract) rather than --accent-secondary, which in some
-              // themes (grunge) equals --button-text and rendered invisible.
-              // An accent-secondary border keeps the distinct destructive look.
+              // .xanga-button, so a confirm matches every other primary — it was
+              // a smaller serif, and its accent-secondary "destructive" border
+              // vanished on cottage-core and grunge. Danger swaps the fill for
+              // --link-caution under --card-bg text: the pair every caution link
+              // already clears (4.77:1 at worst), read in reverse. Amber is used
+              // for nothing else, so delete cannot pass for save or publish.
+              className="xanga-button w-full sm:w-auto"
               style={{
-                background:
-                  'linear-gradient(135deg, var(--button-gradient-from), var(--button-gradient-to))',
-                color: 'var(--button-text, var(--text-title))',
-                borderColor: 'var(--accent-secondary)',
-                boxShadow: '0 2px 8px color-mix(in srgb, var(--accent-secondary) 40%, transparent)',
+                // .xanga-button:disabled fades to 0.5; "~ working... ~" stays legible.
+                opacity: 1,
+                ...(tone === 'danger' && {
+                  background: 'var(--link-caution)',
+                  borderColor: 'var(--link-caution)',
+                  color: 'var(--card-bg)',
+                }),
               }}
             >
               {loading ? (

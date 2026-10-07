@@ -127,7 +127,7 @@ export default function PublicPageSettings({
           className="mt-3 rounded border px-3 py-2 text-xs font-bold"
           style={{
             borderColor: 'var(--accent-secondary)',
-            color: 'var(--accent-secondary)',
+            color: 'var(--text-body)',
             backgroundColor: 'color-mix(in srgb, var(--accent-secondary) 10%, var(--card-bg))',
           }}
         >

@@ -144,7 +144,7 @@ const PostCard = memo(function PostCard({
             {ytInfo ? (
               <YouTubeCard ytInfo={ytInfo} />
             ) : (
-              <span className="text-xs italic" style={{ color: 'var(--accent-secondary)' }}>
+              <span className="text-xs italic" style={{ color: 'var(--text-subtitle)' }}>
                 {post.music}
               </span>
             )}

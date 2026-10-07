@@ -434,7 +434,7 @@ export default function PublicProfileView({
               start your journal
             </button>
           </div>
-          <p className="text-xs mt-4" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+          <p className="text-xs mt-4" style={{ color: 'var(--text-muted)' }}>
             powered by ✨ Retrowave Journal
           </p>
           {/* No "report public page" control. It used to alias to posts[0], so
@@ -464,6 +464,7 @@ export default function PublicProfileView({
             </>
           }
           confirmLabel="~ yes, block ~"
+          tone="danger"
           loading={blocking}
           onConfirm={handleBlock}
           onCancel={() => setConfirmingBlock(false)}

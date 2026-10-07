@@ -315,7 +315,7 @@ function PostList({
             >
               ~ that's all for now! ~
             </p>
-            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
               ✨ u've reached the end of the feed ✨
             </p>
           </div>
@@ -1232,7 +1232,9 @@ function AppInner() {
               style={{
                 backgroundColor:
                   'color-mix(in srgb, var(--accent-secondary) 20%, var(--bg-primary))',
-                color: 'var(--accent-secondary)',
+                // The tint carries the accent; text on it stays --text-body
+                // (accent-secondary on its own tint measured 3.58:1).
+                color: 'var(--text-body)',
               }}
             >
               📡 ~ ur offline rn ~ posts will load when u reconnect ✨
@@ -1622,6 +1624,7 @@ function AppInner() {
             title="~ delete entry? ~"
             message={`r u sure u want 2 delete "${postToDelete.title}"? this can't b undone!`}
             confirmLabel="~ yes, delete ~"
+            tone="danger"
             loading={deleteLoading}
             onConfirm={confirmDeletePost}
             onCancel={() => setPostToDelete(null)}
@@ -1663,11 +1666,11 @@ function AppInner() {
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               © 2005-2026 My Journal • All rights reserved
             </p>
-            <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.7 }}>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
               Made with <span style={{ color: 'var(--accent-primary)' }}>💕</span> and nostalgia
             </p>
             {emojiStyle !== 'native' && getEmojiAttribution() && (
-              <p className="text-xs" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {getEmojiAttribution()}
               </p>
             )}

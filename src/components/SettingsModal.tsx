@@ -245,6 +245,7 @@ export default function SettingsModal({
             title="~ delete account? ~"
             message="this will permanently delete ur account, all ur posts, reactions & data. this can NOT be undone. r u absolutely sure?"
             confirmLabel="~ yes, delete everything ~"
+            tone="danger"
             loading={deleteAccountLoading}
             onConfirm={handleDeleteAccount}
             onCancel={() => setShowDeleteConfirm(false)}

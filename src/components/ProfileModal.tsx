@@ -439,7 +439,9 @@ export default function ProfileModal({
                         ? 'color-mix(in srgb, var(--accent-primary) 16%, var(--card-bg))'
                         : 'var(--card-bg)',
                       borderColor: selected ? 'var(--accent-primary)' : 'var(--border-primary)',
-                      color: selected ? 'var(--accent-primary)' : 'var(--text-body)',
+                      // Accent text on its own tint failed AA (3.79); the border
+                      // and fill mark the selected tab.
+                      color: 'var(--text-body)',
                     }}
                   >
                     {section.label}
@@ -872,12 +874,10 @@ export default function ProfileModal({
                                     onSuccess?.(SUCCESS_MESSAGES.block.unblocked);
                                   }
                                 }}
-                                className="text-xs px-2 py-1 min-h-[44px] flex items-center rounded transition hover:opacity-80"
-                                style={{
-                                  backgroundColor:
-                                    'color-mix(in srgb, var(--accent-secondary) 20%, var(--card-bg))',
-                                  color: 'var(--accent-secondary)',
-                                }}
+                                // Secondary tier: unblocking is an action. It was
+                                // accent-secondary on its own tint (3.73:1); the
+                                // ghost paints --card-bg under its accent label.
+                                className="xanga-button-ghost title-bold text-xs px-3 py-1 min-h-[44px] flex items-center"
                               >
                                 ~ unblock ~
                               </motion.button>
