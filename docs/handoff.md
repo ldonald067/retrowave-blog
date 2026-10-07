@@ -51,7 +51,7 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Prod state worth knowing (checked by query)
 
-- Migrations through `20260930000000` are applied (pasted by you). 8 auth users,
+- Migrations through `20261007000000` are applied (pasted by you). 8 auth users,
   7 profiles, 7/7 terms accepted.
 - **Before User Created hook is ON** → `public.hook_before_user_created`. Never
   drop or rename that function while it is on — every sign-up fails.
