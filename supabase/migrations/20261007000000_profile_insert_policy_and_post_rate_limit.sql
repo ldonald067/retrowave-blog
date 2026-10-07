@@ -2,7 +2,9 @@
 -- profiles has only "Users can insert own profile" for INSERT; posts' RESTRICTIVE
 -- rate limit reads recent_post_count(auth.uid()) < 10; the function is SECURITY
 -- DEFINER with search_path public, pg_temp, executable by authenticated and not
--- by anon; age_verification_check is still on profiles. Recorded here because a
+-- by anon; age_verification_check is still on profiles. Posting still works:
+-- a private entry saved and deleted on the iPhone 17e as ldonald234, and its
+-- posts matched the pre-test snapshot exactly afterwards. Recorded here because a
 -- migration file's existence is NOT evidence it is live.
 --
 -- Two latent RLS fixes from the /fullstack audit of 2026-10-07. Neither is
