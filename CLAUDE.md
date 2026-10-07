@@ -4,6 +4,8 @@ Xanga/LiveJournal nostalgia blog. Solo operator, zero overhead. If a feature req
 
 **IMPORTANT:** Before starting any task, read the relevant topic doc from the table below — `.claude/docs/gotchas.md` for almost any code change. Use the right `/skill` for the domain.
 
+**Keep sessions lean — the user hits usage limits** (a new chat starts near 300k cached tokens). Read only the doc _sections_ a task needs (grep headings; never read the audit plan whole), take screenshots at 0.4–0.5 scale, use no subagents, and hand off to a fresh chat after one task. Details: `docs/handoff.md` → "Keep sessions lean".
+
 ## Commands
 
 ```bash
