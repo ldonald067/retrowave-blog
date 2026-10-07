@@ -80,6 +80,7 @@ grep -rhno "rpc('[a-z_]*'" src --include='*.ts*' | grep -v __tests__ | sed "s/.*
 - `useReactions.ts` → `post_reactions` (INSERT/DELETE with optimistic UI)
 - `useAuth.ts` → `profiles` (SELECT/UPDATE)
 - `usePosts.ts` → `posts` (INSERT/UPDATE/DELETE for mutations)
+- `useBlocks.ts` → `user_blocks` (SELECT; writes go through the block RPCs)
 
 ### 5. Trigger-Protected Fields
 

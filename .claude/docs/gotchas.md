@@ -73,6 +73,8 @@ section they belong to — not at the bottom.
 
 ## Supabase and RPCs
 
+- [2026-10-07 /fullstack] **`profiles`' "Enforce minimum age requirement" INSERT policy is PERMISSIVE**, so it is OR-ed with "insert own profile" and _widens_ it: any caller, anon included, may insert a profile for any `auth.users` id that has none yet (only unconfirmed accounts), provided `birth_year` is null. The table CHECK `age_verification_check` already enforces 13+, and `protect_is_admin`/`protect_coppa_fields` fire on UPDATE only, so such an insert could set `is_admin`. Unreachable in practice (needs an unconfirmed account's UUID, which nothing exposes); the fix is to drop that policy.
+- [2026-10-07 /fullstack] `posts`' "Rate limit post creation" (RESTRICTIVE) counts `posts` inside `posts`' own policy. It works only because `posts`' SELECT policy has no subquery; give that policy one and every post fails with `42P17` (finding 36). Move the count into a SECURITY DEFINER function like `recent_reaction_count` the next time either is touched.
 - [2026-09-30 /migration] **Keep SQL function bodies ASCII.** Prod's `guard_username_change` carried `‚Äî` where the repo has an em dash — the paste into the SQL editor double-encoded it. Harmless in a comment, not in a string literal.
 
 - `ModerationResult` is duplicated between `lib/moderation.ts` and the Deno edge function on purpose (Deno cannot import through Vite). Change both together.
@@ -101,7 +103,7 @@ section they belong to — not at the bottom.
 - **`emailRedirectTo` is mandatory on every email-sending auth call.** Omitted, Supabase falls back to the Site URL: an iOS signup confirmed in Safari, and the app's separate WKWebView storage still showed signup. `authRedirectTo()` in `lib/auth-callback.ts` picks the deep link on native and `window.location.origin` on web.
 - The native redirect is the **bare** `com.retrowave.journal://`. `uri_allow_list` holds that exact string, and a redirect that fails to match is silently replaced by the Site URL — a tidier `://auth-callback` path reintroduces the bug with no error.
 - `detectSessionInUrl` reads the URL only when the client is constructed — fine on web, too early on native, where `appUrlOpen` delivers tokens later. `initAuthCallback()` (native-only) consumes the cold-start hash and later `hashchange`s via `setSession`, and clears the hash in a `finally` so a failed exchange does not leave tokens in the URL. A dead link arrives as `#error=...&error_code=otp_expired` with no tokens.
-- Deleted `devSignUp` used `signInAnonymously()` against the hosted project, creating permanent ghost users. Consider disabling anonymous sign-ins in the dashboard.
+- Deleted `devSignUp` used `signInAnonymously()` against the hosted project, creating permanent ghost users. Anonymous sign-ins are off in prod (`external_anonymous_users_enabled: false`, checked 2026-10-07).
 
 ## Session storage and lifecycle (iOS)
 
