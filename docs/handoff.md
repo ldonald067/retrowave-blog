@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-07, at the commit after `8db58b1` (code `8db58b1`). Mood
+Last rewritten 2026-10-07, at the commit after `762c197` (code `8db58b1`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -25,14 +25,23 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-The `/frontend` audit (findings 89–94) is fixed, pushed and logged (`8db58b1`).
-Nothing is queued. Pick from "Open work, smaller" or "Waiting for you".
+Done 2026-10-07: the `/frontend` audit (findings 89–94, `8db58b1`); a `/fullstack`
+audit (no bugs; findings in `gotchas.md`); its two latent RLS fixes
+(`20261007000000`, pasted, verified by query, posting tested on the 17e).
 
-Not yet seen on a device from that fix (colour swaps, contrast computed): the
-active reaction count, sidebar active chapter (bar + bold), "~ unblock ~", the
-public-page pending notice, a song title without a YouTube link, the offline
-banner, the age screen. Seen on the 17e: header, composer toggle, profile tabs
-(cottage-core and emo-dark preview), the delete dialog's danger tone.
+Recommended order:
+
+1. **Your two calls** (below), then **recapture store screenshots `02`–`05`**
+   with `retrodemo` signed in — they predate usernames, 89–94 and the header.
+2. Small migration: revoke `anon` EXECUTE on `recent_reaction_count` and
+   `is_blocked_pair` (anyone can ask whether two users have a block, given their
+   UUIDs, which the app never exposes). Check each function's callers first.
+
+Not yet seen on a device from 89–94 (colour swaps, contrast computed): active
+reaction count, sidebar active chapter (bar + bold), "~ unblock ~", public-page
+pending notice, a song title without a YouTube link, offline banner, age screen.
+Seen on the 17e: header, composer toggle, profile tabs (cottage-core and
+emo-dark), delete dialog's danger tone, unfaded end-of-feed line and footer.
 
 ## Where the project is
 
@@ -53,6 +62,9 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 - Migrations through `20261007000000` are applied (pasted by you). 8 auth users,
   7 profiles, 7/7 terms accepted.
+- RLS (`20261007000000`): `profiles` INSERT is own-profile only; the `posts`
+  limit (10/hour, RESTRICTIVE) counts through SECURITY DEFINER
+  `recent_post_count`. Anonymous sign-ins are off.
 - **Before User Created hook is ON** → `public.hook_before_user_created`. Never
   drop or rename that function while it is on — every sign-up fails.
 - Auth email: 30/hour project-wide, no captcha, Resend free plan — deliberate
@@ -69,9 +81,10 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 - **Device checks not yet done:** single "session expired" message (sign
   `rainbowpudding1` in on the SE, in+out on the Pro, relaunch SE); a username
   rename (should lock 30 days; old name "taken" at sign-up).
-- **Your calls:** sign-out is global (`scope: 'local'`?); "create ur xanga" in
-  screenshot `04-signup` vs no "Xanga" in store metadata; recapture store
-  screenshots `02`–`05` (old marquees, pre-username sign-up).
+- **Your calls:** sign-out is global — recommended `scope: 'local'` (one line);
+  "create ur xanga" in screenshot `04-signup` — recommended dropping it, since
+  Xanga is a trademark and the store metadata already avoids it.
+- Optional cleanup: `profiles.username` has two identical unique constraints.
 - Left as is: finding 52 (SE feed slot); SE max-text composer can scroll the
   field away. Ban not implemented (restore finding 43's sentence only if built).
 - Never exercised: YouTube card, a long feed, block from a public profile.
@@ -119,11 +132,14 @@ this Xcode; the software keyboard still appears (seen 2026-10-01).
 ## Traps that cost a session
 
 - **Never `supabase db push`**; never trust a migration as prod — query it.
-- The keychain "Supabase CLI" prompt blocks prod queries until you click Allow.
+- The keychain "Supabase CLI" prompt blocks prod queries until you click Allow
+  ("Always Allow" stops it repeating per query).
 - Build replacement SQL functions from prod's live body; keep them ASCII.
 - Tap delivery ~1-in-3 and late — screenshot after each tap; swipes are reliable.
   Screenshot pixels are not tap points.
 - Signing an account out on one simulator signs it out everywhere.
 - Ask before each prod write; approval for one test does not cover the next.
+- A late tap near a card's reaction row writes a reaction to prod. After a device
+  test, check `post_reactions` as well as the rows you meant to touch.
 - Every return to the app refetches the profile (`SIGNED_IN`) — anything keyed on
   the `profile` object sees it.
