@@ -171,6 +171,9 @@ that modal were wrong in a way only a screenshot showed. The system itself is in
 | `EmptyState`               | [x]       | [x]     | No findings — clean                               |
 | `Sidebar`                  | [x]       | [x]     | `5728fa2` — findings 28, 29. **Not desktop-only** |
 
+A second `/frontend` audit (2026-10-01) swept every surface for contrast on
+tints and found 89–94, fixed in `8db58b1`.
+
 ## Phase 8 — Adverse states — as complete as this rig allows
 
 - [x] `ErrorMessage` — seen after a simulator reboot; recovery worked
@@ -247,7 +250,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**85 findings, all fixed except 52** (left as is on purpose).
+**91 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -342,8 +345,14 @@ assigned.
 | 86 | MED | Avatar picker | "save changes" with the picker open saved the old avatar and closed, dropping the pick with no word | Fixed `fec6021` — the editor saves what the picker shows; test fails on the old code |
 | 87 | MED | Avatar picker | The selected style chip used `--accent-secondary` on a tint: 4.20 classic-xanga, 3.82 emo-dark, 3.73 cottage-core, and read as disabled | Fixed `fec6021` — selected chips are `--text-body` on a 15% accent tint with an accent border; seen on the 17e |
 | 88 | LOW | Avatar picker | Chips had no `aria-pressed`; "randomize!" and "~ use this ~" were both solid, stacked; "click 2 pick" on a phone | Fixed `fec6021` |
+| 89 | MED | Composer, profile tabs, reactions, sidebar, banner, public page | Accent text on a tint of its own accent — the general case of 87: composer toggle 3.92, profile tabs 3.79, active reaction count 3.54, sidebar active chapter 4.19, offline banner 3.58, "~ unblock ~" 3.73, linkless song title and pending notice 4.24 | Fixed `8db58b1` — text on a tint is `--text-body`; border, fill or an inset bar carries the accent; song title is italic `--text-subtitle`; unblock is `.xanga-button-ghost`. Rule in `/frontend`. Composer and profile tabs seen on the 17e, cottage-core and emo-dark |
+| 90 | MED | Feed end, footer, public page | `--text-muted` faded with `opacity` failed on 7 of 8 themes (worst 2.60) | Fixed `8db58b1` — opacity dropped; rule in `/frontend` |
+| 91 | MED | Header | Settings and log-out were grey twins; log-out signs out everywhere | Fixed `8db58b1` — both `--text-title` (the accent measures 2.38 on classic's gradient); log-out keeps its label on phones. Seen on the 17e |
+| 92 | LOW | ConfirmDialog | Delete confirmations wore the save/publish fill; the accent-secondary border vanished on cottage-core and grunge; smaller serif than other primaries | Fixed `8db58b1` — `tone="danger"`: `--link-caution` fill, `--card-bg` text (4.77 worst) on delete entry, delete account, block and discard; every confirm is `.xanga-button`. Seen on the 17e |
+| 93 | LOW | Age screen | Stiff errors ("Please select your birth year"); year select had no ▼ | Fixed `8db58b1` — `ui/Select`, errors in the voice. Code-read; normal sign-ups never reach it |
+| 94 | LOW | `public/support.html` | Email pill `#d6157e` on `#fff0f5` = 4.46 | Fixed `8db58b1` — pill on white, 4.92 |
 
-Findings 45–88 lifted the count from 41 to 85 (numbers 40–42 unassigned).
+Findings 45–94 lifted the count from 41 to 91 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
