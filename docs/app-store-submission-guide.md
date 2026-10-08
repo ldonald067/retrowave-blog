@@ -242,13 +242,13 @@ a real address.
 1. Theme picker (Edit profile → "vibe" tab) with all 8 themes — _"8 vibes. pick ur whole personality."_
 2. Populated feed with entries + moods + reactions (use a vivid theme) — _"ur diary. moods, music & lil emoji reactions."_
 3. New-entry composer (mood + music + theme) — _"write it down. drop a song. set the mood. ♡"_
-4. Signup screen ("create ur xanga") with the 13+ age gate — _"make ur xanga in 2 mins (13+, we card u)."_
+4. Signup screen ("start ur journal") with the 13+ age gate — _"start ur journal in 2 mins (13+, we card u)."_
 5. Public profile page in a chosen theme — _"go public when u want. or stay secret. ur rules."_
 6. Empty-journal first run — _"a blank page, just for u. private by default."_
 
 Captions are optional and must be baked into the image (App Store Connect has no caption field). Raw screenshots are valid to ship.
 
-**Open question for you:** the keyword hygiene note above keeps "Xanga" out of public metadata, but the signup heading itself reads "create ur xanga", so screenshot 04 shows it (and so does the caption idea for it). Decide before upload whether that is acceptable.
+The signup heading read "create ur xanga" until 2026-10-08; it now reads "start ur journal", so screenshot 04 carries no trademark. `store-assets/screenshots/04-signup.png` predates the change and must be recaptured.
 
 ---
 

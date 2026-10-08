@@ -918,8 +918,11 @@ function AppInner() {
     void refetchChapters();
   };
 
+  // Local: ends this device's session only. The default global scope revoked
+  // every session for the account, so logging out on a phone silently signed
+  // the same account out of the web and every other device within the hour.
   const handleSignOut = async () => {
-    const { error } = await signOut();
+    const { error } = await signOut({ scope: 'local' });
     if (error) {
       showError('~ couldnt sign out :( try again ~');
     } else {

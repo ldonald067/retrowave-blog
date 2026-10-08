@@ -51,7 +51,8 @@ Code and config only. Doc-only commits are out of scope.
    trigger, secret or dashboard setting? Verify it live (`CLAUDE.md` has the
    recipe). This is how account deletion shipped broken for every user.
 7. **State that outlives the change.** Latches, module state, cached files,
-   persisted drafts, sessions on other devices (sign-out is global by default).
+   persisted drafts, sessions on other devices (supabase-js sign-out is global
+   unless `scope: 'local'` is passed).
 8. **Accessibility and motion.** New animation under Reduce Motion (needs a
    simulator reboot to test — gotchas), new content hidden with `aria-hidden`,
    new copy in `aria-label`s.

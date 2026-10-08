@@ -338,10 +338,10 @@ export function useAuth(): UseAuthReturn {
   // here under the hook's historical names for App.tsx.
 
   /**
-   * `scope: 'local'` clears this device only, without asking the server to end
-   * the session. Account deletion uses it: the user — and every session with
-   * it — is already gone server-side, so the default global call has nothing
-   * left to revoke.
+   * `scope: 'local'` revokes this device's session only (supabase-js still calls
+   * `/logout?scope=local`; a 401/404 from it is ignored and the session cleared).
+   * The header's log out and account deletion both pass it. Omitted, supabase-js
+   * defaults to `global`, which ends every session for the account.
    */
   const signOut = async (
     options: { scope?: 'global' | 'local' } = {}

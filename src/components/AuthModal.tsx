@@ -51,7 +51,7 @@ export default function AuthModal({ isOpen, defaultTab = 'login' }: AuthModalPro
               signup on the first tap. */}
           <div className="flex items-center justify-center px-4 h-14">
             <h1 className="text-center xanga-title text-xs sm:text-lg whitespace-nowrap">
-              ✨ {activeTab === 'signup' ? 'create ur xanga' : 'welcome back'} ✨
+              ✨ {activeTab === 'signup' ? 'start ur journal' : 'welcome back'} ✨
             </h1>
           </div>
         </div>

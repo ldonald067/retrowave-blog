@@ -341,7 +341,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                 onClick={() => onComplete('signup')}
                 className="xanga-button w-full py-3 text-sm font-bold min-h-[44px]"
               >
-                ✨ ~ create ur xanga ~ ✨
+                ✨ ~ start ur journal ~ ✨
               </motion.button>
               <div className="text-center">
                 <span className="text-xs" style={{ color: 'var(--text-subtitle)' }}>
