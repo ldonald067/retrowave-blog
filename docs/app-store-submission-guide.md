@@ -219,7 +219,7 @@ _Keep the demo account (`appreview@retrowaveblog.com`) alive until the app is ap
 
 ## Part 6 — Screenshots (iPhone 6.9")
 
-**All six are captured** in `store-assets/screenshots/`, every one 1320 × 2868:
+**All six are captured** in `store-assets/screenshots/` (gitignored — local only), every one 1320 × 2868; 02–05 recaptured 2026-10-13/14:
 `01-themes`, `02-feed`, `03-composer`, `04-signup`, `05-public-profile`,
 `06-empty-journal`.
 
@@ -233,7 +233,7 @@ a real address.
 - **Capture device:** iPhone 17 Pro Max simulator (UDID `296A830B-AE5D-4123-9A94-5E676FEAD090`) — the 6.9" device. _Do NOT use iPhone 17 Pro (6.3", wrong size)._
 - **Count:** 1 min, 10 max — ship **6**.
 - Clean status bar before capturing: `xcrun simctl status_bar <UDID> override --time "9:41" --batteryLevel 100 --cellularBars 4 --wifiBars 3`
-- Capture: `xcrun simctl io <UDID> screenshot store-assets/screenshots/NN-name.png`
+- Capture: `xcrun simctl io <UDID> screenshot store-assets/screenshots/NN-name.png` — from an agent session, capture to the scratchpad and `cp`: the simulator service is refused writes into the project folder.
 
 **Size check before uploading.** The captured files are **1320 × 2868** (iPhone 17 Pro Max native). Earlier notes in this guide said 1290 × 2796, which is the older 6.9" size. Both have been valid 6.9" sizes at different points — confirm which App Store Connect accepts when you upload, and re-capture on a 1290 × 2796 device only if it rejects them. Do not assume.
 
@@ -248,7 +248,7 @@ a real address.
 
 Captions are optional and must be baked into the image (App Store Connect has no caption field). Raw screenshots are valid to ship.
 
-The signup heading read "create ur xanga" until 2026-10-08; it now reads "start ur journal", so screenshot 04 carries no trademark. `store-assets/screenshots/04-signup.png` predates the change and must be recaptured.
+The signup heading read "create ur xanga" until 2026-10-08; it now reads "start ur journal", so screenshot 04 carries no trademark. 02–05 were recaptured 2026-10-13/14 on `6a766cf` (`retrodemo`, emo-dark). `store-assets/` is gitignored — the PNGs exist only on this Mac.
 
 ---
 
