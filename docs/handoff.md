@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-14, at the commit after `6821019` (code `6a766cf`). Mood
+Last rewritten 2026-10-16, at the commit after `440b78d` (code `e5d5d68`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -28,21 +28,19 @@ and limits arrive too soon. Every session:
 Done 2026-10-08 → 14: your two calls (log out is device-only; signup heading
 "start ur journal", `6a766cf`, proven on the SE by `auth.sessions`); migration
 `20261008000000` (pasted, verified by query, `6821019`); store screenshots
-`02`–`05` recaptured on the Pro Max as `retrodemo`.
+`02`–`05` recaptured on the Pro Max as `retrodemo`. 2026-10-15/16: you rotated
+`retrodemo`'s password (via "forgot ur password?"; it now lives only in App Store
+Connect and your password manager, `440b78d`); the desktop sidebar's per-chapter
+lock toggle is gone so counts line up (`e5d5d68`, measured in the dev server).
 
 Recommended order:
 
-1. **Change `retrodemo`'s password.** The repo is **public** and the password
-   sits in `docs/app-store-submission-guide.md` (Part 5) and in git history —
-   anyone can sign in as the App Review account. You change it (an agent cannot
-   enter passwords); then move the credential out of the guide into a
-   gitignored file and App Store Connect's review notes.
-2. **"xanga" is still in the store shots** — `retrodemo`'s entry "theme
+1. **"xanga" is still in the store shots** — `retrodemo`'s entry "theme
    appreciation post" reads "switched 2 the classic xanga theme today", fully
    visible in `02-feed` and at the bottom edge of `05-public-profile`. Your
    call: edit that entry's text (a prod write to the demo account) and
    recapture 02/05, or accept it.
-3. Optional: drop the duplicate unique constraint on `profiles.username`.
+2. Optional: drop the duplicate unique constraint on `profiles.username`.
 
 Not yet seen on a device from 89–94 (colour swaps, contrast computed): active
 reaction count, sidebar active chapter (bar + bold), "~ unblock ~", public-page
@@ -124,7 +122,8 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `6a766cf` (`index-BClp8mTW.js`, installed 2026-10-08). Sessions live in
+All six on `6a766cf` (`index-BClp8mTW.js`, installed 2026-10-08) — one commit behind
+`e5d5d68`, which only changes the desktop (`lg`) sidebar, never shown on a phone. Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
