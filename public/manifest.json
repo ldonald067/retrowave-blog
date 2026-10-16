@@ -1,7 +1,7 @@
 {
   "name": "My Journal",
   "short_name": "Journal",
-  "description": "A retro Xanga-style blog for sharing thoughts and vibes",
+  "description": "A retro journal for sharing thoughts and vibes",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#1a0a2e",

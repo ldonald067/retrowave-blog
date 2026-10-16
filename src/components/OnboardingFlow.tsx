@@ -86,7 +86,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     {
       scene: 'paper' as const,
       emoji: '🔒📓',
-      title: '~ Your Personal Xanga ~',
+      title: '~ Your Personal Diary ~',
       description:
         'a private space 2 capture ur thoughts, feelings, & memories. ur story, ur way. just like the good old days~',
       decoration: '· _ · _ · _ ·  ♡  · _ · _ · _ ·',
@@ -115,7 +115,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       scene: 'plain' as const,
       emoji: '📓✨',
       title: '~ ur journal is waiting ~',
-      description: 'this is what ur xanga looks like on day one. make an account & fill it in ♡',
+      description: 'this is what ur journal looks like on day one. make an account & fill it in ♡',
       decoration: '·411·.·´¯`·.·★ OMG ★·.·´¯`·.411·',
     },
   ];
@@ -172,7 +172,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       >
         <div className="flex items-center justify-between max-w-md mx-auto">
           <span className="text-xs title-bold" style={{ color: 'var(--text-title)' }}>
-            ✨ welcome 2 xanga ✨
+            ✨ welcome 2 ur journal ✨
           </span>
           <span
             className="text-xs"
@@ -304,7 +304,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
                       style={{ borderColor: 'var(--border-primary)', color: 'var(--text-body)' }}
                     >
                       <p style={{ color: 'var(--text-muted)' }}>{previewDate}</p>
-                      <p className="mt-1">every xanga needs a first entry...</p>
+                      <p className="mt-1">every diary needs a first entry...</p>
                       <p>what&apos;s on ur mind? 💭</p>
                     </div>
                     <p

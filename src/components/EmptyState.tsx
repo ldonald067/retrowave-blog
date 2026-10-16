@@ -58,7 +58,7 @@ export default function EmptyState({ onCreatePost }: EmptyStateProps) {
             })}
           </p>
           <p className="text-sm leading-relaxed" style={{ color: 'var(--text-body)' }}>
-            every xanga needs a first entry...
+            every diary needs a first entry...
             <br />
             what's on ur mind? 💭
           </p>

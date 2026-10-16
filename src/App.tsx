@@ -1690,7 +1690,7 @@ function AppInner() {
             {/* 88x31 pixel badges — the most iconic web 1.0 thing */}
             <div className="badge-row">
               <span className="pixel-badge badge-love">made w/ 💕</span>
-              <span className="pixel-badge badge-xanga">xanga revival</span>
+              <span className="pixel-badge badge-xanga">y2k revival</span>
               <span className="pixel-badge badge-web2">web 2.0 ✓</span>
               <span className="pixel-badge badge-powered">♻ nostalgia</span>
               <span className="pixel-badge badge-800">800x600</span>
