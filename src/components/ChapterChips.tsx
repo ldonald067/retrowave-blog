@@ -112,7 +112,7 @@ export default function ChapterChips({
         id: ch.chapter as string | null,
         label: ch.chapter,
         count: ch.post_count,
-        icon: priv ? '🔒' : '📖',
+        icon: priv ? '🤫' : '📖',
         isPrivate: priv,
       };
     }),

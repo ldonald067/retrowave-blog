@@ -420,7 +420,7 @@ export default function Sidebar({
                   aria-label={`Filter by chapter: ${ch.chapter}${isPrivate ? ', private' : ''} (${ch.post_count} ${ch.post_count === 1 ? 'entry' : 'entries'})`}
                 >
                   <span className="truncate">
-                    {isPrivate ? '🔒' : '📖'} {ch.chapter}
+                    {isPrivate ? '🤫' : '📖'} {ch.chapter}
                   </span>
                   <span
                     className="text-xs font-normal flex-shrink-0"

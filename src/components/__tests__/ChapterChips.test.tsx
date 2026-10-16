@@ -36,6 +36,12 @@ describe('ChapterChips', () => {
 
   // ── Rendering ─────────────────────────────────────────────────────────
 
+  it('marks a private chapter with 🤫, matched case-insensitively', () => {
+    render(<ChapterChips {...defaultProps} privateChapters={['  Deep Thoughts ']} />);
+    expect(screen.getByText(/🤫 deep thoughts/)).toBeInTheDocument();
+    expect(screen.getByText(/📖 daily vibes/)).toBeInTheDocument();
+  });
+
   it('renders all entries chip with total post count', () => {
     render(<ChapterChips {...defaultProps} />);
     expect(screen.getByText('✨ all entries')).toBeInTheDocument();

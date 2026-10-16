@@ -730,7 +730,7 @@ function AppInner() {
       if (err) {
         showError(`~ ${err} ~`);
       } else {
-        success(isPrivate ? '📖 chapter is now public ~' : '🔒 chapter is now private ~');
+        success(isPrivate ? '📖 chapter is now public ~' : '🤫 chapter is now private ~');
       }
     },
     [profile, updateProfile, showError, success]
@@ -1289,46 +1289,87 @@ function AppInner() {
                     <motion.div
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="xanga-box p-3 mb-4 flex items-center justify-between gap-2"
+                      className="xanga-box p-3 mb-4"
                     >
-                      <span
-                        className="text-xs title-bold min-w-0 flex-1 line-clamp-2"
-                        style={{ color: 'var(--text-title)' }}
-                      >
-                        {chapterFilter === LOOSE_ENTRIES
-                          ? '🍃 loose entries'
-                          : `${chapterIsPrivate ? '🔒' : '📖'} ${chapterFilter}`}
-                        <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
-                          ({visiblePosts.length} {visiblePosts.length === 1 ? 'entry' : 'entries'})
-                        </span>
-                      </span>
-                      {/* gap-3: Apple asks for ~12pt between bezeled controls */}
-                      <div className="flex items-center justify-end gap-3 flex-shrink-0">
-                        {isRealChapter && (
-                          <button
-                            onClick={() => toggleChapterPrivacy(chapterFilter)}
-                            className="text-xs px-2 py-1 rounded transition hover:opacity-80 min-h-[44px] lg:min-h-[28px]"
-                            style={{
-                              color: chapterIsPrivate
-                                ? 'var(--accent-primary)'
-                                : 'var(--text-muted)',
-                              backgroundColor:
-                                'color-mix(in srgb, var(--border-primary) 20%, transparent)',
-                            }}
-                            aria-label={
-                              chapterIsPrivate ? 'Make chapter public' : 'Make chapter private'
-                            }
-                          >
-                            {chapterIsPrivate ? '🔓 make public' : '🔒 make private'}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => setChapterFilter(null)}
-                          className="xanga-link text-xs px-2"
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className="text-xs title-bold min-w-0 flex-1 line-clamp-2"
+                          style={{ color: 'var(--text-title)' }}
                         >
-                          ~ show all ~
-                        </button>
+                          {chapterFilter === LOOSE_ENTRIES
+                            ? '🍃 loose entries'
+                            : `${chapterIsPrivate ? '🤫' : '📖'} ${chapterFilter}`}
+                          <span className="ml-2 font-normal" style={{ color: 'var(--text-muted)' }}>
+                            ({visiblePosts.length} {visiblePosts.length === 1 ? 'entry' : 'entries'}
+                            )
+                          </span>
+                        </span>
+                        {/* gap-3: Apple asks for ~12pt between bezeled controls */}
+                        <div className="flex items-center justify-end gap-3 flex-shrink-0">
+                          {isRealChapter && (
+                            <button
+                              onClick={() => toggleChapterPrivacy(chapterFilter)}
+                              className="hidden lg:inline-flex items-center text-xs px-2 py-1 rounded transition hover:opacity-80 lg:min-h-[28px]"
+                              style={{
+                                color: chapterIsPrivate
+                                  ? 'var(--accent-primary)'
+                                  : 'var(--text-muted)',
+                                backgroundColor:
+                                  'color-mix(in srgb, var(--border-primary) 20%, transparent)',
+                              }}
+                              aria-label={
+                                chapterIsPrivate ? 'Make chapter public' : 'Make chapter private'
+                              }
+                            >
+                              {chapterIsPrivate ? '📖 make public' : '🤫 make private'}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setChapterFilter(null)}
+                            className="xanga-link text-xs px-2"
+                          >
+                            ~ show all ~
+                          </button>
+                        </div>
                       </div>
+                      {/* Phones get the composer's private/public pair instead of
+                          the one-tap button: the lit side states the chapter's
+                          privacy, so no glyph has to mean "the state" and "the
+                          action" at once, and tapping the side already lit does
+                          nothing — a stray tap can't publish a private chapter. */}
+                      {isRealChapter && (
+                        <div
+                          className="lg:hidden mt-2 grid grid-cols-2 gap-2"
+                          role="group"
+                          aria-label="Chapter privacy"
+                        >
+                          {[
+                            { label: '🤫 private', on: chapterIsPrivate },
+                            { label: '📖 public', on: !chapterIsPrivate },
+                          ].map(({ label, on }) => (
+                            <button
+                              key={label}
+                              type="button"
+                              aria-pressed={on}
+                              onClick={() => {
+                                if (!on) toggleChapterPrivacy(chapterFilter);
+                              }}
+                              className="rounded border-2 border-dotted px-3 py-2 text-xs title-bold transition min-h-[44px]"
+                              style={{
+                                backgroundColor: on
+                                  ? 'color-mix(in srgb, var(--accent-primary) 14%, var(--card-bg))'
+                                  : 'var(--card-bg)',
+                                borderColor: on ? 'var(--accent-primary)' : 'var(--border-primary)',
+                                // Body text, as in PostModal: accent on its own
+                                // 14% tint measured 3.92:1.
+                                color: 'var(--text-body)',
+                              }}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </motion.div>
                   );
                 })()}

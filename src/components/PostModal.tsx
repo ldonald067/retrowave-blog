@@ -600,10 +600,10 @@ export default function PostModal({
                     /* Effective visibility, not is_private alone. A public entry
                        in a private chapter used to read `🌐 public` while the
                        public page served it zero times — and gave no hint that
-                       renaming the chapter would publish it. It keeps the padlock
-                       and body colour of `private`, because nobody can see it,
-                       but names the chapter as the reason, because that is the
-                       part that can change. */
+                       renaming the chapter would publish it. It keeps the body
+                       colour of `private`, because nobody can see it, but takes
+                       the private-chapter 🤫 and names the chapter as the reason,
+                       because that is the part that can change. */
                     <span
                       className="flex items-center gap-1.5 font-bold"
                       style={{
@@ -611,7 +611,13 @@ export default function PostModal({
                           visibility === 'public' ? 'var(--accent-primary)' : 'var(--text-body)',
                       }}
                     >
-                      <span aria-hidden="true">{visibility === 'public' ? '🌐' : '🔒'}</span>
+                      <span aria-hidden="true">
+                        {visibility === 'public'
+                          ? '🌐'
+                          : visibility === 'hidden-by-chapter'
+                            ? '🤫'
+                            : '🔒'}
+                      </span>
                       {visibility === 'private'
                         ? 'private'
                         : visibility === 'hidden-by-chapter'
