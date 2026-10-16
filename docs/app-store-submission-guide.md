@@ -219,7 +219,7 @@ _Keep the demo account (`appreview@retrowaveblog.com`) alive until the app is ap
 
 ## Part 6 — Screenshots (iPhone 6.9")
 
-**All six are captured** in `store-assets/screenshots/` (gitignored — local only), every one 1320 × 2868; 01, 02 and 05 recaptured 2026-10-16 (no brand names), 03–04 on 2026-10-13/14:
+**All six are captured** in `store-assets/screenshots/` (gitignored — local only), every one 1320 × 2868; 01, 02 and 05 recaptured 2026-10-16 (no brand names), 03–04 on 2026-10-13/14. **06 is out of date** (old "xanga" copy and the `ldonald234_xanga` account) — recapture before upload:
 `01-themes`, `02-feed`, `03-composer`, `04-signup`, `05-public-profile`,
 `06-empty-journal`.
 
@@ -249,7 +249,7 @@ a real address.
 
 Captions are optional and must be baked into the image (App Store Connect has no caption field). Raw screenshots are valid to ship.
 
-The signup heading read "create ur xanga" until 2026-10-08; it now reads "start ur journal", so screenshot 04 carries no trademark. 02–05 were recaptured 2026-10-13/14 on `6a766cf` (`retrodemo`, emo-dark). `store-assets/` is gitignored — the PNGs exist only on this Mac.
+The signup heading read "create ur xanga" until 2026-10-08; it now reads "start ur journal", so screenshot 04 carries no trademark. 02–05 were recaptured 2026-10-13/14 on `6a766cf` (`retrodemo`, emo-dark); 01, 02 and 05 again on 2026-10-16 to drop "Classic Xanga", "MySpace Blue" and an entry's "xanga". In-app "xanga" copy (intro, empty state, footer badge) was rewritten the same day, which put 06 out of date. `store-assets/` is gitignored — the PNGs exist only on this Mac.
 
 ---
 

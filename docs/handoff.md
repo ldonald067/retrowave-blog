@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-16, at the commit after `8114e55` (code `8114e55`). Mood
+Last rewritten 2026-10-16, at the commit after `c0fd392` (code `c0fd392`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -39,10 +39,17 @@ out of the store shots: you edited `retrodemo`'s "theme appreciation post" to
 "switched 2 the classic theme" (SQL, 2026-10-16), the themes "Classic Xanga" and
 "MySpace Blue · Tom would be proud" are now "Classic Glitter" and "Top 8 Blue ·
 Top 8 approved" (display names only, `8114e55`), and 01, 02 and 05 are recaptured.
+The app's own "xanga" copy is gone too (intro, empty state, footer badge → "y2k
+revival", `c0fd392`).
 
 Recommended order:
 
-1. Optional: drop the duplicate unique constraint on `profiles.username`.
+1. **Screenshot 06 is out of date** — it shows the old copy ("every xanga needs a
+   first entry", "xanga revival", the old top banner) and the account
+   `ldonald234_xanga` ("Xanga kid"). Recapture on a zero-post account with no
+   brand in its name (`blankslate`?) — you sign in on a temporary Pro Max so
+   `retrodemo` keeps its session — or ship five shots.
+2. Optional: drop the duplicate unique constraint on `profiles.username`.
 
 Not yet seen on a device from 89–94 (colour swaps, contrast computed): active
 reaction count, sidebar active chapter (bar + bold), "~ unblock ~", public-page
@@ -93,9 +100,6 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
   the device's session server-side instead (delete its `auth.sessions` row: a
   prod write, ask), then relaunch; a username rename (should lock 30 days; old
   name "taken" at sign-up).
-- Other "xanga" copy, not in any store shot: the intro ("welcome 2 xanga",
-  "~ Your Personal Xanga ~", "what ur xanga looks like"), the empty state
-  ("every xanga needs a first entry"), the footer badge "xanga revival".
 - Optional cleanup: `profiles.username` has two identical unique constraints.
 - Left as is: finding 52 (SE feed slot); SE max-text composer can scroll the
   field away. Ban not implemented (restore finding 43's sentence only if built).
@@ -126,7 +130,7 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `8114e55` (`index-CAn0imMD.js`, installed 2026-10-16). Sessions live in
+All six on `c0fd392` (`index-ByKmbO7D.js`, installed 2026-10-16). Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
