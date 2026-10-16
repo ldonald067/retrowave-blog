@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-16, at the commit after `440b78d` (code `e5d5d68`). Mood
+Last rewritten 2026-10-16, at the commit after `e435aaf` (code `e435aaf`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -31,7 +31,10 @@ Done 2026-10-08 → 14: your two calls (log out is device-only; signup heading
 `02`–`05` recaptured on the Pro Max as `retrodemo`. 2026-10-15/16: you rotated
 `retrodemo`'s password (via "forgot ur password?"; it now lives only in App Store
 Connect and your password manager, `440b78d`); the desktop sidebar's per-chapter
-lock toggle is gone so counts line up (`e5d5d68`, measured in the dev server).
+lock toggle is gone so counts line up (`e5d5d68`, measured in the dev server);
+private chapters wear 🤫 (🔒 is private entries only) and phones change a
+chapter's privacy with a "🤫 private | 📖 public" pair under its name instead
+of the one-tap button (`e435aaf`, seen on the 17e, not tapped).
 
 Recommended order:
 
@@ -45,6 +48,8 @@ Recommended order:
 Not yet seen on a device from 89–94 (colour swaps, contrast computed): active
 reaction count, sidebar active chapter (bar + bold), "~ unblock ~", public-page
 pending notice, a song title without a YouTube link, offline banner, age screen.
+Also never tapped on a device: the phone chapter-privacy pair (`e435aaf`) — it
+writes `profiles.private_chapters` in prod, so ask first and flip it back.
 
 ## Where the project is
 
@@ -57,7 +62,7 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 - **Supabase pauses when idle** (found `INACTIVE` 2026-09-15). Check before any
   device session; keep it active through App Review.
 - iOS deployment target 16.4 (the CSS needs it).
-- **CI green, 404 tests across 48 files.** `npm run check` = CI.
+- **CI green, 405 tests across 48 files.** `npm run check` = CI.
 - Pushing to `main` deploys the site (Cloudflare Workers build — it failed once
   during a Cloudflare incident on 2026-09-30; a later push fixed it).
 
@@ -122,8 +127,9 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `6a766cf` (`index-BClp8mTW.js`, installed 2026-10-08) — one commit behind
-`e5d5d68`, which only changes the desktop (`lg`) sidebar, never shown on a phone. Sessions live in
+Pro Max and 17e on `e435aaf` (`index-BARlY6Yo.js`, 2026-10-16). The other four on
+`6a766cf` (`index-BClp8mTW.js`) — they lack the 🤫 chapter mark and the phone
+privacy pair; reinstall before testing chapters there. Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
