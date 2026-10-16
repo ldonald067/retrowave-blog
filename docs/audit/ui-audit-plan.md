@@ -351,8 +351,13 @@ assigned.
 | 92 | LOW | ConfirmDialog | Delete confirmations wore the save/publish fill; the accent-secondary border vanished on cottage-core and grunge; smaller serif than other primaries | Fixed `8db58b1` — `tone="danger"`: `--link-caution` fill, `--card-bg` text (4.77 worst) on delete entry, delete account, block and discard; every confirm is `.xanga-button`. Seen on the 17e |
 | 93 | LOW | Age screen | Stiff errors ("Please select your birth year"); year select had no ▼ | Fixed `8db58b1` — `ui/Select`, errors in the voice. Code-read; normal sign-ups never reach it |
 | 94 | LOW | `public/support.html` | Email pill `#d6157e` on `#fff0f5` = 4.46 | Fixed `8db58b1` — pill on white, 4.92 |
+| 95 | MED | Chapter privacy, phones | One stray tap on "📖 public" published every entry in a private chapter, with no confirm — though renaming a chapter out of private asks (`chapterChangeRepublishes`). The pair's comment, and the 10-16 report to you, said a stray tap could not | Fixed `0242c82` — un-hiding a chapter on a public profile asks "~ this goes public ~" (phones and desktop); silent on a private profile. Seen on the 17e as `ldonald234` (private profile): private → public with no dialog, as designed, and back. The dialog itself not seen on a device — it needs a public profile with a chapter, and `retrodemo` is never a fixture |
+| 96 | LOW | Chapter chips, VoiceOver | VoiceOver reads 🤫 as "shushing face", so the phone chips stopped saying a chapter is private (🔒 read "locked"); the chips have no label of their own | Fixed `0242c82` — screen-reader ", private" on private chips, like the sidebar; test |
+| 97 | LOW | Chapter privacy | The pair moves only when the save returns, so a change of mind in that window landed on the stale side and was dropped | Fixed `0242c82` — controls disabled and the group `aria-busy` while saving |
+| 98 | LOW | Log out | Offline, log-out always failed with "try again": even scope `local` asks the server first, and supabase-js keeps the session when it cannot. The failed attempt also left `deliberateSignOutRef` set, which would swallow a later real expiry's "session expired" | Fixed `0242c82` — "ur offline, connect 2 log out"; flag reset on failure; test fails without it. Not reproducible on the simulator (shared network) |
+| 99 | LOW | Rate-limit helpers | `recent_post_count` and `recent_reaction_count` (SECURITY DEFINER, EXECUTE to authenticated for their policies) counted any id for any signed-in caller — another user's entries in the last hour, private ones included. Whether another user's id is obtainable was not checked | Fixed `0242c82` — migration `20261016000000` pasted 2026-10-16, guard passed, verify query true/true; counts only `p_user = auth.uid()`, which is what both policies pass |
 
-Findings 45–94 lifted the count from 41 to 91 (numbers 40–42 unassigned).
+Findings 45–99 lifted the count from 41 to 96 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
@@ -464,3 +469,15 @@ counted.
   skip are disabled while saving, its pic picker uploads nothing, and its
   toasts sit above the panel. Not filed: "skip 4 now" drops a pic already
   chosen on that step — read as what skip means.
+- **2026-10-16** — code since `d0a8178` (`1eb335f`…`c0fd392`: unsaved profile
+  edits, free rename, newer-iPhone and /frontend fixes, RLS and helper grants,
+  local log out, chapter privacy pair, theme rename, xanga copy). Findings
+  95–99, all fixed in `0242c82` (99's migration run the same day). Prod could
+  not be queried from that session. Held up: an unchanged profile row still
+  clears the error and the first load still applies the theme; the resume
+  check suppresses only network errors; the free rename off an assigned name
+  cannot be farmed (no history rows, an id suffix nobody picks in advance);
+  the avatar editor saves the pick only while the picker is open; the age
+  select still parses a string; theme names are display-only (ids unchanged,
+  nothing looks a theme up by name); exactly one chapter-privacy control at
+  every width; a failed privacy save leaves the pair on the real state.

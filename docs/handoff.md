@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-16, at the commit after `c0fd392` (code `c0fd392`). Mood
+Last rewritten 2026-10-16, at the commit after `0242c82` (code `0242c82`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -42,7 +42,10 @@ Top 8 approved" (display names only, `8114e55`), and 01, 02 and 05 are recapture
 The app's own "xanga" copy is gone too (intro, empty state, footer badge → "y2k
 revival", `c0fd392`). 06 is recaptured as `rainbowpudding` (display name "Yes" —
 your placeholder for now; a store shot reads "Hi, Yes!", so recapture if you
-rename it). All six store shots are now free of brand names.
+rename it). All six store shots are now free of brand names. `/adversarial-review`
+of everything since 09-30: findings 95–99 fixed (`0242c82`) — un-hiding a
+chapter on a public profile now asks first; migration `20261016000000` pasted
+and verified by you.
 
 Recommended order:
 
@@ -51,8 +54,9 @@ Recommended order:
 Not yet seen on a device from 89–94 (colour swaps, contrast computed): active
 reaction count, sidebar active chapter (bar + bold), "~ unblock ~", public-page
 pending notice, a song title without a YouTube link, offline banner, age screen.
-Also never tapped on a device: the phone chapter-privacy pair (`e435aaf`) — it
-writes `profiles.private_chapters` in prod, so ask first and flip it back.
+Also not seen on a device: the "~ this goes public ~" dialog (finding 95) —
+it needs a public profile with a chapter; `ldonald234`'s page is private, and
+`retrodemo` is never a fixture. The pair itself was tapped there and reverted.
 
 ## Where the project is
 
@@ -65,17 +69,18 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 - **Supabase pauses when idle** (found `INACTIVE` 2026-09-15). Check before any
   device session; keep it active through App Review.
 - iOS deployment target 16.4 (the CSS needs it).
-- **CI green, 405 tests across 48 files.** `npm run check` = CI.
+- **CI green, 408 tests across 48 files.** `npm run check` = CI.
 - Pushing to `main` deploys the site (Cloudflare Workers build — it failed once
   during a Cloudflare incident on 2026-09-30; a later push fixed it).
 
 ## Prod state worth knowing (checked by query)
 
-- Migrations through `20261008000000` are applied (pasted by you). 8 auth users,
+- Migrations through `20261016000000` are applied (pasted by you). 8 auth users,
   7 profiles, 7/7 terms accepted.
 - Helper EXECUTE (`20261008000000`): `recent_reaction_count` and
-  `recent_post_count` — authenticated only; `is_blocked_pair` — service_role
-  only (nothing calls it; the reactions policy checks blocks inline).
+  `recent_post_count` — authenticated only, and since `20261016000000` they
+  count only the caller (`p_user = auth.uid()`); `is_blocked_pair` —
+  service_role only (nothing calls it; the reactions policy checks blocks inline).
 - RLS (`20261007000000`): `profiles` INSERT is own-profile only; the `posts`
   limit (10/hour, RESTRICTIVE) counts through SECURITY DEFINER
   `recent_post_count`. Anonymous sign-ins are off.
@@ -127,7 +132,7 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `c0fd392` (`index-ByKmbO7D.js`, installed 2026-10-16). Sessions live in
+All six on `0242c82` (`index-Bej0gr39.js`, installed 2026-10-16). Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
