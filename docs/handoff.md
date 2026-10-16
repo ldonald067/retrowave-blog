@@ -127,9 +127,7 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-Pro Max and 17e on `e435aaf` (`index-BARlY6Yo.js`, 2026-10-16). The other four on
-`6a766cf` (`index-BClp8mTW.js`) — they lack the 🤫 chapter mark and the phone
-privacy pair; reinstall before testing chapters there. Sessions live in
+All six on `e435aaf` (`index-BARlY6Yo.js`, installed 2026-10-16). Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
