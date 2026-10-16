@@ -29,7 +29,6 @@ interface SidebarProps {
   looseCount?: number;
   looseKey?: string;
   privateChapters?: string[];
-  onToggleChapterPrivacy?: (chapter: string) => void;
 }
 
 export default function Sidebar({
@@ -43,7 +42,6 @@ export default function Sidebar({
   looseCount = 0,
   looseKey = '__loose__',
   privateChapters = [],
-  onToggleChapterPrivacy,
 }: SidebarProps) {
   const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
   const [collapsed, setCollapsed] = useState(() => {
@@ -394,56 +392,43 @@ export default function Sidebar({
               // hiding, and the toggle beside it then offered to "make private" a
               // chapter it would actually have made public.
               const isPrivate = isChapterPrivate(privateChapters, ch.chapter);
+              // The leading icon is the privacy state; changing it lives in the
+              // labelled "make private / make public" button above the feed once
+              // a chapter is picked. A lock toggle used to sit beside each row, but
+              // it showed the action, not the state - a lock beside a public
+              // chapter read as "locked" - and its column pushed this row's count
+              // out of line with all entries and loose entries.
               return (
-                <div key={ch.chapter} className="flex items-center gap-1">
-                  <button
-                    onClick={() =>
-                      onChapterSelect?.(activeChapter === ch.chapter ? null : ch.chapter)
-                    }
-                    className="flex-1 text-left px-2 py-1.5 rounded text-[0.8125rem] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2 min-w-0"
-                    style={{
-                      color: 'var(--text-body)',
-                      boxShadow:
-                        activeChapter === ch.chapter
-                          ? 'inset 3px 0 0 var(--accent-primary)'
-                          : 'none',
-                      fontWeight: activeChapter === ch.chapter ? 700 : 400,
-                      fontFamily: 'var(--title-font)',
-                      backgroundColor:
-                        activeChapter === ch.chapter
-                          ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                          : 'transparent',
-                    }}
-                    aria-pressed={activeChapter === ch.chapter}
-                    aria-label={`Filter by chapter: ${ch.chapter} (${ch.post_count} ${ch.post_count === 1 ? 'entry' : 'entries'})`}
+                <button
+                  key={ch.chapter}
+                  onClick={() =>
+                    onChapterSelect?.(activeChapter === ch.chapter ? null : ch.chapter)
+                  }
+                  className="w-full text-left px-2 py-1.5 rounded text-[0.8125rem] transition min-h-[44px] lg:min-h-[36px] flex items-center justify-between gap-2 min-w-0"
+                  style={{
+                    color: 'var(--text-body)',
+                    boxShadow:
+                      activeChapter === ch.chapter ? 'inset 3px 0 0 var(--accent-primary)' : 'none',
+                    fontWeight: activeChapter === ch.chapter ? 700 : 400,
+                    fontFamily: 'var(--title-font)',
+                    backgroundColor:
+                      activeChapter === ch.chapter
+                        ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+                        : 'transparent',
+                  }}
+                  aria-pressed={activeChapter === ch.chapter}
+                  aria-label={`Filter by chapter: ${ch.chapter}${isPrivate ? ', private' : ''} (${ch.post_count} ${ch.post_count === 1 ? 'entry' : 'entries'})`}
+                >
+                  <span className="truncate">
+                    {isPrivate ? '🔒' : '📖'} {ch.chapter}
+                  </span>
+                  <span
+                    className="text-xs font-normal flex-shrink-0"
+                    style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}
                   >
-                    <span className="truncate">
-                      {isPrivate ? '🔒' : '📖'} {ch.chapter}
-                    </span>
-                    <span
-                      className="text-xs font-normal flex-shrink-0"
-                      style={{ color: 'var(--text-muted)', fontFamily: 'sans-serif' }}
-                    >
-                      {ch.post_count}
-                    </span>
-                  </button>
-                  {onToggleChapterPrivacy && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleChapterPrivacy(ch.chapter);
-                      }}
-                      className="icon-btn-hover flex-shrink-0 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg transition"
-                      style={{ color: 'var(--text-muted)' }}
-                      aria-label={
-                        isPrivate ? `Make "${ch.chapter}" public` : `Make "${ch.chapter}" private`
-                      }
-                      title={isPrivate ? 'Make public' : 'Make private'}
-                    >
-                      <span className="text-sm">{isPrivate ? '🔓' : '🔒'}</span>
-                    </button>
-                  )}
-                </div>
+                    {ch.post_count}
+                  </span>
+                </button>
               );
             })}
           </div>

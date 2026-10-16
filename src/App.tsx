@@ -1264,7 +1264,6 @@ function AppInner() {
               looseCount={looseCount}
               looseKey={LOOSE_ENTRIES}
               privateChapters={profile?.private_chapters ?? []}
-              onToggleChapterPrivacy={toggleChapterPrivacy}
             />
 
             {/* Mobile: horizontal chapter chips above feed */}
