@@ -163,6 +163,10 @@ export default function ChapterChips({
               <span className="truncate max-w-[140px]">
                 {chip.icon} {chip.label}
               </span>
+              {/* VoiceOver reads 🤫 as "shushing face", which does not say private
+                  the way 🔒 ("locked") did — the sidebar's label carries the
+                  same word (finding 96). */}
+              {chip.isPrivate && <span className="sr-only">, private</span>}
               <span
                 className="chapter-chip-count"
                 style={{

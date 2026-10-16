@@ -36,6 +36,12 @@ describe('ChapterChips', () => {
 
   // ── Rendering ─────────────────────────────────────────────────────────
 
+  it('says "private" to screen readers, since VoiceOver reads 🤫 as "shushing face"', () => {
+    render(<ChapterChips {...defaultProps} privateChapters={['deep thoughts']} />);
+    expect(screen.getByRole('tab', { name: /deep thoughts, private/ })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /daily vibes/ })).not.toHaveAccessibleName(/private/);
+  });
+
   it('marks a private chapter with 🤫, matched case-insensitively', () => {
     render(<ChapterChips {...defaultProps} privateChapters={['  Deep Thoughts ']} />);
     expect(screen.getByText(/🤫 deep thoughts/)).toBeInTheDocument();

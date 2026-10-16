@@ -19,7 +19,7 @@ import {
 } from '../lib/validation';
 import { MIN_AGE, AUTH_SESSION_EXPIRED } from '../lib/constants';
 import { AUTH_PASSWORD_RECOVERY } from '../lib/auth-callback';
-import type { User } from '@supabase/supabase-js';
+import { isAuthRetryableFetchError, type User } from '@supabase/supabase-js';
 import type { Profile } from '../types/profile';
 
 /** Whether a refetched profile row is the one already loaded, field for field. */
@@ -54,7 +54,9 @@ interface UseAuthReturn {
   ) => Promise<{ error: string | null; needsConfirmation?: boolean; alreadyRegistered?: boolean }>;
   signIn: (email: string) => Promise<{ error: string | null }>;
   signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
-  signOut: (options?: { scope?: 'global' | 'local' }) => Promise<{ error: string | null }>;
+  signOut: (options?: {
+    scope?: 'global' | 'local';
+  }) => Promise<{ error: string | null; offline?: boolean }>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: string | null }>;
   refetchProfile: () => Promise<void>;
   /** True while a recovery link is awaiting a new password. */
@@ -345,14 +347,19 @@ export function useAuth(): UseAuthReturn {
    */
   const signOut = async (
     options: { scope?: 'global' | 'local' } = {}
-  ): Promise<{ error: string | null }> => {
+  ): Promise<{ error: string | null; offline?: boolean }> => {
     try {
       deliberateSignOutRef.current = true;
       const { error } = await supabase.auth.signOut(options);
       if (error) throw error;
       return { error: null };
     } catch (err) {
-      return { error: toUserMessage(err) };
+      // Nothing was signed out, so the next SIGNED_OUT is not this one. Left
+      // set, it would swallow a real expiry's "session expired" (finding 98).
+      deliberateSignOutRef.current = false;
+      // Even scope 'local' asks the server first, and supabase-js keeps the
+      // session when that request cannot be made — offline, log out cannot work.
+      return { error: toUserMessage(err), offline: isAuthRetryableFetchError(err) };
     }
   };
 

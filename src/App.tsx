@@ -35,7 +35,11 @@ import { sparkleBurst, emojiRain } from './lib/celebrations';
 import { Input, Select, Windows95MyComputer, Windows95Notepad } from './components/ui';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
 import { useChapters } from './hooks/useChapters';
-import { isSameChapter, isChapterPrivate } from './utils/chapterPrivacy';
+import {
+  isSameChapter,
+  isChapterPrivate,
+  chapterPublishNeedsConfirm,
+} from './utils/chapterPrivacy';
 import { computeFeedHeight, feedMaxHeight } from './utils/feedHeight';
 
 // Lazy-load heavy modal/overlay components — only fetched when needed
@@ -714,6 +718,13 @@ function AppInner() {
     return `nothing matches ${activeFeedFilters.map((filter) => filter.label).join(' + ')}`;
   }, [activeFeedFilters]);
 
+  // A private chapter about to go public waits here for its confirm (finding 95).
+  const [chapterToPublish, setChapterToPublish] = useState<string | null>(null);
+  // Locks the privacy controls while a save is in flight. The pair's lit side
+  // only moves when the save returns, so a second tap in that window landed on
+  // the stale side and a change of mind was dropped (finding 97).
+  const [chapterPrivacySaving, setChapterPrivacySaving] = useState(false);
+
   const toggleChapterPrivacy = useCallback(
     async (chapter: string) => {
       if (!profile) return;
@@ -726,7 +737,9 @@ function AppInner() {
       const updated = isPrivate
         ? current.filter((c) => !isSameChapter(c, chapter))
         : [...current, chapter];
+      setChapterPrivacySaving(true);
       const { error: err } = await updateProfile({ private_chapters: updated });
+      setChapterPrivacySaving(false);
       if (err) {
         showError(`~ ${err} ~`);
       } else {
@@ -735,6 +748,33 @@ function AppInner() {
     },
     [profile, updateProfile, showError, success]
   );
+
+  // Every chapter-privacy control goes through here. Hiding a chapter saves at
+  // once; un-hiding one on a public profile asks first, because it publishes
+  // the chapter's entries with no save step in between.
+  const requestChapterPrivacyToggle = useCallback(
+    (chapter: string) => {
+      if (chapterPrivacySaving) return;
+      if (
+        chapterPublishNeedsConfirm({
+          privateChapters: profile?.private_chapters,
+          chapter,
+          profileIsPublic: profile?.is_public ?? false,
+        })
+      ) {
+        setChapterToPublish(chapter);
+        return;
+      }
+      void toggleChapterPrivacy(chapter);
+    },
+    [chapterPrivacySaving, profile?.private_chapters, profile?.is_public, toggleChapterPrivacy]
+  );
+
+  const confirmPublishChapter = async () => {
+    if (!chapterToPublish) return;
+    await toggleChapterPrivacy(chapterToPublish);
+    setChapterToPublish(null);
+  };
 
   const handleNewPost = useCallback(() => {
     if (!user) {
@@ -922,9 +962,12 @@ function AppInner() {
   // every session for the account, so logging out on a phone silently signed
   // the same account out of the web and every other device within the hour.
   const handleSignOut = async () => {
-    const { error } = await signOut({ scope: 'local' });
+    const { error, offline } = await signOut({ scope: 'local' });
     if (error) {
-      showError('~ couldnt sign out :( try again ~');
+      // "try again" is a dead end offline: every retry fails the same way.
+      showError(
+        offline ? '~ ur offline, connect 2 log out ~' : '~ couldnt sign out :( try again ~'
+      );
     } else {
       success(SUCCESS_MESSAGES.auth.signedOut);
       setShowAuthModal(true);
@@ -1308,7 +1351,8 @@ function AppInner() {
                         <div className="flex items-center justify-end gap-3 flex-shrink-0">
                           {isRealChapter && (
                             <button
-                              onClick={() => toggleChapterPrivacy(chapterFilter)}
+                              onClick={() => requestChapterPrivacyToggle(chapterFilter)}
+                              disabled={chapterPrivacySaving}
                               className="hidden lg:inline-flex items-center text-xs px-2 py-1 rounded transition hover:opacity-80 lg:min-h-[28px]"
                               style={{
                                 color: chapterIsPrivate
@@ -1335,13 +1379,16 @@ function AppInner() {
                       {/* Phones get the composer's private/public pair instead of
                           the one-tap button: the lit side states the chapter's
                           privacy, so no glyph has to mean "the state" and "the
-                          action" at once, and tapping the side already lit does
-                          nothing — a stray tap can't publish a private chapter. */}
+                          action" at once. Tapping the lit side does nothing, and
+                          the public side asks first (requestChapterPrivacyToggle):
+                          on its own the pair only halved the area a stray tap
+                          could publish from (finding 95). */}
                       {isRealChapter && (
                         <div
                           className="lg:hidden mt-2 grid grid-cols-2 gap-2"
                           role="group"
                           aria-label="Chapter privacy"
+                          aria-busy={chapterPrivacySaving}
                         >
                           {[
                             { label: '🤫 private', on: chapterIsPrivate },
@@ -1351,8 +1398,9 @@ function AppInner() {
                               key={label}
                               type="button"
                               aria-pressed={on}
+                              disabled={chapterPrivacySaving}
                               onClick={() => {
-                                if (!on) toggleChapterPrivacy(chapterFilter);
+                                if (!on) requestChapterPrivacyToggle(chapterFilter);
                               }}
                               className="rounded border-2 border-dotted px-3 py-2 text-xs title-bold transition min-h-[44px]"
                               style={{
@@ -1671,6 +1719,28 @@ function AppInner() {
             loading={deleteLoading}
             onConfirm={confirmDeletePost}
             onCancel={() => setPostToDelete(null)}
+          />
+        )}
+
+        {chapterToPublish && (
+          <ConfirmDialog
+            title="~ this goes public ~"
+            message={
+              <div className="space-y-3 break-words">
+                <p>
+                  <em style={{ color: 'var(--text-subtitle)' }}>{chapterToPublish}</em> is a private
+                  chapter, so none of its entries show up on ur public page.
+                </p>
+                <p>
+                  making it public lets anyone who visits ur page read the ones that arent marked
+                  private.
+                </p>
+              </div>
+            }
+            confirmLabel="~ yes, make it public ~"
+            loading={chapterPrivacySaving}
+            onConfirm={confirmPublishChapter}
+            onCancel={() => setChapterToPublish(null)}
           />
         )}
 

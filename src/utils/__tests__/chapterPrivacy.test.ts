@@ -4,6 +4,7 @@ import {
   isSameChapter,
   isChapterPrivate,
   chapterChangeRepublishes,
+  chapterPublishNeedsConfirm,
   entryVisibility,
 } from '../chapterPrivacy';
 
@@ -129,5 +130,21 @@ describe('entryVisibility', () => {
     expect(entryVisibility(false, 'summer 2026 v2', ['summer 2026'])).toBe('public');
     expect(entryVisibility(false, null, ['summer 2026'])).toBe('public');
     expect(entryVisibility(false, 'summer 2026', undefined)).toBe('public');
+  });
+
+  it('confirms only when un-hiding a private chapter on a public profile', () => {
+    const privateChapters = ['  Therapy '];
+    // Making it public: confirm, matched normalized.
+    expect(
+      chapterPublishNeedsConfirm({ privateChapters, chapter: 'therapy', profileIsPublic: true })
+    ).toBe(true);
+    // Making a public chapter private publishes nothing.
+    expect(
+      chapterPublishNeedsConfirm({ privateChapters, chapter: 'summer', profileIsPublic: true })
+    ).toBe(false);
+    // A private profile has no public page to publish to.
+    expect(
+      chapterPublishNeedsConfirm({ privateChapters, chapter: 'therapy', profileIsPublic: false })
+    ).toBe(false);
   });
 });

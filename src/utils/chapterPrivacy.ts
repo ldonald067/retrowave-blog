@@ -71,6 +71,24 @@ export function chapterChangeRepublishes(args: {
 }
 
 /**
+ * True when un-hiding `chapter` would put entries on the owner's public page,
+ * so the UI should confirm before it saves (finding 95).
+ *
+ * Unlike the composer's private/public toggle, which waits for "save", the
+ * chapter control writes private_chapters the moment it is tapped — one stray
+ * tap published every entry in the chapter. Silent when there is nothing to
+ * publish to: a private profile has no public page. Not narrowed by counting
+ * the chapter's public entries, because the feed may not have loaded them all.
+ */
+export function chapterPublishNeedsConfirm(args: {
+  privateChapters: readonly string[] | null | undefined;
+  chapter: string;
+  profileIsPublic: boolean;
+}): boolean {
+  return args.profileIsPublic && isChapterPrivate(args.privateChapters, args.chapter);
+}
+
+/**
  * What an owner should be told about an entry's visibility.
  *
  * `is_private` alone is not the answer: get_public_profile also hides a public

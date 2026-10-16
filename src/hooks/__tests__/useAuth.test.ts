@@ -256,6 +256,26 @@ describe('session expiry reporting', () => {
     expect(result.current.sessionExpired).toBe(false);
   });
 
+  it('a sign-out that fails offline says so, and a later expiry is still reported', async () => {
+    const { AuthRetryableFetchError } = await import('@supabase/supabase-js');
+    const auth = captureAuthCallback();
+    vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({
+      error: new AuthRetryableFetchError('Failed to fetch', 0),
+    } as never);
+    const { result } = renderHook(() => useAuth());
+
+    let outcome: { error: string | null; offline?: boolean } | undefined;
+    await act(async () => {
+      outcome = await result.current.signOut({ scope: 'local' });
+    });
+    expect(outcome?.error).not.toBeNull();
+    expect(outcome?.offline).toBe(true);
+
+    // The failed attempt must not mark the next SIGNED_OUT as deliberate.
+    act(() => auth()('SIGNED_OUT', null));
+    expect(result.current.sessionExpired).toBe(true);
+  });
+
   it('reports again after a real sign-in starts a new session', async () => {
     const auth = captureAuthCallback();
     const { result } = renderHook(() => useAuth());
