@@ -181,7 +181,7 @@ Supabase backend.
 
 SIGN IN (demo account, already confirmed & age-verified, log in immediately):
   Email:    appreview@retrowaveblog.com
-  Password: AppReview!2026rw
+  Password: (not in this repo - it is public. Kept in App Store Connect > App Review Information and in your password manager; rotated 2026-10-15)
 On the auth screen tap the "~ sign in ~" tab (not sign up), enter the above,
 and sign in.
 Email confirmation is enabled for real users, but this demo account is already
