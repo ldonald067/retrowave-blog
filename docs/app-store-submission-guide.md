@@ -219,7 +219,7 @@ _Keep the demo account (`appreview@retrowaveblog.com`) alive until the app is ap
 
 ## Part 6 — Screenshots (iPhone 6.9")
 
-**All six are captured** in `store-assets/screenshots/` (gitignored — local only), every one 1320 × 2868; 02–05 recaptured 2026-10-13/14:
+**All six are captured** in `store-assets/screenshots/` (gitignored — local only), every one 1320 × 2868; 01, 02 and 05 recaptured 2026-10-16 (no brand names), 03–04 on 2026-10-13/14:
 `01-themes`, `02-feed`, `03-composer`, `04-signup`, `05-public-profile`,
 `06-empty-journal`.
 
@@ -234,6 +234,7 @@ a real address.
 - **Count:** 1 min, 10 max — ship **6**.
 - Clean status bar before capturing: `xcrun simctl status_bar <UDID> override --time "9:41" --batteryLevel 100 --cellularBars 4 --wifiBars 3`
 - Capture: `xcrun simctl io <UDID> screenshot store-assets/screenshots/NN-name.png` — from an agent session, capture to the scratchpad and `cp`: the simulator service is refused writes into the project folder.
+- **05 needs a signed-out 6.9" device.** Signed in as `retrodemo`, the app sends your own public page back to the feed, and logging out costs the Pro Max its session. Instead: `xcrun simctl create "TEMP 05" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max <iOS runtime>`, boot, install the `.app`, apply the status-bar override, launch, `xcrun simctl openurl <UDID> "com.retrowave.journal://open#/u/retrodemo"`, tap **Open** on iOS's "Open in 'My Journal'?" prompt, capture, then `xcrun simctl delete` it.
 
 **Size check before uploading.** The captured files are **1320 × 2868** (iPhone 17 Pro Max native). Earlier notes in this guide said 1290 × 2796, which is the older 6.9" size. Both have been valid 6.9" sizes at different points — confirm which App Store Connect accepts when you upload, and re-capture on a 1290 × 2796 device only if it rejects them. Do not assume.
 

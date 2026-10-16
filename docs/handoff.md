@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-16, at the commit after `e435aaf` (code `e435aaf`). Mood
+Last rewritten 2026-10-16, at the commit after `8114e55` (code `8114e55`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -34,16 +34,15 @@ Connect and your password manager, `440b78d`); the desktop sidebar's per-chapter
 lock toggle is gone so counts line up (`e5d5d68`, measured in the dev server);
 private chapters wear 🤫 (🔒 is private entries only) and phones change a
 chapter's privacy with a "🤫 private | 📖 public" pair under its name instead
-of the one-tap button (`e435aaf`, seen on the 17e, not tapped).
+of the one-tap button (`e435aaf`, seen on the 17e, not tapped). Brand names are
+out of the store shots: you edited `retrodemo`'s "theme appreciation post" to
+"switched 2 the classic theme" (SQL, 2026-10-16), the themes "Classic Xanga" and
+"MySpace Blue · Tom would be proud" are now "Classic Glitter" and "Top 8 Blue ·
+Top 8 approved" (display names only, `8114e55`), and 01, 02 and 05 are recaptured.
 
 Recommended order:
 
-1. **"xanga" is still in the store shots** — `retrodemo`'s entry "theme
-   appreciation post" reads "switched 2 the classic xanga theme today", fully
-   visible in `02-feed` and at the bottom edge of `05-public-profile`. Your
-   call: edit that entry's text (a prod write to the demo account) and
-   recapture 02/05, or accept it.
-2. Optional: drop the duplicate unique constraint on `profiles.username`.
+1. Optional: drop the duplicate unique constraint on `profiles.username`.
 
 Not yet seen on a device from 89–94 (colour swaps, contrast computed): active
 reaction count, sidebar active chapter (bar + bold), "~ unblock ~", public-page
@@ -127,7 +126,7 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `e435aaf` (`index-BARlY6Yo.js`, installed 2026-10-16). Sessions live in
+All six on `8114e55` (`index-CAn0imMD.js`, installed 2026-10-16). Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
