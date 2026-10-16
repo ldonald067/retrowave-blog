@@ -219,7 +219,7 @@ _Keep the demo account (`appreview@retrowaveblog.com`) alive until the app is ap
 
 ## Part 6 — Screenshots (iPhone 6.9")
 
-**All six are captured** in `store-assets/screenshots/` (gitignored — local only), every one 1320 × 2868; 01, 02 and 05 recaptured 2026-10-16 (no brand names), 03–04 on 2026-10-13/14. **06 is out of date** (old "xanga" copy and the `ldonald234_xanga` account) — recapture before upload:
+**All six are captured** in `store-assets/screenshots/` (gitignored — local only), every one 1320 × 2868; 01, 02, 05 and 06 recaptured 2026-10-16 (no brand names; 06 as `rainbowpudding` on a temporary Pro Max, same recipe as 05 below), 03–04 on 2026-10-13/14:
 `01-themes`, `02-feed`, `03-composer`, `04-signup`, `05-public-profile`,
 `06-empty-journal`.
 

@@ -40,16 +40,13 @@ out of the store shots: you edited `retrodemo`'s "theme appreciation post" to
 "MySpace Blue · Tom would be proud" are now "Classic Glitter" and "Top 8 Blue ·
 Top 8 approved" (display names only, `8114e55`), and 01, 02 and 05 are recaptured.
 The app's own "xanga" copy is gone too (intro, empty state, footer badge → "y2k
-revival", `c0fd392`).
+revival", `c0fd392`). 06 is recaptured as `rainbowpudding` (display name "Yes" —
+your placeholder for now; a store shot reads "Hi, Yes!", so recapture if you
+rename it). All six store shots are now free of brand names.
 
 Recommended order:
 
-1. **Screenshot 06 is out of date** — it shows the old copy ("every xanga needs a
-   first entry", "xanga revival", the old top banner) and the account
-   `ldonald234_xanga` ("Xanga kid"). Recapture on a zero-post account with no
-   brand in its name (`blankslate`?) — you sign in on a temporary Pro Max so
-   `retrodemo` keeps its session — or ship five shots.
-2. Optional: drop the duplicate unique constraint on `profiles.username`.
+1. Optional: drop the duplicate unique constraint on `profiles.username`.
 
 Not yet seen on a device from 89–94 (colour swaps, contrast computed): active
 reaction count, sidebar active chapter (bar + bold), "~ unblock ~", public-page
@@ -116,15 +113,15 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Accounts
 
-| Account                                          | Use                                                                         |
-| ------------------------------------------------ | --------------------------------------------------------------------------- |
-| `ldonald234`                                     | **Test data.** cottage-core, 2 entries incl. the overflow fixture — keep it |
-| `ldonald0234`                                    | **Admin — the only one.** emo-dark, reaches `ModerationView`                |
-| `retrodemo` (`appreview@retrowaveblog.com`)      | App Review demo, 3 public entries, emo-dark. **Never a fixture**            |
-| `codex-qa-24e3a82f`                              | Public page, classic-xanga (light public fixture)                           |
-| `blankslate`, `ldonald234_xanga`                 | Zero posts — `EmptyState`                                                   |
-| `rainbowpudding1` (`nonoabc2345+hook@gmail.com`) | New-flow test account, zero posts, free rename unspent; one Firefox session |
-| `nonoabc2345@gmail.com`                          | Unconfirmed since 2026-09-19; holds no username                             |
+| Account                                         | Use                                                                           |
+| ----------------------------------------------- | ----------------------------------------------------------------------------- |
+| `ldonald234`                                    | **Test data.** cottage-core, 2 entries incl. the overflow fixture — keep it   |
+| `ldonald0234`                                   | **Admin — the only one.** emo-dark, reaches `ModerationView`                  |
+| `retrodemo` (`appreview@retrowaveblog.com`)     | App Review demo, 3 public entries, emo-dark. **Never a fixture**              |
+| `codex-qa-24e3a82f`                             | Public page, classic-xanga (light public fixture)                             |
+| `blankslate`, `ldonald234_xanga`                | Zero posts — `EmptyState`                                                     |
+| `rainbowpudding` (`nonoabc2345+hook@gmail.com`) | Zero posts, display name "Yes"; **screenshot 06** account. Don't post from it |
+| `nonoabc2345@gmail.com`                         | Unconfirmed since 2026-09-19; holds no username                               |
 
 Gmail `+` addresses reach the same inbox and count as new accounts.
 
