@@ -28,7 +28,7 @@ a theme-neutral box-shadow.
 ## Contrast Values (WCAG AA)
 
 - Dark theme `--text-muted` minimums (4.5:1 on `--card-bg`): emo-dark `#858585`, scene-kid `#00bb00`, grunge `#b8a890`, pastel-goth `#b0a0c0`.
-- `--accent-primary` values: Classic Xanga `#d6157e`, Cottage Core `#617544`, MySpace Blue `#1188dd`, Grunge `#a89070`.
+- `--accent-primary` values: Classic Glitter `#d6157e`, Cottage Core `#617544`, Top 8 Blue `#1188dd`, Grunge `#a89070`.
 - `--text-title` needs **4.5:1**, not 3:1, wherever it renders a card title: on a phone that is `text-lg`, 18px bold, under WCAG's 18.66px bold cutoff. Measuring it against 3:1 is how myspace-blue passed a sweep at 4.00 (findings 38–39).
 - Grunge theme: `--text-body` `#c0b098`, `--button-gradient-from` `#5a5040`. All pass 4.5:1 on `#242018`.
 

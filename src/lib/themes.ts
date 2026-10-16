@@ -26,7 +26,7 @@ type ThemeId = (typeof THEME_IDS)[number];
 export const THEMES: ThemeDefinition[] = [
   {
     id: 'classic-xanga',
-    name: 'Classic Xanga',
+    name: 'Classic Glitter',
     description: 'Pink & purple pastels',
     previewColors: ['#ffb3d9', '#d9b3ff', '#b3d9ff'],
     variables: {
@@ -182,8 +182,8 @@ export const THEMES: ThemeDefinition[] = [
   },
   {
     id: 'myspace-blue',
-    name: 'MySpace Blue',
-    description: 'Tom would be proud',
+    name: 'Top 8 Blue',
+    description: 'Top 8 approved',
     previewColors: ['#003366', '#0066cc', '#99ccff'],
     variables: {
       '--bg-primary': '#000033',

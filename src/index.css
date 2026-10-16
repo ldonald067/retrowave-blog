@@ -2,7 +2,7 @@
 
 /* Xanga/Early 2000s Web Aesthetic — now theme-aware via CSS custom properties */
 
-/* Default theme variables (Classic Xanga) — overridden by data-theme via JS */
+/* Default theme variables (Classic Glitter) — overridden by data-theme via JS */
 :root {
   /* Fallback palette — kept identical to the default classic-xanga theme in
      themes.ts so the pre-hydration flash matches what loads and meets AA. */
