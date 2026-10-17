@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-16, at the commit after `07857c9` (code `0242c82`). Mood
+Last rewritten 2026-10-17, at the commit after `3c46101` (code `0242c82`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -18,46 +18,42 @@ and limits arrive too soon. Every session:
   (grep the heading) — not the whole file. Grep the audit plan; never read it whole.
 - Screenshots at `scale: 0.4`–`0.5`, and prefer `read_page`/`get_page_text`.
   One simulator unless the task is about a specific width.
-  The simulator screenshot has no scale option (full size every time) and taps
-  render a beat late: tap, screenshot, and screenshot once more only if unchanged.
+  The simulator panel's screenshot is always full size — capture with `simctl io`
+  and shrink with `sips -Z 600` instead (`gotchas.md` → "Simulator and
+  verification"). Taps render a beat late: tap, wait ~2s, then screenshot.
 - No subagents. Don't re-verify what this file says is verified.
 - Finish one task per chat; hand off and start fresh rather than running long.
 
 ## Next
 
-Done 2026-10-08 → 14: your two calls (log out is device-only; signup heading
-"start ur journal", `6a766cf`, proven on the SE by `auth.sessions`); migration
-`20261008000000` (pasted, verified by query, `6821019`); store screenshots
-`02`–`05` recaptured on the Pro Max as `retrodemo`. 2026-10-15/16: you rotated
-`retrodemo`'s password (via "forgot ur password?"; it now lives only in App Store
-Connect and your password manager, `440b78d`); the desktop sidebar's per-chapter
-lock toggle is gone so counts line up (`e5d5d68`, measured in the dev server);
-private chapters wear 🤫 (🔒 is private entries only) and phones change a
-chapter's privacy with a "🤫 private | 📖 public" pair under its name instead
-of the one-tap button (`e435aaf`, seen on the 17e, not tapped). Brand names are
-out of the store shots: you edited `retrodemo`'s "theme appreciation post" to
-"switched 2 the classic theme" (SQL, 2026-10-16), the themes "Classic Xanga" and
-"MySpace Blue · Tom would be proud" are now "Classic Glitter" and "Top 8 Blue ·
-Top 8 approved" (display names only, `8114e55`), and 01, 02 and 05 are recaptured.
-The app's own "xanga" copy is gone too (intro, empty state, footer badge → "y2k
-revival", `c0fd392`). 06 is recaptured as `rainbowpudding` (display name "Yes" —
-your placeholder for now; a store shot reads "Hi, Yes!", so recapture if you
-rename it). All six store shots are now free of brand names. `/adversarial-review`
-of everything since 09-30: findings 95–99 fixed (`0242c82`) — un-hiding a
-chapter on a public profile now asks first; migration `20261016000000` pasted
-and verified by you. The duplicate `profiles.username` unique constraint is gone
-(`profiles_username_key` dropped, migration `20261016010000`, pasted by you and
-verified by query, `07857c9`).
+Done 2026-10-17 (no code change; every simulator still runs `0242c82`): the
+89–93 device checks. On the 17e as `ldonald234`: active reaction count (❤️ 1,
+body text on the tint, accent border), the public-page pending notice on
+cottage-core and emo-dark (vibe live preview, cancelled), "~ unblock ~", and a
+song title without a link (italic `--text-subtitle` on the card). The age screen
+on the 17, reached mid-sign-up (▼ on the year select, "~ pick ur birth year
+first ~"); nothing submitted, no account created (checked). Block from a public
+profile is now exercised. Prod writes, each approved by you, reverted and
+re-diffed against a snapshot: one reaction, one block of `codex-qa-24e3a82f`,
+and `music` on "First day back on here" — its `updated_at` is now 2026-10-17, the only lasting change.
 
-Recommended order: nothing is queued. What's left is the Apple enrollment and
-the device checks below and under "Open work, smaller".
+Earlier state still true: all six store shots are brand-free; 06 is
+`rainbowpudding`, whose display name "Yes" is your placeholder — a store shot
+reads "Hi, Yes!", so recapture if you rename it. `retrodemo`'s password lives
+only in App Store Connect and your password manager.
 
-Not yet seen on a device from 89–94 (colour swaps, contrast computed): active
-reaction count, sidebar active chapter (bar + bold), "~ unblock ~", public-page
-pending notice, a song title without a YouTube link, offline banner, age screen.
-Also not seen on a device: the "~ this goes public ~" dialog (finding 95) —
-it needs a public profile with a chapter; `ldonald234`'s page is private, and
-`retrodemo` is never a fixture. The pair itself was tapped there and reverted.
+Recommended order: findings 100–101 in `docs/audit/ui-audit-plan.md`, together.
+The safety tab lists a blocked person as a user-id prefix ("748e75eb..."), and
+the block confirm says to undo it "in settings", where there is no block list
+(it is edit profile → safety). Check prod RLS on `profiles` before picking a join
+or an RPC for the username. One rebuild verifies both: opening the block confirm
+and cancelling writes nothing; the safety list needs one block (ask).
+
+Still not seen: the sidebar's active chapter — that list is `hidden lg:block`,
+so no iPhone shows it; check it in the dev server at 1024pt+ once you are signed
+in there. The offline banner (real device). The "~ this goes public ~" dialog
+(finding 95) needs a public profile with a chapter; `ldonald234`'s page is
+private, and `retrodemo` is never a fixture.
 
 ## Where the project is
 
@@ -106,7 +102,7 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 - Left as is: finding 52 (SE feed slot); SE max-text composer can scroll the
   field away. Ban not implemented (restore finding 43's sentence only if built).
 - Never exercised: YouTube playback (the card renders — `retrodemo`'s "my first
-  entry!!" on the Pro Max, 2026-10-14), a long feed, block from a public profile.
+  entry!!" on the Pro Max, 2026-10-14), a long feed.
 
 ## Waiting for you
 

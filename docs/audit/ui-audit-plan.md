@@ -356,8 +356,10 @@ assigned.
 | 97 | LOW | Chapter privacy | The pair moves only when the save returns, so a change of mind in that window landed on the stale side and was dropped | Fixed `0242c82` — controls disabled and the group `aria-busy` while saving |
 | 98 | LOW | Log out | Offline, log-out always failed with "try again": even scope `local` asks the server first, and supabase-js keeps the session when it cannot. The failed attempt also left `deliberateSignOutRef` set, which would swallow a later real expiry's "session expired" | Fixed `0242c82` — "ur offline, connect 2 log out"; flag reset on failure; test fails without it. Not reproducible on the simulator (shared network) |
 | 99 | LOW | Rate-limit helpers | `recent_post_count` and `recent_reaction_count` (SECURITY DEFINER, EXECUTE to authenticated for their policies) counted any id for any signed-in caller — another user's entries in the last hour, private ones included. Whether another user's id is obtainable was not checked | Fixed `0242c82` — migration `20261016000000` pasted 2026-10-16, guard passed, verify query true/true; counts only `p_user = auth.uid()`, which is what both policies pass |
+| 100 | MED | Safety tab (edit profile) | A blocked person is listed as the first 8 characters of their user id ("748e75eb...") — `useBlocks` selects only `blocked_id, created_at` and the row prints `blocked_id.substring(0, 8)`, so with two blocks you cannot tell whom you are unblocking | Open — seen on the 17e 2026-10-17 (blocked `codex-qa-24e3a82f`, then unblocked). Needs the username: check prod RLS on `profiles` before choosing a join or an RPC |
+| 101 | LOW | Block confirm, public page | "You can undo this later in settings." — the gear (`Open settings`, `SettingsModal`) has no block list; unblocking is edit profile → safety (`PublicProfileView.tsx:463`) | Open — seen on the 17e 2026-10-17 |
 
-Findings 45–99 lifted the count from 41 to 96 (numbers 40–42 unassigned).
+Findings 45–101 lifted the count from 41 to 98 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 

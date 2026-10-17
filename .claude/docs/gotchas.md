@@ -70,6 +70,9 @@ section they belong to — not at the bottom.
 - **Re-issuing the same deep-link hash is a no-op** — `routeDeepLink` returns early when the hash already matches. Vary the id.
 - **The browser pane cannot verify anything behind `AnimatePresence`.** It reports `visibilityState: "hidden"`, rAF is throttled, and animations freeze mid-flight — entrances stall at partial opacity and `mode="wait"` never swaps children, which renders as a convincing phantom bug. `read_page` showing `Viewport: 0x0` is the tell. Use a component test, or the simulator.
 - The session scratchpad gets cleaned — mid-session it took a built `.app`, overnight a helper script. Rebuild or recreate rather than trusting an earlier path.
+- [2026-10-17 /mobile] **Small simulator screenshots:** the panel's screenshot is always full size, so capture with `xcrun simctl io <udid> screenshot s.png && sips -Z 600 s.png --out small.png` and read the small one (≈⅓ the tokens); crop the full-size file with `sips -c H W --cropOffset Y X` to read fine text. Tap points are then `small px × (point width ÷ small width)`.
+- [2026-10-17 /mobile] **Clearing a field on the simulator:** there is no backspace input. Tap the focused field's caret → "Select All" → "Cut".
+- [2026-10-17 /mobile] After switching simulators, `tap` can fail with `dtuhidSimulatorNotBooted` while `attach` says "already attached" — `detach`, then `attach` the new device. Right after `boot`, `get_app_container` can return a stale bundle path; `listapps` has the real one, and a second call agrees with it.
 
 ## Supabase and RPCs
 
