@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-16, at the commit after `0242c82` (code `0242c82`). Mood
+Last rewritten 2026-10-16, at the commit after `07857c9` (code `0242c82`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -45,11 +45,12 @@ your placeholder for now; a store shot reads "Hi, Yes!", so recapture if you
 rename it). All six store shots are now free of brand names. `/adversarial-review`
 of everything since 09-30: findings 95–99 fixed (`0242c82`) — un-hiding a
 chapter on a public profile now asks first; migration `20261016000000` pasted
-and verified by you.
+and verified by you. The duplicate `profiles.username` unique constraint is gone
+(`profiles_username_key` dropped, migration `20261016010000`, pasted by you and
+verified by query, `07857c9`).
 
-Recommended order:
-
-1. Optional: drop the duplicate unique constraint on `profiles.username`.
+Recommended order: nothing is queued. What's left is the Apple enrollment and
+the device checks below and under "Open work, smaller".
 
 Not yet seen on a device from 89–94 (colour swaps, contrast computed): active
 reaction count, sidebar active chapter (bar + bold), "~ unblock ~", public-page
@@ -75,7 +76,7 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Prod state worth knowing (checked by query)
 
-- Migrations through `20261016000000` are applied (pasted by you). 8 auth users,
+- Migrations through `20261016010000` are applied (pasted by you). 8 auth users,
   7 profiles, 7/7 terms accepted.
 - Helper EXECUTE (`20261008000000`): `recent_reaction_count` and
   `recent_post_count` — authenticated only, and since `20261016000000` they
@@ -102,7 +103,6 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
   the device's session server-side instead (delete its `auth.sessions` row: a
   prod write, ask), then relaunch; a username rename (should lock 30 days; old
   name "taken" at sign-up).
-- Optional cleanup: `profiles.username` has two identical unique constraints.
 - Left as is: finding 52 (SE feed slot); SE max-text composer can scroll the
   field away. Ban not implemented (restore finding 43's sentence only if built).
 - Never exercised: YouTube playback (the card renders — `retrodemo`'s "my first
