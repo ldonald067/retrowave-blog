@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-17, at the commit after `3c46101` (code `0242c82`). Mood
+Last rewritten 2026-10-18, at the commit after `885b15d` (code `885b15d`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -26,28 +26,29 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-Done 2026-10-17 (no code change; every simulator still runs `0242c82`): the
-89–93 device checks. On the 17e as `ldonald234`: active reaction count (❤️ 1,
-body text on the tint, accent border), the public-page pending notice on
-cottage-core and emo-dark (vibe live preview, cancelled), "~ unblock ~", and a
-song title without a link (italic `--text-subtitle` on the card). The age screen
-on the 17, reached mid-sign-up (▼ on the year select, "~ pick ur birth year
-first ~"); nothing submitted, no account created (checked). Block from a public
-profile is now exercised. Prod writes, each approved by you, reverted and
-re-diffed against a snapshot: one reaction, one block of `codex-qa-24e3a82f`,
-and `music` on "First day back on here" — its `updated_at` is now 2026-10-17, the only lasting change.
+Done 2026-10-18: findings 100–101 fixed (`885b15d`). The safety tab names each
+blocked person (display name, then @username) through a new SECURITY DEFINER
+RPC, `get_blocked_users` — migration `20261017000000`, pasted by you, verified by
+query (anon cannot call it). It withholds the name while the blocked page is
+private, so blocking an id read off a reaction cannot reveal a private journal's
+name; the row then says "someone w/ a private page" with the block date. The
+block confirm now says "undo this later in edit profile, under safety". Seen on
+the 17e: the copy, then one approved block of `codex-qa-24e3a82f` listed as
+"Codex QA Profile 95101 / @codex-qa-24e3a82f", unblocked, re-diffed (0 blocks).
+The "private page" fallback is covered by a component test only.
+
+Done 2026-10-17: the 89–93 device checks (reaction count, pending notice on
+cottage-core and emo-dark, "~ unblock ~", linkless song title, age screen) and
+block from a public profile. The only lasting prod change from those tests:
+"First day back on here" has `updated_at` 2026-10-17.
 
 Earlier state still true: all six store shots are brand-free; 06 is
 `rainbowpudding`, whose display name "Yes" is your placeholder — a store shot
 reads "Hi, Yes!", so recapture if you rename it. `retrodemo`'s password lives
 only in App Store Connect and your password manager.
 
-Recommended order: findings 100–101 in `docs/audit/ui-audit-plan.md`, together.
-The safety tab lists a blocked person as a user-id prefix ("748e75eb..."), and
-the block confirm says to undo it "in settings", where there is no block list
-(it is edit profile → safety). Check prod RLS on `profiles` before picking a join
-or an RPC for the username. One rebuild verifies both: opening the block confirm
-and cancelling writes nothing; the safety list needs one block (ask).
+Recommended order: nothing is queued. What's left is the Apple enrollment and
+the checks below and under "Open work, smaller".
 
 Still not seen: the sidebar's active chapter — that list is `hidden lg:block`,
 so no iPhone shows it; check it in the dev server at 1024pt+ once you are signed
@@ -128,7 +129,7 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `0242c82` (`index-Bej0gr39.js`, installed 2026-10-16). Sessions live in
+All six on `885b15d` (`index-CULEUWR-.js`, installed 2026-10-18). Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
