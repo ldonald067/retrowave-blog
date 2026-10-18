@@ -304,6 +304,18 @@ export interface Database {
         };
         Returns: { is_blocked: boolean };
       };
+      // The caller's blocks, newest first. username and display_name are null
+      // unless the blocked person's page is public — otherwise blocking an id
+      // read off a reaction would reveal a private journal's name.
+      get_blocked_users: {
+        Args: Record<string, never>;
+        Returns: {
+          blocked_id: string;
+          created_at: string | null;
+          username: string | null;
+          display_name: string | null;
+        }[];
+      };
       // Apple Guideline 1.2: file a report against a public entry. Callable by
       // anon so a signed-out visitor on a shared link can still flag content.
       report_public_post: {

@@ -40,7 +40,8 @@ import {
 import { THEMES, applyTheme, DEFAULT_THEME } from '../lib/themes';
 import { EMOJI_STYLES, getEmojiStyle, setEmojiStyle, type EmojiStyleId } from '../lib/emojiStyles';
 import { useFocusTrap } from '../hooks/useFocusTrap';
-import { useBlocks } from '../hooks/useBlocks';
+import { useBlocks, type BlockedUser } from '../hooks/useBlocks';
+import { formatDate } from '../utils/formatDate';
 import { sparkleBurst, emojiRain } from '../lib/celebrations';
 import { buildPublicProfileUrl } from '../lib/publicProfile';
 import {
@@ -138,9 +139,7 @@ export default function ProfileModal({
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [showPublishConfirm, setShowPublishConfirm] = useState(false);
   const [activeSection, setActiveSection] = useState<ProfileSection>('profile');
-  const [blockedUsers, setBlockedUsers] = useState<
-    Array<{ blocked_id: string; created_at: string }>
-  >([]);
+  const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   // Keep local previews reversible until the user saves.
@@ -848,18 +847,48 @@ export default function ProfileModal({
                           {blockedUsers.map((block) => (
                             <div
                               key={block.blocked_id}
-                              className="flex items-center justify-between p-2 rounded"
+                              className="flex items-center justify-between gap-2 p-2 rounded"
                               style={{
                                 backgroundColor:
                                   'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
                               }}
                             >
-                              <span
-                                className="text-xs truncate"
-                                style={{ color: 'var(--text-body)' }}
-                              >
-                                {block.blocked_id.substring(0, 8)}...
-                              </span>
+                              {/* Was the first 8 characters of a user id, which
+                                  told you nothing about whom you were unblocking
+                                  (finding 100). The name is withheld once their
+                                  page is private; the date then tells two such
+                                  rows apart. */}
+                              <div className="flex-1 min-w-0 text-xs">
+                                {block.username ? (
+                                  <>
+                                    <p
+                                      className="font-semibold truncate"
+                                      style={{ color: 'var(--text-body)' }}
+                                    >
+                                      {block.display_name?.trim() || `@${block.username}`}
+                                    </p>
+                                    {block.display_name?.trim() && (
+                                      <p
+                                        className="truncate"
+                                        style={{ color: 'var(--text-muted)' }}
+                                      >
+                                        @{block.username}
+                                      </p>
+                                    )}
+                                  </>
+                                ) : (
+                                  <>
+                                    <p style={{ color: 'var(--text-body)' }}>
+                                      someone w/ a private page
+                                    </p>
+                                    {block.created_at && (
+                                      <p style={{ color: 'var(--text-muted)' }}>
+                                        blocked {formatDate(block.created_at)}
+                                      </p>
+                                    )}
+                                  </>
+                                )}
+                              </div>
                               <motion.button
                                 whileTap={{ scale: 0.9 }}
                                 type="button"

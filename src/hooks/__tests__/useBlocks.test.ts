@@ -119,15 +119,23 @@ describe('useBlocks', () => {
 
   // ── fetchBlockedUsers ──────────────────────────────────────────────────
 
-  it('fetchBlockedUsers returns data from supabase query', async () => {
+  it('fetchBlockedUsers returns data from the get_blocked_users RPC', async () => {
     const blockedUsers = [
-      { blocked_id: 'user-a', created_at: '2025-01-01T00:00:00Z' },
-      { blocked_id: 'user-b', created_at: '2025-01-02T00:00:00Z' },
+      {
+        blocked_id: 'user-a',
+        created_at: '2025-01-02T00:00:00Z',
+        username: 'glitterqueen',
+        display_name: 'Glitter Queen',
+      },
+      {
+        blocked_id: 'user-b',
+        created_at: '2025-01-01T00:00:00Z',
+        username: null,
+        display_name: null,
+      },
     ];
 
-    const orderMock = vi.fn().mockResolvedValue({ data: blockedUsers, error: null });
-    const selectMock = vi.fn().mockReturnValue({ order: orderMock });
-    vi.mocked(supabase.from).mockReturnValueOnce({ select: selectMock } as never);
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: blockedUsers, error: null } as never);
 
     const { result } = renderHook(() => useBlocks());
 
@@ -136,9 +144,13 @@ describe('useBlocks', () => {
       response = await result.current.fetchBlockedUsers();
     });
 
-    expect(supabase.from).toHaveBeenCalledWith('user_blocks');
+    // Not a user_blocks select: profiles' RLS is own-row only, so a join could
+    // never reach the name.
+    expect(supabase.rpc).toHaveBeenCalledWith('get_blocked_users');
+    expect(supabase.from).not.toHaveBeenCalled();
     expect(response.data).toHaveLength(2);
-    expect(response.data[0]).toMatchObject({ blocked_id: 'user-a' });
+    expect(response.data[0]).toMatchObject({ blocked_id: 'user-a', username: 'glitterqueen' });
+    expect(response.data[1]).toMatchObject({ blocked_id: 'user-b', username: null });
     expect(response.error).toBeNull();
   });
 
@@ -157,16 +169,14 @@ describe('useBlocks', () => {
 
     expect(response.data).toHaveLength(0);
     expect(response.error).toBe('You must be logged in.');
-    expect(supabase.from).not.toHaveBeenCalled();
+    expect(supabase.rpc).not.toHaveBeenCalled();
   });
 
   it('fetchBlockedUsers returns error on query failure', async () => {
-    const orderMock = vi.fn().mockResolvedValue({
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({
       data: null,
       error: { message: 'Query failed', code: '500' },
-    });
-    const selectMock = vi.fn().mockReturnValue({ order: orderMock });
-    vi.mocked(supabase.from).mockReturnValueOnce({ select: selectMock } as never);
+    } as never);
 
     const { result } = renderHook(() => useBlocks());
 

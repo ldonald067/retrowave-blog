@@ -4,9 +4,12 @@ import { toUserMessage } from '../lib/errors';
 import { withRetry } from '../lib/retry';
 import { requireAuth } from '../lib/auth-guard';
 
-interface BlockedUser {
+export interface BlockedUser {
   blocked_id: string;
-  created_at: string;
+  created_at: string | null;
+  /** Null unless the blocked person's page is public (see get_blocked_users). */
+  username: string | null;
+  display_name: string | null;
 }
 
 interface UseBlocksReturn {
@@ -44,12 +47,9 @@ export function useBlocks(): UseBlocksReturn {
       const auth = await requireAuth();
       if (auth.error) return { data: [], error: auth.error };
 
-      const { data, error } = await withRetry(async () =>
-        supabase
-          .from('user_blocks')
-          .select('blocked_id, created_at')
-          .order('created_at', { ascending: false })
-      );
+      // An RPC, not a select: profiles' RLS is own-row only, so a join from
+      // user_blocks could never reach the blocked person's name.
+      const { data, error } = await withRetry(async () => supabase.rpc('get_blocked_users'));
       if (error) throw error;
       return { data: (data as BlockedUser[]) ?? [], error: null };
     } catch (err) {

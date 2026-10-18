@@ -460,7 +460,7 @@ export default function PublicProfileView({
           message={
             <>
               You won&apos;t see their entries anywhere in your journal, and they won&apos;t be able
-              to react to yours. You can undo this later in settings.
+              to react to yours. You can undo this later in edit profile, under safety.
             </>
           }
           confirmLabel="~ yes, block ~"
