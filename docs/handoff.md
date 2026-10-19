@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-18, at the commit after `598e7aa` (code `885b15d`). Mood
+Last rewritten 2026-10-18, at the commit after `2d8a660` (app code `885b15d`; `2d8a660` changed only `public/support.html`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
