@@ -16,6 +16,7 @@ section they belong to — not at the bottom.
 
 ## UI conventions
 
+- [2026-10-18 /frontend] **The tint rule covers `--link-caution` too, and `lg:`-only controls slip past every phone pass.** Settings' delete-account button and the desktop cursor-trail picker both failed (102, 103) after nine audits. Sweep the sidebar on the dev server at ≥1024px once signed in.
 - [2026-10-07 /frontend] **Text on a tint of its own colour fails AA, and so does text faded with `opacity`** — nine tint sites and four faded lines in one audit (89, 90). Header controls sit on the gradient, so they use `--text-title`, not the accent (2.38 on classic). Rules in `/frontend`.
 - [2026-09-26 /frontend] **A status must not wear a control's treatment.** Setup's "required"/"optional" tags shipped as dotted, accent-lettered, `title-bold` pills — `.xanga-button-ghost`'s look — so a label read as tappable. States are plain bold text (accent when worth noticing); names are italic in `--text-subtitle`, never bold.
 

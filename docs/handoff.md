@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-18, at the commit after `2d8a660` (app code `885b15d`; `2d8a660` changed only `public/support.html`). Mood
+Last rewritten 2026-10-18, at the commit after `4895f32` (app code). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -29,22 +29,23 @@ and limits arrive too soon. Every session:
 **Nothing is queued.** What's left is the Apple enrollment and the checks under
 "Still not seen" below and "Open work, smaller".
 
-Last done (2026-10-17/18): the 89–93 device checks (reaction count, pending
-notice on cottage-core and emo-dark, "~ unblock ~", linkless song title, age
-screen) and block from a public profile, all seen on simulators; then findings
-100–101 fixed (`885b15d`) — the safety tab names each blocked person through
-`get_blocked_users`, and the block confirm says to undo it "in edit profile,
-under safety". Seen on the 17e with one approved block of `codex-qa-24e3a82f`,
-reverted and re-diffed. The "someone w/ a private page" fallback row (shown when
-the blocked page is private) is covered by a component test only. The one
-lasting prod change from these tests: "First day back on here" (`ldonald234`)
-has `updated_at` 2026-10-17.
+Last done (2026-10-18): a `/frontend` audit found and fixed findings 102–105
+(`4895f32`), all contrast: Settings' "~ delete account ~" sat on a caution tint
+(4.26), the desktop cursor-trail picker faded three solid buttons (2.52), the
+avatar check was hardcoded white (1.37 on scene-kid), and the locked username
+field was faded (3.44). The first three were seen on the dev server at 1280 as
+`ldonald234`; the username lock was measured only. Nothing was written to prod.
+The sweeps found nothing else: no other hardcoded colours, every theme has all 44
+variables, the copy is in the voice, no voice in aria-labels, and every hover
+rule is guarded. Before that, findings 100–101 (`885b15d`), and the one lasting
+prod change from those tests: "First day back on here" (`ldonald234`) has
+`updated_at` 2026-10-17.
 
-Still not seen: the sidebar's active chapter — that list is `hidden lg:block`,
-so no iPhone shows it; check it in the dev server at 1024pt+ once you are signed
-in there. The offline banner (real device). The "~ this goes public ~" dialog
+Still not seen: the offline banner (real device). The "~ this goes public ~" dialog
 (finding 95) needs a public profile with a chapter; `ldonald234`'s page is
-private, and `retrodemo` is never a fixture.
+private, and `retrodemo` is never a fixture. The sidebar's active chapter **was
+seen** on the dev server (2026-10-18): the desktop sidebar is reachable there at
+1280 once you sign in in the browser pane.
 
 Store shots: all six are brand-free; 06 is `rainbowpudding`, whose display name
 "Yes" is your placeholder — a shot reads "Hi, Yes!", so recapture if you rename
@@ -127,7 +128,9 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `885b15d` (`index-CULEUWR-.js`, installed 2026-10-18). Sessions live in
+All six on `885b15d` (`index-CULEUWR-.js`, installed 2026-10-18), **one app commit
+behind** `4895f32`, whose phone-visible changes are small: the delete-account
+button, the avatar check and the locked username field. Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 

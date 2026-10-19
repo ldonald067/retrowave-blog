@@ -250,7 +250,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**91 findings, all fixed except 52** (left as is on purpose).
+**102 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -358,8 +358,12 @@ assigned.
 | 99 | LOW | Rate-limit helpers | `recent_post_count` and `recent_reaction_count` (SECURITY DEFINER, EXECUTE to authenticated for their policies) counted any id for any signed-in caller — another user's entries in the last hour, private ones included. Whether another user's id is obtainable was not checked | Fixed `0242c82` — migration `20261016000000` pasted 2026-10-16, guard passed, verify query true/true; counts only `p_user = auth.uid()`, which is what both policies pass |
 | 100 | MED | Safety tab (edit profile) | A blocked person is listed as the first 8 characters of their user id ("748e75eb...") — `useBlocks` selects only `blocked_id, created_at` and the row prints `blocked_id.substring(0, 8)`, so with two blocks you cannot tell whom you are unblocking | Fixed `885b15d` — `get_blocked_users` (SECURITY DEFINER, migration `20261017000000`, pasted 2026-10-18 and verified by query) returns display name and username only while the blocked page is public, since a post owner can read reactor ids; otherwise "someone w/ a private page" + the block date. Seen on the 17e (one block of `codex-qa-24e3a82f`, unblocked) |
 | 101 | LOW | Block confirm, public page | "You can undo this later in settings." — the gear (`Open settings`, `SettingsModal`) has no block list; unblocking is edit profile → safety (`PublicProfileView.tsx:463`) | Fixed `885b15d` — "undo this later in edit profile, under safety". Seen on the 17e |
+| 102 | MED | Settings, delete account | Caution text on a 12% tint of the caution colour (finding 89's pattern, with `--link-caution` in place of an accent): 4.26 classic-xanga, 4.06 cottage-core, for 12px bold that needs 4.5. Its comment had measured against `--card-bg`, not the tint | Fixed `4895f32`: tint dropped, outline and text kept, 5.02 / 4.77. Seen on the dev server in cottage-core and emo-dark |
+| 103 | MED | Sidebar cursor trail (desktop) | Three solid `.xanga-button` fills, so three primaries in one row, with the unpicked ones faded to 0.6: labels 2.52–3.92 on 7 of 8 themes. It is `hidden lg:block`, so no phone pass reached it | Fixed `4895f32`: the avatar picker's chips (`--text-body`; accent border and 15% tint when picked), 6.08 worst. Seen at 1280 in cottage-core and emo-dark |
+| 104 | LOW | Avatar picker | The selected avatar's check was hardcoded `text-white` on `--accent-primary`: 1.37 scene-kid, 1.77 y2k-cyber, 2.81 pastel-goth (a glyph needs 3:1). The accent outline still marked the pick | Fixed `4895f32`: `--card-bg`, 4.82 worst. Seen on scene-kid |
+| 105 | LOW | Edit profile, locked username | A username in its 30-day lock was faded with `opacity-60`: 3.44 cottage-core, 3.71 classic-xanga, 3.87 grunge | Fixed `4895f32`: no fade, `cursor-not-allowed`; the hint under it already says it is locked and until when. Measured only, because `ldonald234` is not in a lock |
 
-Findings 45–101 lifted the count from 41 to 98 (numbers 40–42 unassigned).
+Findings 45–105 lifted the count from 41 to 102 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
@@ -423,9 +427,9 @@ counted.
 
 ## Blocked — cannot be reached from this session
 
-| Surface              | Needs                                                                                             |
-| -------------------- | ------------------------------------------------------------------------------------------------- |
-| Sidebar stats labels | ≥1024px (`hidden lg:block`); the phone is 440pt, so finding 29's fix there is verified by reading |
+Nothing at present. The desktop sidebar (`hidden lg:block`) used to be listed here. Since
+2026-10-18 it is reachable on the dev server at 1280 once you sign in, and finding 29's
+lowercase labels, the active chapter and finding 103 were all seen there.
 
 ## Adversarial reviews
 
