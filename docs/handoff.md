@@ -128,9 +128,8 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `885b15d` (`index-CULEUWR-.js`, installed 2026-10-18), **one app commit
-behind** `4895f32`, whose phone-visible changes are small: the delete-account
-button, the avatar check and the locked username field. Sessions live in
+All six on `4895f32` (`index-Bm_oyzC1.js`, installed 2026-10-18), the current app
+code. The 17e showed the untinted delete-account button after install. Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
