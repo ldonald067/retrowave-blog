@@ -68,6 +68,7 @@ const { data, error } = await withRetry(async () => supabase.from('posts').selec
 | `get_posts_with_reactions` | `usePosts.ts`         | Feed pagination + reactions                         |
 | `get_post_by_id`           | `usePosts.ts`         | Single post (full content)                          |
 | `toggle_user_block`        | `useBlocks.ts`        | Block/unblock user                                  |
+| `get_blocked_users`        | `useBlocks.ts`        | Safety tab list; names only for public pages        |
 | `block_user_by_username`   | `lib/reporting.ts`    | Block from a public profile page                    |
 | `export_user_data`         | `SettingsModal.tsx`   | GDPR data export                                    |
 | `delete_user_account`      | `SettingsModal.tsx`   | Account deletion                                    |

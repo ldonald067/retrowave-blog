@@ -80,7 +80,9 @@ grep -rhno "rpc('[a-z_]*'" src --include='*.ts*' | grep -v __tests__ | sed "s/.*
 - `useReactions.ts` → `post_reactions` (INSERT/DELETE with optimistic UI)
 - `useAuth.ts` → `profiles` (SELECT/UPDATE)
 - `usePosts.ts` → `posts` (INSERT/UPDATE/DELETE for mutations)
-- `useBlocks.ts` → `user_blocks` (SELECT; writes go through the block RPCs)
+- `useBlocks.ts` → none since 2026-10-18: the list is the `get_blocked_users` RPC (names only
+  while the blocked page is public — `profiles` RLS is own-row only), unblock is
+  `toggle_user_block`, and blocking is `block_user_by_username` via `lib/reporting.ts`
 
 ### 5. Trigger-Protected Fields
 

@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-18, at the commit after `885b15d` (code `885b15d`). Mood
+Last rewritten 2026-10-18, at the commit after `598e7aa` (code `885b15d`). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -26,35 +26,30 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-Done 2026-10-18: findings 100–101 fixed (`885b15d`). The safety tab names each
-blocked person (display name, then @username) through a new SECURITY DEFINER
-RPC, `get_blocked_users` — migration `20261017000000`, pasted by you, verified by
-query (anon cannot call it). It withholds the name while the blocked page is
-private, so blocking an id read off a reaction cannot reveal a private journal's
-name; the row then says "someone w/ a private page" with the block date. The
-block confirm now says "undo this later in edit profile, under safety". Seen on
-the 17e: the copy, then one approved block of `codex-qa-24e3a82f` listed as
-"Codex QA Profile 95101 / @codex-qa-24e3a82f", unblocked, re-diffed (0 blocks).
-The "private page" fallback is covered by a component test only.
+**Nothing is queued.** What's left is the Apple enrollment and the checks under
+"Still not seen" below and "Open work, smaller".
 
-Done 2026-10-17: the 89–93 device checks (reaction count, pending notice on
-cottage-core and emo-dark, "~ unblock ~", linkless song title, age screen) and
-block from a public profile. The only lasting prod change from those tests:
-"First day back on here" has `updated_at` 2026-10-17.
-
-Earlier state still true: all six store shots are brand-free; 06 is
-`rainbowpudding`, whose display name "Yes" is your placeholder — a store shot
-reads "Hi, Yes!", so recapture if you rename it. `retrodemo`'s password lives
-only in App Store Connect and your password manager.
-
-Recommended order: nothing is queued. What's left is the Apple enrollment and
-the checks below and under "Open work, smaller".
+Last done (2026-10-17/18): the 89–93 device checks (reaction count, pending
+notice on cottage-core and emo-dark, "~ unblock ~", linkless song title, age
+screen) and block from a public profile, all seen on simulators; then findings
+100–101 fixed (`885b15d`) — the safety tab names each blocked person through
+`get_blocked_users`, and the block confirm says to undo it "in edit profile,
+under safety". Seen on the 17e with one approved block of `codex-qa-24e3a82f`,
+reverted and re-diffed. The "someone w/ a private page" fallback row (shown when
+the blocked page is private) is covered by a component test only. The one
+lasting prod change from these tests: "First day back on here" (`ldonald234`)
+has `updated_at` 2026-10-17.
 
 Still not seen: the sidebar's active chapter — that list is `hidden lg:block`,
 so no iPhone shows it; check it in the dev server at 1024pt+ once you are signed
 in there. The offline banner (real device). The "~ this goes public ~" dialog
 (finding 95) needs a public profile with a chapter; `ldonald234`'s page is
 private, and `retrodemo` is never a fixture.
+
+Store shots: all six are brand-free; 06 is `rainbowpudding`, whose display name
+"Yes" is your placeholder — a shot reads "Hi, Yes!", so recapture if you rename
+it. `retrodemo`'s password lives only in App Store Connect and your password
+manager.
 
 ## Where the project is
 
@@ -67,14 +62,17 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 - **Supabase pauses when idle** (found `INACTIVE` 2026-09-15). Check before any
   device session; keep it active through App Review.
 - iOS deployment target 16.4 (the CSS needs it).
-- **CI green, 408 tests across 48 files.** `npm run check` = CI.
+- **CI green, 409 tests across 49 files.** `npm run check` = CI.
 - Pushing to `main` deploys the site (Cloudflare Workers build — it failed once
   during a Cloudflare incident on 2026-09-30; a later push fixed it).
 
 ## Prod state worth knowing (checked by query)
 
-- Migrations through `20261016010000` are applied (pasted by you). 8 auth users,
-  7 profiles, 7/7 terms accepted.
+- Migrations through `20261017000000` are applied (pasted by you). 8 auth users,
+  8 profiles, 8/8 terms accepted, none unconfirmed (2026-10-18).
+- `get_blocked_users` (`20261017000000`): SECURITY DEFINER, authenticated only;
+  returns names only while the blocked page is public, because a post's owner can
+  read reactors' ids. Any new "show another user's name" needs the same gate.
 - Helper EXECUTE (`20261008000000`): `recent_reaction_count` and
   `recent_post_count` — authenticated only, and since `20261016000000` they
   count only the caller (`p_user = auth.uid()`); `is_blocked_pair` —
@@ -115,15 +113,15 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Accounts
 
-| Account                                         | Use                                                                           |
-| ----------------------------------------------- | ----------------------------------------------------------------------------- |
-| `ldonald234`                                    | **Test data.** cottage-core, 2 entries incl. the overflow fixture — keep it   |
-| `ldonald0234`                                   | **Admin — the only one.** emo-dark, reaches `ModerationView`                  |
-| `retrodemo` (`appreview@retrowaveblog.com`)     | App Review demo, 3 public entries, emo-dark. **Never a fixture**              |
-| `codex-qa-24e3a82f`                             | Public page, classic-xanga (light public fixture)                             |
-| `blankslate`, `ldonald234_xanga`                | Zero posts — `EmptyState`                                                     |
-| `rainbowpudding` (`nonoabc2345+hook@gmail.com`) | Zero posts, display name "Yes"; **screenshot 06** account. Don't post from it |
-| `nonoabc2345@gmail.com`                         | Unconfirmed since 2026-09-19; holds no username                               |
+| Account                                          | Use                                                                             |
+| ------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `ldonald234`                                     | **Test data.** cottage-core, 2 entries incl. the overflow fixture — keep it     |
+| `ldonald0234`                                    | **Admin — the only one.** emo-dark, reaches `ModerationView`                    |
+| `retrodemo` (`appreview@retrowaveblog.com`)      | App Review demo, 3 public entries, emo-dark. **Never a fixture**                |
+| `codex-qa-24e3a82f`                              | Public page, classic-xanga (light public fixture)                               |
+| `blankslate`, `ldonald234_xanga`                 | 1 entry each (2026-10-18) — no longer `EmptyState` fixtures                     |
+| `rainbowpudding` (`nonoabc2345@gmail.com`)       | Zero posts, display name "Yes"; **screenshot 06** account. Don't post from it   |
+| `rainbowpudding1` (`nonoabc2345+hook@gmail.com`) | Zero posts, display name "Yes" — the one empty account free to use as a fixture |
 
 Gmail `+` addresses reach the same inbox and count as new accounts.
 
@@ -149,7 +147,8 @@ this Xcode; the software keyboard still appears (seen 2026-10-01).
 
 - **Never `supabase db push`**; never trust a migration as prod — query it.
 - The keychain "Supabase CLI" prompt blocks prod queries until you click Allow
-  ("Always Allow" stops it repeating per query).
+  ("Always Allow" stops it repeating per query). It can sit hidden behind other
+  windows, and unanswered it times out into an empty token — check `${#TOKEN}`.
 - Build replacement SQL functions from prod's live body; keep them ASCII.
 - Tap delivery ~1-in-3 and late — screenshot after each tap; swipes are reliable.
   Screenshot pixels are not tap points.
