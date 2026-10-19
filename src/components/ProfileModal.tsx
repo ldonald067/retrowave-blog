@@ -585,7 +585,9 @@ export default function ProfileModal({
                       spellCheck={false}
                       maxLength={USERNAME_LIMITS.max}
                       readOnly={!!cooldownEndsAt}
-                      className={cooldownEndsAt ? 'opacity-60' : ''}
+                      // Not faded: opacity-60 put the name at 3.44 on cottage-core.
+                      // The hint below says it is locked and until when.
+                      className={cooldownEndsAt ? 'cursor-not-allowed' : ''}
                       // A locked field has to say why to VoiceOver too, not just
                       // on screen (finding 75).
                       aria-describedby={usernameHintId}

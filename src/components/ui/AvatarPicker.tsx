@@ -252,7 +252,8 @@ export default function AvatarPicker({ userId, onSelect, onCancel, onChange }: A
                     className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center"
                     style={{ backgroundColor: 'var(--accent-primary)' }}
                   >
-                    <Check size={10} className="text-white" />
+                    {/* --card-bg, not white: white on the accent is 1.37 on scene-kid */}
+                    <Check size={10} style={{ color: 'var(--card-bg)' }} />
                   </div>
                 )}
               </motion.button>

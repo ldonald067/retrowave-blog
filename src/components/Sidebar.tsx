@@ -449,22 +449,31 @@ export default function Sidebar({
           cursor trail ✦
         </h3>
         <div className="flex flex-wrap gap-1">
-          {TRAIL_MODE_OPTIONS.map((opt) => (
-            <button
-              key={opt.id}
-              onClick={() => setTrail(opt.id)}
-              className="xanga-button text-xs px-2 py-1"
-              style={{
-                opacity: trailMode === opt.id ? 1 : 0.6,
-                transform: trailMode === opt.id ? 'scale(1.05)' : 'scale(1)',
-                transition: 'opacity 0.2s, transform 0.2s',
-              }}
-              aria-label={`Set cursor trail to ${opt.label}`}
-              aria-pressed={trailMode === opt.id}
-            >
-              {opt.label}
-            </button>
-          ))}
+          {TRAIL_MODE_OPTIONS.map((opt) => {
+            const selected = trailMode === opt.id;
+            return (
+              <button
+                key={opt.id}
+                onClick={() => setTrail(opt.id)}
+                // Chips, like the avatar picker's — not .xanga-button. Three solid
+                // fills in a row were three primaries, and fading the unpicked ones
+                // to 0.6 left their labels at 2.52-3.92:1 on 7 of 8 themes.
+                className="text-xs px-2 py-1 rounded-lg border-2 border-dotted transition min-h-[44px]"
+                style={{
+                  backgroundColor: selected
+                    ? 'color-mix(in srgb, var(--accent-primary) 15%, var(--card-bg))'
+                    : 'var(--card-bg)',
+                  borderColor: selected ? 'var(--accent-primary)' : 'var(--border-primary)',
+                  color: 'var(--text-body)',
+                  fontFamily: 'var(--title-font)',
+                }}
+                aria-label={`Set cursor trail to ${opt.label}`}
+                aria-pressed={selected}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
         </div>
       </motion.div>
     </>

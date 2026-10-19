@@ -214,8 +214,10 @@ export default function SettingsModal({
                 // text, so it needs 4.5:1, and accent-secondary measures 3.23:1
                 // on emo-dark and 3.54:1 on cottage-core. The most destructive
                 // button in the app was unreadable on two of eight themes.
+                // No caution tint behind it: a 12% tint pulled the text to 4.26
+                // on classic-xanga and 4.06 on cottage-core.
                 style={{
-                  backgroundColor: 'color-mix(in srgb, var(--link-caution) 12%, var(--card-bg))',
+                  backgroundColor: 'var(--card-bg)',
                   color: 'var(--link-caution)',
                   borderColor: 'var(--link-caution)',
                 }}
