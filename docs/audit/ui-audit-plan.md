@@ -250,7 +250,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**102 findings, all fixed except 52** (left as is on purpose).
+**109 findings, all fixed except 52** (left as is on purpose).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -362,8 +362,15 @@ assigned.
 | 103 | MED | Sidebar cursor trail (desktop) | Three solid `.xanga-button` fills, so three primaries in one row, with the unpicked ones faded to 0.6: labels 2.52–3.92 on 7 of 8 themes. It is `hidden lg:block`, so no phone pass reached it | Fixed `4895f32`: the avatar picker's chips (`--text-body`; accent border and 15% tint when picked), 6.08 worst. Seen at 1280 in cottage-core and emo-dark |
 | 104 | LOW | Avatar picker | The selected avatar's check was hardcoded `text-white` on `--accent-primary`: 1.37 scene-kid, 1.77 y2k-cyber, 2.81 pastel-goth (a glyph needs 3:1). The accent outline still marked the pick | Fixed `4895f32`: `--card-bg`, 4.82 worst. Seen on scene-kid |
 | 105 | LOW | Edit profile, locked username | A username in its 30-day lock was faded with `opacity-60`: 3.44 cottage-core, 3.71 classic-xanga, 3.87 grunge | Fixed `4895f32`: no fade, `cursor-not-allowed`; the hint under it already says it is locked and until when. Measured only, because `ldonald234` is not in a lock |
+| 106 | LOW | `privacy.html`, `terms.html` | Email pill `#d6157e` on `#fff0f5` = 4.46; finding 94 had fixed `support.html` only | Fixed `e95e397`: pill on white, 4.92. Seen on the dev server |
+| 107 | MED | Every email | The footer links (site, support address) were the accent on the blush page, 4.11 at 12px: finding 2's pairing, in email | Fixed `e95e397`: `BRAND.link` = `--link-color`, 4.91 on the page and 5.87 on the card. Six auth templates pushed 2026-10-20 and read back equal to the repo. `delete-account` and `notify-report` pick it up at their next deploy |
+| 108 | MED | Desktop hover, app-wide | Hover took text below AA: `.xanga-button`'s brightness filter (3.92 classic-xanga, 4.09 emo-dark), `.xanga-button-ghost`'s accent tint behind accent text (4.19 classic, 4.26 cottage-core), `.xanga-link-caution` fading to 0.75 (3.12 cottage-core), and six inline `hover:opacity` fades (down to 3.35) | Fixed `e95e397`: buttons lift and glow, ghosts go to a solid accent outline, caution links drop the underline, and nothing fades. Primary and ghost hover read back on the dev server |
+| 109 | MED | Chapter header (desktop) | "🤫 make private" was grey (`--text-muted`) and "📖 make public" was accent on a border tint. It publishes or hides a chapter, so by the tier rule it is an action | Fixed `e95e397`: `.xanga-button-ghost` both ways. Seen at 1280 in cottage-core beside "~ show all ~" |
+| 110 | LOW | Entry editor header | The ⋮ (edit mode) was grey on the header, though header controls are `--text-title` (finding 91) | Fixed `e95e397`: `--text-title`, like the ✕. Seen |
+| 111 | LOW | Toasts | Bold title font without `.title-bold`, so they read as regular on classic-xanga | Fixed `e95e397`: `.title-bold`. Code-read, since no toast fires without a write or an email |
+| 112 | LOW | Intro, sign-in, editor | Stiff copy: three Title Case intro titles beside a lowercase one ("~ Your Personal Diary ~"), "Check your email for the magic link!", "Account created! You are now signed in", and the editor's "Only you can see this entry." | Fixed `e95e397`: in the voice and lowercase. The editor hint was seen; the rest code-read. Lowercase "your" in tilde labels ("~ set your status ~") left as is |
 
-Findings 45–105 lifted the count from 41 to 102 (numbers 40–42 unassigned).
+Findings 45–112 lifted the count from 41 to 109 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
@@ -424,6 +431,7 @@ counted.
 | -------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Public profile | `~ report entry ~` gets its own full-width footer bar on every card — on a stranger's page, the loudest control | A Guideline 1.2 compliance control; not worth re-tiering a reporting affordance for style before submission |
 | Public profile | `start your own journal` appears twice — in the profile card and the footer CTA card                            | Removing a conversion CTA is a product decision, not a hierarchy fix                                        |
+| `ui/Button.tsx` | Imported nowhere. Its `danger` variant is `--accent-secondary` text on a 15% tint of itself (finding 89's pattern), and its non-primary variants are bold title font without `.title-bold` | Dead code, nothing renders it. Fix or delete it before anyone imports it |
 
 ## Blocked — cannot be reached from this session
 

@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-18, at the commit after `4895f32` (app code). Mood
+Last rewritten 2026-10-20, at the commit after `e95e397` (app code). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -29,17 +29,24 @@ and limits arrive too soon. Every session:
 **Nothing is queued.** What's left is the Apple enrollment and the checks under
 "Still not seen" below and "Open work, smaller".
 
-Last done (2026-10-18): a `/frontend` audit found and fixed findings 102–105
-(`4895f32`), all contrast: Settings' "~ delete account ~" sat on a caution tint
-(4.26), the desktop cursor-trail picker faded three solid buttons (2.52), the
-avatar check was hardcoded white (1.37 on scene-kid), and the locked username
-field was faded (3.44). The first three were seen on the dev server at 1280 as
-`ldonald234`; the username lock was measured only. Nothing was written to prod.
-The sweeps found nothing else: no other hardcoded colours, every theme has all 44
-variables, the copy is in the voice, no voice in aria-labels, and every hover
-rule is guarded. Before that, findings 100–101 (`885b15d`), and the one lasting
-prod change from those tests: "First day back on here" (`ldonald234`) has
-`updated_at` 2026-10-17.
+Last done (2026-10-18/20): two `/frontend` audit passes. The first fixed findings
+102–105 (`4895f32`), all contrast: the Settings delete tint, the desktop
+cursor-trail picker, the avatar check and the faded locked username. The second
+fixed findings 106–112 (`e95e397`):
+
+- Desktop hover states that fell below AA (108).
+- A grey chapter make-private button, now a ghost button (109), and the grey ⋮ in
+  the editor (110).
+- Toasts without `.title-bold` (111), and stiff copy (112).
+- The privacy/terms email pill (106) and every email's footer links (107).
+
+Most of this was seen on the dev server at 1280 as `ldonald234`; the toast and the
+intro titles are code-read. **One prod change:** the six auth email templates were
+pushed 2026-10-20 (your OK) and read back equal to the repo. The `delete-account`
+and `notify-report` emails keep the old 4.11 footer links until those functions are
+next deployed, which nothing here documents how to do. Before that, findings 100–101
+(`885b15d`), and the one lasting prod change from those tests: "First day back on
+here" (`ldonald234`) has `updated_at` 2026-10-17.
 
 Still not seen: the offline banner (real device). The "~ this goes public ~" dialog
 (finding 95) needs a public profile with a chapter; `ldonald234`'s page is
@@ -128,8 +135,10 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `4895f32` (`index-Bm_oyzC1.js`, installed 2026-10-18), the current app
-code. The 17e showed the untinted delete-account button after install. Sessions live in
+All six on `4895f32` (`index-Bm_oyzC1.js`, installed 2026-10-18), **one app
+commit behind** `e95e397`. On a phone that commit changes the ⋮ colour in the
+editor, the toast weight, the intro titles and some copy; the hover and desktop
+changes don't show on a phone. Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
