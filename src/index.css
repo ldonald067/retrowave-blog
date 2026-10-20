@@ -511,9 +511,11 @@ body::before {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  /* The outline answers the hover, not a fill: a 10% accent tint behind the
+     accent label measured 4.19 on classic-xanga and 4.26 on cottage-core. */
   .xanga-button-ghost:hover:not(:disabled) {
     border-color: var(--accent-primary);
-    background-color: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    border-style: solid;
   }
 }
 
@@ -857,15 +859,15 @@ body::before {
  * documents). It previously swapped to the --accent-primary/--accent-secondary
  * gradient with a hardcoded #ffffff, so on themes with light accents the label
  * went white-on-light and effectively disappeared at the moment of interaction.
- * The lift, glow and brightness still give the hover its pop without putting
- * text on an unvetted background.
+ * The lift and glow still give the hover its pop without putting text on an
+ * unvetted background. No brightness filter either: brightening the fill under
+ * the label took classic-xanga to 3.92 and emo-dark to 4.09.
  */
 /* Hover is gated on a device that actually has a pointer. Without the guard iOS
    applies :hover on tap and leaves it applied — the button stays lit until you
    touch something else, which reads as stuck rather than as feedback. */
 @media (hover: hover) and (pointer: fine) {
   .xanga-button:hover:not(:disabled) {
-    filter: brightness(1.12);
     transform: translateY(-1px);
     box-shadow:
       3px 3px 0px var(--shadow-color),
@@ -1471,8 +1473,10 @@ select:focus-visible {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  /* Drops the underline, like .xanga-link. Fading to 0.75 put the amber at
+     3.12 on cottage-core. */
   .xanga-link-caution:hover {
-    opacity: 0.75;
+    text-decoration: none;
   }
 
   .xanga-link:hover {

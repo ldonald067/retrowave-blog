@@ -138,7 +138,7 @@ export default function SignUpForm({ onAccountExists }: SignUpFormProps = {}) {
         return;
       }
 
-      showToast('Account created! You are now signed in ✨', 'success');
+      showToast('account created! ur signed in now ✨', 'success');
     } catch {
       showToast('Something went wrong. Please try again.', 'error');
     } finally {

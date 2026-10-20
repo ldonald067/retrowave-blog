@@ -128,11 +128,11 @@ describe('PostModal ⋮ Menu', () => {
     render(<PostModal {...defaultProps} mode="create" post={null} />);
 
     expect(screen.getByText(/entry privacy/i)).toBeInTheDocument();
-    expect(screen.getByText('Only you can see this entry.')).toBeInTheDocument();
+    expect(screen.getByText('only u can see this entry')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /^public$/i }));
 
-    expect(screen.getByText('Can appear on your public page.')).toBeInTheDocument();
+    expect(screen.getByText('can show up on ur public page')).toBeInTheDocument();
   });
 
   it('states privacy exactly once in the editor', () => {
@@ -227,12 +227,12 @@ describe('PostModal ⋮ Menu', () => {
 
   it('describes the consequence of the selected privacy side', () => {
     render(<PostModal {...defaultProps} />);
-    expect(screen.getByText('Can appear on your public page.')).toBeInTheDocument();
+    expect(screen.getByText('can show up on ur public page')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: /^private$/i }));
 
-    expect(screen.getByText('Only you can see this entry.')).toBeInTheDocument();
-    expect(screen.queryByText('Can appear on your public page.')).not.toBeInTheDocument();
+    expect(screen.getByText('only u can see this entry')).toBeInTheDocument();
+    expect(screen.queryByText('can show up on ur public page')).not.toBeInTheDocument();
   });
 
   it('labels the privacy toggle as a group', () => {

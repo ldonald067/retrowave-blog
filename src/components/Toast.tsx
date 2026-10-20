@@ -54,14 +54,12 @@ export default function Toast({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -10, scale: 0.95, transition: { duration: 0.15 } }}
         transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-        className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg shadow-lg cursor-pointer select-none text-center break-words max-w-sm pointer-events-auto"
+        className="title-bold flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg shadow-lg cursor-pointer select-none text-center break-words max-w-sm pointer-events-auto"
         style={{
           backgroundColor: 'var(--card-bg)',
           border: '1.5px solid var(--border-primary)',
-          fontFamily: 'var(--title-font)',
           color: 'var(--text-body)',
           fontSize: '0.75rem',
-          fontWeight: 700,
         }}
         onClick={onClose}
         role="alert"

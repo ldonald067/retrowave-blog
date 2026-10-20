@@ -209,7 +209,7 @@ export default function SettingsModal({
                 whileTap={{ scale: 0.97 }}
                 type="button"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs title-bold border-2 transition hover:opacity-80 min-h-[44px]"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs title-bold border-2 transition min-h-[44px]"
                 // --link-caution, not --accent-secondary: this is 12px bold
                 // text, so it needs 4.5:1, and accent-secondary measures 3.23:1
                 // on emo-dark and 3.54:1 on cottage-core. The most destructive

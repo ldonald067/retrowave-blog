@@ -1353,14 +1353,9 @@ function AppInner() {
                             <button
                               onClick={() => requestChapterPrivacyToggle(chapterFilter)}
                               disabled={chapterPrivacySaving}
-                              className="hidden lg:inline-flex items-center text-xs px-2 py-1 rounded transition hover:opacity-80 lg:min-h-[28px]"
-                              style={{
-                                color: chapterIsPrivate
-                                  ? 'var(--accent-primary)'
-                                  : 'var(--text-muted)',
-                                backgroundColor:
-                                  'color-mix(in srgb, var(--border-primary) 20%, transparent)',
-                              }}
+                              // Ghost, both ways: it publishes or hides a chapter, so
+                              // it is an action, and "make private" was grey.
+                              className="hidden lg:inline-flex xanga-button-ghost items-center text-xs px-2 py-1 lg:min-h-[28px]"
                               aria-label={
                                 chapterIsPrivate ? 'Make chapter public' : 'Make chapter private'
                               }
@@ -1561,7 +1556,7 @@ function AppInner() {
                               key={filter.key}
                               type="button"
                               onClick={() => clearSingleFeedFilter(filter.key)}
-                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs title-bold transition hover:opacity-80 min-h-[44px] max-w-full min-w-0"
+                              className="inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs title-bold transition min-h-[44px] max-w-full min-w-0"
                               style={{
                                 borderColor: 'var(--border-primary)',
                                 backgroundColor:

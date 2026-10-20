@@ -55,6 +55,9 @@ export const BRAND = {
   buttonTo: '#aa2266', // --button-gradient-to
   card: '#ffffff', // --card-bg
   caution: '#b45309', // --link-caution
+  // Links: the footer sits on pageFrom, where the accent measured 4.11:1.
+  // --link-color is 4.91 there and 5.87 on the card.
+  link: '#c2185b', // --link-color
 } as const;
 
 const TITLE_FONT = "'Comic Sans MS', 'Comic Neue', 'Chalkboard SE', 'Trebuchet MS', cursive";
@@ -128,7 +131,7 @@ export function renderEmail({
             ? ''
             : `
         <p style="margin:12px 0 2px;font-family:${BODY_FONT};font-size:11px;color:${BRAND.muted};text-align:center;">button not working? copy this link:</p>
-        <p style="margin:0 0 4px;font-family:${BODY_FONT};font-size:10px;line-height:1.4;word-break:break-all;text-align:center;"><a href="${cta.href}" style="color:${BRAND.accent};">${cta.href}</a></p>`
+        <p style="margin:0 0 4px;font-family:${BODY_FONT};font-size:10px;line-height:1.4;word-break:break-all;text-align:center;"><a href="${cta.href}" style="color:${BRAND.link};">${cta.href}</a></p>`
         }`
     : '';
 
@@ -168,9 +171,9 @@ export function renderEmail({
             <td align="center" style="padding:16px 8px 0;">
               <p style="margin:0 0 6px;font-family:${TITLE_FONT};font-size:15px;color:${BRAND.subtitle};">${signOff}</p>
               <p style="margin:0;font-family:${BODY_FONT};font-size:12px;color:${BRAND.muted};">
-                <a href="${BRAND.site}" style="color:${BRAND.accent};">retrowaveblog.com</a>
+                <a href="${BRAND.site}" style="color:${BRAND.link};">retrowaveblog.com</a>
                 &nbsp;&middot;&nbsp;
-                <a href="mailto:${BRAND.support}" style="color:${BRAND.accent};">${BRAND.support}</a>
+                <a href="mailto:${BRAND.support}" style="color:${BRAND.link};">${BRAND.support}</a>
               </p>
             </td>
           </tr>

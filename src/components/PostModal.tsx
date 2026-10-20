@@ -363,9 +363,7 @@ export default function PostModal({
   // when that item is unavailable. Gate the button on the item, not the mode,
   // or create mode shows an affordance that opens an empty box.
   const canDelete = mode === 'edit' && isOwner && !!onDelete && !!post;
-  const privacyDetail = isPrivate
-    ? 'Only you can see this entry.'
-    : 'Can appear on your public page.';
+  const privacyDetail = isPrivate ? 'only u can see this entry' : 'can show up on ur public page';
   const draftStatusText =
     draftSaveState === 'saving'
       ? 'saving local draft...'
@@ -499,7 +497,8 @@ export default function PostModal({
                       aria-expanded={showMoreMenu}
                       aria-haspopup="true"
                       className="icon-btn-hover p-2 rounded-full transition min-h-[44px] min-w-[44px] flex items-center justify-center"
-                      style={{ color: 'var(--text-muted)' }}
+                      // --text-title, like the ✕: header controls are never grey.
+                      style={{ color: 'var(--text-title)' }}
                     >
                       <span className="text-lg font-bold leading-none">⋮</span>
                     </button>
@@ -519,7 +518,7 @@ export default function PostModal({
                               setShowMoreMenu(false);
                               onDelete(post);
                             }}
-                            className="w-full text-left px-4 py-3 text-xs title-bold flex items-center gap-2 transition hover:opacity-80 min-h-[44px]"
+                            className="w-full text-left px-4 py-3 text-xs title-bold flex items-center gap-2 transition min-h-[44px]"
                             // See SettingsModal: --accent-secondary fails 4.5:1
                             // on emo-dark and cottage-core, and this is 12px bold.
                             style={{

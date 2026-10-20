@@ -86,7 +86,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     {
       scene: 'paper' as const,
       emoji: '🔒📓',
-      title: '~ Your Personal Diary ~',
+      title: '~ ur personal diary ~',
       description:
         'a private space 2 capture ur thoughts, feelings, & memories. ur story, ur way. just like the good old days~',
       decoration: '· _ · _ · _ ·  ♡  · _ · _ · _ ·',
@@ -94,7 +94,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     {
       scene: 'music' as const,
       emoji: '💕🎵',
-      title: '~ Express Yourself ~',
+      title: '~ express urself ~',
       description:
         'add mood tags & what ur listening 2 on every post. paste a youtube link 2 share ur fav songs. make it *~totally u~*',
       decoration: '★·.·´¯`·.·★ ♫ ★·.·´¯`·.·★',
@@ -102,7 +102,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     {
       scene: 'themes' as const,
       emoji: '',
-      title: '~ Make It Ur Own ~',
+      title: '~ make it ur own ~',
       description:
         'choose from 8 unique themes 2 match ur vibe: emo dark, scene kid, cottage core & more. pick an emoji style 2. ur journal = ur rules.',
       decoration: '- - - ♥ - - - ♥ - - -',

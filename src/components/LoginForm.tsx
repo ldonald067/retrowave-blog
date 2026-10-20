@@ -84,7 +84,7 @@ export default function LoginForm({ initialEmail = '' }: LoginFormProps = {}) {
       if (error) {
         showToast(error, 'error');
       } else {
-        showToast('Check your email for the magic link!', 'success');
+        showToast('check ur email 4 the magic link ✨', 'success');
         setEmail('');
       }
     }

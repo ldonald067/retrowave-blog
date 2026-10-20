@@ -67,7 +67,7 @@ const PostCard = memo(function PostCard({
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => onView(post)}
-              className="text-left cursor-pointer transition hover:opacity-80 py-1 min-h-[44px] lg:min-h-0 flex items-center w-full min-w-0"
+              className="text-left cursor-pointer transition py-1 min-h-[44px] lg:min-h-0 flex items-center w-full min-w-0"
               style={{ color: 'inherit', textShadow: 'inherit' }}
               aria-label={`View post: ${post.title}`}
             >

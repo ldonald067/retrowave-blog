@@ -76,7 +76,7 @@ export default function AgeVerification({
           {onBack ? (
             <button
               onClick={onBack}
-              className="w-16 text-left text-xs title-bold min-h-[44px] flex items-center transition hover:opacity-70"
+              className="w-16 text-left text-xs title-bold min-h-[44px] flex items-center transition"
               style={{ color: 'var(--link-color)' }}
               aria-label="Go back to email and password"
             >
