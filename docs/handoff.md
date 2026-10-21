@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-20, at the commit after `e95e397` (app code). Mood
+Last rewritten 2026-10-21, at the commit after `e95e397` (app code). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -135,10 +135,9 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `4895f32` (`index-Bm_oyzC1.js`, installed 2026-10-18), **one app
-commit behind** `e95e397`. On a phone that commit changes the ⋮ colour in the
-editor, the toast weight, the intro titles and some copy; the hover and desktop
-changes don't show on a phone. Sessions live in
+All six on `e95e397` (`index-C-o8bFwP.js`, installed 2026-10-21), the current
+app code. On the 17e, the editor showed the ⋮ in the title colour and "only u can
+see this entry"; prod was unchanged afterwards (1 reaction, no new edit). Sessions live in
 `UserDefaults` and survive reboots and in-place installs; simulators shut down
 between sessions, so boot first and re-check the installed build.
 
