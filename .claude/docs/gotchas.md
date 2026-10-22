@@ -175,6 +175,8 @@ section they belong to — not at the bottom.
 
 ## Data, environment and hosting
 
+- [2026-10-22 /release] **The team has no registered devices, so a normal archive fails** ("no devices from which to generate a provisioning profile"). Archive with `CODE_SIGNING_ALLOWED=NO` and let `-exportArchive -allowProvisioningUpdates` sign for the App Store — recipe in `docs/app-store-submission-guide.md` Part 1. Safe only while the App target has no entitlements.
+
 - All `localStorage` access in try/catch (Safari private browsing throws).
 - `.env.local` (not `.env`) is gitignored; without it the Supabase client fails to initialise and the app renders blank.
 - Security headers live in `public/_headers` (served by Cloudflare Workers assets). CSP allows Supabase (rest/auth/functions + wss), DiceBear, and YouTube oEmbed/thumbnails/embeds; `style-src` needs `'unsafe-inline'` for React inline styles. HTTP→HTTPS is Cloudflare's "Always Use HTTPS" toggle.

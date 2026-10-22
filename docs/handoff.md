@@ -27,11 +27,13 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**No finding is open, and the simulators run the current build.** You enrolled
-in the Apple Developer Program (2026-10-22). Next: add that Apple ID in Xcode →
-Settings → Accounts (only you can), then the team goes on the App target and
-Part 1 of `docs/app-store-submission-guide.md` follows. The real-device checks
-under "Waiting for you" need a signed build.
+**Build 1.0 (1) is uploaded to App Store Connect** (2026-10-22, 13:23 local;
+Apple said "Uploaded package is processing"). No finding is open, and the
+simulators run the current build. Next: check the build cleared processing
+(App Store Connect → the app → TestFlight, or Apple's email), then Parts 2–6 of
+`docs/app-store-submission-guide.md` (the app record "Retrowave Journal" exists;
+nothing is pasted yet), then submit. The real-device checks under "Waiting for
+you" need your iPhone registered — plug it in with Xcode open.
 
 Last done (2026-10-22, night): a private chapter whose last entry is deleted, or
 edited into another chapter, now drops out of `private_chapters` (`1242015`).
@@ -93,9 +95,10 @@ Web app and backend are done and live at https://retrowaveblog.com. **What
 remains is Apple-side only** — signing, archive/upload, App Store Connect;
 `docs/app-store-submission-guide.md` is the source of truth.
 
-- **Enrolled in the Apple Developer Program** (you, 2026-10-22). This Mac still
-  has no Apple ID in Xcode, no signing identity and no `DEVELOPMENT_TEAM`
-  (checked 2026-10-22).
+- **Signing works** (2026-10-22): your Apple ID is in Xcode, team `VUHVZ7V5M8`
+  is set on the App target (`efddcaa`), and an Apple Distribution certificate
+  exists. The team has **no registered devices**, so a normal archive fails;
+  the recipe that worked is in guide Part 1.
 - **Supabase pauses when idle** (found `INACTIVE` 2026-09-15). Check before any
   device session; keep it active through App Review.
 - iOS deployment target 16.4 (the CSS needs it).
@@ -140,7 +143,7 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Waiting for you
 
-- Adding your Apple ID in Xcode (enrolled 2026-10-22). Prod writes (SQL, dashboard switches) — you paste/flip, the
+- App Store Connect (Parts 2–6, submit) is yours to paste. Prod writes (SQL, dashboard switches) — you paste/flip, the
   agent verifies read-only; email template pushes work from here (with your OK).
 - Real-device only: offline banner, and finding 82 (background >1h, Airplane
   Mode, reopen — no "session expired").

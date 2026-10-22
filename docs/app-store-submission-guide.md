@@ -18,8 +18,9 @@ the screenshot plan.
 confirmation (Resend SMTP), AI moderation, RLS, security headers, HTTPS
 redirect, and the hosted legal/support pages are all verified in production.
 
-**What remains is Apple-side only:** signing, archive/upload, and the App Store
-Connect listing. All six screenshots are captured (Part 6).
+**What remains is the App Store Connect listing and the submit.** Signing works
+and build 1.0 (1) was uploaded on 2026-10-22. All six screenshots are captured
+(Part 6).
 
 Already handled in code and backend:
 
@@ -54,6 +55,29 @@ In Xcode:
 5. When the Organizer opens: **Distribute App → App Store Connect → Upload.** Export compliance is auto-skipped (the encryption flag is set).
 
 If archive complains "Signing requires a development team," you missed step 2.
+
+**What actually worked (2026-10-22, from the CLI).** The team is set in the
+project now (`DEVELOPMENT_TEAM = VUHVZ7V5M8`). Two refusals came first:
+"PLA Update available" (accept the Program License Agreement at
+developer.apple.com/account; it took a few minutes to reach Xcode), then "Your
+team has no devices from which to generate a provisioning profile" — a normal
+archive signs for development first, which needs a registered iPhone. The App
+Store does not, so archive unsigned and let the export sign it (the app has no
+entitlements, so nothing is lost):
+
+```bash
+A="$HOME/Library/Developer/Xcode/Archives/<date>/App <date> <version> (<build>).xcarchive"
+xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+  -destination 'generic/platform=iOS' -archivePath "$A" CODE_SIGNING_ALLOWED=NO archive
+xcodebuild -exportArchive -archivePath "$A" -exportOptionsPlist ExportOptions.plist \
+  -exportPath <out dir> -allowProvisioningUpdates
+```
+
+`ExportOptions.plist`: `method` `app-store-connect`, `destination` `upload` (or
+`export` for a local `.ipa`), `teamID` `VUHVZ7V5M8`, `signingStyle` `automatic`,
+`manageAppVersionAndBuildNumber` false. The upload needs the App Store Connect
+app record to exist first; the bundle ID appears in its dropdown only after an
+export has registered it. Bump `CURRENT_PROJECT_VERSION` before every later upload.
 
 ---
 
@@ -257,12 +281,11 @@ The signup heading read "create ur xanga" until 2026-10-08; it now reads "start 
 
 Only you can do the unticked Apple-side items (Apple ID, GUI).
 
-- [ ] Confirm Apple Developer Program enrollment is active. **Nothing is
-      configured on this machine as of 2026-09-17:** 0 valid codesigning
-      identities, no Apple ID in Xcode, no `DEVELOPMENT_TEAM`. Simulator builds
-      do not need any of it, which is why everything else works.
+- [x] Confirm Apple Developer Program enrollment is active (2026-10-22; signing
+      configured, see Part 1).
 - [x] All six screenshots captured, 1320 × 2868 (2026-08-15).
-- [ ] Re-run `npm run check` on the submission commit and confirm CI is green.
+- [x] Re-run `npm run check` on the submission commit and confirm CI is green
+      (build 1.0 (1) carries `1242015`'s web code; CI green).
 - [ ] Confirm the Supabase project is **active** and keep it active through
       review — it paused on 2026-09-15 after 13 idle days, and a paused project
       signs no one in. Management API `GET /v1/projects/<ref>` →
@@ -273,9 +296,9 @@ Only you can do the unticked Apple-side items (Apple ID, GUI).
       the "entry privacy" toggle).
 - [ ] Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` if this is not the
       first upload — the build number must increase every time.
-- [ ] Xcode: set Team, archive, upload (Part 1).
+- [x] Xcode: set Team, archive, upload (Part 1) — 1.0 (1) uploaded 2026-10-22.
 - [ ] App Store Connect: create the app record ("Retrowave Journal"), paste
-      Parts 2–4.
+      Parts 2–4. (Record created 2026-10-22; nothing pasted yet.)
 - [ ] Upload screenshots (Part 6).
 - [ ] Paste App Review notes (Part 5).
 - [ ] Submit for review.
