@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import type { Profile } from '../../types/profile';
 
 // The safety tab named each blocked person by the first 8 characters of their
@@ -41,35 +41,44 @@ vi.mock('framer-motion', async () => {
   };
 });
 
-vi.mock('../../hooks/useBlocks', () => ({
-  useBlocks: () => ({
-    toggleBlock: vi.fn(),
-    fetchBlockedUsers: vi.fn().mockResolvedValue({
-      data: [
-        {
-          blocked_id: '748e75eb-97c8-4db5-a514-d289b1fdda98',
-          created_at: '2026-10-17T12:00:00Z',
-          username: 'glitterqueen',
-          display_name: 'Glitter Queen',
-        },
-        {
-          blocked_id: '1b2c3d4e-0000-4000-8000-000000000000',
-          created_at: '2026-10-16T12:00:00Z',
-          username: 'nodisplayname',
-          display_name: '  ',
-        },
-        // get_blocked_users withholds the name once their page is private.
-        {
-          blocked_id: '9f8e7d6c-0000-4000-8000-000000000000',
-          created_at: '2026-10-15T12:00:00Z',
-          username: null,
-          display_name: null,
-        },
-      ],
-      error: null,
-    }),
-  }),
+// Stable across renders, like the real hook's useCallbacks: a new
+// fetchBlockedUsers each render re-runs the list's load effect and remounts
+// every row.
+const { toggleBlock, fetchBlockedUsers } = vi.hoisted(() => ({
+  toggleBlock: vi.fn(),
+  fetchBlockedUsers: vi.fn(),
 }));
+
+vi.mock('../../hooks/useBlocks', () => ({
+  useBlocks: () => ({ toggleBlock, fetchBlockedUsers }),
+}));
+
+beforeEach(() => {
+  fetchBlockedUsers.mockResolvedValue({
+    data: [
+      {
+        blocked_id: '748e75eb-97c8-4db5-a514-d289b1fdda98',
+        created_at: '2026-10-17T12:00:00Z',
+        username: 'glitterqueen',
+        display_name: 'Glitter Queen',
+      },
+      {
+        blocked_id: '1b2c3d4e-0000-4000-8000-000000000000',
+        created_at: '2026-10-16T12:00:00Z',
+        username: 'nodisplayname',
+        display_name: '  ',
+      },
+      // get_blocked_users withholds the name once their page is private.
+      {
+        blocked_id: '9f8e7d6c-0000-4000-8000-000000000000',
+        created_at: '2026-10-15T12:00:00Z',
+        username: null,
+        display_name: null,
+      },
+    ],
+    error: null,
+  });
+});
 vi.mock('../../lib/celebrations', () => ({ sparkleBurst: vi.fn(), emojiRain: vi.fn() }));
 vi.mock('../../lib/username', () => ({ isUsernameAvailable: vi.fn().mockResolvedValue(true) }));
 vi.mock('../../lib/themes', async (importOriginal) => ({
@@ -114,5 +123,39 @@ describe('ProfileModal blocked users', () => {
     expect(within(panel).getByText('blocked Oct 15, 2026')).toBeInTheDocument();
     expect(within(panel).queryByText(/748e75eb/)).not.toBeInTheDocument();
     expect(within(panel).getAllByRole('button', { name: '~ unblock ~' })).toHaveLength(3);
+  });
+
+  // A double tap ran the unblock twice; both calls succeeded, so the toast
+  // showed twice.
+  it('runs one unblock per double tap and toasts once', async () => {
+    let finish!: (result: { is_blocked: boolean; error: string | null }) => void;
+    toggleBlock.mockReset().mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve;
+      })
+    );
+    const onSuccess = vi.fn();
+    render(
+      <ProfileModal
+        profile={profile}
+        userId="user-1"
+        onSave={vi.fn()}
+        onClose={vi.fn()}
+        onSuccess={onSuccess}
+      />
+    );
+    fireEvent.click(await screen.findByRole('tab', { name: 'safety' }));
+    const panel = screen.getByRole('tabpanel');
+    await within(panel).findByText('Glitter Queen');
+    const [unblock] = within(panel).getAllByRole('button', { name: '~ unblock ~' });
+
+    fireEvent.click(unblock!);
+    fireEvent.click(unblock!);
+    expect(toggleBlock).toHaveBeenCalledTimes(1);
+    expect(unblock).toBeDisabled();
+
+    await act(async () => finish({ is_blocked: false, error: null }));
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+    expect(within(panel).queryByText('Glitter Queen')).not.toBeInTheDocument();
   });
 });

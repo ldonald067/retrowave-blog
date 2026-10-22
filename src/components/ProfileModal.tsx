@@ -141,6 +141,11 @@ export default function ProfileModal({
   const [activeSection, setActiveSection] = useState<ProfileSection>('profile');
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [blockedLoading, setBlockedLoading] = useState(false);
+  // Unblock locks while its call is in flight: a double tap ran it twice, and
+  // both succeeded, so "unblocked" showed twice. The ref catches a second tap
+  // that lands before the disabled state renders.
+  const unblockingRef = useRef(false);
+  const [unblocking, setUnblocking] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   // Keep local previews reversible until the user saves.
   const originalThemeRef = useRef<string>(profile?.theme || DEFAULT_THEME);
@@ -894,8 +899,15 @@ export default function ProfileModal({
                               <motion.button
                                 whileTap={{ scale: 0.9 }}
                                 type="button"
+                                disabled={unblocking}
                                 onClick={async () => {
+                                  if (unblockingRef.current) return;
+                                  unblockingRef.current = true;
+                                  setUnblocking(true);
+                                  // toggleBlock never throws, so the lock always lifts.
                                   const { error } = await toggleBlock(block.blocked_id);
+                                  unblockingRef.current = false;
+                                  setUnblocking(false);
                                   if (error) {
                                     onError?.(error);
                                   } else {
