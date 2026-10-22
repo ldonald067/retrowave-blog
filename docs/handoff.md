@@ -42,6 +42,12 @@ in a `DO` block that always raised: a raw id was not blocked and nobody was
 named, blocking by username still worked, two unblocks both left 0 rows, and
 anon was refused. Afterwards there were still 0 blocks and 1 reaction.
 
+Then `251d775`: the unblock button locks while its call runs, so a double tap
+shows "unblocked" once, not twice. Seen on the dev server against prod as
+`ldonald234`, with one fixture block you approved: two clicks 60ms apart sent one
+request and showed one toast. Prod was back to 0 blocks afterwards. The
+simulators do not have this build yet.
+
 Before that, 2026-10-22: `/adversarial-review` of the code since `c0fd392`,
 which found 115–117 and wrote nothing to prod. Details are in the audit plan.
 
