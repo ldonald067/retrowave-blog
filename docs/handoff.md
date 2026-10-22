@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-22, end of day. App code is `1242015`. Every finding in
+Last rewritten 2026-10-22, end of day. App code is `7fd3229`. Every finding in
 the audit plan is fixed except 52 (left as is on purpose). Mood art is on hold
 (your call, 2026-09-30) — don't raise it.
 
@@ -28,14 +28,20 @@ and limits arrive too soon. Every session:
 ## Next
 
 **Build 1.0 (1) is uploaded to App Store Connect** (2026-10-22, 13:23 local;
-Apple said "Uploaded package is processing"). No finding is open, and the
-simulators run the current build. Next: check the build cleared processing
-(App Store Connect → the app → TestFlight, or Apple's email), then Parts 2–6 of
-`docs/app-store-submission-guide.md` (the app record "Retrowave Journal" exists;
-nothing is pasted yet), then submit. The real-device checks under "Waiting for
+Apple said "Uploaded package is processing"). It predates `7fd3229`, so its
+avatar picker still offers the broken "Glass" style — upload 1.0 (2) before
+submitting. You are filling in App Store Connect: App Privacy, Age Rating (13+
+by override, matching the terms) and App Information are answered as recorded in
+the guide; still to do are the description/screenshots/review notes (Parts 2,
+5, 6), the Digital Services Act trader declaration (your call), and submit. The real-device checks under "Waiting for
 you" need your iPhone registered — plug it in with Xcode open.
 
-Last done (2026-10-22, night): a private chapter whose last entry is deleted, or
+Last done (2026-10-22, late): the terms page credits the four CC BY 4.0 avatar
+styles (section 8, live on retrowaveblog.com/terms), and the picker no longer
+offers "Glass", which DiceBear 7.x answers 404 (`7fd3229`; picker seen on the
+17e, editor closed unsaved, prod unchanged).
+
+Before that: a private chapter whose last entry is deleted, or
 edited into another chapter, now drops out of `private_chapters` (`1242015`).
 Before, the name lingered with no control to clear it. Seen on the 17e against
 prod with a fixture you approved on `ldonald234` (one private entry in private
@@ -166,7 +172,7 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `1242015` (`index-D_-KIeWQ.js`, installed 2026-10-22); the Pro was
+All six on `7fd3229` (`index-CzrxaNnZ.js`, installed 2026-10-22); the Pro was
 left booted, the rest shut down. Sessions live in `UserDefaults` and survive
 reboots and in-place installs; simulators shut down between sessions, so boot
 first and re-check the installed build.

@@ -133,7 +133,15 @@ Questions? support@retrowaveblog.com
 
 > Welcome to Retrowave Journal 1.0! ✨ Your private little corner of 2005 is officially open. Start a journal, set your mood, add a song, and pick from 8 dreamy themes with glitter and sparkle cursors. Everything's private by default, so share only what you want. Thanks for being here. More themes and surprises coming soon. 💕
 
-**Category:** Primary **Lifestyle**, Secondary **Social Networking**.
+**Category:** Primary **Lifestyle**, no secondary (2026-10-22: Social Networking
+would contradict "Social Media: No" in the age rating).
+
+**Copyright:** `2026 LaTanya Donaldson`. **User Privacy Choices URL:**
+`https://retrowaveblog.com/privacy` (its "your rights" section).
+
+**Content Rights:** contains third-party content → Yes (YouTube player, DiceBear
+avatar art); has the rights → Yes. Four avatar styles are CC BY 4.0 and are
+credited in section 8 of the terms page — keep that section if styles change.
 
 **URLs:** Support `https://retrowaveblog.com/support` · Marketing `https://retrowaveblog.com` · Privacy `https://retrowaveblog.com/privacy`
 
@@ -173,7 +181,14 @@ Capability/context:
 - Age gate → **Yes, 13+**
 - **Made for Kids → No** (do not enroll in Kids Category)
 
-**Target rating: 12+** (aligns with the 13+ gate; Apple may push higher for public UGC — 12+ is the defensible answer given the safeguards + private-by-default design).
+**As answered 2026-10-22 (Apple's newer questionnaire):** Parental Controls No,
+Age Assurance No (the birth-year gate is self-declared), Unrestricted Web
+Access No, User-Generated Content Yes, Social Media No (the feed shows only your
+own entries), Social Media Disabled for Under 13 No, Messaging No, Advertising
+No; every content frequency None; Medical None, Health/Wellness No. That
+calculates **4+**, so the rating is **overridden to 13+** — required, since the
+terms set a 13 minimum. Age Suitability URL: `https://retrowaveblog.com/terms`.
+Result: 13+ in 172 countries (Vietnam and Korea 12+, Brazil A14).
 
 **Guideline 1.2 (UGC safety) — all four present:**
 
