@@ -275,6 +275,14 @@ a real address.
 - Capture: `xcrun simctl io <UDID> screenshot store-assets/screenshots/NN-name.png` — from an agent session, capture to the scratchpad and `cp`: the simulator service is refused writes into the project folder.
 - **05 needs a signed-out 6.9" device.** Signed in as `retrodemo`, the app sends your own public page back to the feed, and logging out costs the Pro Max its session. Instead: `xcrun simctl create "TEMP 05" com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max <iOS runtime>`, boot, install the `.app`, apply the status-bar override, launch, `xcrun simctl openurl <UDID> "com.retrowave.journal://open#/u/retrodemo"`, tap **Open** on iOS's "Open in 'My Journal'?" prompt, capture, then `xcrun simctl delete` it.
 
+**What App Store Connect actually asked for (2026-10-22):** its screenshot tabs are
+"iPhone with Dynamic Island (medium display)", "iPhone Duo", "iPad" and "Apple
+Watch" — no 6.9" slot — and the iPhone tab takes 1206 × 2622 (or 1179 × 2556).
+The six shots were scaled to 1206 × 2622 with `sips -z 2622 1206` (aspect
+differs by <0.1%) into `store-assets/screenshots/1206x2622/` (gitignored, like
+the originals) and uploaded from there. The app is iPhone-only, so iPad and
+Watch are not needed.
+
 **Size check before uploading.** The captured files are **1320 × 2868** (iPhone 17 Pro Max native). Earlier notes in this guide said 1290 × 2796, which is the older 6.9" size. Both have been valid 6.9" sizes at different points — confirm which App Store Connect accepts when you upload, and re-capture on a 1290 × 2796 device only if it rejects them. Do not assume.
 
 **Shot list (order sells the fantasy → proves it's real → privacy hook):**
