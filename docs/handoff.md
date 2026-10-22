@@ -28,14 +28,16 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Nothing is queued.** Small candidates, each one chat, if you want one:
+**Nothing is queued.** What's left is the Apple enrollment and "Open work,
+smaller".
 
-1. **See the code-read-only bits:** a toast's weight on classic-xanga (finding
-   111), and the lowercase intro slide titles (112).
+Last done (2026-10-22): saw findings 111 and 112 on the iPhone 17 Pro, signed out
+(classic-xanga). An expired-link toast reads bold, and all four intro titles are
+lowercase. Neither wrote to prod. How to replay the intro and fire a toast
+without a write: `gotchas.md` → "Simulator and verification". The simulator's
+intro flag was restored afterwards.
 
-Otherwise what's left is the Apple enrollment and "Open work, smaller".
-
-Last done (2026-10-22): deleted `src/components/ui/Button.tsx` (`d6b9afc`), which
+Also 2026-10-22: deleted `src/components/ui/Button.tsx` (`d6b9afc`), which
 nothing imported. A build diff against `e95e397` showed identical JS apart from chunk
 hashes. The CSS lost `animate-spin` and two `disabled:` utilities that only it used.
 
@@ -147,8 +149,8 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `e95e397` (`index-C-o8bFwP.js`, installed 2026-10-21); left booted
-that day. The current build (`d6b9afc`, `index-DakSLtuU.js`) differs only by the
+All six on `e95e397` (`index-C-o8bFwP.js`, installed 2026-10-21); the Pro was
+last booted 2026-10-22. The current build (`d6b9afc`, `index-DakSLtuU.js`) differs only by the
 unused CSS above, so no reinstall was needed. Sessions live in `UserDefaults` and survive
 reboots and in-place installs; simulators shut down between sessions, so boot
 first and re-check the installed build.
