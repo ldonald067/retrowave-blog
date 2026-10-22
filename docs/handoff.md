@@ -28,21 +28,22 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Next up: findings 115 and 116** (MEDIUM, one fix). `toggle_user_block` blocks
-any id and flips either way. So an entry's owner can learn who reacted to it
-(block the reactor ids, read the names off `get_blocked_users`, unblock), and a
-double-tapped or retried unblock blocks the person again. Fix: make it
-unblock-only, since the app only blocks through `block_user_by_username`. It is a
-migration, so it needs your paste.
+**Next up: the two LOW copy fixes.** **114**: a rate limit says "You do not have
+permission" or "Something went wrong" (the cause is in the audit plan and
+`gotchas.md` → "Supabase and RPCs"). **117**: log out says "ur offline" during
+a server outage (fix: `offline` only when the error's status is 0).
 
-Then the two LOW copy fixes: **114** (a rate limit says "You do not have
-permission" or "Something went wrong"; the cause is in the audit plan and
-`gotchas.md` → "Supabase and RPCs") and **117** (log out says "ur offline"
-during a server outage; fix: `offline` only when the error's status is 0).
+Last done (2026-10-22): **findings 115 and 116 fixed and live.** You pasted
+`20261022010000`. `toggle_user_block` is now unblock-only (the app blocks only
+through `block_user_by_username`), and anon lost EXECUTE. So an entry's owner can
+no longer block reactor ids to read their names off `get_blocked_users`, and a
+double-tapped or retried unblock no longer re-blocks. Verified read-only, then
+in a `DO` block that always raised: a raw id was not blocked and nobody was
+named, blocking by username still worked, two unblocks both left 0 rows, and
+anon was refused. Afterwards there were still 0 blocks and 1 reaction.
 
-Last done (2026-10-22): `/adversarial-review` of the code since `c0fd392`, which
-found 115–117. It was read-only, so nothing was written to prod. Details are in
-the audit plan.
+Before that, 2026-10-22: `/adversarial-review` of the code since `c0fd392`,
+which found 115–117 and wrote nothing to prod. Details are in the audit plan.
 
 Before that, 2026-10-22: **finding 113 fixed and live.** Blocking now stops
 reactions. Before, the `post_reactions` INSERT policy's block check never
