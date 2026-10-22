@@ -1,3 +1,11 @@
+-- APPLIED to prod 2026-10-22 (pasted into the SQL editor). Verified the same
+-- day: the Verify query below returned true, false, true, and the comment is
+-- live. As rainbowpudding1 in a DO block that always raised (0 blocks before
+-- and after): toggling codex-qa-24e3a82f's id inserted nothing and
+-- get_blocked_users named no one; block_user_by_username still blocked; two
+-- unblocks both left 0 rows; anon was refused (42501). Recorded here because a
+-- migration file's existence is NOT evidence it is live.
+--
 -- toggle_user_block can only unblock (2026-10-22, findings 115 and 116 of that
 -- day's /adversarial-review).
 --
