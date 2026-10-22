@@ -27,16 +27,32 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**No finding is open, and the simulators run the current build.** What remains
-is Apple-side, plus the device checks under "Open work, smaller" and "Waiting
-for you".
+**No finding is open, and the simulators run the current build.** You enrolled
+in the Apple Developer Program (2026-10-22). Next: add that Apple ID in Xcode →
+Settings → Accounts (only you can), then the team goes on the App target and
+Part 1 of `docs/app-store-submission-guide.md` follows. The real-device checks
+under "Waiting for you" need a signed build.
 
-Last done (2026-10-22): all six simulators were reinstalled with `12ffaa0`
-(each installed bundle read back as `index-Bdst5UOr.js`; the Pro launched to
-sign-up). That puts three small user-facing changes on them: a double-tapped
-unblock toasts once (`251d775`), logging out during an outage says "~ couldnt
-sign out :( try again ~" (`b11b9ed`), and rate limits name themselves
-(`12ffaa0`).
+Last done (2026-10-22, late): the four open simulator checks, all passed on the
+Pro, using a new throwaway account (`simrenamed`, see Accounts):
+
+- First-run setup refuses "emma van dyke" on step 1 with "~ that name isn't
+  allowed here, try another ~" and stays on step 1.
+- A rename (`whatsup` → `simrenamed`) makes the field read-only with "u can
+  change ur username again on nov 21", and sign-up then says "~ @whatsup is
+  taken, try another ~" (checked with email and password empty, so nothing
+  could be created).
+- Finding 95: with the public page on, "📖 public" on a private chapter shows
+  "~ this goes public ~"; cancel keeps it private. The fixture (one private
+  entry; page public 15:44–15:45 UTC) is reverted, and prod re-diffed clean
+  apart from the account itself.
+- One "~ ur session expired, sign in again ~" toast on resume from background,
+  after you deleted the device's `auth.sessions` row and its token ran out.
+
+Earlier that day all six simulators were reinstalled with `12ffaa0`
+(`index-Bdst5UOr.js`): a double-tapped unblock toasts once (`251d775`),
+logging out during an outage says "~ couldnt sign out :( try again ~"
+(`b11b9ed`), and rate limits name themselves (`12ffaa0`).
 
 Before that, `/adversarial-review` of the code since `c0fd392` found 115–117.
 All three are fixed, and so is 114:
@@ -58,11 +74,10 @@ Earlier 2026-10-22: finding 113 was fixed (`20261022000000`: reactions honour
 blocks), the `/fullstack` audit ran, findings 111–112 were seen on the Pro,
 `ui/Button.tsx` was deleted, and `delete-account` (v5) and `notify-report` (v9)
 were redeployed. The new email footer has not been seen in an inbox yet. Details
-are in the audit plan. Prod now: 0 blocks, 1 reaction, 11 entries, 2 reports.
+are in the audit plan. Prod now: 9 accounts, 0 blocks, 1 reaction, 11 entries,
+2 reports.
 
-Still not seen: the offline banner (real device). The "~ this goes public ~" dialog
-(finding 95) needs a public profile with a chapter; `ldonald234`'s page is
-private, and `retrodemo` is never a fixture.
+Still not seen: the offline banner (real device).
 
 **Desktop-only UI** (the sidebar, the chapter header's make public/private button,
 hover states) is checked on the dev server at 1280 (`resize_window`). You sign in
@@ -81,8 +96,9 @@ Web app and backend are done and live at https://retrowaveblog.com. **What
 remains is Apple-side only** — signing, archive/upload, App Store Connect;
 `docs/app-store-submission-guide.md` is the source of truth.
 
-- **Blocker: Apple Developer Program enrollment** (0 signing identities,
-  checked 2026-09-17). Needs your Apple ID and a paid enrollment.
+- **Enrolled in the Apple Developer Program** (you, 2026-10-22). This Mac still
+  has no Apple ID in Xcode, no signing identity and no `DEVELOPMENT_TEAM`
+  (checked 2026-10-22).
 - **Supabase pauses when idle** (found `INACTIVE` 2026-09-15). Check before any
   device session; keep it active through App Review.
 - iOS deployment target 16.4 (the CSS needs it).
@@ -120,14 +136,9 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Open work, smaller
 
-- **See first-run setup in the native app** — only a brand-new account shows it.
-  Sign up with a `nonoabc2345+…@gmail.com` address on the SE or 17; on step 1 try
-  "emma van dyke" (should say "that name isn't allowed here").
-- **Device checks not yet done:** single "session expired" message — logging
-  out elsewhere no longer expires a session (log out is local now), so revoke
-  the device's session server-side instead (delete its `auth.sessions` row: a
-  prod write, ask), then relaunch; a username rename (should lock 30 days; old
-  name "taken" at sign-up).
+- Noticed, not filed: deleting a private chapter's last entry leaves its name in
+  `private_chapters`, with no UI to clear it (a later chapter of that name starts
+  private). Harmless; cleared by SQL after the finding 95 fixture.
 - Left as is: finding 52 (SE feed slot); SE max-text composer can scroll the
   field away. Ban not implemented (restore finding 43's sentence only if built).
 - Never exercised: YouTube playback (the card renders — `retrodemo`'s "my first
@@ -135,7 +146,7 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Waiting for you
 
-- Apple enrollment. Prod writes (SQL, dashboard switches) — you paste/flip, the
+- Adding your Apple ID in Xcode (enrolled 2026-10-22). Prod writes (SQL, dashboard switches) — you paste/flip, the
   agent verifies read-only; email template pushes work from here (with your OK).
 - Real-device only: offline banner, and finding 82 (background >1h, Airplane
   Mode, reopen — no "session expired").
@@ -143,15 +154,16 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Accounts
 
-| Account                                          | Use                                                                             |
-| ------------------------------------------------ | ------------------------------------------------------------------------------- |
-| `ldonald234`                                     | **Test data.** cottage-core, 2 entries incl. the overflow fixture — keep it     |
-| `ldonald0234`                                    | **Admin — the only one.** emo-dark, reaches `ModerationView`                    |
-| `retrodemo` (`appreview@retrowaveblog.com`)      | App Review demo, 3 public entries, emo-dark. **Never a fixture**                |
-| `codex-qa-24e3a82f`                              | Public page, classic-xanga (light public fixture)                               |
-| `blankslate`, `ldonald234_xanga`                 | 1 entry each (2026-10-18) — no longer `EmptyState` fixtures                     |
-| `rainbowpudding` (`nonoabc2345@gmail.com`)       | Zero posts, display name "Yes"; **screenshot 06** account. Don't post from it   |
-| `rainbowpudding1` (`nonoabc2345+hook@gmail.com`) | Zero posts, display name "Yes" — the one empty account free to use as a fixture |
+| Account                                          | Use                                                                                                           |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `ldonald234`                                     | **Test data.** cottage-core, 2 entries incl. the overflow fixture — keep it                                   |
+| `ldonald0234`                                    | **Admin — the only one.** emo-dark, reaches `ModerationView`                                                  |
+| `retrodemo` (`appreview@retrowaveblog.com`)      | App Review demo, 3 public entries, emo-dark. **Never a fixture**                                              |
+| `codex-qa-24e3a82f`                              | Public page, classic-xanga (light public fixture)                                                             |
+| `blankslate`, `ldonald234_xanga`                 | 1 entry each (2026-10-18) — no longer `EmptyState` fixtures                                                   |
+| `rainbowpudding` (`nonoabc2345@gmail.com`)       | Zero posts, display name "Yes"; **screenshot 06** account. Don't post from it                                 |
+| `rainbowpudding1` (`nonoabc2345+hook@gmail.com`) | Zero posts, display name "Yes" — the one empty account free to use as a fixture                               |
+| `simrenamed` (a `nonoabc2345+…` address)         | Throwaway (2026-10-22): private, 0 entries, display name "s"; rename-locked to 2026-11-21, `whatsup` reserved |
 
 Gmail `+` addresses reach the same inbox and count as new accounts.
 

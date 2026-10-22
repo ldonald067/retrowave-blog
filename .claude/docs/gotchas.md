@@ -77,6 +77,8 @@ section they belong to — not at the bottom.
 - [2026-10-17 /mobile] **Small simulator screenshots:** the panel's screenshot is always full size, so capture with `xcrun simctl io <udid> screenshot s.png && sips -Z 600 s.png --out small.png` and read the small one (≈⅓ the tokens); crop the full-size file with `sips -c H W --cropOffset Y X` to read fine text. Tap points are then `small px × (point width ÷ small width)`.
 - [2026-10-17 /mobile] **Clearing a field on the simulator:** there is no backspace input. Tap the focused field's caret → "Select All" → "Cut".
 - [2026-10-17 /mobile] After switching simulators, `tap` can fail with `dtuhidSimulatorNotBooted` while `attach` says "already attached" — `detach`, then `attach` the new device. Right after `boot`, `get_app_container` can return a stale bundle path; `listapps` has the real one, and a second call agrees with it.
+- [2026-10-22 /mobile] **Never send `text` and `tap` in the same parallel batch.** They race: a "next" tap landed after the first typed letter and saved the display name "s". One call at a time.
+- [2026-10-22 /mobile] **A revoked session is noticed only when its access token expires** (`jwt_exp` 3600s). Deleting the device's `auth.sessions` row changes nothing until then, and rewriting the stored `expires_at` in the app's prefs plist is refused by auto mode. Instead: HOME to background the app, a background `sleep` until expiry + 1 min, then `simctl launch` (resumes the same process) and burst-capture with `simctl io` every ~1s — the toast shows ~5s.
 
 ## Supabase and RPCs
 
