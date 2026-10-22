@@ -28,28 +28,26 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Waiting on your paste: finding 113** (MED). The `post_reactions` INSERT
-policy's block check can never match. It joins `posts` and `user_blocks`, and
-RLS limits both to the caller's own rows. The policy also never checks whose
-entry it is, so anyone signed in can react to any entry id through the API. No
-screen reacts to someone else's entry.
+**Next up: finding 114** (LOW): hitting a rate limit says "You do not have
+permission" or "Something went wrong" instead of naming the limit. The cause is
+in the audit plan and `gotchas.md` → "Supabase and RPCs".
 
-The fix is written: `20261022000000_reactions_block_check_through_definer_helper.sql`
-(you chose "public entries too"). It adds SECURITY DEFINER `can_react_to_post`, which
-allows your own entries or publicly visible ones and refuses a block in either
-direction through `is_blocked_pair`. The policy calls it. A guard stops the paste
-unless the live policy is the one read on 2026-10-22; that guard was checked
-against prod and passes. The helper's logic was run read-only on real entries:
-another user's public entry is allowed; their private entry, a missing id and no
-session are refused; your own private entry is allowed. The block branch is
-unproven until a test can hold a block row, and prod has 0 blocks. After the
-paste, verify with the queries at the bottom of the file. A block test that
-inserts inside a `DO` block that always raises keeps nothing, but ask first.
+Last done (2026-10-22): **finding 113 fixed and live.** Blocking now stops
+reactions. Before, the `post_reactions` INSERT policy's block check never
+matched, because RLS hid `posts` and `user_blocks` from it. You pasted
+`20261022000000`. The policy now calls SECURITY DEFINER `can_react_to_post`,
+which allows only your own or publicly visible entries and refuses a block in
+either direction. Verified on prod in a `DO` block that always raised:
 
-After that comes finding 114 (LOW): hitting a rate limit says "You do not have
-permission" or "Something went wrong" instead of naming the limit.
+- **no block:** a reaction on another user's public entry inserted.
+- **refused (42501):** their private entry, the owner blocking the reactor, and
+  the reactor blocking the owner.
+- **anon:** cannot call the helper.
 
-Last done (2026-10-22): `/fullstack` audit against prod. All 14 typed RPCs
+Afterwards there were still 1 reaction and 0 blocks, and the privacy smoke
+checks passed 9/9.
+
+Before that, 2026-10-22: `/fullstack` audit against prod. All 14 typed RPCs
 exist with matching args and returns. Every data contract matches its live CHECK
 and the auth config. RLS is on for all six tables, both protective triggers are
 attached, and `npm run check` is green. Nothing was written to prod. The proof
@@ -111,7 +109,7 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Prod state worth knowing (checked by query)
 
-- Migrations through `20261017000000` are applied (pasted by you). 8 auth users,
+- Migrations through `20261022000000` are applied (pasted by you). 8 auth users,
   8 profiles, 8/8 terms accepted, none unconfirmed (2026-10-18).
 - `get_blocked_users` (`20261017000000`): SECURITY DEFINER, authenticated only;
   returns names only while the blocked page is public, because a post's owner can
@@ -119,7 +117,8 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 - Helper EXECUTE (`20261008000000`): `recent_reaction_count` and
   `recent_post_count` — authenticated only, and since `20261016000000` they
   count only the caller (`p_user = auth.uid()`); `is_blocked_pair` —
-  service_role only (nothing calls it; the reactions policy checks blocks inline).
+  service_role only; since `20261022000000` its one caller is `can_react_to_post`
+  (SECURITY DEFINER, authenticated only), which the reactions INSERT policy calls.
 - RLS (`20261007000000`): `profiles` INSERT is own-profile only; the `posts`
   limit (10/hour, RESTRICTIVE) counts through SECURITY DEFINER
   `recent_post_count`. Anonymous sign-ins are off.
