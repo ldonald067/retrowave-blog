@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-21, at the commit after `e95e397` (app code). Mood
+Last rewritten 2026-10-22. App code is `e95e397`; only docs have changed since. Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -26,33 +26,38 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Nothing is queued.** What's left is the Apple enrollment and the checks under
-"Still not seen" below and "Open work, smaller".
+**Nothing is queued.** Small candidates, each one chat, if you want one:
 
-Last done (2026-10-18/20): two `/frontend` audit passes. The first fixed findings
-102–105 (`4895f32`), all contrast: the Settings delete tint, the desktop
-cursor-trail picker, the avatar check and the faded locked username. The second
-fixed findings 106–112 (`e95e397`):
+1. **Deploy `delete-account` and `notify-report`** so their emails pick up
+   finding 107's footer links (4.11 → 4.91). Nothing here documents how
+   functions deploy. Find out first (Supabase CLI `functions deploy` is the
+   likely route), and ask before deploying, since it is a prod change.
+2. **Fix or delete `src/components/ui/Button.tsx`.** It is imported nowhere,
+   and its `danger` variant puts text on a tint of its own colour (audit plan →
+   "Deferred").
+3. **See the code-read-only bits:** a toast's weight on classic-xanga (finding
+   111), and the lowercase intro slide titles (112).
 
-- Desktop hover states that fell below AA (108).
-- A grey chapter make-private button, now a ghost button (109), and the grey ⋮ in
-  the editor (110).
-- Toasts without `.title-bold` (111), and stiff copy (112).
-- The privacy/terms email pill (106) and every email's footer links (107).
+Otherwise what's left is the Apple enrollment and "Open work, smaller".
 
-Most of this was seen on the dev server at 1280 as `ldonald234`; the toast and the
-intro titles are code-read. **One prod change:** the six auth email templates were
-pushed 2026-10-20 (your OK) and read back equal to the repo. The `delete-account`
-and `notify-report` emails keep the old 4.11 footer links until those functions are
-next deployed, which nothing here documents how to do. Before that, findings 100–101
-(`885b15d`), and the one lasting prod change from those tests: "First day back on
-here" (`ldonald234`) has `updated_at` 2026-10-17.
+Last done (2026-10-18 to 10-21): two `/frontend` audit passes fixed findings
+102–112 (`4895f32`, `e95e397`). They were contrast in light and dark themes,
+desktop hover states, grey controls, title-font bold, copy voice, the static
+pages' email pill and the email footer links. Details are in the audit plan's
+findings log. The six auth email templates were pushed 2026-10-20 and read back
+equal to the repo. All six simulators run `e95e397`. Nothing else in prod was
+changed: `post_reactions` is still 1 row, and `ldonald234`'s newest edit is
+still 2026-10-17 ("First day back on here", from the 100–101 tests).
 
 Still not seen: the offline banner (real device). The "~ this goes public ~" dialog
 (finding 95) needs a public profile with a chapter; `ldonald234`'s page is
-private, and `retrodemo` is never a fixture. The sidebar's active chapter **was
-seen** on the dev server (2026-10-18): the desktop sidebar is reachable there at
-1280 once you sign in in the browser pane.
+private, and `retrodemo` is never a fixture.
+
+**Desktop-only UI** (the sidebar, the chapter header's make public/private button,
+hover states) is checked on the dev server at 1280 (`resize_window`). You sign in
+in the browser pane first, since an agent can't, and that session expired within
+two days last time. A hover can be read back with the pane's `hover` action, then
+`getComputedStyle`.
 
 Store shots: all six are brand-free; 06 is `rainbowpudding`, whose display name
 "Yes" is your placeholder — a shot reads "Hi, Yes!", so recapture if you rename
@@ -91,8 +96,10 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 - **Before User Created hook is ON** → `public.hook_before_user_created`. Never
   drop or rename that function while it is on — every sign-up fails.
 - Auth email: 30/hour project-wide, no captcha, Resend free plan — deliberate
-  until abuse or volume. Six templates live and equal to the repo
-  (`node supabase/templates/build.mjs --push`).
+  until abuse or volume. Six templates live and equal to the repo, pushed
+  2026-10-20 (`node supabase/templates/build.mjs --push`; read back through
+  `/v1/projects/<ref>/config/auth`). The deployed `delete-account` and
+  `notify-report` functions predate that `email.ts` change.
 - How usernames, renames, tombstones, terms and first-run setup work:
   `gotchas.md` → "Supabase and RPCs" and "Auth and email".
 
@@ -114,7 +121,8 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 ## Waiting for you
 
 - Apple enrollment. Prod writes (SQL, dashboard switches) — you paste/flip, the
-  agent verifies read-only; email template pushes work from here.
+  agent verifies read-only; email template pushes work from here (with your OK).
+- Whether to deploy the two edge functions (Next, item 1).
 - Real-device only: offline banner, and finding 82 (background >1h, Airplane
   Mode, reopen — no "session expired").
 - Signing in: an agent cannot authenticate; sign in and say which account.
@@ -136,10 +144,9 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 ## Simulators
 
 All six on `e95e397` (`index-C-o8bFwP.js`, installed 2026-10-21), the current
-app code. On the 17e, the editor showed the ⋮ in the title colour and "only u can
-see this entry"; prod was unchanged afterwards (1 reaction, no new edit). Sessions live in
-`UserDefaults` and survive reboots and in-place installs; simulators shut down
-between sessions, so boot first and re-check the installed build.
+app code; left booted that day. Sessions live in `UserDefaults` and survive
+reboots and in-place installs; simulators shut down between sessions, so boot
+first and re-check the installed build.
 
 | Simulator                  | Session      |
 | -------------------------- | ------------ |
