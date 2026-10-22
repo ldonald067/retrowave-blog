@@ -11,7 +11,12 @@ export interface Chapter {
 interface UseChaptersReturn {
   chapters: Chapter[];
   loading: boolean;
-  refetch: () => Promise<void>;
+  /**
+   * Resolves to the fresh list, or null when the fetch failed or was superseded.
+   * Never an empty list standing in for an error: callers prune private_chapters
+   * on it, and a chapter wrongly reported empty would have its entries published.
+   */
+  refetch: () => Promise<Chapter[] | null>;
 }
 
 /**
@@ -27,25 +32,27 @@ export function useChapters(currentUserId: string | null): UseChaptersReturn {
     activeUserIdRef.current = currentUserId;
   }, [currentUserId]);
 
-  const fetchChapters = useCallback(async () => {
+  const fetchChapters = useCallback(async (): Promise<Chapter[] | null> => {
     const requestUserId = currentUserId;
     if (!requestUserId) {
       setChapters([]);
       setLoading(false);
-      return;
+      return null;
     }
 
     setLoading(true);
     try {
       const { data, error } = await withRetry(async () => supabase.rpc('get_user_chapters'));
-      if (activeUserIdRef.current !== requestUserId) return;
+      if (activeUserIdRef.current !== requestUserId) return null;
       if (error) throw error;
       setChapters((data as Chapter[]) ?? []);
+      return (data as Chapter[] | null) ?? null;
     } catch (err) {
-      if (activeUserIdRef.current !== requestUserId) return;
+      if (activeUserIdRef.current !== requestUserId) return null;
       // Chapters are optional UX — degrade gracefully but log for observability
       console.warn('[useChapters] fetch failed:', err);
       setChapters([]);
+      return null;
     } finally {
       if (activeUserIdRef.current === requestUserId) {
         setLoading(false);

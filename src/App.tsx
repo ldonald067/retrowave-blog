@@ -39,6 +39,7 @@ import {
   isSameChapter,
   isChapterPrivate,
   chapterPublishNeedsConfirm,
+  dropEmptyPrivateChapter,
 } from './utils/chapterPrivacy';
 import { computeFeedHeight, feedMaxHeight } from './utils/feedHeight';
 
@@ -776,6 +777,54 @@ function AppInner() {
     setChapterToPublish(null);
   };
 
+  // refetchChaptersAfterLeaving saves private_chapters a fetch after it was
+  // called, so it reads both through refs: a closure taken while a toggle was
+  // still saving would hold the list from before it, and saving that would undo
+  // the toggle — publishing a chapter the user had just hidden.
+  const privateChaptersRef = useRef(profile?.private_chapters);
+  const chapterPrivacySavingRef = useRef(chapterPrivacySaving);
+  useEffect(() => {
+    privateChaptersRef.current = profile?.private_chapters;
+    chapterPrivacySavingRef.current = chapterPrivacySaving;
+  }, [profile?.private_chapters, chapterPrivacySaving]);
+
+  // Refetches the chapter list after an entry leaves `chapter` (deleted, or
+  // edited into another chapter). A private chapter left with no entries drops
+  // off the sidebar and the chips, and with it every control that could un-hide
+  // it, so its name used to linger in private_chapters. The privacy controls stay
+  // locked until this settles: a toggle tapped meanwhile would otherwise be
+  // overwritten by the list saved here. If a privacy save is already in flight,
+  // its outcome is unknown, so the name is left to linger.
+  const refetchChaptersAfterLeaving = useCallback(
+    async (chapter: string | null | undefined) => {
+      if (
+        chapterPrivacySavingRef.current ||
+        !isChapterPrivate(privateChaptersRef.current, chapter)
+      ) {
+        await refetchChapters();
+        return;
+      }
+      setChapterPrivacySaving(true);
+      try {
+        const live = await refetchChapters();
+        if (!live) return; // a failed fetch says nothing about whether it is empty
+        const updated = dropEmptyPrivateChapter(
+          privateChaptersRef.current,
+          chapter,
+          live.map((c) => c.chapter)
+        );
+        if (!updated) return;
+        // The entry is gone whatever happens here, so a failure is not the
+        // user's to fix: the name just lingers, as it always did.
+        const { error } = await updateProfile({ private_chapters: updated });
+        if (error) console.warn('[chapters] could not drop empty private chapter:', error);
+      } finally {
+        setChapterPrivacySaving(false);
+      }
+    },
+    [refetchChapters, updateProfile]
+  );
+
   const handleNewPost = useCallback(() => {
     if (!user) {
       showError('~ sign in 2 write entries! ~');
@@ -848,7 +897,7 @@ function AppInner() {
     } else {
       void hapticImpact();
       success(SUCCESS_MESSAGES.post.deleted);
-      void refetchChapters(); // Last post in a chapter may have been deleted
+      void refetchChaptersAfterLeaving(postToDelete.chapter); // may have been its last entry
       // Only now is it safe to tear the composer down: the entry is gone, so
       // there is nothing left to save into. This also prevents the old bug where
       // a still-mounted composer with post=null fell through to createPost and
@@ -857,7 +906,7 @@ function AppInner() {
       setShowModal(false);
     }
     setPostToDelete(null);
-  }, [postToDelete, deletePost, showError, success, refetchChapters]);
+  }, [postToDelete, deletePost, showError, success, refetchChaptersAfterLeaving]);
 
   const handleSavePost = async (postData: CreatePostInput) => {
     // Guard against a stale edit session: if the entry vanished (e.g. it was
@@ -955,7 +1004,11 @@ function AppInner() {
     }
     setShowModal(false);
     // Refresh chapter list — user may have added/changed/removed a chapter
-    void refetchChapters();
+    const leftChapter =
+      modalMode === 'edit' && !isSameChapter(selectedPost?.chapter, postData.chapter)
+        ? selectedPost?.chapter
+        : null;
+    void refetchChaptersAfterLeaving(leftChapter);
   };
 
   // Local: ends this device's session only. The default global scope revoked

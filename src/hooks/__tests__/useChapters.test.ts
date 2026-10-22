@@ -123,6 +123,33 @@ describe('useChapters', () => {
     expect(result.current.chapters[2]?.chapter).toBe('new chapter');
   });
 
+  it('refetch resolves to the fresh list, and to null rather than [] when it fails', async () => {
+    // App prunes private_chapters on this result: an error read as "no chapters"
+    // would drop a chapter that still has entries, and publish them.
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    try {
+      const { result } = renderHook(() => useChapters(mockUser.id));
+      await waitFor(() => expect(result.current.loading).toBe(false));
+
+      let fresh: unknown;
+      await act(async () => {
+        fresh = await result.current.refetch();
+      });
+      expect(fresh).toEqual(mockChapters);
+
+      vi.mocked(supabase.rpc).mockResolvedValueOnce({
+        data: null,
+        error: { message: 'RPC failed', code: '500' },
+      } as never);
+      await act(async () => {
+        fresh = await result.current.refetch();
+      });
+      expect(fresh).toBeNull();
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
   it('handles null data gracefully (defaults to empty array)', async () => {
     vi.mocked(supabase.rpc).mockResolvedValueOnce({
       data: null,

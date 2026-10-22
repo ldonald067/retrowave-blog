@@ -113,3 +113,27 @@ export function entryVisibility(
   if (isPrivate) return 'private';
   return isChapterPrivate(privateChapters, chapter) ? 'hidden-by-chapter' : 'public';
 }
+
+/**
+ * private_chapters without `chapter`, once no entry is left in it — or null when
+ * there is nothing to drop.
+ *
+ * The chapter controls are drawn from get_user_chapters, which lists only
+ * chapters that still have entries. So when a private chapter's last entry was
+ * deleted or moved, its name stayed in private_chapters with no control left to
+ * clear it, and a chapter typed later with that name started private for no
+ * visible reason.
+ *
+ * `liveChapters` must be a list fetched AFTER the entry left. Dropping a chapter
+ * that still has entries publishes them, so a stale or failed fetch must never
+ * reach here.
+ */
+export function dropEmptyPrivateChapter(
+  privateChapters: readonly string[] | null | undefined,
+  chapter: string | null | undefined,
+  liveChapters: readonly string[]
+): string[] | null {
+  if (!isChapterPrivate(privateChapters, chapter)) return null;
+  if (liveChapters.some((c) => isSameChapter(c, chapter))) return null;
+  return (privateChapters ?? []).filter((c) => !isSameChapter(c, chapter));
+}

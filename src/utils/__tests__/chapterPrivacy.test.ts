@@ -6,6 +6,7 @@ import {
   chapterChangeRepublishes,
   chapterPublishNeedsConfirm,
   entryVisibility,
+  dropEmptyPrivateChapter,
 } from '../chapterPrivacy';
 
 describe('chapterPrivacy', () => {
@@ -146,5 +147,24 @@ describe('entryVisibility', () => {
     expect(
       chapterPublishNeedsConfirm({ privateChapters, chapter: 'therapy', profileIsPublic: false })
     ).toBe(false);
+  });
+});
+
+describe('dropEmptyPrivateChapter', () => {
+  it('drops a private chapter once no entry is left in it, every variant at once', () => {
+    expect(
+      dropEmptyPrivateChapter(['Therapy', 'dreams', ' therapy '], 'THERAPY', ['dreams'])
+    ).toEqual(['dreams']);
+  });
+
+  it('keeps a private chapter that still has an entry, matched normalized', () => {
+    // Dropping it here would publish the entry left behind.
+    expect(dropEmptyPrivateChapter(['Therapy'], 'Therapy', ['therapy '])).toBeNull();
+  });
+
+  it('does nothing for a chapter that was never private, or no chapter', () => {
+    expect(dropEmptyPrivateChapter(['Therapy'], 'summer', [])).toBeNull();
+    expect(dropEmptyPrivateChapter(['Therapy'], null, [])).toBeNull();
+    expect(dropEmptyPrivateChapter(undefined, 'Therapy', [])).toBeNull();
   });
 });
