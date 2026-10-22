@@ -4,7 +4,8 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-22. App code is `e95e397`; only docs have changed since. Mood
+Last rewritten 2026-10-22. App code is `e95e397`; since then only docs changed, and two
+edge functions were redeployed to match the repo (below). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -28,26 +29,27 @@ and limits arrive too soon. Every session:
 
 **Nothing is queued.** Small candidates, each one chat, if you want one:
 
-1. **Deploy `delete-account` and `notify-report`** so their emails pick up
-   finding 107's footer links (4.11 → 4.91). Nothing here documents how
-   functions deploy. Find out first (Supabase CLI `functions deploy` is the
-   likely route), and ask before deploying, since it is a prod change.
-2. **Fix or delete `src/components/ui/Button.tsx`.** It is imported nowhere,
+1. **Fix or delete `src/components/ui/Button.tsx`.** It is imported nowhere,
    and its `danger` variant puts text on a tint of its own colour (audit plan →
    "Deferred").
-3. **See the code-read-only bits:** a toast's weight on classic-xanga (finding
+2. **See the code-read-only bits:** a toast's weight on classic-xanga (finding
    111), and the lowercase intro slide titles (112).
 
 Otherwise what's left is the Apple enrollment and "Open work, smaller".
 
-Last done (2026-10-18 to 10-21): two `/frontend` audit passes fixed findings
-102–112 (`4895f32`, `e95e397`). They were contrast in light and dark themes,
-desktop hover states, grey controls, title-font bold, copy voice, the static
-pages' email pill and the email footer links. Details are in the audit plan's
-findings log. The six auth email templates were pushed 2026-10-20 and read back
-equal to the repo. All six simulators run `e95e397`. Nothing else in prod was
-changed: `post_reactions` is still 1 row, and `ldonald234`'s newest edit is
-still 2026-10-17 ("First day back on here", from the 100–101 tests).
+Last done (2026-10-22): with your OK, redeployed `delete-account` (v5) and
+`notify-report` (v9), so their emails now carry finding 107's footer link
+colour. Before the deploy, the only difference from the repo was that colour.
+Afterwards, the live source downloaded back equal to `HEAD`, `verify_jwt` is still
+on, and calls that send no mail reached both functions' own code. How to deploy:
+`gotchas.md` → "Supabase and RPCs". No email was sent, so the new footer has not
+been seen in an inbox.
+
+Before that (2026-10-18 to 10-21): audit passes fixed findings 102–112
+(`4895f32`, `e95e397`); details are in the audit plan's findings log. The six
+auth email templates were pushed 2026-10-20 and read back equal to the repo. All
+six simulators run `e95e397`. No other prod data changed: `post_reactions`
+is still 1 row, and `ldonald234`'s newest edit is still 2026-10-17.
 
 Still not seen: the offline banner (real device). The "~ this goes public ~" dialog
 (finding 95) needs a public profile with a chapter; `ldonald234`'s page is
@@ -98,8 +100,9 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 - Auth email: 30/hour project-wide, no captcha, Resend free plan — deliberate
   until abuse or volume. Six templates live and equal to the repo, pushed
   2026-10-20 (`node supabase/templates/build.mjs --push`; read back through
-  `/v1/projects/<ref>/config/auth`). The deployed `delete-account` and
-  `notify-report` functions predate that `email.ts` change.
+  `/v1/projects/<ref>/config/auth`).
+- Edge functions: all three live versions equal the repo (checked 2026-10-22 by
+  download): `delete-account` v5, `notify-report` v9, `moderate-content` v11.
 - How usernames, renames, tombstones, terms and first-run setup work:
   `gotchas.md` → "Supabase and RPCs" and "Auth and email".
 
@@ -122,7 +125,6 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 - Apple enrollment. Prod writes (SQL, dashboard switches) — you paste/flip, the
   agent verifies read-only; email template pushes work from here (with your OK).
-- Whether to deploy the two edge functions (Next, item 1).
 - Real-device only: offline banner, and finding 82 (background >1h, Airplane
   Mode, reopen — no "session expired").
 - Signing in: an agent cannot authenticate; sign in and say which account.
