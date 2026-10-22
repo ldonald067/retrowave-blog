@@ -4,8 +4,9 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-22. App code is `e95e397`; since then only docs changed, and two
-edge functions were redeployed to match the repo (below). Mood
+Last rewritten 2026-10-22. App code is `d6b9afc`, which only deletes the unused
+`ui/Button.tsx` from `e95e397` and changes nothing a user sees. Two edge functions
+were also redeployed to match the repo (below). Mood
 art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
@@ -29,15 +30,16 @@ and limits arrive too soon. Every session:
 
 **Nothing is queued.** Small candidates, each one chat, if you want one:
 
-1. **Fix or delete `src/components/ui/Button.tsx`.** It is imported nowhere,
-   and its `danger` variant puts text on a tint of its own colour (audit plan →
-   "Deferred").
-2. **See the code-read-only bits:** a toast's weight on classic-xanga (finding
+1. **See the code-read-only bits:** a toast's weight on classic-xanga (finding
    111), and the lowercase intro slide titles (112).
 
 Otherwise what's left is the Apple enrollment and "Open work, smaller".
 
-Last done (2026-10-22): with your OK, redeployed `delete-account` (v5) and
+Last done (2026-10-22): deleted `src/components/ui/Button.tsx` (`d6b9afc`), which
+nothing imported. A build diff against `e95e397` showed identical JS apart from chunk
+hashes. The CSS lost `animate-spin` and two `disabled:` utilities that only it used.
+
+Also 2026-10-22: with your OK, redeployed `delete-account` (v5) and
 `notify-report` (v9), so their emails now carry finding 107's footer link
 colour. Before the deploy, the only difference from the repo was that colour.
 Afterwards, the live source downloaded back equal to `HEAD`, `verify_jwt` is still
@@ -145,8 +147,9 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `e95e397` (`index-C-o8bFwP.js`, installed 2026-10-21), the current
-app code; left booted that day. Sessions live in `UserDefaults` and survive
+All six on `e95e397` (`index-C-o8bFwP.js`, installed 2026-10-21); left booted
+that day. The current build (`d6b9afc`, `index-DakSLtuU.js`) differs only by the
+unused CSS above, so no reinstall was needed. Sessions live in `UserDefaults` and survive
 reboots and in-place installs; simulators shut down between sessions, so boot
 first and re-check the installed build.
 

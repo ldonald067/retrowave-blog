@@ -427,11 +427,11 @@ counted.
 
 ## Deferred — seen, not filed
 
-| Surface        | Observation                                                                                                     | Why deferred                                                                                                |
-| -------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Public profile | `~ report entry ~` gets its own full-width footer bar on every card — on a stranger's page, the loudest control | A Guideline 1.2 compliance control; not worth re-tiering a reporting affordance for style before submission |
-| Public profile | `start your own journal` appears twice — in the profile card and the footer CTA card                            | Removing a conversion CTA is a product decision, not a hierarchy fix                                        |
-| `ui/Button.tsx` | Imported nowhere. Its `danger` variant is `--accent-secondary` text on a 15% tint of itself (finding 89's pattern), and its non-primary variants are bold title font without `.title-bold` | Dead code, nothing renders it. Fix or delete it before anyone imports it |
+| Surface         | Observation                                                                                                                                                                                | Why deferred                                                                                                                |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Public profile  | `~ report entry ~` gets its own full-width footer bar on every card — on a stranger's page, the loudest control                                                                            | A Guideline 1.2 compliance control; not worth re-tiering a reporting affordance for style before submission                 |
+| Public profile  | `start your own journal` appears twice — in the profile card and the footer CTA card                                                                                                       | Removing a conversion CTA is a product decision, not a hierarchy fix                                                        |
+| `ui/Button.tsx` | Imported nowhere. Its `danger` variant is `--accent-secondary` text on a 15% tint of itself (finding 89's pattern), and its non-primary variants are bold title font without `.title-bold` | Dead code, nothing rendered it. **Deleted 2026-10-22** rather than fixed: every button styles itself with the theme classes |
 
 ## Blocked — cannot be reached from this session
 
