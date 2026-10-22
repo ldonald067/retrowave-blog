@@ -28,10 +28,27 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Nothing is queued.** What's left is the Apple enrollment and "Open work,
-smaller".
+**Queued: finding 113** (MED, `/migration`). The `post_reactions` INSERT
+policy's block check can never match. It joins `posts` and `user_blocks`, and
+RLS limits both to the caller's own rows. The policy also never checks whose entry
+it is, so anyone signed in can react to any entry id through the API. No screen
+reacts to someone else's entry. The fix shape is your call:
 
-Last done (2026-10-22): saw findings 111 and 112 on the iPhone 17 Pro, signed out
+- **own entries only:** matches every screen today and needs no helper.
+- **public entries too:** needs a SECURITY DEFINER helper that checks visibility
+  and blocks, keyed on `auth.uid()`.
+
+Prod has 0 blocks and 0 cross-user reactions, so neither shape breaks anything.
+After that comes finding 114 (LOW): hitting a rate limit says "You do not have
+permission" or "Something went wrong" instead of naming the limit.
+
+Last done (2026-10-22): `/fullstack` audit against prod. All 14 typed RPCs
+exist with matching args and returns. Every data contract matches its live CHECK
+and the auth config. RLS is on for all six tables, both protective triggers are
+attached, and `npm run check` is green. Nothing was written to prod. The proof
+for 113 ran in a `DO` block that always raises, so nothing it did was kept.
+
+Earlier 2026-10-22: saw findings 111 and 112 on the iPhone 17 Pro, signed out
 (classic-xanga). An expired-link toast reads bold, and all four intro titles are
 lowercase. Neither wrote to prod. How to replay the intro and fire a toast
 without a write: `gotchas.md` → "Simulator and verification". The simulator's
