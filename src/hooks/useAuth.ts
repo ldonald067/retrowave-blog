@@ -359,7 +359,13 @@ export function useAuth(): UseAuthReturn {
       deliberateSignOutRef.current = false;
       // Even scope 'local' asks the server first, and supabase-js keeps the
       // session when that request cannot be made — offline, log out cannot work.
-      return { error: toUserMessage(err), offline: isAuthRetryableFetchError(err) };
+      // Status 0 is no response at all. The same error class also carries
+      // 502-504 and 520-530, which are an outage, not the user's connection
+      // (finding 117).
+      return {
+        error: toUserMessage(err),
+        offline: isAuthRetryableFetchError(err) && err.status === 0,
+      };
     }
   };
 

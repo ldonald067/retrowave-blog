@@ -276,6 +276,23 @@ describe('session expiry reporting', () => {
     expect(result.current.sessionExpired).toBe(true);
   });
 
+  // supabase-js uses the same error class for a 503 from the server, which
+  // read "ur offline" to someone who was online (finding 117).
+  it('a sign-out that fails on a server outage is not called offline', async () => {
+    const { AuthRetryableFetchError } = await import('@supabase/supabase-js');
+    vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({
+      error: new AuthRetryableFetchError('Service Unavailable', 503),
+    } as never);
+    const { result } = renderHook(() => useAuth());
+
+    let outcome: { error: string | null; offline?: boolean } | undefined;
+    await act(async () => {
+      outcome = await result.current.signOut({ scope: 'local' });
+    });
+    expect(outcome?.error).not.toBeNull();
+    expect(outcome?.offline).toBe(false);
+  });
+
   it('reports again after a real sign-in starts a new session', async () => {
     const auth = captureAuthCallback();
     const { result } = renderHook(() => useAuth());
