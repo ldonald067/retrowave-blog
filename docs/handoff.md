@@ -27,19 +27,19 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Next up: put the current build on the simulators.** They run `e95e397`. Three
-commits since then change what a user sees, all small:
+**No finding is open, and the simulators run the current build.** What remains
+is Apple-side, plus the device checks under "Open work, smaller" and "Waiting
+for you".
 
-- `251d775`: a double-tapped unblock shows "unblocked" once.
-- `b11b9ed`: logging out during a server outage says "~ couldnt sign out :( try
-  again ~", not "~ ur offline, connect 2 log out ~".
-- `12ffaa0`: rate limits name themselves ("You've written 10 entries in the last
-  hour…", "You're reacting too fast…", "Too many reports right now…").
+Last done (2026-10-22): all six simulators were reinstalled with `12ffaa0`
+(each installed bundle read back as `index-Bdst5UOr.js`; the Pro launched to
+sign-up). That puts three small user-facing changes on them: a double-tapped
+unblock toasts once (`251d775`), logging out during an outage says "~ couldnt
+sign out :( try again ~" (`b11b9ed`), and rate limits name themselves
+(`12ffaa0`).
 
-No finding is open. After that, what remains is Apple-side (below).
-
-Last done (2026-10-22): `/adversarial-review` of the code since `c0fd392` found
-115–117. All three are fixed, and so is 114:
+Before that, `/adversarial-review` of the code since `c0fd392` found 115–117.
+All three are fixed, and so is 114:
 
 - **115–116** (`20261022010000`, which you pasted): `toggle_user_block` is
   unblock-only, and anon lost EXECUTE. An entry's owner can no longer block
@@ -157,9 +157,8 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `e95e397` (`index-C-o8bFwP.js`, installed 2026-10-21); the Pro was
-last booted 2026-10-22. They are behind `12ffaa0` by the three user-facing
-commits under Next, so reinstall. Sessions live in `UserDefaults` and survive
+All six on `12ffaa0` (`index-Bdst5UOr.js`, installed 2026-10-22); the Pro was
+left booted, the rest shut down. Sessions live in `UserDefaults` and survive
 reboots and in-place installs; simulators shut down between sessions, so boot
 first and re-check the installed build.
 
