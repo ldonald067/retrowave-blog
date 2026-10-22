@@ -4,10 +4,9 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-22. App code is `d6b9afc`, which only deletes the unused
-`ui/Button.tsx` from `e95e397` and changes nothing a user sees. Two edge functions
-were also redeployed to match the repo (below). Mood
-art is on hold (your call, 2026-09-30) — don't raise it.
+Last rewritten 2026-10-22, end of day. App code is `12ffaa0`. Every finding in
+the audit plan is fixed except 52 (left as is on purpose). Mood art is on hold
+(your call, 2026-09-30) — don't raise it.
 
 ---
 
@@ -28,73 +27,38 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Next up: the two LOW copy fixes.** **114**: a rate limit says "You do not have
-permission" or "Something went wrong" (the cause is in the audit plan and
-`gotchas.md` → "Supabase and RPCs"). **117**: log out says "ur offline" during
-a server outage (fix: `offline` only when the error's status is 0).
+**Next up: put the current build on the simulators.** They run `e95e397`. Three
+commits since then change what a user sees, all small:
 
-Last done (2026-10-22): **findings 115 and 116 fixed and live.** You pasted
-`20261022010000`. `toggle_user_block` is now unblock-only (the app blocks only
-through `block_user_by_username`), and anon lost EXECUTE. So an entry's owner can
-no longer block reactor ids to read their names off `get_blocked_users`, and a
-double-tapped or retried unblock no longer re-blocks. Verified read-only, then
-in a `DO` block that always raised: a raw id was not blocked and nobody was
-named, blocking by username still worked, two unblocks both left 0 rows, and
-anon was refused. Afterwards there were still 0 blocks and 1 reaction.
+- `251d775`: a double-tapped unblock shows "unblocked" once.
+- `b11b9ed`: logging out during a server outage says "~ couldnt sign out :( try
+  again ~", not "~ ur offline, connect 2 log out ~".
+- `12ffaa0`: rate limits name themselves ("You've written 10 entries in the last
+  hour…", "You're reacting too fast…", "Too many reports right now…").
 
-Then `251d775`: the unblock button locks while its call runs, so a double tap
-shows "unblocked" once, not twice. Seen on the dev server against prod as
-`ldonald234`, with one fixture block you approved: two clicks 60ms apart sent one
-request and showed one toast. Prod was back to 0 blocks afterwards. The
-simulators do not have this build yet.
+No finding is open. After that, what remains is Apple-side (below).
 
-Before that, 2026-10-22: `/adversarial-review` of the code since `c0fd392`,
-which found 115–117 and wrote nothing to prod. Details are in the audit plan.
+Last done (2026-10-22): `/adversarial-review` of the code since `c0fd392` found
+115–117. All three are fixed, and so is 114:
 
-Before that, 2026-10-22: **finding 113 fixed and live.** Blocking now stops
-reactions. Before, the `post_reactions` INSERT policy's block check never
-matched, because RLS hid `posts` and `user_blocks` from it. You pasted
-`20261022000000`. The policy now calls SECURITY DEFINER `can_react_to_post`,
-which allows only your own or publicly visible entries and refuses a block in
-either direction. Verified on prod in a `DO` block that always raised:
+- **115–116** (`20261022010000`, which you pasted): `toggle_user_block` is
+  unblock-only, and anon lost EXECUTE. An entry's owner can no longer block
+  reactor ids to read their names off `get_blocked_users`, and a repeated
+  unblock can no longer re-block. Proven in a `DO` block that always raised.
+- **116's double toast** (`251d775`): seen on the dev server against prod, with
+  one fixture block you approved. Two clicks 60ms apart sent one request and
+  showed one toast. Prod was back to 0 blocks afterwards.
+- **117** (`b11b9ed`) and **114** (`12ffaa0`) are client-only. Each one's tests
+  fail without the fix, and both were checked read-only against prod's policies
+  and raise text. Neither was triggered live: a real limit takes 10 entries on
+  prod, and the pane cannot fake a 503 for supabase-js (`gotchas.md` → "Auth
+  and email").
 
-- **no block:** a reaction on another user's public entry inserted.
-- **refused (42501):** their private entry, the owner blocking the reactor, and
-  the reactor blocking the owner.
-- **anon:** cannot call the helper.
-
-Afterwards there were still 1 reaction and 0 blocks, and the privacy smoke
-checks passed 9/9.
-
-Before that, 2026-10-22: `/fullstack` audit against prod. All 14 typed RPCs
-exist with matching args and returns. Every data contract matches its live CHECK
-and the auth config. RLS is on for all six tables, both protective triggers are
-attached, and `npm run check` is green. Nothing was written to prod. The proof
-for 113 ran in a `DO` block that always raises, so nothing it did was kept.
-
-Earlier 2026-10-22: saw findings 111 and 112 on the iPhone 17 Pro, signed out
-(classic-xanga). An expired-link toast reads bold, and all four intro titles are
-lowercase. Neither wrote to prod. How to replay the intro and fire a toast
-without a write: `gotchas.md` → "Simulator and verification". The simulator's
-intro flag was restored afterwards.
-
-Also 2026-10-22: deleted `src/components/ui/Button.tsx` (`d6b9afc`), which
-nothing imported. A build diff against `e95e397` showed identical JS apart from chunk
-hashes. The CSS lost `animate-spin` and two `disabled:` utilities that only it used.
-
-Also 2026-10-22: with your OK, redeployed `delete-account` (v5) and
-`notify-report` (v9), so their emails now carry finding 107's footer link
-colour. Before the deploy, the only difference from the repo was that colour.
-Afterwards, the live source downloaded back equal to `HEAD`, `verify_jwt` is still
-on, and calls that send no mail reached both functions' own code. How to deploy:
-`gotchas.md` → "Supabase and RPCs". No email was sent, so the new footer has not
-been seen in an inbox.
-
-Before that (2026-10-18 to 10-21): audit passes fixed findings 102–112
-(`4895f32`, `e95e397`); details are in the audit plan's findings log. The six
-auth email templates were pushed 2026-10-20 and read back equal to the repo. All
-six simulators run `e95e397`. No other prod data changed: `post_reactions`
-is still 1 row, and `ldonald234`'s newest edit is still 2026-10-17.
+Earlier 2026-10-22: finding 113 was fixed (`20261022000000`: reactions honour
+blocks), the `/fullstack` audit ran, findings 111–112 were seen on the Pro,
+`ui/Button.tsx` was deleted, and `delete-account` (v5) and `notify-report` (v9)
+were redeployed. The new email footer has not been seen in an inbox yet. Details
+are in the audit plan. Prod now: 0 blocks, 1 reaction, 11 entries, 2 reports.
 
 Still not seen: the offline banner (real device). The "~ this goes public ~" dialog
 (finding 95) needs a public profile with a chapter; `ldonald234`'s page is
@@ -122,17 +86,19 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 - **Supabase pauses when idle** (found `INACTIVE` 2026-09-15). Check before any
   device session; keep it active through App Review.
 - iOS deployment target 16.4 (the CSS needs it).
-- **CI green, 409 tests across 49 files.** `npm run check` = CI.
+- **CI green, 414 tests across 49 files.** `npm run check` = CI.
 - Pushing to `main` deploys the site (Cloudflare Workers build — it failed once
   during a Cloudflare incident on 2026-09-30; a later push fixed it).
 
 ## Prod state worth knowing (checked by query)
 
-- Migrations through `20261022000000` are applied (pasted by you). 8 auth users,
+- Migrations through `20261022010000` are applied (pasted by you). 8 auth users,
   8 profiles, 8/8 terms accepted, none unconfirmed (2026-10-18).
 - `get_blocked_users` (`20261017000000`): SECURITY DEFINER, authenticated only;
   returns names only while the blocked page is public, because a post's owner can
-  read reactors' ids. Any new "show another user's name" needs the same gate.
+  read reactors' ids. That is safe only because no RPC blocks an id
+  (`toggle_user_block` is unblock-only since `20261022010000`, finding 115).
+  Any new "show another user's name" needs the same gate.
 - Helper EXECUTE (`20261008000000`): `recent_reaction_count` and
   `recent_post_count` — authenticated only, and since `20261016000000` they
   count only the caller (`p_user = auth.uid()`); `is_blocked_pair` —
@@ -192,8 +158,8 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 ## Simulators
 
 All six on `e95e397` (`index-C-o8bFwP.js`, installed 2026-10-21); the Pro was
-last booted 2026-10-22. The current build (`d6b9afc`, `index-DakSLtuU.js`) differs only by the
-unused CSS above, so no reinstall was needed. Sessions live in `UserDefaults` and survive
+last booted 2026-10-22. They are behind `12ffaa0` by the three user-facing
+commits under Next, so reinstall. Sessions live in `UserDefaults` and survive
 reboots and in-place installs; simulators shut down between sessions, so boot
 first and re-check the installed build.
 
