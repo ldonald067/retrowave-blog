@@ -71,7 +71,8 @@ const { data, error } = await withRetry(async () => supabase.from('posts').selec
 | `get_blocked_users`        | `useBlocks.ts`        | Safety tab list; names only for public pages        |
 | `block_user_by_username`   | `lib/reporting.ts`    | Block from a public profile page                    |
 | `export_user_data`         | `SettingsModal.tsx`   | GDPR data export                                    |
-| `delete_user_account`      | `SettingsModal.tsx`   | Account deletion                                    |
+| `delete_user_account`      | `delete-account` fn   | Account deletion (SettingsModal calls the function) |
+| `is_username_available`    | `lib/username.ts`     | Sign-up and rename availability check               |
 | `get_public_profile`       | `usePublicProfile.ts` | Read-only public page, `#/u/<username>`             |
 | `get_user_chapters`        | `useChapters.ts`      | Chapter list + counts                               |
 | `report_public_post`       | `lib/reporting.ts`    | Report an entry — **works anonymously**, on purpose |

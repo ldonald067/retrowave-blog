@@ -67,7 +67,7 @@ constraints live there, not in the migration named beside them.
 - Auth guards use `requireAuth()` from `src/lib/auth-guard.ts`
 - Retry logic wraps Supabase calls with `async () =>` (Supabase returns `PromiseLike`, not `Promise`)
 
-**RPC ↔ caller map:** the complete list of 12 lives in `/feature` under
+**RPC ↔ caller map:** the complete list of 14 lives in `/feature` under
 "Existing RPCs" — verify all of them, and regenerate the list from source rather
 than trusting either doc:
 
@@ -89,7 +89,7 @@ grep -rhno "rpc('[a-z_]*'" src --include='*.ts*' | grep -v __tests__ | sed "s/.*
 Verify these fields can't be set directly via PostgREST:
 
 - `profiles.is_admin` — protected by `20260224000006` trigger (silently preserves)
-- `profiles.age_verified`, `tos_accepted`, `birth_year` — protected by `20260224000007` trigger (blocks UPDATE)
+- `profiles.age_verified`, `tos_accepted`, `birth_year` — protected by `20260224000007` trigger (silently preserves; `set_age_verification` bypasses it through `app.coppa_bypass`)
 
 ### 6. Build Verification
 
