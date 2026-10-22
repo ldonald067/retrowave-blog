@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { toUserMessage } from '../lib/errors';
+import { toUserMessage, RATE_LIMIT_MESSAGES } from '../lib/errors';
 import { withRetry } from '../lib/retry';
 import { requireAuth } from '../lib/auth-guard';
 import { hapticImpact } from '../lib/capacitor';
@@ -89,6 +89,12 @@ export function useReactions(options: UseReactionsOptions = {}): UseReactionsRet
       } catch (err) {
         // Rollback: apply the opposite operation
         onOptimisticUpdate?.(postId, emoji, user.id, !wasActive);
+        // The app only reacts to your own entries, which can_react_to_post
+        // always allows, so an insert refused by RLS is the per-minute limit
+        // (finding 114). Revisit if reactions ever reach other people's pages.
+        if (!wasActive && (err as { code?: string })?.code === '42501') {
+          return { error: RATE_LIMIT_MESSAGES.reactions };
+        }
         return { error: toUserMessage(err) };
       } finally {
         inFlightRef.current.delete(key);

@@ -110,6 +110,23 @@ describe('useReactions', () => {
     expect(response.error).toBeTruthy();
   });
 
+  // The per-minute limit is an RLS check, so it arrives as 42501 and read
+  // "You do not have permission" (finding 114).
+  it('names the reaction limit when the insert is refused by RLS', async () => {
+    mockInsertChain({
+      message: 'new row violates row-level security policy for table "post_reactions"',
+      code: '42501',
+    });
+    const { result } = renderHook(() => useReactions());
+
+    let response: { error: string | null } = { error: null };
+    await act(async () => {
+      response = await result.current.toggleReaction('post-1', '😂', []);
+    });
+
+    expect(response.error).toBe("You're reacting too fast. Wait a minute and try again.");
+  });
+
   it('returns auth error when not logged in', async () => {
     vi.mocked(requireAuth).mockResolvedValueOnce({
       user: null,

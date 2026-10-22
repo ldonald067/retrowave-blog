@@ -61,6 +61,14 @@ describe('toUserMessage', () => {
     );
   });
 
+  // report_public_post's limit is P0001, which used to fall through to
+  // "Something went wrong" (finding 114). Prod's exact text.
+  it('names the report limit', () => {
+    expect(
+      toUserMessage({ code: 'P0001', message: 'Too many reports — please try again later' })
+    ).toBe('Too many reports right now. Please try again in a little while.');
+  });
+
   it('never leaks internal details (relation does not exist)', () => {
     const msg = toUserMessage(new Error('relation "posts" does not exist'));
     expect(msg).not.toContain('relation');

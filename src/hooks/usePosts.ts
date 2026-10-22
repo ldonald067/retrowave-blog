@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { toUserMessage } from '../lib/errors';
+import { toUserMessage, RATE_LIMIT_MESSAGES } from '../lib/errors';
 import { withRetry } from '../lib/retry';
 import { requireAuth } from '../lib/auth-guard';
 import { postsCache } from '../lib/cache';
@@ -277,6 +277,11 @@ export function usePosts(currentUserId: string | null): UsePostsReturn {
         }
         return { data: postData, error: null };
       } catch (err) {
+        // An own entry passes "Users can create posts" (user_id is ours), so
+        // the only INSERT check left to fail is the hourly limit (finding 114).
+        if ((err as { code?: string })?.code === '42501') {
+          return { data: null, error: RATE_LIMIT_MESSAGES.posts };
+        }
         return { data: null, error: toUserMessage(err) };
       }
     },

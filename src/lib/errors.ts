@@ -26,6 +26,16 @@ export const POSTGREST_CODES: Record<string, string> = {
   '22P02': 'Invalid data format.',
 };
 
+// Limits enforced by RLS reach the client as a bare 42501, which the code map
+// reads as "You do not have permission" (finding 114). A caller that knows the
+// limit is the only check its insert can fail maps 42501 to one of these. The
+// numbers are prod's: posts' RESTRICTIVE "Rate limit post creation" and the
+// post_reactions INSERT policy.
+export const RATE_LIMIT_MESSAGES = {
+  posts: "You've written 10 entries in the last hour. Try again in a little while.",
+  reactions: "You're reacting too fast. Wait a minute and try again.",
+} as const;
+
 // GoTrue / Auth message fragments → safe messages
 const AUTH_MESSAGE_MAP: Array<[RegExp, string]> = [
   [/invalid login credentials/i, 'Incorrect email or password.'],
@@ -41,6 +51,11 @@ const AUTH_MESSAGE_MAP: Array<[RegExp, string]> = [
   [/jwt expired/i, 'Your session has expired. Please sign in again.'],
   [/invalid jwt/i, 'Your session is invalid. Please sign in again.'],
   [/rate limit/i, 'Too many requests. Please wait a moment and try again.'],
+  // report_public_post raises this (P0001, which the code map does not know)
+  // for two limits: a signed-in reporter's 20 an hour, and signed-out reports
+  // on one entry. No number, since it is not always the caller's own count
+  // (finding 114).
+  [/too many reports/i, 'Too many reports right now. Please try again in a little while.'],
   // Supabase's per-address email throttle (60s). It does not say "rate limit",
   // so it used to fall through to "Something went wrong".
   [/only request this after/i, 'Please wait a moment before asking for another email.'],

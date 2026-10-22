@@ -220,6 +220,35 @@ describe('usePosts', () => {
     expect(result.current.posts[0]?.id).toBe('post-new');
   });
 
+  // The hourly limit is a RESTRICTIVE RLS policy, so the 11th entry arrived as
+  // 42501 and read "You do not have permission" (finding 114).
+  it('createPost names the hourly limit when the insert is refused by RLS', async () => {
+    vi.mocked(supabase.rpc).mockResolvedValueOnce({ data: [], error: null } as never);
+    const singleMock = vi.fn().mockResolvedValue({
+      data: null,
+      error: {
+        message: 'new row violates row-level security policy for table "posts"',
+        code: '42501',
+      },
+    });
+    const selectMock = vi.fn().mockReturnValue({ single: singleMock });
+    const insertMock = vi.fn().mockReturnValue({ select: selectMock });
+    vi.mocked(supabase.from).mockReturnValue({ insert: insertMock } as never);
+
+    const { result } = renderHook(() => usePosts(mockUser.id));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+
+    let response: { data: unknown; error: string | null } = { data: null, error: null };
+    await act(async () => {
+      response = await result.current.createPost({ title: 'Eleventh', content: 'Too soon' });
+    });
+
+    expect(response.error).toBe(
+      "You've written 10 entries in the last hour. Try again in a little while."
+    );
+    expect(result.current.posts).toHaveLength(0);
+  });
+
   it('createPost returns validation error without calling supabase', async () => {
     const { validatePostInput } = await import('../../lib/validation');
     vi.mocked(validatePostInput).mockReturnValueOnce({ title: 'Title is required' });
