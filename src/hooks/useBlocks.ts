@@ -13,7 +13,10 @@ export interface BlockedUser {
 }
 
 interface UseBlocksReturn {
-  /** Toggle block/unblock for a user. Returns whether they are now blocked. */
+  /**
+   * Unblock a user. The RPC is unblock-only despite its name (findings 115-116),
+   * so a repeat call is harmless; blocking goes through block_user_by_username.
+   */
   toggleBlock: (targetUserId: string) => Promise<{ is_blocked: boolean; error: string | null }>;
   /** Fetch the list of users the current user has blocked. */
   fetchBlockedUsers: () => Promise<{ data: BlockedUser[]; error: string | null }>;

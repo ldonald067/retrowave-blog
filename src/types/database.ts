@@ -297,7 +297,9 @@ export interface Database {
         };
         Returns: Json | null;
       };
-      // Apple Guideline 1.2: Toggle block/unblock for a user.
+      // Unblock only, despite the name (20261022010000, findings 115-116): it
+      // deletes the caller's block on this id and always returns false. Blocks
+      // are made by username (block_user_by_username).
       toggle_user_block: {
         Args: {
           p_target_user_id: string;
@@ -305,8 +307,8 @@ export interface Database {
         Returns: { is_blocked: boolean };
       };
       // The caller's blocks, newest first. username and display_name are null
-      // unless the blocked person's page is public — otherwise blocking an id
-      // read off a reaction would reveal a private journal's name.
+      // unless the blocked person's page is public. Safe only because no RPC
+      // blocks an id: one read off a reaction would come back named (115).
       get_blocked_users: {
         Args: Record<string, never>;
         Returns: {
