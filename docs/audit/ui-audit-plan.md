@@ -250,7 +250,7 @@ Severity per `/mobile`: **CRITICAL** rejection risk or dead feature ·
 **HIGH** broken on a device · **MEDIUM** polish. Numbers 40–42 were never
 assigned.
 
-**109 findings, all fixed except 52** (left as is on purpose).
+**114 findings, all fixed except 52** (left as is on purpose) **and 114–117** (open).
 
 | #   | Sev      | Surface                  | Finding                                                                                                                                                                                                                                            | Status                                                 |
 | --- | -------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
@@ -371,8 +371,11 @@ assigned.
 | 112 | LOW | Intro, sign-in, editor | Stiff copy: three Title Case intro titles beside a lowercase one ("~ Your Personal Diary ~"), "Check your email for the magic link!", "Account created! You are now signed in", and the editor's "Only you can see this entry." | Fixed `e95e397`: in the voice and lowercase. The editor hint and all four intro titles were seen (2026-10-22). The magic-link and account-created toasts are code-read only, since each sends an email or creates an account. Lowercase "your" in tilde labels ("~ set your status ~") left as is |
 | 113 | MED | Blocking, reactions | The block dialog promises "they won't be able to react to yours", but the `post_reactions` INSERT policy's block check can never match: it joins `posts` and `user_blocks`, which RLS limits to the caller's own rows. The policy also never checks that the entry is the caller's or public, so anyone signed in can react to any entry id, private ones too. No screen reacts to another person's entry (the feed is your own), so this is reachable through the API only | Fixed `d94497f` — migration `20261022000000` pasted 2026-10-22; in a rolled-back `DO` block a block either way and a private entry are refused (42501), a public entry with no block inserts; privacy smoke 9/9. Found by /fullstack: proven read-only on prod: as `authenticated` with `rainbowpudding1`'s id, `codex-qa-24e3a82f`'s public entry is 0 rows and the policy check is true. 0 blocks and 0 cross-user reactions in prod. The fix: `20261022000000` adds SECURITY DEFINER `can_react_to_post` (own or publicly visible entry, no block either way); logic checked read-only on prod entries, guard checked against the live policy |
 | 114 | LOW | Rate limits | A limit hit says the wrong thing: the 11th entry in an hour and the 61st reaction in a minute fail the RLS check (`42501`) and say "You do not have permission to perform this action."; the 11th report in an hour raises `P0001`, which says "Something went wrong. Please try again." | Open (2026-10-22 /fullstack). Code-read; not triggered |
+| 115 | MED | Blocking, privacy | An entry's owner can learn who reacted to it. The `post_reactions` SELECT policy lets the owner read reactors' user ids, `toggle_user_block` blocks any id, and `get_blocked_users` (`20261017000000`, finding 100) returns the username and display name of anyone blocked whose page is public. Block each reactor id, read the list, toggle again to undo: the reactor never knows. It is prod's only id-to-username function; the UI shows reaction counts only, and `privacy.html` says reactions "stay private by default". API only | Open (2026-10-22 /adversarial-review). Proven from code and read-only prod queries (the live SELECT policy, `toggle_user_block`'s body, every function that touches `username`); not reproduced, because that needs block writes on prod. Fix: make `toggle_user_block` unblock-only; the app blocks only through `block_user_by_username` |
+| 116 | MED | Blocking | Unblocking can block the person again. The safety tab's unblock button has no in-flight guard and `toggle_user_block` flips: a double tap deletes the block, then re-inserts it. Both succeed, so the row leaves the list and "unblocked" shows twice while the block stands. A lost response does the same on its own, since `withRetry` resends on network errors | Open (2026-10-22 /adversarial-review). Proven from code (`ProfileModal.tsx` unblock `onClick`, `useBlocks.ts` toggle call, `retry.ts` `isRetryable`, prod's `toggle_user_block`); not reproduced. Same fix as 115: an unblock-only RPC gives the same result however often it runs. Blocking is already safe (`block_user_by_username` is `ON CONFLICT DO NOTHING`) |
+| 117 | LOW | Log out | "~ ur offline, connect 2 log out ~" also shows when the server is down. supabase-js 2.103.3 raises `AuthRetryableFetchError` for no response (status 0) and for 502–504 and 520–530 (`auth-js/lib/fetch.js`), so a Supabase or Cloudflare outage tells an online user to check their connection, the dead end finding 98 meant to remove | Open (2026-10-22 /adversarial-review). Proven from code (`useAuth.ts` `signOut`, `App.tsx` `handleSignOut`); not triggered. Fix: set `offline` only when the error's `status` is 0 |
 
-Findings 45–114 lifted the count from 41 to 111 (numbers 40–42 unassigned).
+Findings 45–117 lifted the count from 41 to 114 (numbers 40–42 unassigned).
 
 ### Findings 38 and 39 — card titles on the header gradient
 
@@ -497,3 +500,17 @@ lowercase labels, the active chapter and finding 103 were all seen there.
   select still parses a string; theme names are display-only (ids unchanged,
   nothing looks a theme up by name); exactly one chapter-privacy control at
   every width; a failed privacy save leaves the pair on the real state.
+- **2026-10-22** — code since `c0fd392` (`0242c82`…`b58d9e2`: the 95–99 fixes,
+  the duplicate username constraint dropped, named blocks in the safety tab,
+  contrast and copy passes 100–112, reactions honour blocks 113). Findings
+  115–117, all open. Read-only: nothing written to prod. Held up: the
+  rate-limit helpers' only callers in prod are the two INSERT policies, both
+  passing `auth.uid()`; no prod function names `profiles_username_key`;
+  reactions are inserted straight into the table, so 113's policy always
+  applies; `get_blocked_users` is not anon-callable and its names render as
+  text; every chapter-privacy control goes through
+  `requestChapterPrivacyToggle`, and its lock cannot stick (`updateProfile`
+  always returns); a private profile un-hides a chapter without asking, since
+  it has no public page; a failed log out clears the deliberate-sign-out flag
+  and supabase-js keeps the session; the email footer only changed colour, and
+  `notify-report` still escapes its link.

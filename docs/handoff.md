@@ -28,11 +28,23 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Next up: finding 114** (LOW): hitting a rate limit says "You do not have
-permission" or "Something went wrong" instead of naming the limit. The cause is
-in the audit plan and `gotchas.md` → "Supabase and RPCs".
+**Next up: findings 115 and 116** (MEDIUM, one fix). `toggle_user_block` blocks
+any id and flips either way. So an entry's owner can learn who reacted to it
+(block the reactor ids, read the names off `get_blocked_users`, unblock), and a
+double-tapped or retried unblock blocks the person again. Fix: make it
+unblock-only, since the app only blocks through `block_user_by_username`. It is a
+migration, so it needs your paste.
 
-Last done (2026-10-22): **finding 113 fixed and live.** Blocking now stops
+Then the two LOW copy fixes: **114** (a rate limit says "You do not have
+permission" or "Something went wrong"; the cause is in the audit plan and
+`gotchas.md` → "Supabase and RPCs") and **117** (log out says "ur offline"
+during a server outage; fix: `offline` only when the error's status is 0).
+
+Last done (2026-10-22): `/adversarial-review` of the code since `c0fd392`, which
+found 115–117. It was read-only, so nothing was written to prod. Details are in
+the audit plan.
+
+Before that, 2026-10-22: **finding 113 fixed and live.** Blocking now stops
 reactions. Before, the `post_reactions` INSERT policy's block check never
 matched, because RLS hid `posts` and `user_blocks` from it. You pasted
 `20261022000000`. The policy now calls SECURITY DEFINER `can_react_to_post`,
