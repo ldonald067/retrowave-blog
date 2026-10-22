@@ -24,7 +24,7 @@ const AVATAR_STYLES = [
   { id: 'icons', name: 'Icons', category: 'nature' },
   { id: 'identicon', name: 'Geometric', category: 'nature' },
   { id: 'rings', name: 'Rings', category: 'nature' },
-  { id: 'glass', name: 'Glass', category: 'nature' },
+  // No 'glass': it exists only from DiceBear 9.x; the 7.x API used here answers 404.
 ] as const;
 
 // Categories for filtering
