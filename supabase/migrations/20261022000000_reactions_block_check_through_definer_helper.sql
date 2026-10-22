@@ -1,5 +1,10 @@
--- NOT YET APPLIED. Paste into the SQL editor; until then this file describes
--- intent, not prod.
+-- APPLIED to prod 2026-10-22 (pasted into the SQL editor). Verified the same
+-- day: the live policy and grants match the Verify block below, and in a DO
+-- block that always raised (nothing kept; counts re-checked equal after) a
+-- reaction on another user's public entry inserted with no block, and was
+-- refused (42501) on their private entry, when the owner blocked the reactor,
+-- and when the reactor blocked the owner. anon cannot call the helper.
+-- supabase/tests/privacy_smoke.sql: 9/9 pass.
 --
 -- Reactions honour blocks, and only reach your own or public entries
 -- (2026-10-22, finding 113 of that day's /fullstack audit).
