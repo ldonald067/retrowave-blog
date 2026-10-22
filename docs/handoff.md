@@ -4,7 +4,7 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-22, end of day. App code is `12ffaa0`. Every finding in
+Last rewritten 2026-10-22, end of day. App code is `1242015`. Every finding in
 the audit plan is fixed except 52 (left as is on purpose). Mood art is on hold
 (your call, 2026-09-30) — don't raise it.
 
@@ -33,26 +33,23 @@ Settings → Accounts (only you can), then the team goes on the App target and
 Part 1 of `docs/app-store-submission-guide.md` follows. The real-device checks
 under "Waiting for you" need a signed build.
 
-Last done (2026-10-22, late): the four open simulator checks, all passed on the
-Pro, using a new throwaway account (`simrenamed`, see Accounts):
+Last done (2026-10-22, night): a private chapter whose last entry is deleted, or
+edited into another chapter, now drops out of `private_chapters` (`1242015`).
+Before, the name lingered with no control to clear it. Seen on the 17e against
+prod with a fixture you approved on `ldonald234` (one private entry in private
+chapter "zz fixture"): deleting it in the app took `private_chapters` from
+`['zz fixture']` to `[]` and removed the 🤫 chip. Prod re-diffed clean apart from
+`profiles.updated_at`. The edit-into-another-chapter path runs the same code but
+was not driven on device. No profile in prod has a private chapter, so nothing
+lingers from older builds.
 
-- First-run setup refuses "emma van dyke" on step 1 with "~ that name isn't
-  allowed here, try another ~" and stays on step 1.
-- A rename (`whatsup` → `simrenamed`) makes the field read-only with "u can
-  change ur username again on nov 21", and sign-up then says "~ @whatsup is
-  taken, try another ~" (checked with email and password empty, so nothing
-  could be created).
-- Finding 95: with the public page on, "📖 public" on a private chapter shows
-  "~ this goes public ~"; cancel keeps it private. The fixture (one private
-  entry; page public 15:44–15:45 UTC) is reverted, and prod re-diffed clean
-  apart from the account itself.
-- One "~ ur session expired, sign in again ~" toast on resume from background,
-  after you deleted the device's `auth.sessions` row and its token ran out.
-
-Earlier that day all six simulators were reinstalled with `12ffaa0`
-(`index-Bdst5UOr.js`): a double-tapped unblock toasts once (`251d775`),
-logging out during an outage says "~ couldnt sign out :( try again ~"
-(`b11b9ed`), and rate limits name themselves (`12ffaa0`).
+Before that, the four open simulator checks all passed on the Pro with the
+throwaway `simrenamed` (see Accounts): first-run setup refuses "emma van dyke";
+a rename locks the username field until nov 21 and the old name reads as taken;
+finding 95's "~ this goes public ~" confirm (fixture reverted, prod re-diffed);
+and the session-expired toast on resume after its `auth.sessions` row was
+deleted. Earlier, `12ffaa0` had fixed the unblock double toast (`251d775`),
+logout during an outage (`b11b9ed`) and unnamed rate limits.
 
 Before that, `/adversarial-review` of the code since `c0fd392` found 115–117.
 All three are fixed, and so is 114:
@@ -136,9 +133,6 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 
 ## Open work, smaller
 
-- Noticed, not filed: deleting a private chapter's last entry leaves its name in
-  `private_chapters`, with no UI to clear it (a later chapter of that name starts
-  private). Harmless; cleared by SQL after the finding 95 fixture.
 - Left as is: finding 52 (SE feed slot); SE max-text composer can scroll the
   field away. Ban not implemented (restore finding 43's sentence only if built).
 - Never exercised: YouTube playback (the card renders — `retrodemo`'s "my first
@@ -169,7 +163,7 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `12ffaa0` (`index-Bdst5UOr.js`, installed 2026-10-22); the Pro was
+All six on `1242015` (`index-D_-KIeWQ.js`, installed 2026-10-22); the Pro was
 left booted, the rest shut down. Sessions live in `UserDefaults` and survive
 reboots and in-place installs; simulators shut down between sessions, so boot
 first and re-check the installed build.
