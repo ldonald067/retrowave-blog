@@ -28,17 +28,24 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Queued: finding 113** (MED, `/migration`). The `post_reactions` INSERT
+**Waiting on your paste: finding 113** (MED). The `post_reactions` INSERT
 policy's block check can never match. It joins `posts` and `user_blocks`, and
-RLS limits both to the caller's own rows. The policy also never checks whose entry
-it is, so anyone signed in can react to any entry id through the API. No screen
-reacts to someone else's entry. The fix shape is your call:
+RLS limits both to the caller's own rows. The policy also never checks whose
+entry it is, so anyone signed in can react to any entry id through the API. No
+screen reacts to someone else's entry.
 
-- **own entries only:** matches every screen today and needs no helper.
-- **public entries too:** needs a SECURITY DEFINER helper that checks visibility
-  and blocks, keyed on `auth.uid()`.
+The fix is written: `20261022000000_reactions_block_check_through_definer_helper.sql`
+(you chose "public entries too"). It adds SECURITY DEFINER `can_react_to_post`, which
+allows your own entries or publicly visible ones and refuses a block in either
+direction through `is_blocked_pair`. The policy calls it. A guard stops the paste
+unless the live policy is the one read on 2026-10-22; that guard was checked
+against prod and passes. The helper's logic was run read-only on real entries:
+another user's public entry is allowed; their private entry, a missing id and no
+session are refused; your own private entry is allowed. The block branch is
+unproven until a test can hold a block row, and prod has 0 blocks. After the
+paste, verify with the queries at the bottom of the file. A block test that
+inserts inside a `DO` block that always raises keeps nothing, but ask first.
 
-Prod has 0 blocks and 0 cross-user reactions, so neither shape breaks anything.
 After that comes finding 114 (LOW): hitting a rate limit says "You do not have
 permission" or "Something went wrong" instead of naming the limit.
 
