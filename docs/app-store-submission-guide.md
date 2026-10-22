@@ -311,7 +311,8 @@ Only you can do the unticked Apple-side items (Apple ID, GUI).
       the "entry privacy" toggle).
 - [ ] Bump `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` if this is not the
       first upload — the build number must increase every time.
-- [x] Xcode: set Team, archive, upload (Part 1) — 1.0 (1) uploaded 2026-10-22.
+- [x] Xcode: set Team, archive, upload (Part 1) — 1.0 (1) and 1.0 (2) uploaded
+      2026-10-22; submit 1.0 (2).
 - [ ] App Store Connect: create the app record ("Retrowave Journal"), paste
       Parts 2–4. (Record created 2026-10-22; nothing pasted yet.)
 - [ ] Upload screenshots (Part 6).

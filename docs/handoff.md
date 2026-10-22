@@ -27,10 +27,9 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Build 1.0 (1) is uploaded to App Store Connect** (2026-10-22, 13:23 local;
-Apple said "Uploaded package is processing"). It predates `7fd3229`, so its
-avatar picker still offers the broken "Glass" style — upload 1.0 (2) before
-submitting. You are filling in App Store Connect: App Privacy, Age Rating (13+
+**Build 1.0 (2) is uploaded to App Store Connect** (2026-10-22, 14:25 local;
+"Upload succeeded") and carries `7fd3229`'s web build (`index-CzrxaNnZ.js`).
+Select **1.0 (2)** for review, not 1.0 (1), which predates the Glass fix. You are filling in App Store Connect: App Privacy, Age Rating (13+
 by override, matching the terms) and App Information are answered as recorded in
 the guide; still to do are the description/screenshots/review notes (Parts 2,
 5, 6), the Digital Services Act trader declaration (your call), and submit. The real-device checks under "Waiting for
