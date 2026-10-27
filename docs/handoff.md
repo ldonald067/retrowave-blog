@@ -4,9 +4,10 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-22, end of day. App code is `7fd3229`. Every finding in
-the audit plan is fixed except 52 (left as is on purpose). Mood art is on hold
-(your call, 2026-09-30) — don't raise it.
+Last rewritten 2026-10-27. **The iOS app is in App Review.** App code is
+`7fd3229`; the hosted legal pages are at `e6f4482`. Every finding in the audit
+plan is fixed except 52 (left as is on purpose). Mood art is on hold (your call,
+2026-09-30) — don't raise it.
 
 ---
 
@@ -27,61 +28,62 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Build 1.0 (2) is uploaded to App Store Connect** (2026-10-22, 14:25 local;
-"Upload succeeded") and carries `7fd3229`'s web build (`index-CzrxaNnZ.js`).
-Select **1.0 (2)** for review, not 1.0 (1), which predates the Glass fix. You are filling in App Store Connect: App Privacy, Age Rating (13+
-by override, matching the terms) and App Information are answered as recorded in
-the guide; still to do are the description/screenshots/review notes (Parts 2,
-5, 6), the Digital Services Act trader declaration (your call), and submit. The real-device checks under "Waiting for
-you" need your iPhone registered — plug it in with Xcode open.
+**Wait for App Review.** You submitted the app (you said on 2026-10-27 that
+Apple is reviewing it). The build to review is **1.0 (2)** — uploaded
+2026-10-22, `7fd3229`, `index-CzrxaNnZ.js`. 1.0 (1) predates the Glass fix;
+confirm in App Store Connect which one is attached. If Apple rejects or asks a
+question (Resolution Center, plus email), paste the message into a new chat.
 
-Last done (2026-10-22, late): the terms page credits the four CC BY 4.0 avatar
-styles (section 8, live on retrowaveblog.com/terms), and the picker no longer
-offers "Glass", which DiceBear 7.x answers 404 (`7fd3229`; picker seen on the
-17e, editor closed unsaved, prod unchanged).
+While in review:
 
-Before that: a private chapter whose last entry is deleted, or
-edited into another chapter, now drops out of `private_chapters` (`1242015`).
-Before, the name lingered with no control to clear it. Seen on the 17e against
-prod with a fixture you approved on `ldonald234` (one private entry in private
-chapter "zz fixture"): deleting it in the app took `private_chapters` from
-`['zz fixture']` to `[]` and removed the 🤫 chip. Prod re-diffed clean apart from
-`profiles.updated_at`. The edit-into-another-chapter path runs the same code but
-was not driven on device. No profile in prod has a private chapter, so nothing
-lingers from older builds.
+- **Don't touch `retrodemo`** (`appreview@retrowaveblog.com`) or prod schema.
+  Checked 2026-10-22: confirmed, public page on, 3 public entries, not admin.
+- **Supabase stays awake on its own** — see "Where the project is".
+- **A push does not change the reviewed app**: its UI is bundled in the build.
+  It does change what reviewers can open from it — the terms, privacy and
+  support pages on retrowaveblog.com go live about 1–2 minutes after a push.
+- A fix to the app itself needs a new build: bump `CURRENT_PROJECT_VERSION`
+  (now 2), then guide Part 1's recipe.
 
-Before that, the four open simulator checks all passed on the Pro with the
-throwaway `simrenamed` (see Accounts): first-run setup refuses "emma van dyke";
-a rename locks the username field until nov 21 and the old name reads as taken;
-finding 95's "~ this goes public ~" confirm (fixture reverted, prod re-diffed);
-and the session-expired toast on resume after its `auth.sessions` row was
-deleted. Earlier, `12ffaa0` had fixed the unblock double toast (`251d775`),
-logout during an outage (`b11b9ed`) and unnamed rate limits.
+Your decisions, not recorded as made (all in App Store Connect):
 
-Before that, `/adversarial-review` of the code since `c0fd392` found 115–117.
-All three are fixed, and so is 114:
+- Digital Services Act trader declaration (App Information) — needed to sell in
+  the EU. If you declare trader, your address and phone are shown on EU pages.
+- Pricing and Availability: untick **China mainland** (needs an ICP licence;
+  YouTube is blocked there). **Australia** is your call — its under-16
+  social-media law probably doesn't cover a private-by-default diary, but that
+  was a reading, not a certainty.
+- Automatic vs manual release after approval.
 
-- **115–116** (`20261022010000`, which you pasted): `toggle_user_block` is
-  unblock-only, and anon lost EXECUTE. An entry's owner can no longer block
-  reactor ids to read their names off `get_blocked_users`, and a repeated
-  unblock can no longer re-block. Proven in a `DO` block that always raised.
-- **116's double toast** (`251d775`): seen on the dev server against prod, with
-  one fixture block you approved. Two clicks 60ms apart sent one request and
-  showed one toast. Prod was back to 0 blocks afterwards.
-- **117** (`b11b9ed`) and **114** (`12ffaa0`) are client-only. Each one's tests
-  fail without the fix, and both were checked read-only against prod's policies
-  and raise text. Neither was triggered live: a real limit takes 10 entries on
-  prod, and the pane cannot fake a 503 for supabase-js (`gotchas.md` → "Auth
-  and email").
+After approval: the real-device checks under "Waiting for you" need your iPhone
+registered with the team (plug it in with Xcode open).
 
-Earlier 2026-10-22: finding 113 was fixed (`20261022000000`: reactions honour
-blocks), the `/fullstack` audit ran, findings 111–112 were seen on the Pro,
-`ui/Button.tsx` was deleted, and `delete-account` (v5) and `notify-report` (v9)
-were redeployed. The new email footer has not been seen in an inbox yet. Details
-are in the audit plan. Prod now: 9 accounts, 0 blocks, 1 reaction, 11 entries,
-2 reports.
+## Last done
 
-Still not seen: the offline banner (real device).
+- **2026-10-27:** `.github/workflows/keep-supabase-awake.yml` (`2ac10bc`) —
+  one anonymous REST read a day; the first run on GitHub passed.
+- **2026-10-22, App Store Connect:** filled in with you. Every answer (privacy
+  labels, age rating 13+ by override, category, copyright, content rights,
+  screenshots at 1206 × 2622) is recorded in `docs/app-store-submission-guide.md`
+  Parts 2–4 and 6.
+- **2026-10-22, site:** the privacy page says the data is stored in the US
+  (`e6f4482`); the terms page credits the four CC BY 4.0 avatar styles (section
+  8, `7fd3229`). Both checked live.
+- **2026-10-22, app:** the avatar picker no longer offers "Glass", which
+  DiceBear 7.x answers 404 (`7fd3229`, seen on the 17e, editor closed unsaved).
+  A private chapter whose last entry is deleted or moved out drops out of
+  `private_chapters` (`1242015`, seen on the 17e with a fixture you approved,
+  prod re-diffed clean).
+- **2026-10-22, builds:** 1.0 (1) and 1.0 (2) uploaded. The team has no
+  registered devices, so the archive is built unsigned and the App Store export
+  signs it (guide Part 1).
+- Earlier on 2026-10-22: findings 113–117 fixed (reactions honour blocks;
+  `toggle_user_block` unblock-only; one toast per double tap; logout offline
+  message; named rate limits) and the four open simulator checks passed —
+  details in the audit plan.
+
+Still not seen: the offline banner (real device). The new email footer has not
+been seen in an inbox.
 
 **Desktop-only UI** (the sidebar, the chapter header's make public/private button,
 hover states) is checked on the dev server at 1280 (`resize_window`). You sign in
@@ -89,35 +91,38 @@ in the browser pane first, since an agent can't, and that session expired within
 two days last time. A hover can be read back with the pane's `hover` action, then
 `getComputedStyle`.
 
-Store shots: all six are brand-free; 06 is `rainbowpudding`, whose display name
-"Yes" is your placeholder — a shot reads "Hi, Yes!", so recapture if you rename
-it. `retrodemo`'s password lives only in App Store Connect and your password
-manager.
+Store shots: originals (1320 × 2868) in `store-assets/screenshots/`, uploaded
+copies (1206 × 2622) in `store-assets/screenshots/1206x2622/`, both gitignored.
+All six are brand-free; 06 is `rainbowpudding`, whose display name "Yes" is your
+placeholder — a shot reads "Hi, Yes!", so recapture if you rename it.
+`retrodemo`'s password lives only in App Store Connect and your password manager.
 
 ## Where the project is
 
-Web app and backend are done and live at https://retrowaveblog.com. **What
-remains is Apple-side only** — signing, archive/upload, App Store Connect;
-`docs/app-store-submission-guide.md` is the source of truth.
+Web app and backend are live at https://retrowaveblog.com; the iOS app is in
+review. `docs/app-store-submission-guide.md` is the source of truth for the
+store side.
 
 - **Signing works** (2026-10-22): your Apple ID is in Xcode, team `VUHVZ7V5M8`
-  is set on the App target (`efddcaa`), and an Apple Distribution certificate
-  exists. The team has **no registered devices**, so a normal archive fails;
-  the recipe that worked is in guide Part 1.
-- **Supabase pauses when idle** (free plan; found `INACTIVE` 2026-09-15). Since
-  2026-10-27 `.github/workflows/keep-supabase-awake.yml` makes one anonymous read
-  a day (15:17 UTC; first run passed). GitHub disables scheduled workflows in a
-  public repo after 60 days with no commits — re-enable it in the Actions tab, or
-  move to Pro, if the repo goes quiet.
+  (paid, Individual) is set on the App target (`efddcaa`), and an Apple
+  Distribution certificate exists. The team has **no registered devices**, so a
+  normal archive fails; the recipe that works is in guide Part 1.
+- **Supabase is on the free plan, which pauses after about a week idle** (it was
+  `INACTIVE` on 2026-09-15). The daily `keep-supabase-awake` workflow (15:17 UTC)
+  prevents that. GitHub disables scheduled workflows in a public repo after 60
+  days with no commits — re-enable it in the Actions tab, or move to Pro
+  ($25/month), if the repo goes quiet. Status: `ACTIVE_HEALTHY` (2026-10-27).
 - iOS deployment target 16.4 (the CSS needs it).
-- **CI green, 414 tests across 49 files.** `npm run check` = CI.
+- **CI green, 418 tests across 49 files.** `npm run check` = CI.
 - Pushing to `main` deploys the site (Cloudflare Workers build — it failed once
   during a Cloudflare incident on 2026-09-30; a later push fixed it).
 
 ## Prod state worth knowing (checked by query)
 
-- Migrations through `20261022010000` are applied (pasted by you). 8 auth users,
-  8 profiles, 8/8 terms accepted, none unconfirmed (2026-10-18).
+- 2026-10-27: 9 auth users, 9 profiles, 11 entries, 1 reaction, 0 blocks,
+  2 reports (0 open), no profile with a private chapter, every `avatar_url` null
+  (as of 2026-10-22).
+- Migrations through `20261022010000` are applied (pasted by you).
 - `get_blocked_users` (`20261017000000`): SECURITY DEFINER, authenticated only;
   returns names only while the blocked page is public, because a post's owner can
   read reactors' ids. That is safe only because no RPC blocks an id
@@ -148,11 +153,15 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
   field away. Ban not implemented (restore finding 43's sentence only if built).
 - Never exercised: YouTube playback (the card renders — `retrodemo`'s "my first
   entry!!" on the Pro Max, 2026-10-14), a long feed.
+- Accessibility label in App Store Connect: only Reduced Motion and Sufficient
+  Contrast are claimable today. Larger Text needs the composer and feed checked
+  at 200% text; VoiceOver needs a full manual pass.
 
 ## Waiting for you
 
-- App Store Connect (Parts 2–6, submit) is yours to paste. Prod writes (SQL, dashboard switches) — you paste/flip, the
-  agent verifies read-only; email template pushes work from here (with your OK).
+- App Review's outcome, and the App Store Connect decisions listed under "Next".
+- Prod writes (SQL, dashboard switches) — you paste/flip, the agent verifies
+  read-only; email template pushes work from here (with your OK).
 - Real-device only: offline banner, and finding 82 (background >1h, Airplane
   Mode, reopen — no "session expired").
 - Signing in: an agent cannot authenticate; sign in and say which account.
@@ -163,7 +172,7 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- |
 | `ldonald234`                                     | **Test data.** cottage-core, 2 entries incl. the overflow fixture — keep it                                   |
 | `ldonald0234`                                    | **Admin — the only one.** emo-dark, reaches `ModerationView`                                                  |
-| `retrodemo` (`appreview@retrowaveblog.com`)      | App Review demo, 3 public entries, emo-dark. **Never a fixture**                                              |
+| `retrodemo` (`appreview@retrowaveblog.com`)      | App Review demo, 3 public entries, emo-dark. **Never a fixture; don't touch while in review**                 |
 | `codex-qa-24e3a82f`                              | Public page, classic-xanga (light public fixture)                                                             |
 | `blankslate`, `ldonald234_xanga`                 | 1 entry each (2026-10-18) — no longer `EmptyState` fixtures                                                   |
 | `rainbowpudding` (`nonoabc2345@gmail.com`)       | Zero posts, display name "Yes"; **screenshot 06** account. Don't post from it                                 |
@@ -189,7 +198,9 @@ first and re-check the installed build.
 | iPhone SE (3rd generation) | signed out   |
 
 Use the Pro, 17 or Air for signed-out screens. Simulator.app is not installed in
-this Xcode; the software keyboard still appears (seen 2026-10-01).
+this Xcode; the software keyboard still appears (seen 2026-10-01). On the 17e,
+the ⚙ icon opens Settings (export, **delete account**); the 👤 icon opens the
+profile editor.
 
 ## Traps that cost a session
 
@@ -207,3 +218,5 @@ this Xcode; the software keyboard still appears (seen 2026-10-01).
   scratchpad and `cp`. `store-assets/` is gitignored.
 - Every return to the app refetches the profile (`SIGNED_IN`) — anything keyed on
   the `profile` object sees it.
+- In the browser pane, a local `public/*.html` opens as a `data:` URL — never
+  return `location.href` from `javascript_tool` there; it echoes the whole page.

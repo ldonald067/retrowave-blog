@@ -18,9 +18,9 @@ the screenshot plan.
 confirmation (Resend SMTP), AI moderation, RLS, security headers, HTTPS
 redirect, and the hosted legal/support pages are all verified in production.
 
-**What remains is the App Store Connect listing and the submit.** Signing works
-and build 1.0 (1) was uploaded on 2026-10-22. All six screenshots are captured
-(Part 6).
+**Submitted; in App Review as of 2026-10-27.** Signing works, and builds 1.0 (1)
+and 1.0 (2) were uploaded on 2026-10-22 (review 1.0 (2)). The answers given in
+App Store Connect are recorded in Parts 2–4 and 6.
 
 Already handled in code and backend:
 
@@ -322,11 +322,11 @@ Only you can do the unticked Apple-side items (Apple ID, GUI).
       first upload — the build number must increase every time.
 - [x] Xcode: set Team, archive, upload (Part 1) — 1.0 (1) and 1.0 (2) uploaded
       2026-10-22; submit 1.0 (2).
-- [ ] App Store Connect: create the app record ("Retrowave Journal"), paste
-      Parts 2–4. (Record created 2026-10-22; nothing pasted yet.)
-- [ ] Upload screenshots (Part 6).
-- [ ] Paste App Review notes (Part 5).
-- [ ] Submit for review.
+- [x] App Store Connect: create the app record ("Retrowave Journal"), paste
+      Parts 2–4 (2026-10-22).
+- [x] Upload screenshots (Part 6) — the 1206 × 2622 copies.
+- [x] Paste App Review notes (Part 5).
+- [x] Submit for review (in review as of 2026-10-27).
 
 ---
 
