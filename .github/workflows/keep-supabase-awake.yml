@@ -1,0 +1,28 @@
+name: Keep Supabase awake
+
+# The project is on Supabase's free plan, which pauses a project after about a
+# week without activity (it paused on 2026-09-15 after 13 idle days). A paused
+# project signs no one in, App Review's demo account included. One small read a
+# day counts as activity. The URL and publishable key are the ones the web app
+# already ships to every browser; RLS returns no rows to this anonymous read.
+on:
+  schedule:
+    - cron: '17 15 * * *' # daily, 15:17 UTC
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    name: Ping
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read through the REST API
+        env:
+          SUPABASE_URL: https://vzrdnyvoxvjlmymnhbjv.supabase.co
+          SUPABASE_PUBLISHABLE_KEY: sb_publishable_hBaFsmbamyuF2dVzKbc3Vw_pop19Lg3
+        run: |
+          curl --fail-with-body --silent --show-error --retry 3 --retry-delay 30 \
+            "$SUPABASE_URL/rest/v1/profiles?select=id&limit=1" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY"
