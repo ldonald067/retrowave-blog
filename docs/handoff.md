@@ -104,8 +104,11 @@ remains is Apple-side only** — signing, archive/upload, App Store Connect;
   is set on the App target (`efddcaa`), and an Apple Distribution certificate
   exists. The team has **no registered devices**, so a normal archive fails;
   the recipe that worked is in guide Part 1.
-- **Supabase pauses when idle** (found `INACTIVE` 2026-09-15). Check before any
-  device session; keep it active through App Review.
+- **Supabase pauses when idle** (free plan; found `INACTIVE` 2026-09-15). Since
+  2026-10-27 `.github/workflows/keep-supabase-awake.yml` makes one anonymous read
+  a day (15:17 UTC; first run passed). GitHub disables scheduled workflows in a
+  public repo after 60 days with no commits — re-enable it in the Actions tab, or
+  move to Pro, if the repo goes quiet.
 - iOS deployment target 16.4 (the CSS needs it).
 - **CI green, 414 tests across 49 files.** `npm run check` = CI.
 - Pushing to `main` deploys the site (Cloudflare Workers build — it failed once

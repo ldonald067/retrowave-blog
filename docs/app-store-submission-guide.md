@@ -309,10 +309,11 @@ Only you can do the unticked Apple-side items (Apple ID, GUI).
 - [x] All six screenshots captured, 1320 × 2868 (2026-08-15).
 - [x] Re-run `npm run check` on the submission commit and confirm CI is green
       (build 1.0 (1) carries `1242015`'s web code; CI green).
-- [ ] Confirm the Supabase project is **active** and keep it active through
+- [x] Confirm the Supabase project is **active** and keep it active through
       review — it paused on 2026-09-15 after 13 idle days, and a paused project
       signs no one in. Management API `GET /v1/projects/<ref>` →
-      `"status":"ACTIVE_HEALTHY"`, or the dashboard.
+      `"status":"ACTIVE_HEALTHY"`, or the dashboard. Kept awake since 2026-10-27
+      by the daily `keep-supabase-awake` workflow.
 - [ ] Confirm the demo account still signs in and still has its public entries.
 - [ ] Re-read Part 5 against the current build — its steps name real controls,
       and those get renamed (it said "make public" for months after that became
