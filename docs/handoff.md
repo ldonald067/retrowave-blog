@@ -4,8 +4,9 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-27. **The iOS app is in App Review.** App code is
-`7fd3229`; the hosted legal pages are at `e6f4482`. Every finding in the audit
+Last rewritten 2026-10-28. **The iOS app is in App Review.** The reviewed build
+is `7fd3229`; the site is at `bfd1f18` (`index-MlUuBW-3.js`), one web change
+ahead of it — see "Last done". Every finding in the audit
 plan is fixed except 52 (left as is on purpose). Mood art is on hold (your call,
 2026-09-30) — don't raise it.
 
@@ -60,6 +61,15 @@ registered with the team (plug it in with Xcode open).
 
 ## Last done
 
+- **2026-10-28:** public entries now show their song and mood (`bfd1f18`).
+  The public page had dropped both although `get_public_profile` returns them.
+  The song is a one-line link ("♫ title ↗") on the left of the report row, so
+  it adds no height; the mood joins the date band. Seen signed out on the Pro
+  and SE on `retrodemo`'s "my first entry!!", and live on the site. **YouTube
+  playback now seen:** a tap opens the in-app Safari sheet and the video
+  autoplays muted. The reviewed app still lacks this; it ships in the next build.
+- **2026-10-28:** the keep-awake ping ran and passed — GitHub fired the 15:17
+  UTC schedule at 20:21, so expect scheduled runs hours late.
 - **2026-10-27:** `.github/workflows/keep-supabase-awake.yml` (`2ac10bc`) —
   one anonymous REST read a day; the first run on GitHub passed.
 - **2026-10-22, App Store Connect:** filled in with you. Every answer (privacy
@@ -113,7 +123,7 @@ store side.
   days with no commits — re-enable it in the Actions tab, or move to Pro
   ($25/month), if the repo goes quiet. Status: `ACTIVE_HEALTHY` (2026-10-27).
 - iOS deployment target 16.4 (the CSS needs it).
-- **CI green, 418 tests across 49 files.** `npm run check` = CI.
+- **CI green, 420 tests across 49 files.** `npm run check` = CI.
 - Pushing to `main` deploys the site (Cloudflare Workers build — it failed once
   during a Cloudflare incident on 2026-09-30; a later push fixed it).
 
@@ -151,8 +161,8 @@ store side.
 
 - Left as is: finding 52 (SE feed slot); SE max-text composer can scroll the
   field away. Ban not implemented (restore finding 43's sentence only if built).
-- Never exercised: YouTube playback (the card renders — `retrodemo`'s "my first
-  entry!!" on the Pro Max, 2026-10-14), a long feed.
+- Never exercised: a long feed. (YouTube playback was seen 2026-10-28 from the
+  public page; the feed's thumbnail card uses the same `openUrl`.)
 - Accessibility label in App Store Connect: only Reduced Motion and Sufficient
   Contrast are claimable today. **Larger Text is not**, by design: Apple asks for
   200% and `lib/dynamic-type.ts` caps the root scale at 1.3× (`MAX_SCALE`,
@@ -186,8 +196,10 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 ## Simulators
 
-All six on `7fd3229` (`index-CzrxaNnZ.js`, installed 2026-10-22); the Pro was
-left booted, the rest shut down. Sessions live in `UserDefaults` and survive
+The Pro Max stays on the **reviewed build** `7fd3229` (`index-CzrxaNnZ.js`) so
+anything Apple reports can be reproduced as they saw it. The other five are on
+`bfd1f18` (`index-MlUuBW-3.js`, installed 2026-10-28). The Pro was left booted,
+the rest shut down. Sessions live in `UserDefaults` and survive
 reboots and in-place installs; simulators shut down between sessions, so boot
 first and re-check the installed build.
 
