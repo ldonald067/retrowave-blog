@@ -154,8 +154,11 @@ store side.
 - Never exercised: YouTube playback (the card renders — `retrodemo`'s "my first
   entry!!" on the Pro Max, 2026-10-14), a long feed.
 - Accessibility label in App Store Connect: only Reduced Motion and Sufficient
-  Contrast are claimable today. Larger Text needs the composer and feed checked
-  at 200% text; VoiceOver needs a full manual pass.
+  Contrast are claimable today. **Larger Text is not**, by design: Apple asks for
+  200% and `lib/dynamic-type.ts` caps the root scale at 1.3× (`MAX_SCALE`,
+  where the layouts stop truncating; checked 2026-10-28, no device test needed).
+  Claiming it means raising the cap and reworking every layout that truncates —
+  a 1.0.1+ project. VoiceOver needs a full manual pass.
 
 ## Waiting for you
 
