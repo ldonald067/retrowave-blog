@@ -2,7 +2,8 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import PublicProfileView from '../PublicProfileView';
 import { usePublicProfile } from '../../hooks/usePublicProfile';
-import type { PublicProfileData } from '../../types/profile';
+import { openUrl } from '../../lib/capacitor';
+import type { PublicPost, PublicProfileData } from '../../types/profile';
 
 vi.mock('framer-motion', () => ({
   motion: {
@@ -36,6 +37,29 @@ vi.mock('../ui', () => ({
   Avatar: ({ alt }: { alt: string }) => <div data-testid="avatar">{alt}</div>,
 }));
 
+vi.mock('../../utils/parseYouTube', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../utils/parseYouTube')>()),
+  fetchYouTubeTitle: vi.fn().mockResolvedValue('Such Great Heights'),
+}));
+
+vi.mock('../../lib/capacitor', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../lib/capacitor')>()),
+  openUrl: vi.fn(),
+}));
+
+const publicPost: PublicPost = {
+  id: 'post-1',
+  title: 'A public thought',
+  content: 'Shared on purpose.',
+  author: 'Jane',
+  chapter: null,
+  mood: null,
+  music: null,
+  is_private: false,
+  created_at: '2026-04-17T00:00:00Z',
+  content_truncated: false,
+};
+
 const publicData: PublicProfileData = {
   profile: {
     username: 'jane',
@@ -48,20 +72,7 @@ const publicData: PublicProfileData = {
     status_message: 'still up at 2am',
     created_at: '2026-04-17T00:00:00Z',
   },
-  posts: [
-    {
-      id: 'post-1',
-      title: 'A public thought',
-      content: 'Shared on purpose.',
-      author: 'Jane',
-      chapter: null,
-      mood: null,
-      music: null,
-      is_private: false,
-      created_at: '2026-04-17T00:00:00Z',
-      content_truncated: false,
-    },
-  ],
+  posts: [publicPost],
 };
 
 describe('PublicProfileView', () => {
@@ -186,5 +197,54 @@ describe('PublicProfileView', () => {
       'still up at 2am'
     );
     expect(screen.getByRole('button', { name: /browse home/i })).toBeInTheDocument();
+  });
+
+  it("shows an entry's mood and opens its YouTube song in the in-app browser", async () => {
+    const watchUrl = 'https://www.youtube.com/watch?v=0wrsZog8qXg';
+    vi.mocked(usePublicProfile).mockReturnValue({
+      data: {
+        ...publicData,
+        posts: [{ ...publicPost, mood: '😊 happy', music: watchUrl }],
+      },
+      loading: false,
+      notFound: false,
+    });
+    render(
+      <PublicProfileView
+        username="jane"
+        isAuthenticated={false}
+        onSignUp={vi.fn()}
+        onGoHome={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('😊 happy')).toBeInTheDocument();
+    const song = await screen.findByRole('link', {
+      name: 'Listen on YouTube: Such Great Heights',
+    });
+    fireEvent.click(song);
+    expect(openUrl).toHaveBeenCalledWith(watchUrl);
+  });
+
+  it('shows a song that is not a YouTube link as plain text', () => {
+    vi.mocked(usePublicProfile).mockReturnValue({
+      data: {
+        ...publicData,
+        posts: [{ ...publicPost, music: 'the postal service - such great heights' }],
+      },
+      loading: false,
+      notFound: false,
+    });
+    render(
+      <PublicProfileView
+        username="jane"
+        isAuthenticated={false}
+        onSignUp={vi.fn()}
+        onGoHome={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('the postal service - such great heights')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /listen on youtube/i })).not.toBeInTheDocument();
   });
 });

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { ExternalLink } from 'lucide-react';
 import { usePublicProfile } from '../hooks/usePublicProfile';
+import { useYouTubeInfo } from '../hooks/useYouTubeInfo';
 import { applyTheme, DEFAULT_THEME } from '../lib/themes';
+import { openUrl } from '../lib/capacitor';
 import { Avatar } from './ui';
 import { formatDate } from '../utils/formatDate';
 import LoadingSpinner from './LoadingSpinner';
@@ -24,6 +27,8 @@ function PublicPostCard({
   post: PublicPost;
   onReport: (post: PublicPost) => void;
 }) {
+  const ytInfo = useYouTubeInfo(post.music);
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 12 }}
@@ -70,6 +75,12 @@ function PublicPostCard({
               </span>
             </span>
           )}
+          {post.mood && (
+            <span className="min-w-0 max-w-[14rem] truncate">
+              <span className="sr-only">feeling </span>
+              {post.mood}
+            </span>
+          )}
         </div>
       </div>
 
@@ -86,17 +97,52 @@ function PublicPostCard({
         </div>
       </div>
 
+      {/* The song shares the report row instead of getting the feed's
+          thumbnail card. That card is ~100pt tall and would grow an entry by a
+          third on a phone; the left of this 44pt row was empty, so here it
+          costs nothing. A long title truncates rather than wrapping. The feed
+          only ever shows your own entries, so this is the one place a visitor
+          sees someone else's song. */}
       <div
-        className="px-4 py-2 border-t text-right"
+        className="px-4 py-2 border-t flex items-center gap-3"
         style={{
           backgroundColor: 'color-mix(in srgb, var(--bg-primary) 50%, var(--card-bg))',
           borderColor: 'var(--border-primary)',
         }}
       >
+        {post.music && (
+          <p className="min-w-0 flex items-center gap-1.5 text-xs">
+            <span aria-hidden="true" style={{ color: 'var(--accent-primary)' }}>
+              ♫
+            </span>
+            {ytInfo ? (
+              <a
+                href={ytInfo.watchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  void openUrl(ytInfo.watchUrl);
+                }}
+                className="xanga-link min-w-0 gap-1"
+                aria-label={
+                  ytInfo.title ? `Listen on YouTube: ${ytInfo.title}` : 'Listen on YouTube'
+                }
+              >
+                <span className="truncate">{ytInfo.title || 'listen on YouTube'}</span>
+                <ExternalLink size={10} aria-hidden="true" className="flex-shrink-0" />
+              </a>
+            ) : (
+              <span className="truncate italic" style={{ color: 'var(--text-subtitle)' }}>
+                {post.music}
+              </span>
+            )}
+          </p>
+        )}
         <button
           type="button"
           onClick={() => onReport(post)}
-          className="xanga-link-caution inline-flex items-center justify-end text-xs min-h-[44px]"
+          className="xanga-link-caution ml-auto flex-shrink-0 inline-flex items-center justify-end text-xs min-h-[44px]"
           aria-label={`Report public entry: ${post.title}`}
         >
           ~ report entry ~
