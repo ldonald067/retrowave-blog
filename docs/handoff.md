@@ -4,13 +4,53 @@
 pointers only — lessons live in `.claude/docs/gotchas.md`, history in
 `docs/audit/ui-audit-plan.md`. Keep it short: every session reads it.
 
-Last rewritten 2026-10-28. **The iOS app is in App Review.** The reviewed build
-is `7fd3229`; the site is at `bfd1f18` (`index-MlUuBW-3.js`), one web change
-ahead of it — see "Last done". Every finding in the audit
-plan is fixed except 52 (left as is on purpose). Mood art is on hold (your call,
-2026-09-30) — don't raise it.
+Last rewritten 2026-11-03. **Paused** — see the next section. The iOS app was
+submitted to App Review on 2026-10-27 as build `7fd3229`; the outcome is not
+recorded here. The site is at `bfd1f18` (`index-MlUuBW-3.js`), one web change
+ahead of that build. Every finding in the audit plan is fixed except 52 (left as
+is on purpose). Mood art is on hold (your call, 2026-09-30) — don't raise it.
 
 ---
+
+## Paused since 2026-11-03 — read this first when you come back
+
+You ended Claude Pro on 2026-11-03 and may pick this up again later. The repo
+was left clean and pushed; nothing is half-done.
+
+**Runs by itself while you're away**
+
+- The daily `keep-supabase-awake` ping keeps the free Supabase project from
+  pausing. Once the repo has had no commit for 45 days, the same job pushes an
+  empty commit ("Keep scheduled workflows on: …"), because GitHub switches off a
+  public repo's schedules after 60 quiet days. Tested 2026-11-03 (`d023f18`).
+  Those commits are expected; each one redeploys the same site.
+- retrowaveblog.com (Cloudflare Workers), sign-in emails (Resend free plan) and
+  report emails to you (`notify-report`).
+- The domain is registered at Cloudflare until **2029-07-13**.
+
+**Can lapse — nothing here renews it for you**
+
+- **Apple Developer Program** is yearly; if it lapses, the app leaves the App
+  Store. Renewal date: developer.apple.com → Account → Membership.
+- **Supabase**, if the ping ever stops: it pauses after about a week idle.
+  Restore from the dashboard within **90 days** of pausing; after that only a
+  backup download is left (Supabase docs: "Restore project after 90-day pause").
+- If the app is live, people can post and report. Reports email you; act on
+  them in the app signed in as `ldonald0234` (Moderation).
+
+**Coming back, in this order**
+
+1. GitHub → Actions → "Keep Supabase awake": recent runs green? If it says
+   disabled, click "Enable workflow".
+2. Supabase dashboard: project status. If paused, Restore.
+3. App Store Connect: the app's status and Resolution Center; check the
+   membership hasn't lapsed.
+4. On the Mac: if Xcode updated, `git` fails until `sudo xcodebuild -license`.
+   Then `npm ci` and `npm run check`.
+5. With Claude again: `CLAUDE.md`, then this file. Claude's memory for this
+   project lives on this Mac in
+   `~/.claude/projects/-Users-beyonce-Desktop-retrowave-blog/memory/` — keep
+   that folder if you clean up.
 
 ## Keep sessions lean — you are hitting usage limits
 
@@ -29,8 +69,8 @@ and limits arrive too soon. Every session:
 
 ## Next
 
-**Wait for App Review.** You submitted the app (you said on 2026-10-27 that
-Apple is reviewing it). The build to review is **1.0 (2)** — uploaded
+**App Review's outcome.** You submitted the app (you said on 2026-10-27 that
+Apple is reviewing it); check App Store Connect for the result. The build to review is **1.0 (2)** — uploaded
 2026-10-22, `7fd3229`, `index-CzrxaNnZ.js`. 1.0 (1) predates the Glass fix;
 confirm in App Store Connect which one is attached. If Apple rejects or asks a
 question (Resolution Center, plus email), paste the message into a new chat.
@@ -61,6 +101,9 @@ registered with the team (plug it in with Xcode open).
 
 ## Last done
 
+- **2026-11-03:** the keep-awake job now commits when the repo has been quiet
+  for 45 days (`24e692b`); a manual run with `idle_days=0` pushed `d023f18`,
+  proving it. Daily pings 10-28 to 11-03 all passed, 19:20–23:10 UTC.
 - **2026-10-28:** public entries now show their song and mood (`bfd1f18`).
   The public page had dropped both although `get_public_profile` returns them.
   The song is a one-line link ("♫ title ↗") on the left of the report row, so
@@ -119,9 +162,9 @@ store side.
   normal archive fails; the recipe that works is in guide Part 1.
 - **Supabase is on the free plan, which pauses after about a week idle** (it was
   `INACTIVE` on 2026-09-15). The daily `keep-supabase-awake` workflow (15:17 UTC)
-  prevents that. GitHub disables scheduled workflows in a public repo after 60
-  days with no commits — re-enable it in the Actions tab, or move to Pro
-  ($25/month), if the repo goes quiet. Status: `ACTIVE_HEALTHY` (2026-10-27).
+  prevents that, and keeps itself enabled with an empty commit after 45 quiet
+  days (GitHub disables a public repo's schedules at 60). Status:
+  `ACTIVE_HEALTHY` (2026-10-27); pings green through 2026-11-03.
 - iOS deployment target 16.4 (the CSS needs it).
 - **CI green, 420 tests across 49 files.** `npm run check` = CI.
 - Pushing to `main` deploys the site (Cloudflare Workers build — it failed once
@@ -198,8 +241,8 @@ Gmail `+` addresses reach the same inbox and count as new accounts.
 
 The Pro Max stays on the **reviewed build** `7fd3229` (`index-CzrxaNnZ.js`) so
 anything Apple reports can be reproduced as they saw it. The other five are on
-`bfd1f18` (`index-MlUuBW-3.js`, installed 2026-10-28). The Pro was left booted,
-the rest shut down. Sessions live in `UserDefaults` and survive
+`bfd1f18` (`index-MlUuBW-3.js`, installed 2026-10-28). All six were shut down
+on 2026-11-03. Sessions live in `UserDefaults` and survive
 reboots and in-place installs; simulators shut down between sessions, so boot
 first and re-check the installed build.
 
