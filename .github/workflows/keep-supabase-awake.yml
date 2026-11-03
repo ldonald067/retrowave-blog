@@ -9,6 +9,10 @@ on:
   schedule:
     - cron: '17 15 * * *' # daily, 15:17 UTC
   workflow_dispatch:
+    inputs:
+      idle_days:
+        description: 'Commit if the last commit is at least this many days old (0 tests it)'
+        default: '45'
 
 permissions: {}
 
@@ -17,6 +21,8 @@ jobs:
     name: Ping
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write # the empty keep-alive commit below
     steps:
       - name: Read through the REST API
         env:
@@ -26,3 +32,24 @@ jobs:
           curl --fail-with-body --silent --show-error --retry 3 --retry-delay 30 \
             "$SUPABASE_URL/rest/v1/profiles?select=id&limit=1" \
             -H "apikey: $SUPABASE_PUBLISHABLE_KEY"
+
+      # GitHub switches off a public repo's scheduled workflows after 60 days
+      # without a commit, and then this ping stops, the project pauses a week
+      # later, and after 90 days paused it can no longer be restored. So when
+      # the repo has gone quiet for 45 days, add an empty commit. It redeploys
+      # the same site and nothing else (a GITHUB_TOKEN push starts no workflows).
+      - uses: actions/checkout@v4
+        if: always()
+      - name: Commit if the repo has been quiet
+        if: always()
+        env:
+          IDLE_DAYS: ${{ inputs.idle_days || '45' }}
+        run: |
+          idle=$(( ($(date +%s) - $(git log -1 --format=%ct)) / 86400 ))
+          echo "Last commit was $idle days ago (threshold $IDLE_DAYS)"
+          if [ "$idle" -ge "$IDLE_DAYS" ]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit --allow-empty -m "Keep scheduled workflows on: no commits for $idle days"
+            git push
+          fi
